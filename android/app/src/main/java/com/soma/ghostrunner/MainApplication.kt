@@ -1,4 +1,4 @@
-package com.seokkkkkk.ghostrunner
+package com.soma.ghostrunner
 
 import android.app.Application
 import android.content.res.Configuration

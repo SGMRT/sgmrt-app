@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.seokkkkkk.ghostrunner'
+    namespace 'com.soma.ghostrunner'
     defaultConfig {
-        applicationId 'com.seokkkkkk.ghostrunner'
+        applicationId 'com.soma.ghostrunner'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

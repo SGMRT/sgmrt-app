@@ -1,4 +1,4 @@
-package com.seokkkkkk.ghostrunner
+package com.soma.ghostrunner
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

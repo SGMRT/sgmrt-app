@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>ghostrunner</string>
-          <string>com.seokkkkkk.ghost-runner</string>
+          <string>com.soma.ghost-runner</string>
         </array>
       </dict>
       <dict>
