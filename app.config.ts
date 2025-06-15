@@ -9,9 +9,10 @@ const config = {
         userInterfaceStyle: "automatic",
         newArchEnabled: true,
         ios: {
-            supportsTablet: true,
+            bundleIdentifier: "com.sgmrt.ghostrunner",
         },
         android: {
+            package: "com.sgmrt.ghostrunner",
             adaptiveIcon: {
                 foregroundImage: "./assets/images/adaptive-icon.png",
                 backgroundColor: "#ffffff",
@@ -44,9 +45,8 @@ const config = {
             [
                 "@rnmapbox/maps",
                 {
-                    RNMapboxMapsDownloadtOKEN:
-                        "sk.eyJ1Ijoic2dtcnQiLCJhIjoiY21ieDQ3amw5MTMwdjJpczEycG1hcTdndiJ9.wVjCu8HAcZagGw5LNXZUtw",
-                    RNMapboxMapsVersion: "11.0.0",
+                    RNMapboxMapsDownloadToken:
+                        process.env.MAPBOX_DOWNLOAD_TOKEN,
                 },
             ],
         ],
