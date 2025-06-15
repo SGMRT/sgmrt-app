@@ -17,19 +17,56 @@ import {
 import { useEffect, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 
-const circularCourse = Array.from({ length: 100 }, (_, i) => {
-    const pi = (2 * Math.PI * i) / 120;
-    const radius = 0.002;
-    const lon = 126.9502078182 + radius * Math.cos(pi);
-    const lat = 37.5439458182 + radius * Math.sin(pi);
-    return [lon, lat];
-});
+interface Course {
+    id: number;
+    name: string;
+    count: number;
+    topUsers: { userId: number; username: string; profileImage: string }[];
+    coordinates: [number, number][];
+}
 
 export default function Home() {
     const [isFollowing, setIsFollowing] = useState(true);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [activeCourse, setActiveCourse] = useState<number>(0);
+
+    const makeCircularCourse = (
+        lon: number,
+        lat: number,
+        length: number
+    ): [number, number][] => {
+        return Array.from({ length }, (_, i) => {
+            const pi = (2 * Math.PI * i) / length;
+            const radius = 0.001;
+            const newLon = lon + radius * Math.cos(pi);
+            const newLat = lat + radius * Math.sin(pi);
+            return [newLon, newLat] as [number, number];
+        });
+    };
+
+    useEffect(() => {
+        for (let i = 0; i < 3; i++) {
+            setCourses((prev) => [
+                ...prev,
+                {
+                    id: i,
+                    name: `course${i}`,
+                    count: 49,
+                    topUsers: [],
+                    coordinates: makeCircularCourse(
+                        126.9503078182 + Math.random() * 0.005 * i,
+                        37.5439468182 + Math.random() * 0.005 * i,
+                        90
+                    ),
+                },
+            ]);
+        }
+
+        console.log(courses);
+    }, []);
 
     const styles = {
-        lineLayer: {
+        activeLineLayer: {
             lineCap: "round",
             lineJoin: "round",
             lineWidth: 3,
@@ -42,6 +79,21 @@ export default function Home() {
                 "#ffffff",
                 1,
                 "#CFE900",
+            ],
+        },
+        inactiveLineLayer: {
+            lineCap: "round",
+            lineJoin: "round",
+            lineWidth: 3,
+            lineEmissiveStrength: 1,
+            lineGradient: [
+                "interpolate",
+                ["linear"],
+                ["line-progress"], // 선 길이 비율 0~1
+                0,
+                "#ffffff",
+                1,
+                "#ffffff",
             ],
         },
         startCircle: {
@@ -90,7 +142,6 @@ export default function Home() {
                 </Images>
                 <StyleImport
                     id="basemap"
-                    existing
                     config={{
                         theme: "monochrome",
                         lightPreset: "night",
@@ -119,39 +170,51 @@ export default function Home() {
                     }}
                 />
                 <UserLocation visible={false} />
-                <ShapeSource
-                    id="line-source"
-                    lineMetrics={1}
-                    shape={{
-                        type: "Feature",
-                        properties: {
-                            color: "#ffffff",
-                        },
-                        geometry: {
-                            type: "LineString",
-                            coordinates: circularCourse,
-                        },
-                    }}
-                >
-                    <LineLayer id="line-layer" style={styles.lineLayer} />
-                </ShapeSource>
-                {circularCourse.length > 0 && (
-                    <ShapeSource
-                        id="start-point-source"
-                        shape={{
-                            type: "Feature",
-                            geometry: {
-                                type: "Point",
-                                coordinates: circularCourse[0],
-                            },
-                        }}
-                    >
-                        <CircleLayer
-                            id="start-point-layer"
-                            style={styles.startCircle}
-                        />
-                    </ShapeSource>
-                )}
+                {courses.map((course) => (
+                    <View key={course.id}>
+                        <ShapeSource
+                            onPress={() => {
+                                setActiveCourse(course.id);
+                            }}
+                            id={`line-source-${course.id}`}
+                            lineMetrics={1}
+                            shape={{
+                                type: "Feature",
+                                properties: {
+                                    color: "#ffffff",
+                                },
+                                geometry: {
+                                    type: "LineString",
+                                    coordinates: course.coordinates,
+                                },
+                            }}
+                        >
+                            <LineLayer
+                                id={`line-layer-${course.id}`}
+                                style={
+                                    activeCourse === course.id
+                                        ? styles.activeLineLayer
+                                        : styles.inactiveLineLayer
+                                }
+                            />
+                        </ShapeSource>
+                        <ShapeSource
+                            id={`start-point-source-${course.id}`}
+                            shape={{
+                                type: "Feature",
+                                geometry: {
+                                    type: "Point",
+                                    coordinates: course.coordinates[0],
+                                },
+                            }}
+                        >
+                            <CircleLayer
+                                id={`start-point-layer-${course.id}`}
+                                style={styles.startCircle}
+                            />
+                        </ShapeSource>
+                    </View>
+                ))}
             </MapView>
             <TouchableOpacity
                 style={{
