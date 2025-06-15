@@ -47,6 +47,7 @@ const config = {
                 {
                     RNMapboxMapsDownloadToken:
                         process.env.MAPBOX_DOWNLOAD_TOKEN,
+                    RNMapboxMapsVersion: "11.12.2",
                 },
             ],
         ],
