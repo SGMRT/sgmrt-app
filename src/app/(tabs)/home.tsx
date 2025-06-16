@@ -7,6 +7,7 @@ import {
     LineLayer,
     LocationPuck,
     MapView,
+    MarkerView,
     setTelemetryEnabled,
     ShapeSource,
     StyleImport,
@@ -14,8 +15,9 @@ import {
     Viewport,
 } from "@rnmapbox/maps";
 
+import { Image as RNImage, Text, TouchableOpacity, View } from "react-native";
+
 import { useEffect, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
 
 interface Course {
     id: number;
@@ -24,6 +26,43 @@ interface Course {
     topUsers: { userId: number; username: string; profileImage: string }[];
     coordinates: [number, number][];
 }
+
+const CourseInformation = ({ course }: { course: Course }) => {
+    return (
+        <View style={{ gap: 10, alignItems: "center" }}>
+            <View
+                style={{
+                    backgroundColor: "rgba(75, 75, 75, 0.8)",
+                    height: 36,
+                    maxWidth: 110,
+                    justifyContent: "center",
+                    paddingHorizontal: 13.5,
+                    borderRadius: 5,
+                }}
+            >
+                <Text style={{ color: "white", fontSize: 14 }}>
+                    {course.name}
+                </Text>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+                {course.topUsers.map((user, index) => (
+                    <RNImage
+                        key={user.userId}
+                        source={{ uri: user.profileImage }}
+                        style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 100,
+                            marginLeft: index === 0 ? 0 : -18,
+                            backgroundColor: "white",
+                            boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
+                        }}
+                    />
+                ))}
+            </View>
+        </View>
+    );
+};
 
 export default function Home() {
     const [isFollowing, setIsFollowing] = useState(true);
@@ -52,7 +91,18 @@ export default function Home() {
                     id: i,
                     name: `course${i}`,
                     count: 49,
-                    topUsers: [],
+                    topUsers: [
+                        {
+                            userId: 1,
+                            username: "user1",
+                            profileImage: "https://via.placeholder.com/150",
+                        },
+                        {
+                            userId: 2,
+                            username: "user2",
+                            profileImage: "https://via.placeholder.com/150",
+                        },
+                    ],
                     coordinates: makeCircularCourse(
                         126.9503078182 + Math.random() * 0.005 * i,
                         37.5439468182 + Math.random() * 0.005 * i,
@@ -151,6 +201,7 @@ export default function Home() {
                         showTransitLabels: true,
                         show3dObjects: true,
                     }}
+                    existing={true}
                 />
                 <Camera
                     minZoomLevel={14}
@@ -172,12 +223,19 @@ export default function Home() {
                 <UserLocation visible={false} />
                 {courses.map((course) => (
                     <View key={course.id}>
+                        <MarkerView
+                            id={`marker-view-${course.id}`}
+                            coordinate={course.coordinates[0]}
+                            anchor={{ x: 0.5, y: 0.8 }}
+                        >
+                            <CourseInformation course={course} />
+                        </MarkerView>
                         <ShapeSource
                             onPress={() => {
                                 setActiveCourse(course.id);
                             }}
                             id={`line-source-${course.id}`}
-                            lineMetrics={1}
+                            lineMetrics={1 as any}
                             shape={{
                                 type: "Feature",
                                 properties: {
@@ -206,6 +264,7 @@ export default function Home() {
                                     type: "Point",
                                     coordinates: course.coordinates[0],
                                 },
+                                properties: {},
                             }}
                         >
                             <CircleLayer
