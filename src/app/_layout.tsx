@@ -2,6 +2,7 @@ import Mapbox from "@rnmapbox/maps";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,8 +22,10 @@ export default function RootLayout() {
     }, [loaded]);
 
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(tabs)" />
-        </Stack>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(tabs)" />
+            </Stack>
+        </GestureHandlerRootView>
     );
 }
