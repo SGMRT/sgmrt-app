@@ -12,6 +12,7 @@ import {
     ShapeSource,
     StyleImport,
     UserLocation,
+    UserTrackingMode,
     Viewport,
 } from "@rnmapbox/maps";
 
@@ -38,47 +39,90 @@ interface Course {
     coordinates: [number, number][];
 }
 
-const CourseInformation = ({ course }: { course: Course }) => {
+const CourseInformation = ({
+    course,
+    onClickCourse,
+}: {
+    course: Course;
+    onClickCourse: (course: Course) => void;
+}) => {
+    const userCountWithoutTopUsers = course.count - course.topUsers.length;
+
     return (
-        <View style={{ gap: 10, alignItems: "center" }}>
-            <View
-                style={{
-                    backgroundColor: "rgba(63, 63, 63, 0.8)",
-                    height: 33,
-                    justifyContent: "center",
-                    paddingHorizontal: 12,
-                    borderRadius: 5,
-                }}
-            >
-                <Typography variant="subhead3" style={{ color: colors.white }}>
-                    {course.name}
-                </Typography>
+        <Pressable onPress={() => onClickCourse(course)}>
+            <View style={{ gap: 10, alignItems: "center" }}>
+                <View
+                    style={{
+                        backgroundColor: "rgba(63, 63, 63, 0.8)",
+                        height: 33,
+                        justifyContent: "center",
+                        paddingHorizontal: 12,
+                        borderRadius: 5,
+                    }}
+                >
+                    <Typography
+                        variant="subhead3"
+                        style={{ color: colors.white }}
+                    >
+                        {course.name}
+                    </Typography>
+                </View>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    {course.topUsers.map((user, index) => (
+                        <RNImage
+                            key={user.userId}
+                            source={{ uri: user.profileImage }}
+                            style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 100,
+                                marginLeft: index === 0 ? 0 : -14,
+                                backgroundColor: "white",
+                                boxShadow:
+                                    "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
+                            }}
+                        />
+                    ))}
+                    {userCountWithoutTopUsers > 0 && (
+                        <View
+                            style={{
+                                backgroundColor: "rgba(63, 63, 63, 0.8)",
+                                borderRadius: 100,
+                                width: 40,
+                                height: 40,
+                                marginLeft: -14,
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Typography
+                                variant="body2"
+                                style={{
+                                    color: colors.gray[40],
+                                }}
+                            >
+                                +{userCountWithoutTopUsers}
+                            </Typography>
+                        </View>
+                    )}
+                </View>
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-                {course.topUsers.map((user, index) => (
-                    <RNImage
-                        key={user.userId}
-                        source={{ uri: user.profileImage }}
-                        style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 100,
-                            marginLeft: index === 0 ? 0 : -14,
-                            backgroundColor: "white",
-                            boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
-                        }}
-                    />
-                ))}
-            </View>
-        </View>
+        </Pressable>
     );
 };
 
 export default function Home() {
     const [isFollowing, setIsFollowing] = useState(true);
-    const [isCompass, setIsCompass] = useState(false);
+    const [followUserMode, setFollowUserMode] = useState(
+        UserTrackingMode.Follow
+    );
     const [courses, setCourses] = useState<Course[]>([]);
     const [activeCourse, setActiveCourse] = useState<number>(0);
+
+    const onClickCourse = (course: Course) => {
+        setActiveCourse(course.id);
+        // TODO: 모달 띄우기
+    };
 
     const makeCircularCourse = (
         lon: number,
@@ -137,12 +181,19 @@ export default function Home() {
     const onStatusChanged = (status: any) => {
         if (status.to.kind === "idle") {
             setIsFollowing(false);
-            setIsCompass(false);
+            setFollowUserMode(UserTrackingMode.Follow);
         }
     };
 
     const onClickCompass = () => {
-        setIsCompass(!isCompass);
+        if (!isFollowing) {
+            onClickLocateMe();
+        }
+        setFollowUserMode(
+            followUserMode === UserTrackingMode.Follow
+                ? UserTrackingMode.FollowWithHeading
+                : UserTrackingMode.Follow
+        );
     };
 
     return (
@@ -245,6 +296,7 @@ export default function Home() {
                     followZoomLevel={16}
                     animationDuration={0}
                     followUserLocation={isFollowing}
+                    followUserMode={followUserMode}
                 />
                 <Viewport onStatusChanged={onStatusChanged} />
                 <LocationPuck visible={true} topImage="puck" />
@@ -256,12 +308,13 @@ export default function Home() {
                             coordinate={getTopCoordinate(course.coordinates)}
                             anchor={{ x: 0.5, y: 0.7 }}
                         >
-                            <CourseInformation course={course} />
+                            <CourseInformation
+                                course={course}
+                                onClickCourse={onClickCourse}
+                            />
                         </MarkerView>
                         <ShapeSource
-                            onPress={() => {
-                                setActiveCourse(course.id);
-                            }}
+                            onPress={() => onClickCourse(course)}
                             id={`line-source-${course.id}`}
                             lineMetrics={1 as any}
                             shape={{
