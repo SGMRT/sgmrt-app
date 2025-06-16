@@ -1,4 +1,4 @@
-import { LocateMe } from "@/assets/svgs/svgs";
+import { Compass, LocateMe, Puck } from "@/assets/svgs/svgs";
 import {
     Camera,
     CircleLayer,
@@ -19,13 +19,14 @@ import Constants from "expo-constants";
 import {
     Pressable,
     Image as RNImage,
-    Text,
     TouchableOpacity,
     View,
 } from "react-native";
 
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
+import { mapboxStyles } from "@/src/theme/mapboxStyles";
+import { getTopCoordinate } from "@/src/utils/mapUtils";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 
@@ -42,19 +43,18 @@ const CourseInformation = ({ course }: { course: Course }) => {
         <View style={{ gap: 10, alignItems: "center" }}>
             <View
                 style={{
-                    backgroundColor: "rgba(75, 75, 75, 0.8)",
-                    height: 36,
-                    maxWidth: 110,
+                    backgroundColor: "rgba(63, 63, 63, 0.8)",
+                    height: 33,
                     justifyContent: "center",
-                    paddingHorizontal: 13.5,
+                    paddingHorizontal: 12,
                     borderRadius: 5,
                 }}
             >
-                <Text style={{ color: "white", fontSize: 14 }}>
+                <Typography variant="subhead3" style={{ color: colors.white }}>
                     {course.name}
-                </Text>
+                </Typography>
             </View>
-            <View style={{ flexDirection: "row" }}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
                 {course.topUsers.map((user, index) => (
                     <RNImage
                         key={user.userId}
@@ -63,7 +63,7 @@ const CourseInformation = ({ course }: { course: Course }) => {
                             width: 40,
                             height: 40,
                             borderRadius: 100,
-                            marginLeft: index === 0 ? 0 : -18,
+                            marginLeft: index === 0 ? 0 : -14,
                             backgroundColor: "white",
                             boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
                         }}
@@ -76,6 +76,7 @@ const CourseInformation = ({ course }: { course: Course }) => {
 
 export default function Home() {
     const [isFollowing, setIsFollowing] = useState(true);
+    const [isCompass, setIsCompass] = useState(false);
     const [courses, setCourses] = useState<Course[]>([]);
     const [activeCourse, setActiveCourse] = useState<number>(0);
 
@@ -125,56 +126,23 @@ export default function Home() {
         console.log(courses);
     }, []);
 
-    const styles = {
-        activeLineLayer: {
-            lineCap: "round",
-            lineJoin: "round",
-            lineWidth: 3,
-            lineEmissiveStrength: 1,
-            lineGradient: [
-                "interpolate",
-                ["linear"],
-                ["line-progress"], // 선 길이 비율 0~1
-                0,
-                "#ffffff",
-                1,
-                "#CFE900",
-            ],
-        },
-        inactiveLineLayer: {
-            lineCap: "round",
-            lineJoin: "round",
-            lineWidth: 3,
-            lineEmissiveStrength: 1,
-            lineGradient: [
-                "interpolate",
-                ["linear"],
-                ["line-progress"], // 선 길이 비율 0~1
-                0,
-                "#ffffff",
-                1,
-                "#ffffff",
-            ],
-        },
-        startCircle: {
-            circleRadius: 6,
-            circleColor: "#ffffff",
-            circleEmissiveStrength: 1,
-        },
-    };
-
     useEffect(() => {
         setTelemetryEnabled(false);
     }, []);
 
-    const moveToUserLocation = () => {
-        setIsFollowing(true);
+    const onClickLocateMe = () => {
+        setIsFollowing(!isFollowing);
     };
 
     const onStatusChanged = (status: any) => {
         if (status.to.kind === "idle") {
             setIsFollowing(false);
+            setIsCompass(false);
         }
+    };
+
+    const onClickCompass = () => {
+        setIsCompass(!isCompass);
     };
 
     return (
@@ -250,20 +218,12 @@ export default function Home() {
                 scaleBarEnabled={false}
                 logoEnabled={false}
                 attributionPosition={{ bottom: 20, left: 20 }}
+                attributionEnabled={false}
                 styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
             >
                 <Images>
                     <Image name="puck">
-                        <View
-                            style={{
-                                borderColor: "white",
-                                borderWidth: 3,
-                                width: 23,
-                                height: 23,
-                                borderRadius: 100,
-                                backgroundColor: "#cfe900",
-                            }}
-                        />
+                        <Puck />
                     </Image>
                 </Images>
                 <StyleImport
@@ -287,22 +247,14 @@ export default function Home() {
                     followUserLocation={isFollowing}
                 />
                 <Viewport onStatusChanged={onStatusChanged} />
-                <LocationPuck
-                    visible={true}
-                    topImage="puck"
-                    pulsing={{
-                        isEnabled: true,
-                        color: "#cfe900",
-                        radius: 22,
-                    }}
-                />
+                <LocationPuck visible={true} topImage="puck" />
                 <UserLocation visible={false} />
                 {courses.map((course) => (
                     <View key={course.id}>
                         <MarkerView
                             id={`marker-view-${course.id}`}
-                            coordinate={course.coordinates[0]}
-                            anchor={{ x: 0.5, y: 0.8 }}
+                            coordinate={getTopCoordinate(course.coordinates)}
+                            anchor={{ x: 0.5, y: 0.7 }}
                         >
                             <CourseInformation course={course} />
                         </MarkerView>
@@ -327,8 +279,8 @@ export default function Home() {
                                 id={`line-layer-${course.id}`}
                                 style={
                                     activeCourse === course.id
-                                        ? styles.activeLineLayer
-                                        : styles.inactiveLineLayer
+                                        ? mapboxStyles.activeLineLayer
+                                        : mapboxStyles.inactiveLineLayer
                                 }
                             />
                         </ShapeSource>
@@ -345,28 +297,51 @@ export default function Home() {
                         >
                             <CircleLayer
                                 id={`start-point-layer-${course.id}`}
-                                style={styles.startCircle}
+                                style={
+                                    activeCourse === course.id
+                                        ? mapboxStyles.activeCircle
+                                        : mapboxStyles.inactiveCircle
+                                }
                             />
                         </ShapeSource>
                     </View>
                 ))}
             </MapView>
-            <TouchableOpacity
+            <View
                 style={{
                     position: "absolute",
-                    bottom: 20,
-                    right: 20,
-                    backgroundColor: "rgba(75, 75, 75, 0.8)",
-                    borderRadius: 100,
-                    width: 49.53,
-                    height: 49.53,
-                    justifyContent: "center",
-                    alignItems: "center",
+                    bottom: 16,
+                    left: 17,
+                    gap: 8,
                 }}
-                onPress={moveToUserLocation}
             >
-                <LocateMe />
-            </TouchableOpacity>
+                <TouchableOpacity
+                    style={{
+                        backgroundColor: "rgba(17, 17, 17, 0.8)",
+                        borderRadius: 100,
+                        width: 48,
+                        height: 48,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                    onPress={onClickCompass}
+                >
+                    <Compass />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={{
+                        backgroundColor: "rgba(17, 17, 17, 0.8)",
+                        borderRadius: 100,
+                        width: 48,
+                        height: 48,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                    onPress={onClickLocateMe}
+                >
+                    <LocateMe />
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
