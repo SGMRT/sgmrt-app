@@ -15,8 +15,9 @@ import {
     UserTrackingMode,
     Viewport,
 } from "@rnmapbox/maps";
-
+import axios from "axios";
 import Constants from "expo-constants";
+import * as ExpoLocation from "expo-location";
 import {
     Pressable,
     Image as RNImage,
@@ -25,6 +26,7 @@ import {
 } from "react-native";
 
 import { Typography } from "@/src/components/ui/Typography";
+import { useLocationInfoStore } from "@/src/store/locationInfo";
 import colors from "@/src/theme/colors";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import { getTopCoordinate } from "@/src/utils/mapUtils";
@@ -118,6 +120,9 @@ export default function Home() {
     );
     const [courses, setCourses] = useState<Course[]>([]);
     const [activeCourse, setActiveCourse] = useState<number>(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const { coords, address, temperature, lastUpdated, setLocationInfo } =
+        useLocationInfoStore();
 
     const onClickCourse = (course: Course) => {
         setActiveCourse(course.id);
@@ -174,6 +179,41 @@ export default function Home() {
         setTelemetryEnabled(false);
     }, []);
 
+    const getLocationInfo = async ({
+        longitude,
+        latitude,
+    }: {
+        longitude: number;
+        latitude: number;
+    }) => {
+        if (isLoading) return;
+        if (lastUpdated && lastUpdated.getTime() + 1000 * 60 * 5 > Date.now()) {
+            return;
+        }
+
+        setIsLoading(true);
+
+        const address = await ExpoLocation.reverseGeocodeAsync({
+            latitude,
+            longitude,
+        });
+
+        const temperature = await axios.get(
+            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.EXPO_PUBLIC_OWM_TOKEN}`
+        );
+
+        setLocationInfo(
+            [longitude, latitude],
+            address[0].district ||
+                address[0].city ||
+                address[0].region ||
+                address[0].country ||
+                "--",
+            temperature.data.main.temp
+        );
+        setIsLoading(false);
+    };
+
     const onClickLocateMe = () => {
         setIsFollowing(!isFollowing);
     };
@@ -221,7 +261,8 @@ export default function Home() {
                         variant="subhead2"
                         style={{ color: colors.gray[40] }}
                     >
-                        무거동 21°
+                        {address}
+                        {temperature ? `${Math.round(temperature)}°` : "--°"}
                     </Typography>
                 </View>
                 <View
@@ -300,7 +341,15 @@ export default function Home() {
                 />
                 <Viewport onStatusChanged={onStatusChanged} />
                 <LocationPuck visible={true} topImage="puck" />
-                <UserLocation visible={false} />
+                <UserLocation
+                    visible={false}
+                    onUpdate={(location) => {
+                        getLocationInfo({
+                            longitude: location.coords.longitude,
+                            latitude: location.coords.latitude,
+                        });
+                    }}
+                />
                 {courses.map((course) => (
                     <View key={course.id}>
                         <MarkerView
