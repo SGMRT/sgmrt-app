@@ -9,7 +9,10 @@ export default function TabLayout() {
     const pathname = usePathname();
     const isHome = pathname.includes("home");
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.black }}>
+        <SafeAreaView
+            style={{ flex: 1, backgroundColor: colors.black }}
+            edges={["bottom"]}
+        >
             <Tabs
                 backBehavior="history"
                 screenOptions={{

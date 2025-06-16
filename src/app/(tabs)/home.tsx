@@ -15,8 +15,18 @@ import {
     Viewport,
 } from "@rnmapbox/maps";
 
-import { Image as RNImage, Text, TouchableOpacity, View } from "react-native";
+import Constants from "expo-constants";
+import {
+    Pressable,
+    Image as RNImage,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
+import { Typography } from "@/src/components/ui/Typography";
+import colors from "@/src/theme/colors";
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 
 interface Course {
@@ -168,7 +178,73 @@ export default function Home() {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, position: "relative" }}>
+            <LinearGradient
+                colors={["rgba(0, 0, 0, 1)", "transparent"]}
+                style={{
+                    paddingTop: Constants.statusBarHeight,
+                    position: "absolute",
+                    backdropFilter: "blur(1px)",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    zIndex: 100,
+                }}
+            >
+                <View
+                    style={{
+                        height: 50,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <Typography
+                        variant="subhead2"
+                        style={{ color: colors.gray[40] }}
+                    >
+                        무거동 21°
+                    </Typography>
+                </View>
+                <View
+                    style={{
+                        paddingTop: 10,
+                        paddingHorizontal: 17,
+                        flexDirection: "row",
+                        gap: 20,
+                    }}
+                >
+                    <Pressable>
+                        <Typography
+                            variant="subhead2"
+                            style={{
+                                color: colors.gray[60],
+                            }}
+                        >
+                            필터
+                        </Typography>
+                    </Pressable>
+                    <Pressable>
+                        <Typography
+                            variant="subhead2"
+                            style={{
+                                color: colors.primary,
+                            }}
+                        >
+                            고스트 코스
+                        </Typography>
+                    </Pressable>
+                    <Pressable>
+                        <Typography
+                            variant="subhead2"
+                            style={{
+                                color: colors.gray[60],
+                            }}
+                        >
+                            내 코스
+                        </Typography>
+                    </Pressable>
+                </View>
+            </LinearGradient>
             <MapView
                 style={{ flex: 1 }}
                 scaleBarEnabled={false}
