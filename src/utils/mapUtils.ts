@@ -20,4 +20,4 @@ const getDistance = (coord1: [number, number], coord2: [number, number]) => {
     return R * c;
 };
 
-export { getTopCoordinate };
+export { getTopCoordinate, getDistance };

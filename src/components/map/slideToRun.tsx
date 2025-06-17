@@ -80,7 +80,7 @@ export default function SlideToRun({ onSuccess }: { onSuccess: () => void }) {
                     <Triangle />
                     <Typography
                         variant="subhead1"
-                        style={{ color: colors.primary }}
+                        color="primary"
                     >
                         밀어서 러닝시작
                     </Typography>

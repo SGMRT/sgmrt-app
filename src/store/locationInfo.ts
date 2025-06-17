@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -21,10 +22,27 @@ export const useLocationInfoStore = create<LocationInfoState>()(
             temperature: null,
             lastUpdated: null,
             setLocationInfo: (coords, address, temperature) =>
-                set({ coords, address, temperature, lastUpdated: new Date() }),
+                set({
+                    coords,
+                    address,
+                    temperature,
+                    lastUpdated: new Date(),
+                }),
         }),
         {
             name: "location-info",
+            storage: {
+                getItem: async (name) => {
+                    const raw = await AsyncStorage.getItem(name);
+                    return raw ? JSON.parse(raw) : null;
+                },
+                setItem: async (name, value) => {
+                    await AsyncStorage.setItem(name, JSON.stringify(value));
+                },
+                removeItem: async (name) => {
+                    await AsyncStorage.removeItem(name);
+                },
+            },
         }
     )
 );

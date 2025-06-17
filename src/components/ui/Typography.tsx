@@ -1,3 +1,4 @@
+import colors from "@/src/theme/colors";
 import { StyleSheet, Text, TextProps } from "react-native";
 
 export type TypographyVariant =
@@ -11,15 +12,26 @@ export type TypographyVariant =
     | "body2"
     | "caption1";
 
+export type TypographyColor =
+    | "black"
+    | "gray80"
+    | "gray60"
+    | "gray40"
+    | "gray20"
+    | "white"
+    | "primary";
+
 export function Typography({
     children,
     style,
     variant = "body1",
+    color = "black",
     ...props
-}: TextProps & { variant?: TypographyVariant }) {
+}: TextProps & { variant?: TypographyVariant; color?: TypographyColor }) {
     const variantStyle = styles[variant];
+    const colorStyle = styles[color];
     return (
-        <Text style={[variantStyle, style]} {...props}>
+        <Text style={[variantStyle, colorStyle, style]} {...props}>
             {children}
         </Text>
     );
@@ -79,5 +91,26 @@ const styles = StyleSheet.create({
         fontSize: 12,
         lineHeight: 18,
         letterSpacing: -0.6,
+    },
+    black: {
+        color: colors.black,
+    },
+    gray80: {
+        color: colors.gray[80],
+    },
+    gray60: {
+        color: colors.gray[60],
+    },
+    gray40: {
+        color: colors.gray[40],
+    },
+    gray20: {
+        color: colors.gray[20],
+    },
+    white: {
+        color: colors.white,
+    },
+    primary: {
+        color: colors.primary,
     },
 });

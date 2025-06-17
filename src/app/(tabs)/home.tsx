@@ -21,25 +21,18 @@ import * as ExpoLocation from "expo-location";
 import {
     Pressable,
     Image as RNImage,
+    StyleSheet,
     TouchableOpacity,
     View,
 } from "react-native";
 
 import { Typography } from "@/src/components/ui/Typography";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
-import colors from "@/src/theme/colors";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
+import { Course } from "@/src/types/course";
 import { getTopCoordinate } from "@/src/utils/mapUtils";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-
-interface Course {
-    id: number;
-    name: string;
-    count: number;
-    topUsers: { userId: number; username: string; profileImage: string }[];
-    coordinates: [number, number][];
-}
 
 const CourseInformation = ({
     course,
@@ -62,10 +55,7 @@ const CourseInformation = ({
                         borderRadius: 5,
                     }}
                 >
-                    <Typography
-                        variant="subhead3"
-                        style={{ color: colors.white }}
-                    >
+                    <Typography variant="subhead3" color="white">
                         {course.name}
                     </Typography>
                 </View>
@@ -97,12 +87,7 @@ const CourseInformation = ({
                                 alignItems: "center",
                             }}
                         >
-                            <Typography
-                                variant="body2"
-                                style={{
-                                    color: colors.gray[40],
-                                }}
-                            >
+                            <Typography variant="body2" color="gray40">
                                 +{userCountWithoutTopUsers}
                             </Typography>
                         </View>
@@ -237,69 +222,30 @@ export default function Home() {
     };
 
     return (
-        <View style={{ flex: 1, position: "relative" }}>
+        <View style={styles.container}>
             <LinearGradient
                 colors={["rgba(0, 0, 0, 1)", "transparent"]}
-                style={{
-                    paddingTop: Constants.statusBarHeight,
-                    position: "absolute",
-                    backdropFilter: "blur(1px)",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    zIndex: 100,
-                }}
+                style={styles.headerContainer}
             >
-                <View
-                    style={{
-                        height: 50,
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
-                    <Typography
-                        variant="subhead2"
-                        style={{ color: colors.gray[40] }}
-                    >
+                <View style={styles.weatherInfoContainer}>
+                    <Typography variant="subhead2" color="gray40">
                         {address}
                         {temperature ? `${Math.round(temperature)}°` : "--°"}
                     </Typography>
                 </View>
-                <View
-                    style={{
-                        paddingTop: 10,
-                        paddingHorizontal: 17,
-                        flexDirection: "row",
-                        gap: 20,
-                    }}
-                >
+                <View style={styles.filterContainer}>
                     <Pressable>
-                        <Typography
-                            variant="subhead2"
-                            style={{
-                                color: colors.gray[60],
-                            }}
-                        >
+                        <Typography variant="subhead2" color="gray60">
                             필터
                         </Typography>
                     </Pressable>
                     <Pressable>
-                        <Typography
-                            variant="subhead2"
-                            style={{
-                                color: colors.primary,
-                            }}
-                        >
+                        <Typography variant="subhead2" color="primary">
                             고스트 코스
                         </Typography>
                     </Pressable>
                     <Pressable>
-                        <Typography
-                            variant="subhead2"
-                            style={{
-                                color: colors.gray[60],
-                            }}
-                        >
+                        <Typography variant="subhead2" color="gray60">
                             내 코스
                         </Typography>
                     </Pressable>
@@ -447,3 +393,30 @@ export default function Home() {
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        position: "relative",
+    },
+    headerContainer: {
+        paddingTop: Constants.statusBarHeight,
+        position: "absolute",
+        backdropFilter: "blur(1px)",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+    },
+    weatherInfoContainer: {
+        height: 50,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    filterContainer: {
+        paddingTop: 10,
+        paddingHorizontal: 17,
+        flexDirection: "row",
+        gap: 20,
+    },
+});

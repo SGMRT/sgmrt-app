@@ -1,5 +1,5 @@
 import { HomeIcon, ProfileIcon, StatsIcon } from "@/assets/svgs/svgs";
-import SlideToRun from "@/src/components/map/slideToRun";
+import SlideToRun from "@/src/components/map/SlideToRun";
 import colors from "@/src/theme/colors";
 import { Tabs, usePathname } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
