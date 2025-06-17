@@ -1,31 +1,18 @@
-import { Compass, LocateMe, Puck } from "@/assets/svgs/svgs";
 import {
-    Camera,
     CircleLayer,
-    Image,
-    Images,
     LineLayer,
-    LocationPuck,
-    MapView,
     MarkerView,
     setTelemetryEnabled,
     ShapeSource,
-    StyleImport,
-    UserLocation,
     UserTrackingMode,
-    Viewport,
 } from "@rnmapbox/maps";
 import axios from "axios";
 import Constants from "expo-constants";
 import * as ExpoLocation from "expo-location";
-import {
-    Pressable,
-    Image as RNImage,
-    StyleSheet,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { Pressable, Image as RNImage, StyleSheet, View } from "react-native";
 
+import ControlPannel from "@/src/components/map/ControlPannel";
+import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import { Typography } from "@/src/components/ui/Typography";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
@@ -251,51 +238,12 @@ export default function Home() {
                     </Pressable>
                 </View>
             </LinearGradient>
-            <MapView
-                style={{ flex: 1 }}
-                scaleBarEnabled={false}
-                logoEnabled={false}
-                attributionPosition={{ bottom: 20, left: 20 }}
-                attributionEnabled={false}
-                styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
+            <MapViewWrapper
+                isFollowing={isFollowing}
+                followUserMode={followUserMode}
+                onStatusChanged={onStatusChanged}
+                getLocationInfo={getLocationInfo}
             >
-                <Images>
-                    <Image name="puck">
-                        <Puck />
-                    </Image>
-                </Images>
-                <StyleImport
-                    id="basemap"
-                    config={{
-                        theme: "monochrome",
-                        lightPreset: "night",
-                        showPlaceLabels: false,
-                        showRoadLabels: false,
-                        showPointOfInterestLabels: true,
-                        showTransitLabels: true,
-                        show3dObjects: true,
-                    }}
-                    existing={true}
-                />
-                <Camera
-                    minZoomLevel={14}
-                    maxZoomLevel={18}
-                    followZoomLevel={16}
-                    animationDuration={0}
-                    followUserLocation={isFollowing}
-                    followUserMode={followUserMode}
-                />
-                <Viewport onStatusChanged={onStatusChanged} />
-                <LocationPuck visible={true} topImage="puck" />
-                <UserLocation
-                    visible={false}
-                    onUpdate={(location) => {
-                        getLocationInfo({
-                            longitude: location.coords.longitude,
-                            latitude: location.coords.latitude,
-                        });
-                    }}
-                />
                 {courses.map((course) => (
                     <View key={course.id}>
                         <MarkerView
@@ -354,42 +302,11 @@ export default function Home() {
                         </ShapeSource>
                     </View>
                 ))}
-            </MapView>
-            <View
-                style={{
-                    position: "absolute",
-                    bottom: 16,
-                    left: 17,
-                    gap: 8,
-                }}
-            >
-                <TouchableOpacity
-                    style={{
-                        backgroundColor: "rgba(17, 17, 17, 0.8)",
-                        borderRadius: 100,
-                        width: 48,
-                        height: 48,
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                    onPress={onClickCompass}
-                >
-                    <Compass />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={{
-                        backgroundColor: "rgba(17, 17, 17, 0.8)",
-                        borderRadius: 100,
-                        width: 48,
-                        height: 48,
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                    onPress={onClickLocateMe}
-                >
-                    <LocateMe />
-                </TouchableOpacity>
-            </View>
+            </MapViewWrapper>
+            <ControlPannel
+                onClickCompass={onClickCompass}
+                onClickLocateMe={onClickLocateMe}
+            />
         </View>
     );
 }
