@@ -40,6 +40,7 @@ export default memo(function TabBar({ position, style }: TabBarProps) {
                     <Pressable
                         key={tab.name}
                         onPress={() => router.navigate(tab.path as any)}
+                        style={styles.tab}
                     >
                         <Image
                             source={tab.icon}
@@ -60,6 +61,12 @@ export default memo(function TabBar({ position, style }: TabBarProps) {
 });
 
 const styles = StyleSheet.create({
+    tab: {
+        flex: 1,
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+    },
     container: {
         flexDirection: "row",
         width: "100%",
@@ -67,7 +74,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.black,
         justifyContent: "space-between",
         alignItems: "center",
-        paddingHorizontal: 40,
     },
     bottom: {
         position: "absolute",
