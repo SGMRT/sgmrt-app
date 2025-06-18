@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import ControlPannel from "@/src/components/map/ControlPannel";
 import CourseMarkers from "@/src/components/map/CourseMarkers";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import SlideToAction from "@/src/components/map/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import { Typography } from "@/src/components/ui/Typography";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
@@ -187,6 +188,14 @@ export default function Home() {
                 onClickLocateMe={onClickLocateMe}
             />
             <TabBar />
+            <SlideToAction
+                label="밀어서 러닝시작"
+                onSlideSuccess={() => {
+                    console.log("slide success");
+                }}
+                color="green"
+                direction="left"
+            />
         </View>
     );
 }

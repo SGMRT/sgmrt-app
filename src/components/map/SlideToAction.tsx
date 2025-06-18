@@ -1,10 +1,11 @@
-import { Triangle } from "@/assets/svgs/svgs";
+import { Triangle } from "@/assets/icons/icons";
 import colors from "@/src/theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
-import { LayoutChangeEvent, View } from "react-native";
+import { Image, LayoutChangeEvent, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
     interpolate,
+    runOnJS,
     useAnimatedStyle,
     useSharedValue,
     withSpring,
@@ -12,7 +13,19 @@ import Animated, {
 } from "react-native-reanimated";
 import { Typography } from "../ui/Typography";
 
-export default function SlideToRun({ onSuccess }: { onSuccess: () => void }) {
+interface SlideToActionProps {
+    label: string;
+    onSlideSuccess: () => void;
+    color: "red" | "green";
+    direction: "left" | "right";
+}
+
+export default function SlideToAction({
+    label,
+    onSlideSuccess,
+    color,
+    direction,
+}: SlideToActionProps) {
     const trackWidth = useSharedValue(0);
     const translateX = useSharedValue(0);
     const boxOpacity = useSharedValue(1);
@@ -27,7 +40,10 @@ export default function SlideToRun({ onSuccess }: { onSuccess: () => void }) {
     const panGesture = Gesture.Pan()
         .onUpdate((e) => {
             translateX.value = Math.min(
-                Math.max(e.translationX, 0),
+                Math.max(
+                    direction === "left" ? e.translationX : -e.translationX,
+                    0
+                ),
                 trackWidth.value
             );
         })
@@ -35,6 +51,7 @@ export default function SlideToRun({ onSuccess }: { onSuccess: () => void }) {
             if (translateX.value > trackWidth.value * 0.75) {
                 translateX.value = withSpring(trackWidth.value * 2);
                 boxOpacity.value = withTiming(0, { duration: 1000 });
+                runOnJS(onSlideSuccess)();
             } else {
                 translateX.value = withTiming(0);
                 boxOpacity.value = withTiming(1);
@@ -61,8 +78,6 @@ export default function SlideToRun({ onSuccess }: { onSuccess: () => void }) {
                     position: "relative",
                     height: 56,
                     width: "100%",
-                    alignItems: "flex-start",
-                    overflow: "hidden",
                 }}
             >
                 <View
@@ -77,14 +92,42 @@ export default function SlideToRun({ onSuccess }: { onSuccess: () => void }) {
                         gap: 10,
                     }}
                 >
-                    <Triangle />
+                    <Image
+                        source={Triangle}
+                        style={{
+                            tintColor:
+                                color === "red" ? "#FF3358" : colors.primary,
+                            transform: [
+                                {
+                                    rotate:
+                                        direction === "left"
+                                            ? "0deg"
+                                            : "180deg",
+                                },
+                            ],
+                        }}
+                    />
                     <Typography
                         variant="subhead1"
-                        color="primary"
+                        color={color === "red" ? "red" : "primary"}
                     >
-                        밀어서 러닝시작
+                        {label}
                     </Typography>
-                    <Triangle />
+                    <Image
+                        source={Triangle}
+                        style={{
+                            tintColor:
+                                color === "red" ? "#FF3358" : colors.primary,
+                            transform: [
+                                {
+                                    rotate:
+                                        direction === "left"
+                                            ? "0deg"
+                                            : "180deg",
+                                },
+                            ],
+                        }}
+                    />
                 </View>
                 <Animated.View
                     style={{
@@ -92,16 +135,26 @@ export default function SlideToRun({ onSuccess }: { onSuccess: () => void }) {
                         height: 56,
                         width: "100%",
                         opacity: boxOpacity,
+                        alignItems:
+                            direction === "left" ? "flex-start" : "flex-end",
                     }}
                 >
                     <AnimatedLinearGradient
                         start={{ x: 1, y: 0 }}
                         end={{ x: -1, y: 0 }}
-                        colors={[
-                            "rgba(0, 0, 0, 0)",
-                            colors.primary,
-                            "rgba(0, 0, 0, 0)",
-                        ]}
+                        colors={
+                            direction === "left"
+                                ? [
+                                      "rgba(0, 0, 0, 0)",
+                                      color === "red" ? "#FF3358" : "#CFE900",
+                                      "rgba(0, 0, 0, 0)",
+                                  ]
+                                : [
+                                      color === "red" ? "#FF3358" : "#CFE900",
+                                      "rgba(0, 0, 0, 0)",
+                                      color === "red" ? "#FF3358" : "#CFE900",
+                                  ]
+                        }
                         style={[
                             {
                                 position: "absolute",

@@ -5,6 +5,5 @@ import LogoText from "./logo.svg";
 import TouchText from "./touch.svg";
 
 import Puck from "./dot.svg";
-import Triangle from "./triangle.svg";
 
-export { Compass, LocateMe, LogoText, Puck, TouchText, Triangle };
+export { Compass, LocateMe, LogoText, Puck, TouchText };

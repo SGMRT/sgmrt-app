@@ -19,7 +19,8 @@ export type TypographyColor =
     | "gray40"
     | "gray20"
     | "white"
-    | "primary";
+    | "primary"
+    | "red";
 
 export function Typography({
     children,
@@ -112,5 +113,8 @@ const styles = StyleSheet.create({
     },
     primary: {
         color: colors.primary,
+    },
+    red: {
+        color: "#FF3358",
     },
 });

@@ -16,10 +16,7 @@ interface TabBarProps {
     style?: StyleProp<ViewStyle>;
 }
 
-export default memo(function TabBar({
-    position = "bottom",
-    style,
-}: TabBarProps) {
+export default memo(function TabBar({ position, style }: TabBarProps) {
     const pathname = usePathname();
     const router = useRouter();
 
