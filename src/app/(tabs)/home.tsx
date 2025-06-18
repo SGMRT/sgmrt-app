@@ -1,89 +1,17 @@
-import {
-    CircleLayer,
-    LineLayer,
-    MarkerView,
-    setTelemetryEnabled,
-    ShapeSource,
-    UserTrackingMode,
-} from "@rnmapbox/maps";
+import { setTelemetryEnabled, UserTrackingMode } from "@rnmapbox/maps";
 import axios from "axios";
 import Constants from "expo-constants";
 import * as ExpoLocation from "expo-location";
-import { Pressable, Image as RNImage, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 import ControlPannel from "@/src/components/map/ControlPannel";
+import CourseMarkers from "@/src/components/map/CourseMarkers";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import { Typography } from "@/src/components/ui/Typography";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
-import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import { Course } from "@/src/types/course";
-import { getTopCoordinate } from "@/src/utils/mapUtils";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-
-const CourseInformation = ({
-    course,
-    onClickCourse,
-}: {
-    course: Course;
-    onClickCourse: (course: Course) => void;
-}) => {
-    const userCountWithoutTopUsers = course.count - course.topUsers.length;
-
-    return (
-        <Pressable onPress={() => onClickCourse(course)}>
-            <View style={{ gap: 10, alignItems: "center" }}>
-                <View
-                    style={{
-                        backgroundColor: "rgba(63, 63, 63, 0.8)",
-                        height: 33,
-                        justifyContent: "center",
-                        paddingHorizontal: 12,
-                        borderRadius: 5,
-                    }}
-                >
-                    <Typography variant="subhead3" color="white">
-                        {course.name}
-                    </Typography>
-                </View>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    {course.topUsers.map((user, index) => (
-                        <RNImage
-                            key={user.userId}
-                            source={{ uri: user.profileImage }}
-                            style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 100,
-                                marginLeft: index === 0 ? 0 : -14,
-                                backgroundColor: "white",
-                                boxShadow:
-                                    "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
-                            }}
-                        />
-                    ))}
-                    {userCountWithoutTopUsers > 0 && (
-                        <View
-                            style={{
-                                backgroundColor: "rgba(63, 63, 63, 0.8)",
-                                borderRadius: 100,
-                                width: 40,
-                                height: 40,
-                                marginLeft: -14,
-                                justifyContent: "center",
-                                alignItems: "center",
-                            }}
-                        >
-                            <Typography variant="body2" color="gray40">
-                                +{userCountWithoutTopUsers}
-                            </Typography>
-                        </View>
-                    )}
-                </View>
-            </View>
-        </Pressable>
-    );
-};
 
 export default function Home() {
     const [isFollowing, setIsFollowing] = useState(true);
@@ -93,7 +21,7 @@ export default function Home() {
     const [courses, setCourses] = useState<Course[]>([]);
     const [activeCourse, setActiveCourse] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(false);
-    const { coords, address, temperature, lastUpdated, setLocationInfo } =
+    const { address, temperature, lastUpdated, setLocationInfo } =
         useLocationInfoStore();
 
     const onClickCourse = (course: Course) => {
@@ -245,62 +173,12 @@ export default function Home() {
                 getLocationInfo={getLocationInfo}
             >
                 {courses.map((course) => (
-                    <View key={course.id}>
-                        <MarkerView
-                            id={`marker-view-${course.id}`}
-                            coordinate={getTopCoordinate(course.coordinates)}
-                            anchor={{ x: 0.5, y: 0.7 }}
-                        >
-                            <CourseInformation
-                                course={course}
-                                onClickCourse={onClickCourse}
-                            />
-                        </MarkerView>
-                        <ShapeSource
-                            onPress={() => onClickCourse(course)}
-                            id={`line-source-${course.id}`}
-                            lineMetrics={1 as any}
-                            shape={{
-                                type: "Feature",
-                                properties: {
-                                    color: "#ffffff",
-                                },
-                                geometry: {
-                                    type: "LineString",
-                                    coordinates: course.coordinates,
-                                },
-                            }}
-                        >
-                            <LineLayer
-                                id={`line-layer-${course.id}`}
-                                style={
-                                    activeCourse === course.id
-                                        ? mapboxStyles.activeLineLayer
-                                        : mapboxStyles.inactiveLineLayer
-                                }
-                            />
-                        </ShapeSource>
-                        <ShapeSource
-                            id={`start-point-source-${course.id}`}
-                            shape={{
-                                type: "Feature",
-                                geometry: {
-                                    type: "Point",
-                                    coordinates: course.coordinates[0],
-                                },
-                                properties: {},
-                            }}
-                        >
-                            <CircleLayer
-                                id={`start-point-layer-${course.id}`}
-                                style={
-                                    activeCourse === course.id
-                                        ? mapboxStyles.activeCircle
-                                        : mapboxStyles.inactiveCircle
-                                }
-                            />
-                        </ShapeSource>
-                    </View>
+                    <CourseMarkers
+                        key={course.id}
+                        course={course}
+                        activeCourse={activeCourse}
+                        onClickCourse={onClickCourse}
+                    />
                 ))}
             </MapViewWrapper>
             <ControlPannel
