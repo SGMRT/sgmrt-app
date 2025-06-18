@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import ControlPannel from "@/src/components/map/ControlPannel";
 import CourseMarkers from "@/src/components/map/CourseMarkers";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import TabBar from "@/src/components/ui/TabBar";
 import { Typography } from "@/src/components/ui/Typography";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { Course } from "@/src/types/course";
@@ -185,6 +186,7 @@ export default function Home() {
                 onClickCompass={onClickCompass}
                 onClickLocateMe={onClickLocateMe}
             />
+            <TabBar />
         </View>
     );
 }
