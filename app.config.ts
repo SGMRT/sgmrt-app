@@ -8,6 +8,12 @@ const config = {
         scheme: "ghostrunner",
         userInterfaceStyle: "automatic",
         newArchEnabled: true,
+        extra: {
+            eas: {
+                projectId: "2cb16511-b095-499b-b82f-be1d7afaeea4",
+            },
+        },
+        owner: "sgmrt",
         ios: {
             bundleIdentifier: "com.sgmrt.ghostrunner",
         },
