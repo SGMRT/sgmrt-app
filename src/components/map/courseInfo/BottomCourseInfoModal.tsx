@@ -1,6 +1,7 @@
 import { ChevronRight } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -57,6 +58,7 @@ export default function BottomCourseInfoModal({
     const [selectedGhostId, setSelectedGhostId] = useState<string | null>(
         ghostList[0].id
     );
+    const router = useRouter();
     return (
         <BottomSheetModal
             ref={bottomSheetRef}
@@ -179,9 +181,16 @@ export default function BottomCourseInfoModal({
                                     alignItems: "center",
                                 }}
                             >
-                                <Typography variant="body2" color="gray60">
-                                    전체 보기
-                                </Typography>
+                                <Pressable
+                                    onPress={() => {
+                                        bottomSheetRef.current?.dismiss();
+                                        router.push("/course/123");
+                                    }}
+                                >
+                                    <Typography variant="body2" color="gray60">
+                                        전체 보기
+                                    </Typography>
+                                </Pressable>
                                 <ChevronRight />
                             </View>
                         </View>
@@ -190,7 +199,7 @@ export default function BottomCourseInfoModal({
                                 marginBottom: 20,
                             }}
                         >
-                            {ghostList.map((ghost, index) => (
+                            {ghostList.slice(0, 3).map((ghost, index) => (
                                 <UserWithRank
                                     key={ghost.id}
                                     rank={index + 1}
@@ -203,7 +212,9 @@ export default function BottomCourseInfoModal({
                                     isGhostSelected={
                                         selectedGhostId === ghost.id
                                     }
-                                    onPress={() => setSelectedGhostId(ghost.id)}
+                                    onPress={() => {
+                                        setSelectedGhostId(ghost.id);
+                                    }}
                                 />
                             ))}
                         </View>
