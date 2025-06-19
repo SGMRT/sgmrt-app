@@ -3,7 +3,7 @@ import colors from "@/src/theme/colors";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Divider } from "../../ui/Divider";
 import { Typography } from "../../ui/Typography";
@@ -64,35 +64,15 @@ export default function BottomCourseInfoModal({
             ref={bottomSheetRef}
             bottomInset={insets.bottom}
             enablePanDownToClose
-            backgroundStyle={{
-                backgroundColor: "#111111",
-                borderRadius: 0,
-            }}
-            handleStyle={{
-                paddingTop: 10,
-                paddingBottom: 20,
-            }}
-            handleIndicatorStyle={{
-                backgroundColor: colors.gray[40],
-                width: 50,
-                height: 5,
-                borderRadius: 100,
-            }}
+            backgroundStyle={styles.container}
+            handleStyle={styles.handle}
+            handleIndicatorStyle={styles.handleIndicator}
         >
             <BottomSheetView>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginBottom: 30,
-                    }}
-                >
+                <View style={styles.tabContainer}>
                     <Pressable
                         onPress={() => setTab("course")}
-                        style={{
-                            flex: 1,
-                            alignItems: "center",
-                        }}
+                        style={styles.tab}
                     >
                         <Typography
                             variant="subhead2"
@@ -104,10 +84,7 @@ export default function BottomCourseInfoModal({
                     <Divider />
                     <Pressable
                         onPress={() => setTab("ghost")}
-                        style={{
-                            alignItems: "center",
-                            flex: 1,
-                        }}
+                        style={styles.tab}
                     >
                         <Typography
                             variant="subhead2"
@@ -118,29 +95,13 @@ export default function BottomCourseInfoModal({
                     </Pressable>
                 </View>
                 {tab === "course" && (
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            flexWrap: "wrap",
-                            justifyContent: "space-between",
-                            rowGap: 20,
-                            marginBottom: 30,
-                        }}
-                    >
+                    <View style={styles.courseInfoContainer}>
                         {stats.map((stat) => (
                             <View
                                 key={stat.label}
-                                style={{
-                                    width: "33%",
-                                    alignItems: "center",
-                                }}
+                                style={styles.courseInfoItem}
                             >
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "flex-end",
-                                    }}
-                                >
+                                <View style={styles.courseInfoItemValue}>
                                     <Typography
                                         variant="display1"
                                         color="gray40"
@@ -164,23 +125,11 @@ export default function BottomCourseInfoModal({
                 )}
                 {tab === "ghost" && (
                     <View style={{ gap: 10 }}>
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                paddingHorizontal: 17,
-                            }}
-                        >
+                        <View style={styles.ghostListContainer}>
                             <Typography variant="body1" color="gray40">
                                 빠른 완주 순위
                             </Typography>
-                            <View
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                }}
-                            >
+                            <View style={styles.ghostListContainerText}>
                                 <Pressable
                                     onPress={() => {
                                         bottomSheetRef.current?.dismiss();
@@ -194,11 +143,7 @@ export default function BottomCourseInfoModal({
                                 <ChevronRight />
                             </View>
                         </View>
-                        <View
-                            style={{
-                                marginBottom: 20,
-                            }}
-                        >
+                        <View style={styles.marginBottom}>
                             {ghostList.slice(0, 3).map((ghost, index) => (
                                 <UserWithRank
                                     key={ghost.id}
@@ -236,3 +181,57 @@ export default function BottomCourseInfoModal({
         </BottomSheetModal>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#111111",
+    },
+    handle: {
+        paddingTop: 10,
+        paddingBottom: 20,
+    },
+    handleIndicator: {
+        backgroundColor: colors.gray[40],
+        width: 50,
+        height: 5,
+        borderRadius: 100,
+    },
+    tabContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 30,
+    },
+    tab: {
+        flex: 1,
+        alignItems: "center",
+    },
+    courseInfoContainer: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+        rowGap: 20,
+        marginBottom: 30,
+    },
+    courseInfoItem: {
+        width: "33%",
+        alignItems: "center",
+    },
+    courseInfoItemValue: {
+        flexDirection: "row",
+        alignItems: "flex-end",
+    },
+    ghostListContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 17,
+    },
+    ghostListContainerText: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    marginBottom: {
+        marginBottom: 20,
+    },
+});

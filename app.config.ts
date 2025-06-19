@@ -16,6 +16,9 @@ const config = {
         owner: "sgmrt",
         ios: {
             bundleIdentifier: "com.sgmrt.ghostrunner",
+            infoPlist: {
+                ITSAppUsesNonExemptEncryption: false,
+            },
         },
         android: {
             package: "com.sgmrt.ghostrunner",

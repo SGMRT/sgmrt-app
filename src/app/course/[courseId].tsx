@@ -5,7 +5,7 @@ import { Typography } from "@/src/components/ui/Typography";
 import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ghostList = [
@@ -25,6 +25,30 @@ const ghostList = [
         pace: "8’23”",
         cadence: "124spm",
     },
+    {
+        id: "3",
+        name: "정윤석",
+        avatar: "https://picsum.photos/200/300",
+        time: "25:12",
+        pace: "8’23”",
+        cadence: "124spm",
+    },
+    {
+        id: "4",
+        name: "정윤석",
+        avatar: "https://picsum.photos/200/300",
+        time: "25:12",
+        pace: "8’23”",
+        cadence: "124spm",
+    },
+    {
+        id: "5",
+        name: "정윤석",
+        avatar: "https://picsum.photos/200/300",
+        time: "25:12",
+        pace: "8’23”",
+        cadence: "124spm",
+    },
 ];
 
 export default function CourseScreen() {
@@ -33,18 +57,12 @@ export default function CourseScreen() {
         ghostList[0].id
     );
 
+    console.log(courseId);
+
     const router = useRouter();
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#111111" }}>
-            <View
-                style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    paddingHorizontal: 17,
-                    marginBottom: 20,
-                }}
-            >
+        <SafeAreaView style={styles.container}>
+            <View style={styles.header}>
                 <Pressable onPress={() => router.back()}>
                     <BackIcon />
                 </Pressable>
@@ -61,7 +79,7 @@ export default function CourseScreen() {
                 <Typography
                     variant="body1"
                     color="gray40"
-                    style={{ marginBottom: 10 }}
+                    style={styles.headerText}
                 >
                     빠른 완주 순위
                 </Typography>
@@ -82,6 +100,8 @@ export default function CourseScreen() {
                         onPress={() => setSelectedGhostId(item.id)}
                     />
                 )}
+                estimatedItemSize={83}
+                showsVerticalScrollIndicator={false}
             />
             <SlideToAction
                 label="고스트와 러닝 시작"
@@ -94,3 +114,20 @@ export default function CourseScreen() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#111111",
+    },
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 17,
+        marginBottom: 20,
+    },
+    headerText: {
+        marginBottom: 10,
+    },
+});

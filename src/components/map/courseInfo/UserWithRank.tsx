@@ -1,6 +1,6 @@
 import colors from "@/src/theme/colors";
 import { memo } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
 import { Divider } from "../../ui/Divider";
 import { Typography } from "../../ui/Typography";
 
@@ -29,22 +29,14 @@ export default memo(function UserWithRank({
 }: UserWithRankProps) {
     return (
         <View
-            style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingVertical: 15,
-                backgroundColor: isGhostSelected ? "#171717" : "#111111",
-                paddingHorizontal: 17,
-            }}
+            style={[
+                styles.container,
+                {
+                    backgroundColor: isGhostSelected ? "#171717" : "#111111",
+                },
+            ]}
         >
-            <View
-                style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 15,
-                }}
-            >
+            <View style={styles.textContainer}>
                 <Typography
                     variant="body1"
                     color={isGhostSelected ? "primary" : "gray60"}
@@ -55,11 +47,7 @@ export default memo(function UserWithRank({
                     source={{
                         uri: avatar,
                     }}
-                    style={{
-                        width: 48,
-                        height: 48,
-                        borderRadius: 100,
-                    }}
+                    style={styles.avatar}
                 />
                 <View>
                     <Typography variant="body1" color="gray60">
@@ -97,17 +85,42 @@ export default memo(function UserWithRank({
             </View>
             <Pressable onPress={() => onPress(ghostId)}>
                 <View
-                    style={{
-                        width: 20,
-                        height: 20,
-                        borderWidth: 1.5,
-                        borderColor: isGhostSelected
-                            ? colors.primary
-                            : colors.gray[60],
-                        borderRadius: 100,
-                    }}
+                    style={[
+                        styles.rankContainer,
+                        {
+                            borderColor: isGhostSelected
+                                ? colors.primary
+                                : colors.gray[60],
+                        },
+                    ]}
                 />
             </Pressable>
         </View>
     );
+});
+
+const styles = StyleSheet.create({
+    container: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingVertical: 15,
+        paddingHorizontal: 17,
+    },
+    textContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 15,
+    },
+    avatar: {
+        width: 48,
+        height: 48,
+        borderRadius: 100,
+    },
+    rankContainer: {
+        width: 20,
+        height: 20,
+        borderRadius: 100,
+        borderWidth: 1.5,
+    },
 });

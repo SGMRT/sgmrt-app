@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         width: "100%",
         height: 64,
-        backgroundColor: colors.black,
+        backgroundColor: "#111111",
         justifyContent: "space-between",
         alignItems: "center",
         zIndex: -1,
