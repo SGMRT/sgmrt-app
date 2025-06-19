@@ -9,6 +9,11 @@ SplashScreen.preventAutoHideAsync();
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 
+/**
+ * Loads custom fonts, manages the splash screen, and renders the app's root layout with gesture and bottom sheet support.
+ *
+ * Displays the main navigation stack only after required fonts are loaded, ensuring a smooth startup experience.
+ */
 export default function RootLayout() {
     const [loaded] = useFonts({
         "SpoqaHanSansNeo-Regular": require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),

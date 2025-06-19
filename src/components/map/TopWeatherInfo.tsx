@@ -8,6 +8,14 @@ interface TopWeatherInfoProps {
     temperature: number | null;
 }
 
+/**
+ * Displays a styled header with weather information and filter options.
+ *
+ * Shows the provided address and temperature at the top of the screen with a gradient background, along with selectable filter buttons below.
+ *
+ * @param address - The location to display, or null if unavailable.
+ * @param temperature - The temperature to display, or null to show a placeholder.
+ */
 export default function TopWeatherInfo({
     address,
     temperature,

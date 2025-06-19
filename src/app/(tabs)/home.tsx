@@ -13,6 +13,11 @@ import { Course } from "@/src/types/course";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useEffect, useRef, useState } from "react";
 
+/**
+ * Main screen component for the running app, displaying map, weather, and course information.
+ *
+ * Integrates location and weather data retrieval, manages a list of running courses, and coordinates UI components for map interaction, course details, and navigation.
+ */
 export default function Home() {
     const [courses, setCourses] = useState<Course[]>([]);
     const bottomSheetRef = useRef<BottomSheetModal>(null);

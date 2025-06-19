@@ -20,6 +20,18 @@ interface SlideToActionProps {
     direction: "left" | "right";
 }
 
+/**
+ * A React Native component that displays a slide-to-confirm action with animated feedback.
+ *
+ * Renders a horizontal slider with a customizable label, color theme, and sliding direction. When the user slides past 75% of the track, the slider animates to completion, fades out, and triggers the provided callback.
+ *
+ * @param label - The text displayed on the slider.
+ * @param onSlideSuccess - Callback invoked when the slide action completes successfully.
+ * @param color - The color theme of the slider ("red" or "green").
+ * @param direction - The direction in which the slider can be moved ("left" or "right").
+ *
+ * @returns A slide-to-action UI component.
+ */
 export default function SlideToAction({
     label,
     onSlideSuccess,

@@ -26,6 +26,18 @@ interface MapViewWrapperProps {
     handlePresentModalPress: () => void;
 }
 
+/**
+ * Renders a Mapbox map with user location tracking, course markers, and interactive controls.
+ *
+ * Displays a map centered on the user's location, allows toggling between follow modes, and highlights selected courses. When a course marker is clicked, the corresponding modal is triggered. Includes a control panel for compass and locate-me actions.
+ *
+ * @param getLocationInfo - Callback invoked with the user's current longitude and latitude when the location updates.
+ * @param courses - Array of course objects to display as markers on the map.
+ * @param handlePresentModalPress - Callback triggered when a course marker is selected.
+ * @param children - Optional React nodes to render inside the map.
+ *
+ * @returns The rendered map view with interactive controls and course markers.
+ */
 export default function MapViewWrapper({
     children,
     getLocationInfo,

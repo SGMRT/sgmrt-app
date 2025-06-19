@@ -50,6 +50,13 @@ const ghostList = [
     },
 ];
 
+/**
+ * Displays a bottom sheet modal with tabs for viewing course statistics or selecting a ghost runner.
+ *
+ * Provides a tabbed interface allowing users to switch between detailed course information and a list of top ghost runners. Users can select a ghost runner or view all rankings, and initiate an action via a slide-to-start component. The modal supports safe area insets and can be controlled externally via a ref.
+ *
+ * @param bottomSheetRef - Ref object for controlling the bottom sheet modal externally
+ */
 export default function BottomCourseInfoModal({
     bottomSheetRef,
 }: BottomCourseInfoModalProps) {

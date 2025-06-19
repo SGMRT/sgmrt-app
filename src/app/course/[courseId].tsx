@@ -51,6 +51,11 @@ const ghostList = [
     },
 ];
 
+/**
+ * Displays a course detail screen with a ranked list of ghost runners and allows the user to select a ghost and start a running session.
+ *
+ * The screen shows a header with a back button and course title, a subtitle indicating fast completion rankings, a selectable list of ghost runners with their stats, and a slide-to-start action for beginning a run with the selected ghost.
+ */
 export default function CourseScreen() {
     const { courseId } = useLocalSearchParams();
     const [selectedGhostId, setSelectedGhostId] = useState<string | null>(
