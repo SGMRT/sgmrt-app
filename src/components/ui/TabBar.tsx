@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
         height: "100%",
         justifyContent: "center",
         alignItems: "center",
+        zIndex: 100,
     },
     container: {
         flexDirection: "row",
@@ -74,6 +75,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.black,
         justifyContent: "space-between",
         alignItems: "center",
+        zIndex: -1,
     },
     bottom: {
         position: "absolute",

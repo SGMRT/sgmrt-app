@@ -85,7 +85,7 @@ export default function SlideToAction({
                         position: "relative",
                         height: 56,
                         width: "100%",
-                        backgroundColor: colors.black,
+                        backgroundColor: "#111111",
                         justifyContent: "center",
                         alignItems: "center",
                         flexDirection: "row",

@@ -14,7 +14,7 @@ export default function TopWeatherInfo({
 }: TopWeatherInfoProps) {
     return (
         <LinearGradient
-            colors={["rgba(0, 0, 0, 1)", "transparent"]}
+            colors={["rgba(0, 0, 0, 1)", "rgba(31 31, 31, 0)"]}
             style={styles.headerContainer}
         >
             <View style={styles.weatherInfoContainer}>

@@ -1,27 +1,27 @@
-import { setTelemetryEnabled, UserTrackingMode } from "@rnmapbox/maps";
+import { setTelemetryEnabled } from "@rnmapbox/maps";
 import axios from "axios";
 import * as ExpoLocation from "expo-location";
 import { StyleSheet, View } from "react-native";
 
-import ControlPannel from "@/src/components/map/ControlPannel";
+import BottomCourseInfoModal from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import SlideToAction from "@/src/components/map/SlideToAction";
 import TopWeatherInfo from "@/src/components/map/TopWeatherInfo";
 import TabBar from "@/src/components/ui/TabBar";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { Course } from "@/src/types/course";
-import { useEffect, useState } from "react";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
-    const [isFollowing, setIsFollowing] = useState(true);
-    const [followUserMode, setFollowUserMode] = useState(
-        UserTrackingMode.Follow
-    );
     const [courses, setCourses] = useState<Course[]>([]);
-
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { address, temperature, lastUpdated, setLocationInfo } =
         useLocationInfoStore();
+    const handlePresentModalPress = () => {
+        bottomSheetRef.current?.present();
+    };
 
     const makeCircularCourse = (
         lon: number,
@@ -108,42 +108,15 @@ export default function Home() {
         setIsLoading(false);
     };
 
-    const onClickLocateMe = () => {
-        setIsFollowing(!isFollowing);
-    };
-
-    const onStatusChanged = (status: any) => {
-        if (status.to.kind === "idle") {
-            setIsFollowing(false);
-            setFollowUserMode(UserTrackingMode.Follow);
-        }
-    };
-
-    const onClickCompass = () => {
-        if (!isFollowing) {
-            onClickLocateMe();
-        }
-        setFollowUserMode(
-            followUserMode === UserTrackingMode.Follow
-                ? UserTrackingMode.FollowWithHeading
-                : UserTrackingMode.Follow
-        );
-    };
-
     return (
         <View style={styles.container}>
             <TopWeatherInfo address={address} temperature={temperature} />
             <MapViewWrapper
-                isFollowing={isFollowing}
-                followUserMode={followUserMode}
-                onStatusChanged={onStatusChanged}
                 getLocationInfo={getLocationInfo}
                 courses={courses}
+                handlePresentModalPress={handlePresentModalPress}
             />
-            <ControlPannel
-                onClickCompass={onClickCompass}
-                onClickLocateMe={onClickLocateMe}
-            />
+            <BottomCourseInfoModal bottomSheetRef={bottomSheetRef} />
             <TabBar />
             <SlideToAction
                 label="밀어서 러닝시작"

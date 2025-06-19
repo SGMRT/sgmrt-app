@@ -1,3 +1,4 @@
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
@@ -27,9 +28,11 @@ export default function RootLayout() {
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
-            </Stack>
+            <BottomSheetModalProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="(tabs)" />
+                </Stack>
+            </BottomSheetModalProvider>
         </GestureHandlerRootView>
     );
 }
