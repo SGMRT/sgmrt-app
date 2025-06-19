@@ -1,4 +1,5 @@
 import colors from "@/src/theme/colors";
+import { memo } from "react";
 import { Image, Pressable, View } from "react-native";
 import { Divider } from "../../ui/Divider";
 import { Typography } from "../../ui/Typography";
@@ -15,7 +16,7 @@ interface UserWithRankProps {
     onPress: (ghostId: string) => void;
 }
 
-export default function UserWithRank({
+export default memo(function UserWithRank({
     rank,
     name,
     avatar,
@@ -109,4 +110,4 @@ export default function UserWithRank({
             </Pressable>
         </View>
     );
-}
+});

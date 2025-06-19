@@ -44,7 +44,8 @@
     "react-native-webview": "13.13.5",
     "zustand": "^5.0.5",
     "@react-native-async-storage/async-storage": "2.1.2",
-    "@gorhom/bottom-sheet": "^5"
+    "@gorhom/bottom-sheet": "^5",
+    "@shopify/flash-list": "1.7.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
