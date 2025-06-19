@@ -1,4 +1,5 @@
 import { Puck } from "@/assets/svgs/svgs";
+import { Course } from "@/src/types/course";
 import {
     Camera,
     Image,
@@ -10,9 +11,11 @@ import {
     UserTrackingMode,
     Viewport,
 } from "@rnmapbox/maps";
+import { useState } from "react";
+import CourseMarkers from "./CourseMarkers";
 
 interface MapViewWrapperProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
     isFollowing: boolean;
     followUserMode: UserTrackingMode;
     onStatusChanged: (status: any) => void;
@@ -20,6 +23,7 @@ interface MapViewWrapperProps {
         longitude: number;
         latitude: number;
     }) => void;
+    courses: Course[];
 }
 
 export default function MapViewWrapper({
@@ -28,7 +32,15 @@ export default function MapViewWrapper({
     followUserMode,
     onStatusChanged,
     getLocationInfo,
+    courses,
 }: MapViewWrapperProps) {
+    const [activeCourse, setActiveCourse] = useState<number>(0);
+
+    const onClickCourse = (course: Course) => {
+        setActiveCourse(course.id);
+        // TODO: 모달 띄우기
+    };
+
     return (
         <MapView
             style={{ flex: 1 }}
@@ -75,6 +87,14 @@ export default function MapViewWrapper({
                     });
                 }}
             />
+            {courses.map((course) => (
+                <CourseMarkers
+                    key={course.id}
+                    course={course}
+                    activeCourse={activeCourse}
+                    onClickCourse={onClickCourse}
+                />
+            ))}
             {children}
         </MapView>
     );
