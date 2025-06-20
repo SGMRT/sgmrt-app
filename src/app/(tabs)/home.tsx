@@ -1,11 +1,13 @@
 import { setTelemetryEnabled } from "@rnmapbox/maps";
 import { StyleSheet, View } from "react-native";
 
+import CourseFilter from "@/src/components/map/CourseFilter";
 import BottomCourseInfoModal from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import HomeMap from "@/src/components/map/HomeMap";
 import SlideToAction from "@/src/components/map/SlideToAction";
-import TopWeatherInfo from "@/src/components/map/TopWeatherInfo";
+import WeatherInfo from "@/src/components/map/WeatherInfo";
 import TabBar from "@/src/components/ui/TabBar";
+import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Course } from "@/src/types/course";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
@@ -71,7 +73,10 @@ export default function Home() {
 
     return (
         <View style={styles.container}>
-            <TopWeatherInfo />
+            <TopBlurView>
+                <WeatherInfo />
+                <CourseFilter />
+            </TopBlurView>
             <HomeMap
                 courses={courses}
                 handlePresentModalPress={handlePresentModalPress}
