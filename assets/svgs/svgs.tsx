@@ -6,4 +6,6 @@ import TouchText from "./touch.svg";
 
 import Puck from "./dot.svg";
 
-export { Compass, LocateMe, LogoText, Puck, TouchText };
+import BackIcon from "./back.svg";
+import ChevronRight from "./chevron-right.svg";
+export { BackIcon, ChevronRight, Compass, LocateMe, LogoText, Puck, TouchText };

@@ -1,34 +1,26 @@
-import { setTelemetryEnabled, UserTrackingMode } from "@rnmapbox/maps";
+import { setTelemetryEnabled } from "@rnmapbox/maps";
 import axios from "axios";
-import Constants from "expo-constants";
 import * as ExpoLocation from "expo-location";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
-import ControlPannel from "@/src/components/map/ControlPannel";
-import CourseMarkers from "@/src/components/map/CourseMarkers";
+import BottomCourseInfoModal from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import SlideToAction from "@/src/components/map/SlideToAction";
+import TopWeatherInfo from "@/src/components/map/TopWeatherInfo";
 import TabBar from "@/src/components/ui/TabBar";
-import { Typography } from "@/src/components/ui/Typography";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { Course } from "@/src/types/course";
-import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
-    const [isFollowing, setIsFollowing] = useState(true);
-    const [followUserMode, setFollowUserMode] = useState(
-        UserTrackingMode.Follow
-    );
     const [courses, setCourses] = useState<Course[]>([]);
-    const [activeCourse, setActiveCourse] = useState<number>(0);
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
     const [isLoading, setIsLoading] = useState(false);
     const { address, temperature, lastUpdated, setLocationInfo } =
         useLocationInfoStore();
-
-    const onClickCourse = (course: Course) => {
-        setActiveCourse(course.id);
-        // TODO: 모달 띄우기
+    const handlePresentModalPress = () => {
+        bottomSheetRef.current?.present();
     };
 
     const makeCircularCourse = (
@@ -116,77 +108,15 @@ export default function Home() {
         setIsLoading(false);
     };
 
-    const onClickLocateMe = () => {
-        setIsFollowing(!isFollowing);
-    };
-
-    const onStatusChanged = (status: any) => {
-        if (status.to.kind === "idle") {
-            setIsFollowing(false);
-            setFollowUserMode(UserTrackingMode.Follow);
-        }
-    };
-
-    const onClickCompass = () => {
-        if (!isFollowing) {
-            onClickLocateMe();
-        }
-        setFollowUserMode(
-            followUserMode === UserTrackingMode.Follow
-                ? UserTrackingMode.FollowWithHeading
-                : UserTrackingMode.Follow
-        );
-    };
-
     return (
         <View style={styles.container}>
-            <LinearGradient
-                colors={["rgba(0, 0, 0, 1)", "transparent"]}
-                style={styles.headerContainer}
-            >
-                <View style={styles.weatherInfoContainer}>
-                    <Typography variant="subhead2" color="gray40">
-                        {address}
-                        {temperature ? `${Math.round(temperature)}°` : "--°"}
-                    </Typography>
-                </View>
-                <View style={styles.filterContainer}>
-                    <Pressable>
-                        <Typography variant="subhead2" color="gray60">
-                            필터
-                        </Typography>
-                    </Pressable>
-                    <Pressable>
-                        <Typography variant="subhead2" color="primary">
-                            고스트 코스
-                        </Typography>
-                    </Pressable>
-                    <Pressable>
-                        <Typography variant="subhead2" color="gray60">
-                            내 코스
-                        </Typography>
-                    </Pressable>
-                </View>
-            </LinearGradient>
+            <TopWeatherInfo address={address} temperature={temperature} />
             <MapViewWrapper
-                isFollowing={isFollowing}
-                followUserMode={followUserMode}
-                onStatusChanged={onStatusChanged}
                 getLocationInfo={getLocationInfo}
-            >
-                {courses.map((course) => (
-                    <CourseMarkers
-                        key={course.id}
-                        course={course}
-                        activeCourse={activeCourse}
-                        onClickCourse={onClickCourse}
-                    />
-                ))}
-            </MapViewWrapper>
-            <ControlPannel
-                onClickCompass={onClickCompass}
-                onClickLocateMe={onClickLocateMe}
+                courses={courses}
+                handlePresentModalPress={handlePresentModalPress}
             />
+            <BottomCourseInfoModal bottomSheetRef={bottomSheetRef} />
             <TabBar />
             <SlideToAction
                 label="밀어서 러닝시작"
@@ -204,25 +134,5 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         position: "relative",
-    },
-    headerContainer: {
-        paddingTop: Constants.statusBarHeight,
-        position: "absolute",
-        backdropFilter: "blur(1px)",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-    },
-    weatherInfoContainer: {
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    filterContainer: {
-        paddingTop: 10,
-        paddingHorizontal: 17,
-        flexDirection: "row",
-        gap: 20,
     },
 });

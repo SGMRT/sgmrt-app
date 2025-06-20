@@ -66,14 +66,16 @@ const styles = StyleSheet.create({
         height: "100%",
         justifyContent: "center",
         alignItems: "center",
+        zIndex: 100,
     },
     container: {
         flexDirection: "row",
         width: "100%",
         height: 64,
-        backgroundColor: colors.black,
+        backgroundColor: "#111111",
         justifyContent: "space-between",
         alignItems: "center",
+        zIndex: -1,
     },
     bottom: {
         position: "absolute",
