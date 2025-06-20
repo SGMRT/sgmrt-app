@@ -8,6 +8,7 @@ import TopWeatherInfo from "@/src/components/map/TopWeatherInfo";
 import TabBar from "@/src/components/ui/TabBar";
 import { Course } from "@/src/types/course";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
     const handlePresentModalPress = () => {
         bottomSheetRef.current?.present();
     };
+    const router = useRouter();
 
     const makeCircularCourse = (
         lon: number,
@@ -79,7 +81,7 @@ export default function Home() {
             <SlideToAction
                 label="밀어서 러닝시작"
                 onSlideSuccess={() => {
-                    console.log("slide success");
+                    router.push("/run");
                 }}
                 color="green"
                 direction="left"

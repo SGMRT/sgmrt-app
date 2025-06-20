@@ -1,4 +1,3 @@
-import { Puck } from "@/assets/svgs/svgs";
 import {
     Camera,
     Image,
@@ -10,7 +9,9 @@ import {
     Viewport,
 } from "@rnmapbox/maps";
 import { useState } from "react";
-import { View } from "react-native";
+import { Image as RNImage, View } from "react-native";
+
+import { Puck } from "@/assets/icons/icons";
 import ControlPannel from "./ControlPannel";
 
 interface MapViewWrapperProps {
@@ -61,7 +62,7 @@ export default function MapViewWrapper({
             >
                 <Images>
                     <Image name="puck">
-                        <Puck />
+                        <RNImage source={Puck} />
                     </Image>
                 </Images>
                 <StyleImport
