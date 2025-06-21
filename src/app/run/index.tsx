@@ -1,7 +1,8 @@
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
-import SlideToAction from "@/src/components/map/SlideToAction";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
-import StatsIndicator from "@/src/components/ui/\bStatsIndicator";
+import SlideToAction from "@/src/components/ui/SlideToAction";
+import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
+import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";

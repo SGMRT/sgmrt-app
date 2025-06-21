@@ -1,6 +1,6 @@
 import { BackIcon } from "@/assets/svgs/svgs";
 import UserWithRank from "@/src/components/map/courseInfo/UserWithRank";
-import SlideToAction from "@/src/components/map/SlideToAction";
+import SlideToAction from "@/src/components/ui/SlideToAction";
 import { Typography } from "@/src/components/ui/Typography";
 import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";

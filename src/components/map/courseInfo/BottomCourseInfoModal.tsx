@@ -3,11 +3,11 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import StatsIndicator from "../../ui/\bStatsIndicator";
 import BottomModalWrapper from "../../ui/BottomModalWrapper";
 import { Divider } from "../../ui/Divider";
+import SlideToAction from "../../ui/SlideToAction";
+import StatsIndicator from "../../ui/StatsIndicator";
 import { Typography } from "../../ui/Typography";
-import SlideToAction from "../SlideToAction";
 import UserWithRank from "./UserWithRank";
 
 interface BottomCourseInfoModalProps {
