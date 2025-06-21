@@ -26,11 +26,11 @@ export default function WeatherInfo() {
 
             if (
                 lastUpdated &&
-                lastUpdated.getTime() + 1000 * 60 * 60 > Date.now() &&
-                getDistance([longitude, latitude], [coords[0]!, coords[1]!]) <
-                    1000 &&
                 coords[0] &&
-                coords[1]
+                coords[1] &&
+                new Date(lastUpdated).getTime() + 1000 * 60 * 60 > Date.now() &&
+                getDistance([longitude, latitude], [coords[0], coords[1]]) <
+                    5000
             ) {
                 console.log("skip");
                 setIsLoading(false);
@@ -70,8 +70,8 @@ export default function WeatherInfo() {
             subscription = await Location.watchPositionAsync(
                 {
                     accuracy: 5,
-                    timeInterval: 1000,
-                    distanceInterval: 10,
+                    timeInterval: 1000 * 60 * 10,
+                    distanceInterval: 500,
                 },
                 (location) => {
                     getLocationInfo({

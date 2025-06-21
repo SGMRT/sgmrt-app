@@ -64,8 +64,8 @@ export default function SlideToDualAction({
             translateX.value = Math.min(
                 Math.max(
                     direction.value === "left"
-                        ? e.translationX
-                        : -e.translationX,
+                        ? e.translationX * 3
+                        : -e.translationX * 3,
                     0
                 ),
                 trackWidth.value
@@ -76,7 +76,7 @@ export default function SlideToDualAction({
                 translateX.value = withSpring(trackWidth.value * 2);
                 boxOpacity.value = withTiming(0, { duration: 1000 });
                 runOnJS(
-                    direction.value === "left" ? onSlideLeft : onSlideRight
+                    direction.value === "left" ? onSlideRight : onSlideLeft
                 )();
                 isDragging.value = false;
                 runOnJS(setTimeout)(() => {

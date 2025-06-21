@@ -5,8 +5,9 @@ import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import colors from "@/src/theme/colors";
+import { getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -22,9 +23,20 @@ const stats = [
 export default function Run() {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const { bottom } = useSafeAreaInsets();
+    const [isRunning, setIsRunning] = useState(true);
+    const [runTime, setRunTime] = useState(0);
     useEffect(() => {
         bottomSheetRef.current?.present();
     }, []);
+
+    useEffect(() => {
+        if (isRunning) {
+            const interval = setInterval(() => {
+                setRunTime((prev) => prev + 1);
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    }, [isRunning]);
 
     return (
         <View
@@ -36,7 +48,9 @@ export default function Run() {
         >
             <TopBlurView>
                 <WeatherInfo />
-                <Text style={styles.timeText}>01:20</Text>
+                <Text style={styles.timeText}>
+                    {getRunTime(runTime, "MM:SS")}
+                </Text>
             </TopBlurView>
             <MapViewWrapper hasLocateMe={false}></MapViewWrapper>
             <View
@@ -58,12 +72,29 @@ export default function Run() {
                     <StatsIndicator stats={stats} color="gray20" />
                 </View>
             </View>
-            <SlideToAction
-                label="밀어서 러닝 종료"
-                onSlideSuccess={() => {}}
-                color="red"
-                direction="right"
-            />
+            {isRunning && (
+                <SlideToAction
+                    label="밀어서 러닝 종료"
+                    onSlideSuccess={() => {
+                        setIsRunning(false);
+                    }}
+                    color="red"
+                    direction="right"
+                />
+            )}
+            {!isRunning && (
+                <SlideToDualAction
+                    onSlideLeft={() => {
+                        console.log("기록 저장");
+                    }}
+                    onSlideRight={() => {
+                        console.log("이어서 뛰기");
+                        setIsRunning(true);
+                    }}
+                    leftLabel="기록 저장"
+                    rightLabel="이어서 뛰기"
+                />
+            )}
         </View>
     );
 }
