@@ -59,7 +59,6 @@ export default function MapViewWrapper({
                 attributionPosition={{ bottom: 20, left: 20 }}
                 attributionEnabled={false}
                 styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
-                scrollEnabled={hasLocateMe}
             >
                 <Images>
                     <Image name="puck">

@@ -59,6 +59,13 @@ const config = {
                     RNMapboxMapsVersion: "11.12.2",
                 },
             ],
+            [
+                "expo-sensors",
+                {
+                    motionPermission:
+                        "Allow $(PRODUCT_NAME) to access your device motion",
+                },
+            ],
         ],
         experiments: {
             typedRoutes: true,
