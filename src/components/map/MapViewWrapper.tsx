@@ -70,11 +70,11 @@ export default function MapViewWrapper({
                     config={{
                         theme: "monochrome",
                         lightPreset: "night",
-                        showPlaceLabels: false,
-                        showRoadLabels: false,
-                        showPointOfInterestLabels: true,
-                        showTransitLabels: true,
-                        show3dObjects: true,
+                        showPlaceLabels: "none",
+                        showRoadLabels: "none",
+                        showPointOfInterestLabels: "none",
+                        showTransitLabels: "none",
+                        show3dObjects: "none",
                     }}
                     existing={true}
                 />
@@ -86,9 +86,9 @@ export default function MapViewWrapper({
                     followUserLocation={isFollowing}
                     followUserMode={followUserMode}
                 />
+                {children}
                 <Viewport onStatusChanged={onStatusChanged} />
                 <LocationPuck visible={true} topImage="puck" />
-                {children}
             </MapView>
             <ControlPannel
                 onClickCompass={onClickCompass}
