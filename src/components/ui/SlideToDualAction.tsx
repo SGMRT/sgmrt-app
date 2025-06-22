@@ -19,6 +19,7 @@ interface SlideToDualActionProps {
     onSlideRight: () => void;
     leftLabel: string;
     rightLabel: string;
+    disabled?: boolean;
 }
 
 export default function SlideToDualAction({
@@ -26,6 +27,7 @@ export default function SlideToDualAction({
     onSlideRight,
     leftLabel,
     rightLabel,
+    disabled,
 }: SlideToDualActionProps) {
     const trackWidth = useSharedValue(0);
     const translateX = useSharedValue(0);
@@ -109,7 +111,9 @@ export default function SlideToDualAction({
     });
 
     return (
-        <GestureDetector gesture={panGesture}>
+        <GestureDetector
+            gesture={disabled ? Gesture.Exclusive(Gesture.Tap()) : panGesture}
+        >
             <Animated.View
                 onLayout={onTrackLayout}
                 style={{

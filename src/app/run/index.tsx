@@ -11,7 +11,7 @@ import { getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { BackHandler, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -74,6 +74,17 @@ export default function Run() {
         }, 1000);
     };
 
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            () => {
+                return false;
+            }
+        );
+
+        return () => backHandler.remove();
+    }, []);
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             <TopBlurView>
@@ -110,7 +121,7 @@ export default function Run() {
                     <StatsIndicator stats={stats} color="gray20" />
                 </View>
             </View>
-            {isRunning && (
+            {isRunning ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
@@ -119,8 +130,7 @@ export default function Run() {
                     color="red"
                     direction="right"
                 />
-            )}
-            {!isRunning && (
+            ) : (
                 <SlideToDualAction
                     onSlideLeft={() => {
                         console.log("기록 저장");
@@ -132,6 +142,7 @@ export default function Run() {
                     }}
                     leftLabel="기록 저장"
                     rightLabel="이어서 뛰기"
+                    disabled={countdown !== null}
                 />
             )}
         </View>

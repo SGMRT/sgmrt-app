@@ -31,10 +31,13 @@ export function useRunningSession() {
     const stepCountRef = useRef(0);
 
     const addGpsPoint = useCallback(
-        (point: { latitude: number; longitude: number; altitude: number }) => {
+        (
+            point: { latitude: number; longitude: number; altitude: number },
+            isRunning: boolean
+        ) => {
             setSegments((prev) => {
                 const last = prev[prev.length - 1];
-                if (!last) return [{ isRunning, points: [point] }];
+                if (!last) return [{ isRunning: isRunning, points: [point] }];
                 const lastPoint = last.points[last.points.length - 1];
 
                 const dist =
@@ -65,7 +68,7 @@ export function useRunningSession() {
                 return prev;
             });
         },
-        [isRunning]
+        []
     );
 
     // 달리기 시작
@@ -80,7 +83,7 @@ export function useRunningSession() {
             setRunTime((prev) => prev + 1);
             setStepCount(stepCountRef.current);
             if (pointRef.current) {
-                addGpsPoint(pointRef.current);
+                addGpsPoint(pointRef.current, true);
             }
         }, 1000);
     };
@@ -94,7 +97,7 @@ export function useRunningSession() {
         }
         stopTimerRef.current = setInterval(() => {
             if (pointRef.current) {
-                addGpsPoint(pointRef.current);
+                addGpsPoint(pointRef.current, false);
             }
         }, 1000);
     };
@@ -166,7 +169,7 @@ export function useRunningSession() {
             locationSubscription?.remove();
             pedometerSubscription?.remove();
         };
-    }, [addGpsPoint]);
+    }, []);
 
     const cadence =
         runTime > 1 && stepCount > 0
