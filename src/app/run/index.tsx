@@ -10,14 +10,16 @@ import colors from "@/src/theme/colors";
 import { getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Run() {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
+    const [countdown, setCountdown] = useState<number | null>(null);
     const {
         isRunning,
         runTime,
@@ -56,13 +58,39 @@ export default function Run() {
         bottomSheetRef.current?.present();
     }, []);
 
+    const startCountdown = () => {
+        let count = 3;
+        setCountdown(count);
+        const interval = setInterval(() => {
+            count -= 1;
+            if (count === 0) {
+                clearInterval(interval);
+                setCountdown(null);
+                console.log("이어서 뛰기 시작!");
+                startRunning();
+            } else {
+                setCountdown(count);
+            }
+        }, 1000);
+    };
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             <TopBlurView>
                 <WeatherInfo />
-                <Text style={styles.timeText}>
-                    {getRunTime(runTime, "MM:SS")}
-                </Text>
+                {countdown !== null ? (
+                    <Animated.Text
+                        key={countdown}
+                        style={[styles.timeText, { color: colors.primary }]}
+                        entering={FadeIn.duration(1000)}
+                    >
+                        {countdown}
+                    </Animated.Text>
+                ) : (
+                    <Text style={styles.timeText}>
+                        {getRunTime(runTime, "MM:SS")}
+                    </Text>
+                )}
             </TopBlurView>
             <MapViewWrapper hasLocateMe={false}>
                 {segments.map(
@@ -100,7 +128,7 @@ export default function Run() {
                     }}
                     onSlideRight={() => {
                         console.log("이어서 뛰기");
-                        startRunning();
+                        startCountdown();
                     }}
                     leftLabel="기록 저장"
                     rightLabel="이어서 뛰기"

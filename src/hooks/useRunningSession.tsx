@@ -22,6 +22,7 @@ export function useRunningSession() {
     const [elevationGain, setElevationGain] = useState(0);
 
     const timerRef = useRef<number | null>(null);
+    const stopTimerRef = useRef<number | null>(null);
     const pointRef = useRef<{
         latitude: number;
         longitude: number;
@@ -70,6 +71,10 @@ export function useRunningSession() {
     // 달리기 시작
     const startRunning = () => {
         if (timerRef.current) return;
+        if (stopTimerRef.current) {
+            clearInterval(stopTimerRef.current);
+            stopTimerRef.current = null;
+        }
         setIsRunning(true);
         timerRef.current = setInterval(() => {
             setRunTime((prev) => prev + 1);
@@ -83,7 +88,15 @@ export function useRunningSession() {
     // 달리기 종료
     const stopRunning = () => {
         setIsRunning(false);
-        if (timerRef.current) clearInterval(timerRef.current);
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
+        stopTimerRef.current = setInterval(() => {
+            if (pointRef.current) {
+                addGpsPoint(pointRef.current);
+            }
+        }, 1000);
     };
 
     useEffect(() => {
@@ -109,7 +122,14 @@ export function useRunningSession() {
     useEffect(() => {
         startRunning();
         return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+            if (stopTimerRef.current) {
+                clearInterval(stopTimerRef.current);
+                stopTimerRef.current = null;
+            }
         };
     }, []);
 
@@ -160,14 +180,6 @@ export function useRunningSession() {
     });
 
     const pace = getPace(runTime, totalDistance);
-
-    console.log("러닝 시간", runTime);
-    console.log("거리", totalDistance);
-    console.log("칼로리", calories);
-    console.log("페이스", pace);
-    console.log("케이던스", cadence);
-    console.log("고도", elevationGain);
-    console.log("걸음수", stepCount);
 
     return {
         isRunning,
