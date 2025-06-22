@@ -1,98 +1,148 @@
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
+import { useRunningSession } from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
 import { getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { BackHandler, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const stats = [
-    { label: "거리", value: "1.45", unit: "km" },
-    { label: "평균 페이스", value: "8’15”", unit: "" },
-    { label: "케이던스", value: "24", unit: "spm" },
-    { label: "고도", value: "18", unit: "m" },
-    { label: "칼로리", value: "100", unit: "kcal" },
-    { label: "BPM", value: "--", unit: "" },
-];
 
 export default function Run() {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const { bottom } = useSafeAreaInsets();
-    const [isRunning, setIsRunning] = useState(true);
-    const [runTime, setRunTime] = useState(0);
+    const router = useRouter();
+    const [countdown, setCountdown] = useState<number | null>(null);
+    const {
+        isRunning,
+        runTime,
+        segments,
+        totalDistance,
+        elevationGain,
+        cadence,
+        calories,
+        pace,
+        startRunning,
+        stopRunning,
+    } = useRunningSession();
+
+    const stats = [
+        { label: "거리", value: (totalDistance / 1000).toFixed(2), unit: "km" },
+        {
+            label: "평균 페이스",
+            value: pace,
+            unit: "",
+        },
+        { label: "케이던스", value: cadence.toString(), unit: "spm" },
+        {
+            label: "고도",
+            value: elevationGain.toFixed(0),
+            unit: "m",
+        },
+        {
+            label: "칼로리",
+            value: calories.toFixed(0),
+            unit: "kcal",
+        },
+        { label: "BPM", value: "--", unit: "" },
+    ];
+
     useEffect(() => {
         bottomSheetRef.current?.present();
     }, []);
 
+    const startCountdown = () => {
+        let count = 3;
+        setCountdown(count);
+        const interval = setInterval(() => {
+            count -= 1;
+            if (count === 0) {
+                clearInterval(interval);
+                setCountdown(null);
+                console.log("이어서 뛰기 시작!");
+                startRunning();
+            } else {
+                setCountdown(count);
+            }
+        }, 1000);
+    };
+
     useEffect(() => {
-        if (isRunning) {
-            const interval = setInterval(() => {
-                setRunTime((prev) => prev + 1);
-            }, 1000);
-            return () => clearInterval(interval);
-        }
-    }, [isRunning]);
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            () => {
+                return false;
+            }
+        );
+
+        return () => backHandler.remove();
+    }, []);
 
     return (
-        <View
-            style={{
-                flex: 1,
-                backgroundColor: "#111111",
-                paddingBottom: bottom,
-            }}
-        >
+        <View style={[styles.container, { paddingBottom: bottom }]}>
             <TopBlurView>
                 <WeatherInfo />
-                <Text style={styles.timeText}>
-                    {getRunTime(runTime, "MM:SS")}
-                </Text>
+                {countdown !== null ? (
+                    <Animated.Text
+                        key={countdown}
+                        style={[styles.timeText, { color: colors.primary }]}
+                        entering={FadeIn.duration(1000)}
+                    >
+                        {countdown}
+                    </Animated.Text>
+                ) : (
+                    <Text style={styles.timeText}>
+                        {getRunTime(runTime, "MM:SS")}
+                    </Text>
+                )}
             </TopBlurView>
-            <MapViewWrapper hasLocateMe={false}></MapViewWrapper>
-            <View
-                style={{
-                    backgroundColor: "#111111",
-                    alignItems: "center",
-                }}
-            >
-                <View
-                    style={{
-                        width: 50,
-                        height: 5,
-                        backgroundColor: colors.gray[40],
-                        borderRadius: 100,
-                        marginTop: 10,
-                    }}
-                />
-                <View style={{ paddingVertical: 30 }}>
+            <MapViewWrapper hasLocateMe={false}>
+                {segments.map(
+                    (segment, index) =>
+                        segment.points.length > 0 && (
+                            <RunningLine
+                                key={index.toString()}
+                                index={index}
+                                segment={segment}
+                            />
+                        )
+                )}
+            </MapViewWrapper>
+            <View style={styles.bottomSheetContainer}>
+                <View style={styles.bottomSheetDivider} />
+                <View style={styles.bottomSheetContent}>
                     <StatsIndicator stats={stats} color="gray20" />
                 </View>
             </View>
-            {isRunning && (
+            {isRunning ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
-                        setIsRunning(false);
+                        stopRunning();
                     }}
                     color="red"
                     direction="right"
                 />
-            )}
-            {!isRunning && (
+            ) : (
                 <SlideToDualAction
                     onSlideLeft={() => {
                         console.log("기록 저장");
+                        router.back();
                     }}
                     onSlideRight={() => {
                         console.log("이어서 뛰기");
-                        setIsRunning(true);
+                        startCountdown();
                     }}
                     leftLabel="기록 저장"
                     rightLabel="이어서 뛰기"
+                    disabled={countdown !== null}
                 />
             )}
         </View>
@@ -100,11 +150,29 @@ export default function Run() {
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#111111",
+    },
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",
         fontSize: 60,
         color: "white",
         lineHeight: 81.3,
         textAlign: "center",
+    },
+    bottomSheetContainer: {
+        backgroundColor: "#111111",
+        alignItems: "center",
+    },
+    bottomSheetDivider: {
+        width: 50,
+        height: 5,
+        backgroundColor: colors.gray[40],
+        borderRadius: 100,
+        marginTop: 10,
+    },
+    bottomSheetContent: {
+        paddingVertical: 30,
     },
 });

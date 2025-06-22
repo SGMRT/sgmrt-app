@@ -11,7 +11,7 @@ export const mapboxStyles = {
     inactiveLineLayer: {
         lineCap: "round",
         lineJoin: "round",
-        lineWidth: 3,
+        lineWidth: 2,
         lineEmissiveStrength: 1,
         lineColor: colors.white,
     },
