@@ -32,6 +32,7 @@ export default function RootLayout() {
                 <Stack screenOptions={{ headerShown: false }}>
                     <Stack.Screen name="(tabs)" />
                     <Stack.Screen name="course" />
+                    <Stack.Screen name="run" />
                 </Stack>
             </BottomSheetModalProvider>
         </GestureHandlerRootView>

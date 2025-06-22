@@ -1,17 +1,18 @@
 import { ChevronRight } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
-import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BottomModalWrapper from "../../ui/BottomModalWrapper";
 import { Divider } from "../../ui/Divider";
+import SlideToAction from "../../ui/SlideToAction";
+import StatsIndicator from "../../ui/StatsIndicator";
 import { Typography } from "../../ui/Typography";
-import SlideToAction from "../SlideToAction";
 import UserWithRank from "./UserWithRank";
 
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
+    canClose?: boolean;
 }
 
 const stats = [
@@ -52,151 +53,94 @@ const ghostList = [
 
 export default function BottomCourseInfoModal({
     bottomSheetRef,
+    canClose = true,
 }: BottomCourseInfoModalProps) {
-    const insets = useSafeAreaInsets();
     const [tab, setTab] = useState<"course" | "ghost">("course");
     const [selectedGhostId, setSelectedGhostId] = useState<string | null>(
         ghostList[0].id
     );
     const router = useRouter();
     return (
-        <BottomSheetModal
-            ref={bottomSheetRef}
-            bottomInset={insets.bottom}
-            enablePanDownToClose
-            backgroundStyle={styles.container}
-            handleStyle={styles.handle}
-            handleIndicatorStyle={styles.handleIndicator}
-        >
-            <BottomSheetView>
-                <View style={styles.tabContainer}>
-                    <Pressable
-                        onPress={() => setTab("course")}
-                        style={styles.tab}
+        <BottomModalWrapper bottomSheetRef={bottomSheetRef} canClose={canClose}>
+            <View style={styles.tabContainer}>
+                <Pressable onPress={() => setTab("course")} style={styles.tab}>
+                    <Typography
+                        variant="subhead2"
+                        color={tab === "course" ? "white" : "gray60"}
                     >
-                        <Typography
-                            variant="subhead2"
-                            color={tab === "course" ? "white" : "gray60"}
-                        >
-                            코스 상세 정보
-                        </Typography>
-                    </Pressable>
-                    <Divider />
-                    <Pressable
-                        onPress={() => setTab("ghost")}
-                        style={styles.tab}
+                        코스 상세 정보
+                    </Typography>
+                </Pressable>
+                <Divider />
+                <Pressable onPress={() => setTab("ghost")} style={styles.tab}>
+                    <Typography
+                        variant="subhead2"
+                        color={tab === "ghost" ? "white" : "gray60"}
                     >
-                        <Typography
-                            variant="subhead2"
-                            color={tab === "ghost" ? "white" : "gray60"}
-                        >
-                            고스트 선택
+                        고스트 선택
+                    </Typography>
+                </Pressable>
+            </View>
+            <View style={{ marginBottom: 30 }}>
+                {tab === "course" && <StatsIndicator stats={stats} />}
+            </View>
+            {tab === "ghost" && (
+                <View style={{ gap: 10 }}>
+                    <View style={styles.ghostListContainer}>
+                        <Typography variant="body1" color="gray40">
+                            빠른 완주 순위
                         </Typography>
-                    </Pressable>
-                </View>
-                {tab === "course" && (
-                    <View style={styles.courseInfoContainer}>
-                        {stats.map((stat) => (
-                            <View
-                                key={stat.label}
-                                style={styles.courseInfoItem}
+                        <View style={styles.ghostListContainerText}>
+                            <Pressable
+                                onPress={() => {
+                                    bottomSheetRef.current?.dismiss();
+                                    router.push("/course/123");
+                                }}
                             >
-                                <View style={styles.courseInfoItemValue}>
-                                    <Typography
-                                        variant="display1"
-                                        color="gray40"
-                                    >
-                                        {stat.value}
-                                    </Typography>
-                                    <Typography
-                                        variant="display2"
-                                        color="gray40"
-                                    >
-                                        {stat.unit}
-                                    </Typography>
-                                </View>
-
-                                <Typography variant="body1" color="gray60">
-                                    {stat.label}
+                                <Typography variant="body2" color="gray60">
+                                    전체 보기
                                 </Typography>
-                            </View>
+                            </Pressable>
+                            <ChevronRight />
+                        </View>
+                    </View>
+                    <View style={styles.marginBottom}>
+                        {ghostList.slice(0, 3).map((ghost, index) => (
+                            <UserWithRank
+                                key={ghost.id}
+                                rank={index + 1}
+                                name={ghost.name}
+                                avatar={ghost.avatar}
+                                time={ghost.time}
+                                pace={ghost.pace}
+                                cadence={ghost.cadence}
+                                ghostId={ghost.id}
+                                isGhostSelected={selectedGhostId === ghost.id}
+                                onPress={() => {
+                                    setSelectedGhostId(ghost.id);
+                                }}
+                            />
                         ))}
                     </View>
-                )}
-                {tab === "ghost" && (
-                    <View style={{ gap: 10 }}>
-                        <View style={styles.ghostListContainer}>
-                            <Typography variant="body1" color="gray40">
-                                빠른 완주 순위
-                            </Typography>
-                            <View style={styles.ghostListContainerText}>
-                                <Pressable
-                                    onPress={() => {
-                                        bottomSheetRef.current?.dismiss();
-                                        router.push("/course/123");
-                                    }}
-                                >
-                                    <Typography variant="body2" color="gray60">
-                                        전체 보기
-                                    </Typography>
-                                </Pressable>
-                                <ChevronRight />
-                            </View>
-                        </View>
-                        <View style={styles.marginBottom}>
-                            {ghostList.slice(0, 3).map((ghost, index) => (
-                                <UserWithRank
-                                    key={ghost.id}
-                                    rank={index + 1}
-                                    name={ghost.name}
-                                    avatar={ghost.avatar}
-                                    time={ghost.time}
-                                    pace={ghost.pace}
-                                    cadence={ghost.cadence}
-                                    ghostId={ghost.id}
-                                    isGhostSelected={
-                                        selectedGhostId === ghost.id
-                                    }
-                                    onPress={() => {
-                                        setSelectedGhostId(ghost.id);
-                                    }}
-                                />
-                            ))}
-                        </View>
-                    </View>
-                )}
-                <SlideToAction
-                    label={
-                        tab === "course"
-                            ? "이 코스로 러닝 시작"
-                            : "고스트와 러닝 시작"
-                    }
-                    onSlideSuccess={() => {
-                        console.log("slide success");
-                    }}
-                    color="green"
-                    direction="left"
-                />
-            </BottomSheetView>
-        </BottomSheetModal>
+                </View>
+            )}
+            <SlideToAction
+                label={
+                    tab === "course"
+                        ? "이 코스로 러닝 시작"
+                        : "고스트와 러닝 시작"
+                }
+                onSlideSuccess={() => {
+                    console.log("slide success");
+                }}
+                color="green"
+                direction="left"
+            />
+        </BottomModalWrapper>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#111111",
-    },
-    handle: {
-        paddingTop: 10,
-        paddingBottom: 20,
-    },
-    handleIndicator: {
-        backgroundColor: colors.gray[40],
-        width: 50,
-        height: 5,
-        borderRadius: 100,
-    },
     tabContainer: {
         flexDirection: "row",
         alignItems: "center",

@@ -7,6 +7,7 @@ const getTopCoordinate = (coords: [number, number][]): [number, number] => {
 
 // Haversine 공식 사용
 const getDistance = (coord1: [number, number], coord2: [number, number]) => {
+    console.log("getDistance", coord1, coord2);
     const R = 6371; // Radius of the earth in km
     const dLat = (coord2[1] - coord1[1]) * (Math.PI / 180);
     const dLon = (coord2[0] - coord1[0]) * (Math.PI / 180);
@@ -20,4 +21,4 @@ const getDistance = (coord1: [number, number], coord2: [number, number]) => {
     return R * c;
 };
 
-export { getTopCoordinate, getDistance };
+export { getDistance, getTopCoordinate };

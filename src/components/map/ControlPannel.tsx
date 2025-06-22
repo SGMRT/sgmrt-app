@@ -3,7 +3,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 interface ControlPannelProps {
     onClickCompass: () => void;
-    onClickLocateMe: () => void;
+    onClickLocateMe?: () => void;
 }
 
 export default function ControlPannel({
@@ -18,12 +18,14 @@ export default function ControlPannel({
             >
                 <Compass />
             </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.buttonContainer}
-                onPress={onClickLocateMe}
-            >
-                <LocateMe />
-            </TouchableOpacity>
+            {onClickLocateMe && (
+                <TouchableOpacity
+                    style={styles.buttonContainer}
+                    onPress={onClickLocateMe}
+                >
+                    <LocateMe />
+                </TouchableOpacity>
+            )}
         </View>
     );
 }

@@ -1,27 +1,25 @@
 import { setTelemetryEnabled } from "@rnmapbox/maps";
-import axios from "axios";
-import * as ExpoLocation from "expo-location";
 import { StyleSheet, View } from "react-native";
 
+import CourseFilter from "@/src/components/map/CourseFilter";
 import BottomCourseInfoModal from "@/src/components/map/courseInfo/BottomCourseInfoModal";
-import MapViewWrapper from "@/src/components/map/MapViewWrapper";
-import SlideToAction from "@/src/components/map/SlideToAction";
-import TopWeatherInfo from "@/src/components/map/TopWeatherInfo";
+import HomeMap from "@/src/components/map/HomeMap";
+import WeatherInfo from "@/src/components/map/WeatherInfo";
+import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
-import { useLocationInfoStore } from "@/src/store/locationInfo";
+import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Course } from "@/src/types/course";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
     const [courses, setCourses] = useState<Course[]>([]);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const { address, temperature, lastUpdated, setLocationInfo } =
-        useLocationInfoStore();
     const handlePresentModalPress = () => {
         bottomSheetRef.current?.present();
     };
+    const router = useRouter();
 
     const makeCircularCourse = (
         lon: number,
@@ -73,46 +71,13 @@ export default function Home() {
         setTelemetryEnabled(false);
     }, []);
 
-    const getLocationInfo = async ({
-        longitude,
-        latitude,
-    }: {
-        longitude: number;
-        latitude: number;
-    }) => {
-        if (isLoading) return;
-        if (lastUpdated && lastUpdated.getTime() + 1000 * 60 * 5 > Date.now()) {
-            return;
-        }
-
-        setIsLoading(true);
-
-        const address = await ExpoLocation.reverseGeocodeAsync({
-            latitude,
-            longitude,
-        });
-
-        const temperature = await axios.get(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.EXPO_PUBLIC_OWM_TOKEN}`
-        );
-
-        setLocationInfo(
-            [longitude, latitude],
-            address[0].district ||
-                address[0].city ||
-                address[0].region ||
-                address[0].country ||
-                "--",
-            temperature.data.main.temp
-        );
-        setIsLoading(false);
-    };
-
     return (
         <View style={styles.container}>
-            <TopWeatherInfo address={address} temperature={temperature} />
-            <MapViewWrapper
-                getLocationInfo={getLocationInfo}
+            <TopBlurView>
+                <WeatherInfo />
+                <CourseFilter />
+            </TopBlurView>
+            <HomeMap
                 courses={courses}
                 handlePresentModalPress={handlePresentModalPress}
             />
@@ -121,7 +86,7 @@ export default function Home() {
             <SlideToAction
                 label="밀어서 러닝시작"
                 onSlideSuccess={() => {
-                    console.log("slide success");
+                    router.push("/run");
                 }}
                 color="green"
                 direction="left"

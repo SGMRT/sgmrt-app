@@ -52,6 +52,10 @@ export default function SlideToAction({
                 translateX.value = withSpring(trackWidth.value * 2);
                 boxOpacity.value = withTiming(0, { duration: 1000 });
                 runOnJS(onSlideSuccess)();
+                runOnJS(setTimeout)(() => {
+                    translateX.value = withTiming(0);
+                    boxOpacity.value = withTiming(1);
+                }, 1200);
             } else {
                 translateX.value = withTiming(0);
                 boxOpacity.value = withTiming(1);

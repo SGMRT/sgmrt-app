@@ -1,5 +1,3 @@
-import { Puck } from "@/assets/svgs/svgs";
-import { Course } from "@/src/types/course";
 import {
     Camera,
     Image,
@@ -7,47 +5,34 @@ import {
     LocationPuck,
     MapView,
     StyleImport,
-    UserLocation,
     UserTrackingMode,
     Viewport,
 } from "@rnmapbox/maps";
 import { useState } from "react";
-import { View } from "react-native";
+import { Image as RNImage, View } from "react-native";
+
+import { Puck } from "@/assets/icons/icons";
 import ControlPannel from "./ControlPannel";
-import CourseMarkers from "./CourseMarkers";
 
 interface MapViewWrapperProps {
     children?: React.ReactNode;
-    getLocationInfo: (location: {
-        longitude: number;
-        latitude: number;
-    }) => void;
-    courses: Course[];
-    handlePresentModalPress: () => void;
+    hasLocateMe?: boolean;
 }
 
 export default function MapViewWrapper({
     children,
-    getLocationInfo,
-    courses,
-    handlePresentModalPress,
+    hasLocateMe = true,
 }: MapViewWrapperProps) {
     const [isFollowing, setIsFollowing] = useState(true);
     const [followUserMode, setFollowUserMode] = useState(
         UserTrackingMode.Follow
     );
-    const [activeCourse, setActiveCourse] = useState<number>(0);
 
     const onStatusChanged = (status: any) => {
         if (status.to.kind === "idle") {
             setIsFollowing(false);
             setFollowUserMode(UserTrackingMode.Follow);
         }
-    };
-
-    const onClickCourse = (course: Course) => {
-        setActiveCourse(course.id);
-        handlePresentModalPress();
     };
 
     const onClickCompass = () => {
@@ -74,10 +59,11 @@ export default function MapViewWrapper({
                 attributionPosition={{ bottom: 20, left: 20 }}
                 attributionEnabled={false}
                 styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
+                scrollEnabled={hasLocateMe}
             >
                 <Images>
                     <Image name="puck">
-                        <Puck />
+                        <RNImage source={Puck} />
                     </Image>
                 </Images>
                 <StyleImport
@@ -103,28 +89,11 @@ export default function MapViewWrapper({
                 />
                 <Viewport onStatusChanged={onStatusChanged} />
                 <LocationPuck visible={true} topImage="puck" />
-                <UserLocation
-                    visible={false}
-                    onUpdate={(location) => {
-                        getLocationInfo({
-                            longitude: location.coords.longitude,
-                            latitude: location.coords.latitude,
-                        });
-                    }}
-                />
-                {courses.map((course) => (
-                    <CourseMarkers
-                        key={course.id}
-                        course={course}
-                        activeCourse={activeCourse}
-                        onClickCourse={onClickCourse}
-                    />
-                ))}
                 {children}
             </MapView>
             <ControlPannel
                 onClickCompass={onClickCompass}
-                onClickLocateMe={onClickLocateMe}
+                onClickLocateMe={hasLocateMe ? onClickLocateMe : undefined}
             />
         </View>
     );
