@@ -19,6 +19,7 @@ export function useRunningSession() {
     const [segments, setSegments] = useState<GpsSegment[]>([]);
     const [totalDistance, setTotalDistance] = useState(0);
     const [stepCount, setStepCount] = useState(0);
+    const [cumulativeStepCount, setCumulativeStepCount] = useState(0);
     const [elevationGain, setElevationGain] = useState(0);
 
     const timerRef = useRef<number | null>(null);
@@ -78,10 +79,13 @@ export function useRunningSession() {
             clearInterval(stopTimerRef.current);
             stopTimerRef.current = null;
         }
+        const startStepCount = stepCountRef.current;
+
         setIsRunning(true);
+
         timerRef.current = setInterval(() => {
             setRunTime((prev) => prev + 1);
-            setStepCount(stepCountRef.current);
+            setStepCount(stepCountRef.current - startStepCount);
             if (pointRef.current) {
                 addGpsPoint(pointRef.current, true);
             }
@@ -91,6 +95,8 @@ export function useRunningSession() {
     // 달리기 종료
     const stopRunning = () => {
         setIsRunning(false);
+        setCumulativeStepCount((prev) => prev + stepCount);
+        setStepCount(0);
         if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
@@ -171,9 +177,11 @@ export function useRunningSession() {
         };
     }, []);
 
+    const totalStepCount = cumulativeStepCount + stepCount;
+
     const cadence =
-        runTime > 1 && stepCount > 0
-            ? Math.round((stepCount / runTime) * 60)
+        runTime > 1 && totalStepCount > 0
+            ? Math.round((totalStepCount / runTime) * 60)
             : 0;
 
     const calories = getCalories({
@@ -189,7 +197,6 @@ export function useRunningSession() {
         runTime,
         segments,
         totalDistance,
-        stepCount,
         elevationGain,
         cadence,
         calories,
