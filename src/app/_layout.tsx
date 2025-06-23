@@ -4,6 +4,8 @@ import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "../components/ui/toastConfig";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -37,6 +39,7 @@ export default function RootLayout() {
                         options={{ gestureEnabled: false }}
                     />
                 </Stack>
+                <Toast config={toastConfig} />
             </BottomSheetModalProvider>
         </GestureHandlerRootView>
     );

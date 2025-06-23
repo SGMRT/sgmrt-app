@@ -16,12 +16,14 @@ import ControlPannel from "./ControlPannel";
 
 interface MapViewWrapperProps {
     children?: React.ReactNode;
-    hasLocateMe?: boolean;
+    onZoomLevelChanged?: (zoomLevel: number) => void;
+    controlPannelPosition?: any;
 }
 
 export default function MapViewWrapper({
     children,
-    hasLocateMe = true,
+    onZoomLevelChanged,
+    controlPannelPosition,
 }: MapViewWrapperProps) {
     const [isFollowing, setIsFollowing] = useState(true);
     const [followUserMode, setFollowUserMode] = useState(
@@ -51,7 +53,7 @@ export default function MapViewWrapper({
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, position: "relative" }}>
             <MapView
                 style={{ flex: 1 }}
                 scaleBarEnabled={false}
@@ -59,6 +61,9 @@ export default function MapViewWrapper({
                 attributionPosition={{ bottom: 20, left: 20 }}
                 attributionEnabled={false}
                 styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
+                onCameraChanged={(event) => {
+                    onZoomLevelChanged?.(event.properties.zoom);
+                }}
             >
                 <Images>
                     <Image name="puck">
@@ -92,7 +97,8 @@ export default function MapViewWrapper({
             </MapView>
             <ControlPannel
                 onClickCompass={onClickCompass}
-                onClickLocateMe={hasLocateMe ? onClickLocateMe : undefined}
+                onClickLocateMe={onClickLocateMe}
+                controlPannelPosition={controlPannelPosition}
             />
         </View>
     );

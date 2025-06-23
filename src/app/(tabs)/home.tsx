@@ -2,23 +2,17 @@ import { setTelemetryEnabled } from "@rnmapbox/maps";
 import { StyleSheet, View } from "react-native";
 
 import CourseFilter from "@/src/components/map/CourseFilter";
-import BottomCourseInfoModal from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import HomeMap from "@/src/components/map/HomeMap";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Course } from "@/src/types/course";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
     const [courses, setCourses] = useState<Course[]>([]);
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
-    const handlePresentModalPress = () => {
-        bottomSheetRef.current?.present();
-    };
     const router = useRouter();
 
     const makeCircularCourse = (
@@ -77,11 +71,7 @@ export default function Home() {
                 <WeatherInfo />
                 <CourseFilter />
             </TopBlurView>
-            <HomeMap
-                courses={courses}
-                handlePresentModalPress={handlePresentModalPress}
-            />
-            <BottomCourseInfoModal bottomSheetRef={bottomSheetRef} />
+            <HomeMap courses={courses} />
             <TabBar />
             <SlideToAction
                 label="밀어서 러닝시작"

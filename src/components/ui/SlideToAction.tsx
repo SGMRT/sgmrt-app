@@ -18,6 +18,7 @@ interface SlideToActionProps {
     onSlideSuccess: () => void;
     color: "red" | "green";
     direction: "left" | "right";
+    disabled?: boolean;
 }
 
 export default function SlideToAction({
@@ -25,6 +26,7 @@ export default function SlideToAction({
     onSlideSuccess,
     color,
     direction,
+    disabled = false,
 }: SlideToActionProps) {
     const trackWidth = useSharedValue(0);
     const translateX = useSharedValue(0);
@@ -75,7 +77,9 @@ export default function SlideToAction({
     });
 
     return (
-        <GestureDetector gesture={panGesture}>
+        <GestureDetector
+            gesture={disabled ? Gesture.Exclusive(Gesture.Tap()) : panGesture}
+        >
             <Animated.View
                 onLayout={onTrackLayout}
                 style={{

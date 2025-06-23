@@ -1,6 +1,7 @@
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
+import Countdown from "@/src/components/ui/Countdown";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
@@ -8,18 +9,22 @@ import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunningSession } from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
 import { getRunTime } from "@/src/utils/runUtils";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import { BackHandler, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import { useEffect, useState } from "react";
+import { BackHandler, StyleSheet, View } from "react-native";
+import Animated, {
+    FadeIn,
+    useAnimatedStyle,
+    useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function Run() {
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
-    const [countdown, setCountdown] = useState<number | null>(null);
+    const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const {
         isRunning,
         runTime,
@@ -55,26 +60,6 @@ export default function Run() {
     ];
 
     useEffect(() => {
-        bottomSheetRef.current?.present();
-    }, []);
-
-    const startCountdown = () => {
-        let count = 3;
-        setCountdown(count);
-        const interval = setInterval(() => {
-            count -= 1;
-            if (count === 0) {
-                clearInterval(interval);
-                setCountdown(null);
-                console.log("이어서 뛰기 시작!");
-                startRunning();
-            } else {
-                setCountdown(count);
-            }
-        }, 1000);
-    };
-
-    useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
             () => {
@@ -85,25 +70,52 @@ export default function Run() {
         return () => backHandler.remove();
     }, []);
 
+    const onCompleteRestart = () => {
+        setIsRestarting(false);
+        startRunning();
+    };
+
+    useEffect(() => {
+        if (isRestarting) {
+            Toast.show({
+                type: "info",
+                text1: "3초 뒤 러닝이 시작됩니다.",
+                position: "bottom",
+                bottomOffset: 60,
+                visibilityTime: 3000,
+            });
+        }
+    }, [isRestarting]);
+
+    const heightVal = useSharedValue(0);
+
+    const controlPannelPosition = useAnimatedStyle(() => {
+        return {
+            top: heightVal.value - 116,
+        };
+    });
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             <TopBlurView>
                 <WeatherInfo />
-                {countdown !== null ? (
+                {isRestarting ? (
+                    <Countdown
+                        count={3}
+                        color={colors.primary}
+                        size={60}
+                        onComplete={onCompleteRestart}
+                    />
+                ) : (
                     <Animated.Text
-                        key={countdown}
-                        style={[styles.timeText, { color: colors.primary }]}
+                        style={[styles.timeText, { color: colors.white }]}
                         entering={FadeIn.duration(1000)}
                     >
-                        {countdown}
-                    </Animated.Text>
-                ) : (
-                    <Text style={styles.timeText}>
                         {getRunTime(runTime, "MM:SS")}
-                    </Text>
+                    </Animated.Text>
                 )}
             </TopBlurView>
-            <MapViewWrapper hasLocateMe={false}>
+            <MapViewWrapper controlPannelPosition={controlPannelPosition}>
                 {segments.map(
                     (segment, index) =>
                         segment.points.length > 0 && (
@@ -115,13 +127,22 @@ export default function Run() {
                         )
                 )}
             </MapViewWrapper>
-            <View style={styles.bottomSheetContainer}>
-                <View style={styles.bottomSheetDivider} />
-                <View style={styles.bottomSheetContent}>
-                    <StatsIndicator stats={stats} color="gray20" />
-                </View>
-            </View>
-            {isRunning ? (
+            <BottomSheet
+                backgroundStyle={styles.container}
+                bottomInset={bottom + 56}
+                handleStyle={styles.handle}
+                handleIndicatorStyle={styles.handleIndicator}
+                snapPoints={[15]}
+                index={1}
+                animatedPosition={heightVal}
+            >
+                <BottomSheetView>
+                    <View style={styles.bottomSheetContent}>
+                        <StatsIndicator stats={stats} color="gray20" />
+                    </View>
+                </BottomSheetView>
+            </BottomSheet>
+            {isRunning || isRestarting ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
@@ -129,6 +150,7 @@ export default function Run() {
                     }}
                     color="red"
                     direction="right"
+                    disabled={isRestarting}
                 />
             ) : (
                 <SlideToDualAction
@@ -138,11 +160,11 @@ export default function Run() {
                     }}
                     onSlideRight={() => {
                         console.log("이어서 뛰기");
-                        startCountdown();
+                        setIsRestarting(true);
                     }}
                     leftLabel="기록 저장"
                     rightLabel="이어서 뛰기"
-                    disabled={countdown !== null}
+                    disabled={isRestarting}
                 />
             )}
         </View>
@@ -153,6 +175,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
+        borderRadius: 0,
     },
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",
@@ -161,18 +184,17 @@ const styles = StyleSheet.create({
         lineHeight: 81.3,
         textAlign: "center",
     },
-    bottomSheetContainer: {
-        backgroundColor: "#111111",
-        alignItems: "center",
-    },
-    bottomSheetDivider: {
-        width: 50,
-        height: 5,
-        backgroundColor: colors.gray[40],
-        borderRadius: 100,
-        marginTop: 10,
-    },
     bottomSheetContent: {
         paddingVertical: 30,
+    },
+    handle: {
+        paddingTop: 10,
+        paddingBottom: 0,
+    },
+    handleIndicator: {
+        backgroundColor: colors.gray[40],
+        width: 50,
+        height: 5,
+        borderRadius: 100,
     },
 });
