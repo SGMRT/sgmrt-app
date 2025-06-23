@@ -13,8 +13,13 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { BackHandler, StyleSheet, View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import Animated, {
+    FadeIn,
+    useAnimatedStyle,
+    useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
@@ -70,6 +75,23 @@ export default function Run() {
         startRunning();
     };
 
+    useEffect(() => {
+        Toast.show({
+            type: "success",
+            text1: "Success",
+            position: "bottom",
+            bottomOffset: 60,
+        });
+    }, []);
+
+    const heightVal = useSharedValue(0);
+
+    const controlPannelPosition = useAnimatedStyle(() => {
+        return {
+            top: heightVal.value - 116,
+        };
+    });
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             <TopBlurView>
@@ -90,7 +112,7 @@ export default function Run() {
                     </Animated.Text>
                 )}
             </TopBlurView>
-            <MapViewWrapper hasLocateMe={false}>
+            <MapViewWrapper controlPannelPosition={controlPannelPosition}>
                 {segments.map(
                     (segment, index) =>
                         segment.points.length > 0 && (
@@ -109,6 +131,7 @@ export default function Run() {
                 handleIndicatorStyle={styles.handleIndicator}
                 snapPoints={[15]}
                 index={1}
+                animatedPosition={heightVal}
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
@@ -116,7 +139,7 @@ export default function Run() {
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {isRunning ? (
+            {isRunning || isRestarting ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
@@ -124,6 +147,7 @@ export default function Run() {
                     }}
                     color="red"
                     direction="right"
+                    disabled={isRestarting}
                 />
             ) : (
                 <SlideToDualAction

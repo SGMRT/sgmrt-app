@@ -1,41 +1,42 @@
 import { Compass, LocateMe } from "@/assets/svgs/svgs";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
+import Animated from "react-native-reanimated";
 
 interface ControlPannelProps {
     onClickCompass: () => void;
-    onClickLocateMe?: () => void;
+    onClickLocateMe: () => void;
+    controlPannelPosition: any;
 }
 
 export default function ControlPannel({
     onClickCompass,
     onClickLocateMe,
+    controlPannelPosition,
 }: ControlPannelProps) {
     return (
-        <View style={styles.container}>
+        <Animated.View style={[styles.container, controlPannelPosition]}>
             <TouchableOpacity
                 style={styles.buttonContainer}
                 onPress={onClickCompass}
             >
                 <Compass />
             </TouchableOpacity>
-            {onClickLocateMe && (
-                <TouchableOpacity
-                    style={styles.buttonContainer}
-                    onPress={onClickLocateMe}
-                >
-                    <LocateMe />
-                </TouchableOpacity>
-            )}
-        </View>
+            <TouchableOpacity
+                style={styles.buttonContainer}
+                onPress={onClickLocateMe}
+            >
+                <LocateMe />
+            </TouchableOpacity>
+        </Animated.View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
-        bottom: 16,
         left: 17,
         gap: 8,
+        bottom: 16,
     },
     buttonContainer: {
         backgroundColor: "rgba(17, 17, 17, 0.8)",
