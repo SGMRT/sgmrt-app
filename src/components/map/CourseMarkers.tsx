@@ -1,6 +1,5 @@
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import { Course } from "@/src/types/course";
-import { getTopCoordinate } from "@/src/utils/mapUtils";
 import {
     CircleLayer,
     LineLayer,
@@ -14,21 +13,29 @@ interface CourseMarkersProps {
     course: Course;
     activeCourse: number;
     onClickCourse: (course: Course) => void;
+    zoomLevel: number;
 }
 
 export default function CourseMarkers({
     course,
     activeCourse,
     onClickCourse,
+    zoomLevel,
 }: CourseMarkersProps) {
+    console.log("zoomLevel", zoomLevel);
     return (
         <View>
             <MarkerView
                 id={`marker-view-${course.id}`}
-                coordinate={getTopCoordinate(course.coordinates)}
+                coordinate={course.coordinates[0]}
                 anchor={{ x: 0.5, y: 0.7 }}
             >
-                <CourseTitle course={course} onClickCourse={onClickCourse} />
+                <CourseTitle
+                    course={course}
+                    onClickCourse={onClickCourse}
+                    isActive={activeCourse === course.id}
+                    zoomLevel={zoomLevel}
+                />
             </MarkerView>
             <ShapeSource
                 onPress={() => onClickCourse(course)}
@@ -55,18 +62,19 @@ export default function CourseMarkers({
                 />
             </ShapeSource>
             <ShapeSource
-                id={`start-point-source-${course.id}`}
+                id={`end-point-source-${course.id}`}
                 shape={{
                     type: "Feature",
                     geometry: {
                         type: "Point",
-                        coordinates: course.coordinates[0],
+                        coordinates:
+                            course.coordinates[course.coordinates.length - 1],
                     },
                     properties: {},
                 }}
             >
                 <CircleLayer
-                    id={`start-point-layer-${course.id}`}
+                    id={`end-point-layer-${course.id}`}
                     style={
                         activeCourse === course.id
                             ? mapboxStyles.activeCircle
