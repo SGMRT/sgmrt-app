@@ -76,13 +76,16 @@ export default function Run() {
     };
 
     useEffect(() => {
-        Toast.show({
-            type: "success",
-            text1: "Success",
-            position: "bottom",
-            bottomOffset: 60,
-        });
-    }, []);
+        if (isRestarting) {
+            Toast.show({
+                type: "info",
+                text1: "3초 뒤 러닝이 시작됩니다.",
+                position: "bottom",
+                bottomOffset: 60,
+                visibilityTime: 3000,
+            });
+        }
+    }, [isRestarting]);
 
     const heightVal = useSharedValue(0);
 
