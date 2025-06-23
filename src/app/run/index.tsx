@@ -9,15 +9,14 @@ import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunningSession } from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
 import { getRunTime } from "@/src/utils/runUtils";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { BackHandler, StyleSheet, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Run() {
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
@@ -54,10 +53,6 @@ export default function Run() {
         },
         { label: "BPM", value: "--", unit: "" },
     ];
-
-    useEffect(() => {
-        bottomSheetRef.current?.present();
-    }, []);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -107,12 +102,20 @@ export default function Run() {
                         )
                 )}
             </MapViewWrapper>
-            <View style={styles.bottomSheetContainer}>
-                <View style={styles.bottomSheetDivider} />
-                <View style={styles.bottomSheetContent}>
-                    <StatsIndicator stats={stats} color="gray20" />
-                </View>
-            </View>
+            <BottomSheet
+                backgroundStyle={styles.container}
+                bottomInset={bottom + 56}
+                handleStyle={styles.handle}
+                handleIndicatorStyle={styles.handleIndicator}
+                snapPoints={[15]}
+                index={1}
+            >
+                <BottomSheetView>
+                    <View style={styles.bottomSheetContent}>
+                        <StatsIndicator stats={stats} color="gray20" />
+                    </View>
+                </BottomSheetView>
+            </BottomSheet>
             {isRunning ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
@@ -145,6 +148,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
+        borderRadius: 0,
     },
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",
@@ -153,18 +157,17 @@ const styles = StyleSheet.create({
         lineHeight: 81.3,
         textAlign: "center",
     },
-    bottomSheetContainer: {
-        backgroundColor: "#111111",
-        alignItems: "center",
-    },
-    bottomSheetDivider: {
-        width: 50,
-        height: 5,
-        backgroundColor: colors.gray[40],
-        borderRadius: 100,
-        marginTop: 10,
-    },
     bottomSheetContent: {
         paddingVertical: 30,
+    },
+    handle: {
+        paddingTop: 10,
+        paddingBottom: 0,
+    },
+    handleIndicator: {
+        backgroundColor: colors.gray[40],
+        width: 50,
+        height: 5,
+        borderRadius: 100,
     },
 });

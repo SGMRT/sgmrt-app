@@ -17,7 +17,7 @@ import ControlPannel from "./ControlPannel";
 interface MapViewWrapperProps {
     children?: React.ReactNode;
     hasLocateMe?: boolean;
-    onZoomLevelChanged: (zoomLevel: number) => void;
+    onZoomLevelChanged?: (zoomLevel: number) => void;
 }
 
 export default function MapViewWrapper({
@@ -62,7 +62,7 @@ export default function MapViewWrapper({
                 attributionEnabled={false}
                 styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
                 onCameraChanged={(event) => {
-                    onZoomLevelChanged(event.properties.zoom);
+                    onZoomLevelChanged?.(event.properties.zoom);
                 }}
             >
                 <Images>
