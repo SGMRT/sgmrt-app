@@ -14,7 +14,7 @@ interface GpsSegment {
 }
 
 export function useRunningSession() {
-    const [isRunning, setIsRunning] = useState(true);
+    const [isRunning, setIsRunning] = useState(false);
     const [runTime, setRunTime] = useState(0);
     const [segments, setSegments] = useState<GpsSegment[]>([]);
     const [totalDistance, setTotalDistance] = useState(0);
@@ -61,10 +61,17 @@ export function useRunningSession() {
                         }
                     }
 
-                    return [
-                        ...prev.slice(0, -1),
-                        { ...last, points: [...last.points, point] },
-                    ];
+                    if (last.isRunning !== isRunning) {
+                        return [
+                            ...prev,
+                            { isRunning, points: [lastPoint, point] },
+                        ];
+                    } else {
+                        return [
+                            ...prev.slice(0, -1),
+                            { ...last, points: [...last.points, point] },
+                        ];
+                    }
                 }
                 return prev;
             });
@@ -74,6 +81,7 @@ export function useRunningSession() {
 
     // 달리기 시작
     const startRunning = () => {
+        console.log("startRunning");
         if (timerRef.current) return;
         if (stopTimerRef.current) {
             clearInterval(stopTimerRef.current);
@@ -108,28 +116,8 @@ export function useRunningSession() {
         }, 1000);
     };
 
-    useEffect(() => {
-        setSegments((prev) => {
-            if (prev.length > 0) {
-                const lastSegment = prev[prev.length - 1];
-                const lastPoint =
-                    lastSegment.points[lastSegment.points.length - 1];
-                return [
-                    ...prev,
-                    {
-                        isRunning,
-                        points: [lastPoint],
-                    },
-                ];
-            } else {
-                return [{ isRunning, points: [] }];
-            }
-        });
-    }, [isRunning]);
-
     // 컴포넌트 언마운트 시 타이머 정리
     useEffect(() => {
-        startRunning();
         return () => {
             if (timerRef.current) {
                 clearInterval(timerRef.current);

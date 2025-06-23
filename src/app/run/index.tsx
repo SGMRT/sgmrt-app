@@ -1,6 +1,7 @@
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
+import Countdown from "@/src/components/ui/Countdown";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
@@ -11,7 +12,7 @@ import { getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { BackHandler, StyleSheet, Text, View } from "react-native";
+import { BackHandler, StyleSheet, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -19,7 +20,7 @@ export default function Run() {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
-    const [countdown, setCountdown] = useState<number | null>(null);
+    const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const {
         isRunning,
         runTime,
@@ -58,22 +59,6 @@ export default function Run() {
         bottomSheetRef.current?.present();
     }, []);
 
-    const startCountdown = () => {
-        let count = 3;
-        setCountdown(count);
-        const interval = setInterval(() => {
-            count -= 1;
-            if (count === 0) {
-                clearInterval(interval);
-                setCountdown(null);
-                console.log("이어서 뛰기 시작!");
-                startRunning();
-            } else {
-                setCountdown(count);
-            }
-        }, 1000);
-    };
-
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
@@ -85,22 +70,29 @@ export default function Run() {
         return () => backHandler.remove();
     }, []);
 
+    const onCompleteRestart = () => {
+        setIsRestarting(false);
+        startRunning();
+    };
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             <TopBlurView>
                 <WeatherInfo />
-                {countdown !== null ? (
+                {isRestarting ? (
+                    <Countdown
+                        count={3}
+                        color={colors.primary}
+                        size={60}
+                        onComplete={onCompleteRestart}
+                    />
+                ) : (
                     <Animated.Text
-                        key={countdown}
-                        style={[styles.timeText, { color: colors.primary }]}
+                        style={[styles.timeText, { color: colors.white }]}
                         entering={FadeIn.duration(1000)}
                     >
-                        {countdown}
-                    </Animated.Text>
-                ) : (
-                    <Text style={styles.timeText}>
                         {getRunTime(runTime, "MM:SS")}
-                    </Text>
+                    </Animated.Text>
                 )}
             </TopBlurView>
             <MapViewWrapper hasLocateMe={false}>
@@ -138,11 +130,11 @@ export default function Run() {
                     }}
                     onSlideRight={() => {
                         console.log("이어서 뛰기");
-                        startCountdown();
+                        setIsRestarting(true);
                     }}
                     leftLabel="기록 저장"
                     rightLabel="이어서 뛰기"
-                    disabled={countdown !== null}
+                    disabled={isRestarting}
                 />
             )}
         </View>
