@@ -43,7 +43,9 @@ export default function SlideToAction({
         .onUpdate((e) => {
             translateX.value = Math.min(
                 Math.max(
-                    direction === "left" ? e.translationX : -e.translationX,
+                    direction === "left"
+                        ? e.translationX * 1.5
+                        : -e.translationX * 1.5,
                     0
                 ),
                 trackWidth.value

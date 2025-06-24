@@ -48,7 +48,10 @@ export default function SlideToDualAction({
     const panGesture = Gesture.Pan()
         .onUpdate((e) => {
             if (!isDragging.value) {
-                if (Math.abs(e.translationX) > 8) {
+                translateX.value = 0;
+                boxOpacity.value = 1;
+                direction.value = e.translationX > 0 ? "left" : "right";
+                if (Math.abs(e.translationX) > 20) {
                     isDragging.value = true;
                     direction.value = e.translationX > 0 ? "left" : "right";
                     runOnJS(setGradientColors)(
@@ -61,17 +64,17 @@ export default function SlideToDualAction({
                             : ["#CFE900", "rgba(0, 0, 0, 0)", "#CFE900"]
                     );
                 }
+            } else {
+                translateX.value = Math.min(
+                    Math.max(
+                        direction.value === "left"
+                            ? e.translationX * 3
+                            : -e.translationX * 3,
+                        0
+                    ),
+                    trackWidth.value
+                );
             }
-
-            translateX.value = Math.min(
-                Math.max(
-                    direction.value === "left"
-                        ? e.translationX * 3
-                        : -e.translationX * 3,
-                    0
-                ),
-                trackWidth.value
-            );
         })
         .onEnd(() => {
             if (translateX.value > trackWidth.value * 0.75) {
