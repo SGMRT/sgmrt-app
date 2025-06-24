@@ -20,6 +20,7 @@ interface MapViewWrapperProps {
     controlPannelPosition?: any;
     controlEnabled?: boolean;
     center?: [number, number];
+    zoom?: number;
     showPuck?: boolean;
 }
 
@@ -29,6 +30,7 @@ export default function MapViewWrapper({
     controlPannelPosition,
     controlEnabled = true,
     center,
+    zoom = 14,
     showPuck = true,
 }: MapViewWrapperProps) {
     const [isFollowing, setIsFollowing] = useState(true);
@@ -91,13 +93,14 @@ export default function MapViewWrapper({
                     existing={true}
                 />
                 <Camera
-                    minZoomLevel={14}
+                    minZoomLevel={12}
                     maxZoomLevel={18}
-                    followZoomLevel={16}
+                    followZoomLevel={14}
                     animationDuration={0}
                     followUserLocation={controlEnabled ? isFollowing : false}
                     followUserMode={followUserMode}
                     centerCoordinate={center ? center : undefined}
+                    zoomLevel={zoom}
                 />
                 {children}
                 <Viewport onStatusChanged={onStatusChanged} />

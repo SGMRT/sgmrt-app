@@ -1,10 +1,14 @@
 import { ChevronIcon, EditIcon, ShareIcon } from "@/assets/svgs/svgs";
+import CourseLayer from "@/src/components/map/CourseLayer";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import TextWithUnit from "@/src/components/ui/TextWithUnit";
 import { Typography, typographyStyles } from "@/src/components/ui/Typography";
+import colors from "@/src/theme/colors";
+import { Course } from "@/src/types/course";
+import { calculateCenter } from "@/src/utils/mapUtils";
 import { useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
@@ -12,13 +16,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Result() {
     const { recordId } = useLocalSearchParams();
-    const date = new Date().toLocaleDateString("ko-KR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-    });
+    //2025.06.24
+    const date = new Date()
+        .toLocaleDateString("ko-KR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "numeric",
+        })
+        .slice(0, 12)
+        .split(". ")
+        .join(".");
     const [isEditing, setIsEditing] = useState(false);
     const titleInputRef = useRef<TextInput>(null);
+
+    const course = {
+        id: 1,
+        name: "월요일 아침 러닝",
+        coordinates: [
+            [126.85, 37.48],
+            [126.86, 37.49],
+        ],
+    } as Course;
+
+    const center = calculateCenter(course.coordinates);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -31,7 +51,8 @@ export default function Result() {
                     <View style={styles.titleLeft}>
                         <TextInput
                             editable={isEditing}
-                            placeholder="월요일 아침 러닝"
+                            placeholder="제목을 입력해주세요"
+                            defaultValue="월요일 아침 러닝"
                             style={styles.titleInput}
                             ref={titleInputRef}
                             onBlur={() => {
@@ -52,8 +73,15 @@ export default function Result() {
                     <MapViewWrapper
                         controlEnabled={false}
                         showPuck={false}
-                        center={[126.85, 37.48]}
-                    />
+                        center={center as [number, number]}
+                        zoom={14}
+                    >
+                        <CourseLayer
+                            course={course}
+                            isActive={true}
+                            onClickCourse={() => {}}
+                        />
+                    </MapViewWrapper>
                 </View>
                 <View
                     style={{
@@ -231,7 +259,7 @@ const styles = StyleSheet.create({
     },
     titleInput: {
         ...typographyStyles.subhead1,
-        color: "#fff",
+        color: colors.white,
         lineHeight: undefined,
     },
     mapContainer: {

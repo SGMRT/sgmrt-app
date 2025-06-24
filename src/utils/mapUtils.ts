@@ -20,4 +20,14 @@ const getDistance = (coord1: [number, number], coord2: [number, number]) => {
     return R * c;
 };
 
-export { getDistance, getTopCoordinate };
+const calculateCenter = (coordinates: [number, number][]) => {
+    const minX = Math.min(...coordinates.map((coord) => coord[0]));
+    const minY = Math.min(...coordinates.map((coord) => coord[1]));
+    const maxX = Math.max(...coordinates.map((coord) => coord[0]));
+    const maxY = Math.max(...coordinates.map((coord) => coord[1]));
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    return [centerX, centerY];
+};
+
+export { calculateCenter, getDistance, getTopCoordinate };

@@ -1,12 +1,7 @@
-import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import { Course } from "@/src/types/course";
-import {
-    CircleLayer,
-    LineLayer,
-    MarkerView,
-    ShapeSource,
-} from "@rnmapbox/maps";
+import { MarkerView } from "@rnmapbox/maps";
 import { View } from "react-native";
+import CourseLayer from "./CourseLayer";
 import CourseTitle from "./CourseTitle";
 
 interface CourseMarkersProps {
@@ -37,51 +32,11 @@ export default function CourseMarkers({
                     zoomLevel={zoomLevel}
                 />
             </MarkerView>
-            <ShapeSource
-                onPress={() => onClickCourse(course)}
-                id={`line-source-${course.id}`}
-                lineMetrics={1 as any}
-                shape={{
-                    type: "Feature",
-                    properties: {
-                        color: "#ffffff",
-                    },
-                    geometry: {
-                        type: "LineString",
-                        coordinates: course.coordinates,
-                    },
-                }}
-            >
-                <LineLayer
-                    id={`line-layer-${course.id}`}
-                    style={
-                        activeCourse === course.id
-                            ? mapboxStyles.activeLineLayer
-                            : mapboxStyles.inactiveLineLayer
-                    }
-                />
-            </ShapeSource>
-            <ShapeSource
-                id={`end-point-source-${course.id}`}
-                shape={{
-                    type: "Feature",
-                    geometry: {
-                        type: "Point",
-                        coordinates:
-                            course.coordinates[course.coordinates.length - 1],
-                    },
-                    properties: {},
-                }}
-            >
-                <CircleLayer
-                    id={`end-point-layer-${course.id}`}
-                    style={
-                        activeCourse === course.id
-                            ? mapboxStyles.activeCircle
-                            : mapboxStyles.inactiveCircle
-                    }
-                />
-            </ShapeSource>
+            <CourseLayer
+                course={course}
+                isActive={activeCourse === course.id}
+                onClickCourse={onClickCourse}
+            />
         </View>
     );
 }
