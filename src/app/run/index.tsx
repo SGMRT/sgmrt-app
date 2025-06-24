@@ -156,7 +156,7 @@ export default function Run() {
                 <SlideToDualAction
                     onSlideLeft={() => {
                         console.log("기록 저장");
-                        router.back();
+                        router.replace("/run/result/1");
                     }}
                     onSlideRight={() => {
                         console.log("이어서 뛰기");
