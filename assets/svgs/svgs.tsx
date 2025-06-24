@@ -5,7 +5,7 @@ import LogoText from "./logo.svg";
 import TouchText from "./touch.svg";
 
 import BackIcon from "./back.svg";
-import ChevronRight from "./chevron-right.svg";
+import ChevronIcon from "./chevron.svg";
 
 import ToastCheckIcon from "./toast-check.svg";
 import ToastInfoIcon from "./toast-info.svg";
@@ -15,7 +15,7 @@ import ShareIcon from "./share.svg";
 
 export {
     BackIcon,
-    ChevronRight,
+    ChevronIcon,
     Compass,
     EditIcon,
     LocateMe,

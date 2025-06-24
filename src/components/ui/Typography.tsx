@@ -58,7 +58,7 @@ export const typographyStyles = StyleSheet.create({
         letterSpacing: -0.6,
     },
     subhead1: {
-        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontFamily: "SpoqaHanSansNeo-Medium",
         fontSize: 18,
         lineHeight: 27,
         letterSpacing: -0.6,
@@ -115,6 +115,6 @@ export const typographyStyles = StyleSheet.create({
         color: colors.primary,
     },
     red: {
-        color: "#FF3358",
+        color: colors.red,
     },
 });

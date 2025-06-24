@@ -97,6 +97,7 @@ export default function MapViewWrapper({
                     animationDuration={0}
                     followUserLocation={controlEnabled ? isFollowing : false}
                     followUserMode={followUserMode}
+                    centerCoordinate={center ? center : undefined}
                 />
                 {children}
                 <Viewport onStatusChanged={onStatusChanged} />

@@ -1,4 +1,4 @@
-import { ChevronRight } from "@/assets/svgs/svgs";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
@@ -121,7 +121,7 @@ export default function BottomCourseInfoModal({
                                         전체 보기
                                     </Typography>
                                 </Pressable>
-                                <ChevronRight />
+                                <ChevronIcon />
                             </View>
                         </View>
                         <View style={styles.marginBottom}>
