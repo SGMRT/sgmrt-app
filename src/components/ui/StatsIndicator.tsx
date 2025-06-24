@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import { Typography } from "./Typography";
+import TextWithUnit from "./TextWithUnit";
 
 interface StatsIndicatorProps {
     stats: { label: string; value: string; unit: string }[];
@@ -13,21 +13,16 @@ export default function StatsIndicator({
     return (
         <View style={styles.courseInfoContainer}>
             {stats.map((stat) => (
-                <View key={stat.label} style={styles.courseInfoItem}>
-                    <View style={styles.courseInfoItemValue}>
-                        <Typography variant="display1" color={color}>
-                            {stat.value}
-                        </Typography>
-                        {stat.unit && (
-                            <Typography variant="display2" color={color}>
-                                {stat.unit}
-                            </Typography>
-                        )}
-                    </View>
-                    <Typography variant="body1" color="gray60">
-                        {stat.label}
-                    </Typography>
-                </View>
+                <TextWithUnit
+                    value={stat.value}
+                    unit={stat.unit}
+                    description={stat.label}
+                    variant="display1"
+                    color={color}
+                    unitVariant="display2"
+                    key={stat.label}
+                    style={styles.courseInfoItem}
+                />
             ))}
         </View>
     );
@@ -43,10 +38,5 @@ const styles = StyleSheet.create({
     courseInfoItem: {
         width: "33%",
         alignItems: "center",
-    },
-    courseInfoItemValue: {
-        flexDirection: "row",
-        alignItems: "flex-end",
-        gap: 1,
     },
 });

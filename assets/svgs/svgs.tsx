@@ -10,12 +10,17 @@ import ChevronRight from "./chevron-right.svg";
 import ToastCheckIcon from "./toast-check.svg";
 import ToastInfoIcon from "./toast-info.svg";
 
+import EditIcon from "./edit-alt.svg";
+import ShareIcon from "./share.svg";
+
 export {
     BackIcon,
     ChevronRight,
     Compass,
+    EditIcon,
     LocateMe,
     LogoText,
+    ShareIcon,
     ToastCheckIcon,
     ToastInfoIcon,
     TouchText,

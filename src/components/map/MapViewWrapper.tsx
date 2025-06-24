@@ -18,12 +18,18 @@ interface MapViewWrapperProps {
     children?: React.ReactNode;
     onZoomLevelChanged?: (zoomLevel: number) => void;
     controlPannelPosition?: any;
+    controlEnabled?: boolean;
+    center?: [number, number];
+    showPuck?: boolean;
 }
 
 export default function MapViewWrapper({
     children,
     onZoomLevelChanged,
     controlPannelPosition,
+    controlEnabled = true,
+    center,
+    showPuck = true,
 }: MapViewWrapperProps) {
     const [isFollowing, setIsFollowing] = useState(true);
     const [followUserMode, setFollowUserMode] = useState(
@@ -64,6 +70,7 @@ export default function MapViewWrapper({
                 onCameraChanged={(event) => {
                     onZoomLevelChanged?.(event.properties.zoom);
                 }}
+                scrollEnabled={controlEnabled}
             >
                 <Images>
                     <Image name="puck">
@@ -88,18 +95,20 @@ export default function MapViewWrapper({
                     maxZoomLevel={18}
                     followZoomLevel={16}
                     animationDuration={0}
-                    followUserLocation={isFollowing}
+                    followUserLocation={controlEnabled ? isFollowing : false}
                     followUserMode={followUserMode}
                 />
                 {children}
                 <Viewport onStatusChanged={onStatusChanged} />
-                <LocationPuck visible={true} topImage="puck" />
+                {showPuck && <LocationPuck visible={true} topImage="puck" />}
             </MapView>
-            <ControlPannel
-                onClickCompass={onClickCompass}
-                onClickLocateMe={onClickLocateMe}
-                controlPannelPosition={controlPannelPosition}
-            />
+            {controlEnabled && (
+                <ControlPannel
+                    onClickCompass={onClickCompass}
+                    onClickLocateMe={onClickLocateMe}
+                    controlPannelPosition={controlPannelPosition}
+                />
+            )}
         </View>
     );
 }

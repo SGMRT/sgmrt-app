@@ -29,8 +29,8 @@ export function Typography({
     color = "black",
     ...props
 }: TextProps & { variant?: TypographyVariant; color?: TypographyColor }) {
-    const variantStyle = styles[variant];
-    const colorStyle = styles[color];
+    const variantStyle = typographyStyles[variant];
+    const colorStyle = typographyStyles[color];
     return (
         <Text style={[variantStyle, colorStyle, style]} {...props}>
             {children}
@@ -38,7 +38,7 @@ export function Typography({
     );
 }
 
-const styles = StyleSheet.create({
+export const typographyStyles = StyleSheet.create({
     display1: {
         fontFamily: "SpoqaHanSansNeo-Medium",
         fontSize: 28,
