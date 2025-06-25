@@ -1,18 +1,20 @@
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import { LineLayer, ShapeSource } from "@rnmapbox/maps";
 
+export interface Segment {
+    isRunning: boolean;
+    points: {
+        longitude: number;
+        latitude: number;
+    }[];
+}
+
 export default function RunningLine({
     index,
     segment,
 }: {
     index: number;
-    segment: {
-        isRunning: boolean;
-        points: {
-            longitude: number;
-            latitude: number;
-        }[];
-    };
+    segment: Segment;
 }) {
     return (
         <ShapeSource

@@ -9,7 +9,7 @@ import { Typography, typographyStyles } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { Course } from "@/src/types/course";
 import { calculateCenter } from "@/src/utils/mapUtils";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -28,13 +28,20 @@ export default function Result() {
         .join(".");
     const [isEditing, setIsEditing] = useState(false);
     const titleInputRef = useRef<TextInput>(null);
+    const router = useRouter();
 
     const course = {
         id: 1,
         name: "월요일 아침 러닝",
         coordinates: [
-            [126.85, 37.48],
-            [126.86, 37.49],
+            {
+                latitude: 37.48,
+                longitude: 126.85,
+            },
+            {
+                latitude: 37.49,
+                longitude: 126.86,
+            },
         ],
     } as Course;
 
@@ -73,7 +80,7 @@ export default function Result() {
                     <MapViewWrapper
                         controlEnabled={false}
                         showPuck={false}
-                        center={center as [number, number]}
+                        center={center}
                         zoom={14}
                     >
                         <CourseLayer
@@ -222,8 +229,12 @@ export default function Result() {
                 </View>
             </ScrollView>
             <SlideToDualAction
-                onSlideLeft={() => {}}
-                onSlideRight={() => {}}
+                onSlideLeft={() => {
+                    router.replace("/");
+                }}
+                onSlideRight={() => {
+                    console.log("코스 등록");
+                }}
                 leftLabel="메인으로"
                 rightLabel="코스 등록"
             />

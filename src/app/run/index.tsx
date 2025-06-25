@@ -28,35 +28,40 @@ export default function Run() {
     const {
         isRunning,
         runTime,
+        soloDashboardData,
         segments,
-        totalDistance,
-        elevationGain,
-        cadence,
-        calories,
-        pace,
+        telemetries,
         startRunning,
         stopRunning,
     } = useRunningSession();
 
     const stats = [
-        { label: "거리", value: (totalDistance / 1000).toFixed(2), unit: "km" },
+        {
+            label: "거리",
+            value: (soloDashboardData.distance / 1000).toFixed(2),
+            unit: "km",
+        },
         {
             label: "평균 페이스",
-            value: pace,
+            value: soloDashboardData.avgPace,
             unit: "",
         },
-        { label: "케이던스", value: cadence.toString(), unit: "spm" },
+        {
+            label: "케이던스",
+            value: soloDashboardData.avgCadence.toString(),
+            unit: "spm",
+        },
         {
             label: "고도",
-            value: elevationGain.toFixed(0),
+            value: soloDashboardData.gainElevation.toFixed(0),
             unit: "m",
         },
         {
             label: "칼로리",
-            value: calories.toFixed(0),
+            value: soloDashboardData.calories.toFixed(0),
             unit: "kcal",
         },
-        { label: "BPM", value: "--", unit: "" },
+        { label: "BPM", value: soloDashboardData.avgBpm, unit: "" },
     ];
 
     useEffect(() => {
@@ -116,16 +121,13 @@ export default function Run() {
                 )}
             </TopBlurView>
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {segments.map(
-                    (segment, index) =>
-                        segment.points.length > 0 && (
-                            <RunningLine
-                                key={index.toString()}
-                                index={index}
-                                segment={segment}
-                            />
-                        )
-                )}
+                {segments.map((segment, index) => (
+                    <RunningLine
+                        key={index.toString()}
+                        index={index}
+                        segment={segment}
+                    />
+                ))}
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
