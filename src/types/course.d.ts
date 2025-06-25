@@ -3,8 +3,5 @@ export interface Course {
     name: string;
     count: number;
     topUsers: { userId: number; username: string; profileImage: string }[];
-    coordinates: {
-        latitude: number;
-        longitude: number;
-    }[];
+    coordinates: [number, number][];
 }

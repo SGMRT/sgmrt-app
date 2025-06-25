@@ -4,7 +4,7 @@ export default function RunLayout() {
     return (
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
-            <Stack.Screen name="result/[resultId]" />
+            <Stack.Screen name="result/[courseId]/[runningId]" />
         </Stack>
     );
 }

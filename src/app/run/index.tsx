@@ -40,6 +40,15 @@ export default function Run() {
 
     async function saveRunning() {
         if (!startTime) return;
+        if (soloDashboardData.distance === 0) {
+            Toast.show({
+                type: "info",
+                text1: "러닝 거리가 너무 짧습니다.",
+                position: "bottom",
+                bottomOffset: 60,
+            });
+            return;
+        }
 
         const record: RunRecord = {
             distance: soloDashboardData.distance,
@@ -57,17 +66,11 @@ export default function Run() {
                     : Number(soloDashboardData.avgCadence),
         };
 
-        console.log(telemetries.length);
-        console.log(telemetries.at(-1));
-
         const lastTrueIndex = telemetries.findLastIndex(
             (telemetry) => telemetry.isRunning
         );
 
         const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
-
-        console.log(savedTelemetries.length);
-        console.log(savedTelemetries.at(-1));
 
         const running: Running = {
             runningName: getRunName(startTime),
@@ -79,7 +82,7 @@ export default function Run() {
             telemetries: savedTelemetries,
         };
         const res = await postRun(running, 1);
-        console.log(res);
+        return res;
     }
 
     const stats = [
@@ -203,9 +206,10 @@ export default function Run() {
                 />
             ) : (
                 <SlideToDualAction
-                    onSlideLeft={() => {
+                    onSlideLeft={async () => {
                         console.log("기록 저장");
-                        saveRunning();
+                        const { courseId, runningId } = await saveRunning();
+                        router.replace(`/run/result/${courseId}/${runningId}`);
                     }}
                     onSlideRight={() => {
                         console.log("이어서 뛰기");

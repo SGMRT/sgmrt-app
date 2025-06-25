@@ -15,7 +15,8 @@ import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Result() {
-    const { recordId } = useLocalSearchParams();
+    const { courseId, runningId } = useLocalSearchParams();
+    console.log(courseId, runningId);
     //2025.06.24
     const date = new Date()
         .toLocaleDateString("ko-KR", {
@@ -34,18 +35,17 @@ export default function Result() {
         id: 1,
         name: "월요일 아침 러닝",
         coordinates: [
-            {
-                latitude: 37.48,
-                longitude: 126.85,
-            },
-            {
-                latitude: 37.49,
-                longitude: 126.86,
-            },
+            [126.85, 37.48],
+            [126.86, 37.49],
         ],
     } as Course;
 
-    const center = calculateCenter(course.coordinates);
+    const center = calculateCenter(
+        course.coordinates.map((coordinate) => ({
+            latitude: coordinate[1],
+            longitude: coordinate[0],
+        }))
+    );
 
     return (
         <SafeAreaView style={styles.container}>
