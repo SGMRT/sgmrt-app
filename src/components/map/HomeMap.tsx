@@ -41,6 +41,11 @@ export default function HomeMap({ courses }: HomeMapProps) {
 
     const controlPannelPosition = useAnimatedStyle(() => {
         const baseHeight = deviceHeight - 64 - 56 - bottom;
+        console.log("heightVal", heightVal.value);
+        console.log("baseHeight", baseHeight);
+        if (heightVal.value === 0) {
+            return { top: baseHeight - 116 }; // 최초 위치 고정
+        }
         if (heightVal.value >= baseHeight) {
             return { top: baseHeight - 116 };
         } else {

@@ -49,7 +49,7 @@ export function useRunningSession() {
     const firstStartTimestampRef = useRef<number | null>(null);
     const cumulativeDistanceRef = useRef(0);
     const cumulativeElevationRef = useRef(0);
-    const lastElevationRef = useRef(0);
+    const lastElevationRef = useRef<number | null>(null);
     const stepCountRef = useRef(0);
     const lastPedometerRef = useRef(0);
 
@@ -101,7 +101,7 @@ export function useRunningSession() {
                     weight: 70,
                 });
                 const alt = location.altitude;
-                const elevation = alt - lastElevationRef.current;
+                const elevation = alt - (lastElevationRef.current ?? alt);
                 if (elevation > 0 && isRunning) {
                     cumulativeElevationRef.current += elevation;
                 }
