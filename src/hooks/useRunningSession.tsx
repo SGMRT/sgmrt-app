@@ -13,7 +13,7 @@ interface Point {
 
 interface SoloDashBoardData {
     distance: number;
-    avgPace: string;
+    avgPace: number;
     avgCadence: string;
     gainElevation: number;
     calories: number;
@@ -25,7 +25,7 @@ export function useRunningSession() {
     const [soloDashboardData, setSoloDashboardData] =
         useState<SoloDashBoardData>({
             distance: 0,
-            avgPace: "--",
+            avgPace: 0,
             avgCadence: "--",
             gainElevation: 0,
             calories: 0,
@@ -33,6 +33,7 @@ export function useRunningSession() {
         });
     const [telemetries, setTelemetries] = useState<Telemetry[]>([]);
     const [segments, setSegments] = useState<Segment[]>([]);
+    const [hasPaused, setHasPaused] = useState(false);
 
     // 타이머 Ref
     const timerRef = useRef<number | null>(null);
@@ -54,6 +55,7 @@ export function useRunningSession() {
 
     // 데이터 state
     const [runTime, setRunTime] = useState(0);
+    const [startTime, setStartTime] = useState<number | null>(null);
 
     // 달리기 시작
     const startRunning = () => {
@@ -76,6 +78,8 @@ export function useRunningSession() {
             ) {
                 if (!firstStartTimestampRef.current) {
                     firstStartTimestampRef.current = Date.now();
+                    setStartTime(firstStartTimestampRef.current);
+                    console.log("변화");
                 }
                 stepCountRef.current = isRunning
                     ? pedometerRef.current -
@@ -157,6 +161,7 @@ export function useRunningSession() {
                         lastSegment.isRunning !== telemetry.isRunning &&
                         lastPoint
                     ) {
+                        if (telemetry.isRunning) setHasPaused(true);
                         return [
                             ...prev,
                             {
@@ -238,6 +243,8 @@ export function useRunningSession() {
         soloDashboardData,
         segments,
         telemetries,
+        startTime,
+        hasPaused,
         startRunning,
         stopRunning,
     };

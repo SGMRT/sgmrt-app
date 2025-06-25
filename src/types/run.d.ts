@@ -39,7 +39,7 @@ interface Telemetry {
     lat: number;
     lng: number;
     dist: number;
-    pace: string;
+    pace: number;
     alt: number;
     cadence: number;
     bpm: number;

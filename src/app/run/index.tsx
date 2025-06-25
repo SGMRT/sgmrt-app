@@ -1,3 +1,4 @@
+import { postRun } from "@/src/apis";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -8,7 +9,7 @@ import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunningSession } from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
-import { getRunTime } from "@/src/utils/runUtils";
+import { getFormattedPace, getRunName, getRunTime } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -33,7 +34,53 @@ export default function Run() {
         telemetries,
         startRunning,
         stopRunning,
+        startTime,
+        hasPaused,
     } = useRunningSession();
+
+    async function saveRunning() {
+        if (!startTime) return;
+
+        const record: RunRecord = {
+            distance: soloDashboardData.distance,
+            altitude: soloDashboardData.gainElevation,
+            duration: runTime,
+            avgPace: soloDashboardData.avgPace,
+            calories: soloDashboardData.calories,
+            avgBpm:
+                soloDashboardData.avgBpm === "--"
+                    ? 0
+                    : Number(soloDashboardData.avgBpm),
+            avgCadence:
+                soloDashboardData.avgCadence === "--"
+                    ? 0
+                    : Number(soloDashboardData.avgCadence),
+        };
+
+        console.log(telemetries.length);
+        console.log(telemetries.at(-1));
+
+        const lastTrueIndex = telemetries.findLastIndex(
+            (telemetry) => telemetry.isRunning
+        );
+
+        const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
+
+        console.log(savedTelemetries.length);
+        console.log(savedTelemetries.at(-1));
+
+        const running: Running = {
+            runningName: getRunName(startTime),
+            mode: "SOLO",
+            startedAt: startTime,
+            record,
+            hasPaused,
+            isPublic: false,
+            telemetries: savedTelemetries,
+        };
+        const res = await postRun(running, 1);
+        console.log(res);
+    }
 
     const stats = [
         {
@@ -43,7 +90,7 @@ export default function Run() {
         },
         {
             label: "평균 페이스",
-            value: soloDashboardData.avgPace,
+            value: getFormattedPace(soloDashboardData.avgPace),
             unit: "",
         },
         {
@@ -158,7 +205,7 @@ export default function Run() {
                 <SlideToDualAction
                     onSlideLeft={() => {
                         console.log("기록 저장");
-                        router.replace("/run/result/1");
+                        saveRunning();
                     }}
                     onSlideRight={() => {
                         console.log("이어서 뛰기");

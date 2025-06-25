@@ -15,15 +15,19 @@ const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
     }
 };
 
-function getPace(timeInSec: number, distanceInMeters: number): string {
+function getPace(timeInSec: number, distanceInMeters: number): number {
     const distanceInKm = distanceInMeters / 1000;
 
-    if (distanceInMeters <= 10) return "--";
+    if (distanceInMeters <= 10) return 0;
 
     const paceInSec = timeInSec / distanceInKm; // 초/km
+    return paceInSec;
+}
+
+function getFormattedPace(paceInSec: number): string {
+    if (paceInSec === 0) return "--";
     const minutes = Math.floor(paceInSec / 60);
     const seconds = Math.floor(paceInSec % 60);
-
     return `${minutes}’${seconds.toString().padStart(2, "0")}”`;
 }
 
@@ -54,4 +58,25 @@ function getCalories({
     return Math.round(met * weight * timeInHours);
 }
 
-export { getCalories, getPace, getRunTime };
+// 요일/시간/러닝
+// 월요일 아침 러닝
+function getRunName(date: number): string {
+    const dateObj = new Date(date);
+
+    const day = dateObj.toLocaleDateString("ko-KR", {
+        weekday: "long",
+    });
+
+    const hour = dateObj.getHours();
+
+    let timeLabel = "";
+    if (hour < 6) timeLabel = "새벽";
+    else if (hour < 12) timeLabel = "아침";
+    else if (hour < 17) timeLabel = "오후";
+    else if (hour < 21) timeLabel = "저녁";
+    else timeLabel = "야간";
+
+    return `${day} ${timeLabel} 러닝`;
+}
+
+export { getCalories, getFormattedPace, getPace, getRunName, getRunTime };

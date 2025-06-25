@@ -18,6 +18,9 @@ const config = {
             bundleIdentifier: "com.sgmrt.ghostrunner",
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false,
+                NSAppTransportSecurity: {
+                    NSAllowsArbitraryLoads: true,
+                },
             },
         },
         android: {
