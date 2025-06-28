@@ -87,7 +87,7 @@ export function useRunningSession() {
                       stepCountRef.current
                     : stepCountRef.current;
                 lastPedometerRef.current = pedometerRef.current;
-                const timeStamp = Date.now() - firstStartTimestampRef.current;
+                const timeStamp = Date.now();
                 const lat = location.latitude;
                 const lng = location.longitude;
                 const dist = isRunning
