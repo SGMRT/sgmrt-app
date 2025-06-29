@@ -79,7 +79,6 @@ export function useRunningSession() {
                 if (!firstStartTimestampRef.current) {
                     firstStartTimestampRef.current = Date.now();
                     setStartTime(firstStartTimestampRef.current);
-                    console.log("변화");
                 }
                 stepCountRef.current = isRunning
                     ? pedometerRef.current -

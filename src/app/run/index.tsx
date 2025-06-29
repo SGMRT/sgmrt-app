@@ -212,7 +212,6 @@ export default function Run() {
                         router.replace(`/run/result/${courseId}/${runningId}`);
                     }}
                     onSlideRight={() => {
-                        console.log("이어서 뛰기");
                         setIsRestarting(true);
                     }}
                     leftLabel="기록 저장"

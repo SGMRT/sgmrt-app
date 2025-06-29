@@ -7,14 +7,18 @@ import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
-import { typographyStyles } from "@/src/components/ui/Typography";
+import { Typography, typographyStyles } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { Course } from "@/src/types/course";
 import { calculateCenter } from "@/src/utils/mapUtils";
+import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const DATA = Array.from({ length: 100 }, (_, i) => ({
     distance: i * 10,
@@ -25,6 +29,11 @@ const DATA = Array.from({ length: 100 }, (_, i) => ({
 
 export default function Result() {
     const { courseId, runningId } = useLocalSearchParams();
+
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const handlePresentModalPress = () => {
+        bottomSheetRef.current?.present();
+    };
 
     //2025.06.24
     const date = new Date()
@@ -56,166 +65,183 @@ export default function Result() {
         }))
     );
 
+    const { bottom } = useSafeAreaInsets();
+
     return (
-        <SafeAreaView style={styles.container}>
-            <Header titleText={date} />
-            <ScrollView
-                contentContainerStyle={styles.content}
-                keyboardShouldPersistTaps="handled"
-            >
-                <View style={styles.titleContainer}>
-                    <View style={styles.titleLeft}>
-                        <TextInput
-                            editable={isEditing}
-                            placeholder="제목을 입력해주세요"
-                            defaultValue="월요일 아침 러닝"
-                            style={styles.titleInput}
-                            ref={titleInputRef}
-                            onBlur={() => {
-                                setIsEditing(false);
-                                console.log("blur");
-                            }}
-                        />
-                        <EditIcon
-                            onPress={() => {
-                                setIsEditing(true);
-                                titleInputRef.current?.focus();
-                            }}
-                        />
-                    </View>
-                    <ShareIcon />
-                </View>
-                <View style={styles.mapContainer}>
-                    <MapViewWrapper
-                        controlEnabled={false}
-                        showPuck={false}
-                        center={center}
-                        zoom={14}
-                    >
-                        <CourseLayer
-                            course={course}
-                            isActive={true}
-                            onClickCourse={() => {}}
-                        />
-                    </MapViewWrapper>
-                </View>
-                <View
-                    style={{
-                        paddingHorizontal: 17,
-                    }}
+        <>
+            <SafeAreaView style={styles.container}>
+                <Header titleText={date} />
+                <ScrollView
+                    contentContainerStyle={styles.content}
+                    keyboardShouldPersistTaps="handled"
                 >
-                    <StatRow
+                    <View style={styles.titleContainer}>
+                        <View style={styles.titleLeft}>
+                            <TextInput
+                                editable={isEditing}
+                                placeholder="제목을 입력해주세요"
+                                defaultValue="월요일 아침 러닝"
+                                style={styles.titleInput}
+                                ref={titleInputRef}
+                                onBlur={() => {
+                                    setIsEditing(false);
+                                }}
+                            />
+                            <EditIcon
+                                onPress={() => {
+                                    setIsEditing(true);
+                                    titleInputRef.current?.focus();
+                                }}
+                            />
+                        </View>
+                        <ShareIcon />
+                    </View>
+                    <View style={styles.mapContainer}>
+                        <MapViewWrapper
+                            controlEnabled={false}
+                            showPuck={false}
+                            center={center}
+                            zoom={14}
+                        >
+                            <CourseLayer
+                                course={course}
+                                isActive={true}
+                                onClickCourse={() => {}}
+                            />
+                        </MapViewWrapper>
+                    </View>
+                    <View
                         style={{
-                            paddingVertical: 20,
-                            justifyContent: "space-between",
+                            paddingHorizontal: 17,
                         }}
-                        stats={[
-                            {
-                                value: "1.45",
-                                unit: "km",
-                                description: "전체 거리",
-                            },
-                            {
-                                value: "25:45",
-                                unit: "",
-                                description: "시간",
-                            },
-                            {
-                                value: "150",
-                                unit: "spm",
-                                description: "케이던스",
-                            },
-                            {
-                                value: "90",
-                                unit: "kcal",
-                                description: "칼로리",
-                            },
-                        ]}
-                    />
-                    <Divider direction="horizontal" />
-                    <CollapsibleSection
-                        title="페이스"
-                        defaultOpen={true}
-                        alwaysVisibleChildren={
-                            <StatRow
-                                style={{
-                                    gap: 20,
-                                }}
-                                stats={[
-                                    {
-                                        value: "8'23''",
-                                        unit: "",
-                                        description: "평균",
-                                    },
-                                    {
-                                        value: "10'23''",
-                                        unit: "",
-                                        description: "최고",
-                                    },
-                                    {
-                                        value: "10'23''",
-                                        unit: "",
-                                        description: "최저",
-                                    },
-                                ]}
-                            />
-                        }
                     >
-                        <StyledChart
-                            data={DATA}
-                            xKey="distance"
-                            yKeys={["paceLast30"]}
+                        <StatRow
+                            style={{
+                                paddingVertical: 20,
+                                justifyContent: "space-between",
+                            }}
+                            stats={[
+                                {
+                                    value: "1.45",
+                                    unit: "km",
+                                    description: "전체 거리",
+                                },
+                                {
+                                    value: "25:45",
+                                    unit: "",
+                                    description: "시간",
+                                },
+                                {
+                                    value: "150",
+                                    unit: "spm",
+                                    description: "케이던스",
+                                },
+                                {
+                                    value: "90",
+                                    unit: "kcal",
+                                    description: "칼로리",
+                                },
+                            ]}
                         />
-                    </CollapsibleSection>
-                    <Divider direction="horizontal" />
-                    <CollapsibleSection
-                        title="고도"
-                        defaultOpen={true}
-                        alwaysVisibleChildren={
-                            <StatRow
-                                style={{
-                                    gap: 20,
-                                }}
-                                stats={[
-                                    {
-                                        value: "17",
-                                        unit: "m",
-                                        description: "평균",
-                                    },
-                                    {
-                                        value: "+18",
-                                        unit: "m",
-                                        description: "상승",
-                                    },
-                                    {
-                                        value: "-13",
-                                        unit: "m",
-                                        description: "하강",
-                                    },
-                                ]}
+                        <Divider direction="horizontal" />
+                        <CollapsibleSection
+                            title="페이스"
+                            defaultOpen={true}
+                            alwaysVisibleChildren={
+                                <StatRow
+                                    style={{
+                                        gap: 20,
+                                    }}
+                                    stats={[
+                                        {
+                                            value: "8'23''",
+                                            unit: "",
+                                            description: "평균",
+                                        },
+                                        {
+                                            value: "10'23''",
+                                            unit: "",
+                                            description: "최고",
+                                        },
+                                        {
+                                            value: "10'23''",
+                                            unit: "",
+                                            description: "최저",
+                                        },
+                                    ]}
+                                />
+                            }
+                        >
+                            <StyledChart
+                                data={DATA}
+                                xKey="distance"
+                                yKeys={["paceLast30"]}
                             />
-                        }
-                    >
-                        <StyledChart
-                            data={DATA}
-                            xKey="distance"
-                            yKeys={["altitude"]}
-                        />
-                    </CollapsibleSection>
-                    <Divider direction="horizontal" />
-                </View>
-            </ScrollView>
-            <SlideToDualAction
-                onSlideLeft={() => {
-                    router.replace("/");
-                }}
-                onSlideRight={() => {
-                    console.log("코스 등록");
-                }}
-                leftLabel="메인으로"
-                rightLabel="코스 등록"
-            />
-        </SafeAreaView>
+                        </CollapsibleSection>
+                        <Divider direction="horizontal" />
+                        <CollapsibleSection
+                            title="고도"
+                            defaultOpen={true}
+                            alwaysVisibleChildren={
+                                <StatRow
+                                    style={{
+                                        gap: 20,
+                                    }}
+                                    stats={[
+                                        {
+                                            value: "17",
+                                            unit: "m",
+                                            description: "평균",
+                                        },
+                                        {
+                                            value: "+18",
+                                            unit: "m",
+                                            description: "상승",
+                                        },
+                                        {
+                                            value: "-13",
+                                            unit: "m",
+                                            description: "하강",
+                                        },
+                                    ]}
+                                />
+                            }
+                        >
+                            <StyledChart
+                                data={DATA}
+                                xKey="distance"
+                                yKeys={["altitude"]}
+                            />
+                        </CollapsibleSection>
+                        <Divider direction="horizontal" />
+                    </View>
+                </ScrollView>
+                <SlideToDualAction
+                    onSlideLeft={() => {
+                        router.replace("/");
+                    }}
+                    onSlideRight={() => {
+                        handlePresentModalPress();
+                    }}
+                    leftLabel="메인으로"
+                    rightLabel="코스 등록"
+                />
+            </SafeAreaView>
+            <BottomSheetModal
+                ref={bottomSheetRef}
+                backgroundStyle={styles.container}
+                bottomInset={bottom + 56}
+                handleStyle={styles.handle}
+                handleIndicatorStyle={styles.handleIndicator}
+                enablePanDownToClose={true}
+            >
+                <BottomSheetView>
+                    <View style={styles.bottomSheetContent}>
+                        <Typography variant="subhead1">코스 등록</Typography>
+                    </View>
+                </BottomSheetView>
+            </BottomSheetModal>
+        </>
     );
 }
 
@@ -252,5 +278,26 @@ const styles = StyleSheet.create({
     },
     mapContainer: {
         height: 356,
+    },
+
+    timeText: {
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontSize: 60,
+        color: "white",
+        lineHeight: 81.3,
+        textAlign: "center",
+    },
+    bottomSheetContent: {
+        paddingVertical: 30,
+    },
+    handle: {
+        paddingTop: 10,
+        paddingBottom: 0,
+    },
+    handleIndicator: {
+        backgroundColor: colors.gray[40],
+        width: 50,
+        height: 5,
+        borderRadius: 100,
     },
 });

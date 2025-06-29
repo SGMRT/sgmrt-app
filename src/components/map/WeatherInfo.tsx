@@ -22,15 +22,12 @@ export default function WeatherInfo() {
             if (isLoading) return;
             setIsLoading(true);
 
-            console.log("getLocationInfo");
-
             if (
                 lastUpdated &&
                 coords &&
                 new Date(lastUpdated).getTime() + 1000 * 60 * 60 > Date.now() &&
                 getDistance(coords, { longitude, latitude }) < 5000
             ) {
-                console.log("skip");
                 setIsLoading(false);
                 return;
             }
@@ -54,7 +51,6 @@ export default function WeatherInfo() {
                     "--",
                 temperature.data.main.temp
             );
-            console.log(address[0], temperature.data.main.temp);
             setIsLoading(false);
             return;
         },

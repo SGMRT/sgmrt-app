@@ -17,7 +17,6 @@ export default function CourseMarkers({
     onClickCourse,
     zoomLevel,
 }: CourseMarkersProps) {
-    console.log("zoomLevel", zoomLevel);
     return (
         <View>
             <MarkerView
