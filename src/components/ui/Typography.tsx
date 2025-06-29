@@ -29,8 +29,8 @@ export function Typography({
     color = "black",
     ...props
 }: TextProps & { variant?: TypographyVariant; color?: TypographyColor }) {
-    const variantStyle = styles[variant];
-    const colorStyle = styles[color];
+    const variantStyle = typographyStyles[variant];
+    const colorStyle = typographyStyles[color];
     return (
         <Text style={[variantStyle, colorStyle, style]} {...props}>
             {children}
@@ -38,7 +38,7 @@ export function Typography({
     );
 }
 
-const styles = StyleSheet.create({
+export const typographyStyles = StyleSheet.create({
     display1: {
         fontFamily: "SpoqaHanSansNeo-Medium",
         fontSize: 28,
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
         letterSpacing: -0.6,
     },
     subhead1: {
-        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontFamily: "SpoqaHanSansNeo-Medium",
         fontSize: 18,
         lineHeight: 27,
         letterSpacing: -0.6,
@@ -115,6 +115,6 @@ const styles = StyleSheet.create({
         color: colors.primary,
     },
     red: {
-        color: "#FF3358",
+        color: colors.red,
     },
 });

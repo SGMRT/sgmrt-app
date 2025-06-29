@@ -1,16 +1,16 @@
-import { ChevronRight } from "@/assets/svgs/svgs";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
-import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BottomModal from "../../ui/BottomModal";
 import { Divider } from "../../ui/Divider";
 import SlideToAction from "../../ui/SlideToAction";
 import StatsIndicator from "../../ui/StatsIndicator";
 import { Typography } from "../../ui/Typography";
-import UserWithRank from "./UserWithRank";
+import UserStatItem from "./UserStatItem";
 
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
@@ -64,102 +64,89 @@ export default function BottomCourseInfoModal({
         ghostList[0].id
     );
     const router = useRouter();
-    const { bottom } = useSafeAreaInsets();
     return (
-        <BottomSheetModal
-            ref={bottomSheetRef}
-            bottomInset={bottom}
-            enablePanDownToClose={canClose}
-            backgroundStyle={styles.container}
-            handleStyle={styles.handle}
-            handleIndicatorStyle={styles.handleIndicator}
-            animatedPosition={heightVal}
+        <BottomModal
+            bottomSheetRef={bottomSheetRef}
+            canClose={canClose}
+            heightVal={heightVal}
         >
-            <BottomSheetView>
-                <View style={styles.tabContainer}>
-                    <Pressable
-                        onPress={() => setTab("course")}
-                        style={styles.tab}
+            <View style={styles.tabContainer}>
+                <Pressable onPress={() => setTab("course")} style={styles.tab}>
+                    <Typography
+                        variant="subhead2"
+                        color={tab === "course" ? "white" : "gray60"}
                     >
-                        <Typography
-                            variant="subhead2"
-                            color={tab === "course" ? "white" : "gray60"}
-                        >
-                            코스 상세 정보
-                        </Typography>
-                    </Pressable>
-                    <Divider />
-                    <Pressable
-                        onPress={() => setTab("ghost")}
-                        style={styles.tab}
+                        코스 상세 정보
+                    </Typography>
+                </Pressable>
+                <Divider />
+                <Pressable onPress={() => setTab("ghost")} style={styles.tab}>
+                    <Typography
+                        variant="subhead2"
+                        color={tab === "ghost" ? "white" : "gray60"}
                     >
-                        <Typography
-                            variant="subhead2"
-                            color={tab === "ghost" ? "white" : "gray60"}
-                        >
-                            고스트 선택
-                        </Typography>
-                    </Pressable>
-                </View>
+                        고스트 선택
+                    </Typography>
+                </Pressable>
+            </View>
+            {tab === "course" && (
                 <View style={{ marginBottom: 30 }}>
-                    {tab === "course" && <StatsIndicator stats={stats} />}
+                    <StatsIndicator stats={stats} />
                 </View>
-                {tab === "ghost" && (
-                    <View style={{ gap: 10 }}>
-                        <View style={styles.ghostListContainer}>
-                            <Typography variant="body1" color="gray40">
-                                빠른 완주 순위
-                            </Typography>
-                            <View style={styles.ghostListContainerText}>
-                                <Pressable
-                                    onPress={() => {
-                                        bottomSheetRef.current?.dismiss();
-                                        router.push("/course/123");
-                                    }}
-                                >
-                                    <Typography variant="body2" color="gray60">
-                                        전체 보기
-                                    </Typography>
-                                </Pressable>
-                                <ChevronRight />
-                            </View>
-                        </View>
-                        <View style={styles.marginBottom}>
-                            {ghostList.slice(0, 3).map((ghost, index) => (
-                                <UserWithRank
-                                    key={ghost.id}
-                                    rank={index + 1}
-                                    name={ghost.name}
-                                    avatar={ghost.avatar}
-                                    time={ghost.time}
-                                    pace={ghost.pace}
-                                    cadence={ghost.cadence}
-                                    ghostId={ghost.id}
-                                    isGhostSelected={
-                                        selectedGhostId === ghost.id
-                                    }
-                                    onPress={() => {
-                                        setSelectedGhostId(ghost.id);
-                                    }}
-                                />
-                            ))}
+            )}
+            {tab === "ghost" && (
+                <View style={{ gap: 10 }}>
+                    <View style={styles.ghostListContainer}>
+                        <Typography variant="body1" color="gray40">
+                            빠른 완주 순위
+                        </Typography>
+                        <View style={styles.ghostListContainerText}>
+                            <Pressable
+                                onPress={() => {
+                                    bottomSheetRef.current?.dismiss();
+                                    router.push("/course/123");
+                                }}
+                            >
+                                <Typography variant="body2" color="gray60">
+                                    전체 보기
+                                </Typography>
+                            </Pressable>
+                            <ChevronIcon />
                         </View>
                     </View>
-                )}
-                <SlideToAction
-                    label={
-                        tab === "course"
-                            ? "이 코스로 러닝 시작"
-                            : "고스트와 러닝 시작"
-                    }
-                    onSlideSuccess={() => {
-                        console.log("slide success");
-                    }}
-                    color="green"
-                    direction="left"
-                />
-            </BottomSheetView>
-        </BottomSheetModal>
+                    <View style={styles.marginBottom}>
+                        {ghostList.slice(0, 3).map((ghost, index) => (
+                            <UserStatItem
+                                key={ghost.id}
+                                rank={index + 1}
+                                name={ghost.name}
+                                avatar={ghost.avatar}
+                                time={ghost.time}
+                                pace={ghost.pace}
+                                cadence={ghost.cadence}
+                                ghostId={ghost.id}
+                                isGhostSelected={selectedGhostId === ghost.id}
+                                onPress={() => {
+                                    setSelectedGhostId(ghost.id);
+                                }}
+                            />
+                        ))}
+                    </View>
+                </View>
+            )}
+            <SlideToAction
+                label={
+                    tab === "course"
+                        ? "이 코스로 러닝 시작"
+                        : "고스트와 러닝 시작"
+                }
+                onSlideSuccess={() => {
+                    console.log("slide success");
+                }}
+                color="green"
+                direction="left"
+            />
+        </BottomModal>
     );
 }
 

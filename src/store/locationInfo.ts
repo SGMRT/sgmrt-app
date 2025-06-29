@@ -1,14 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { Coordinate } from "../utils/mapUtils";
 
 interface LocationInfoState {
-    coords: [number | null, number | null];
+    coords: Coordinate | null;
     address: string | null;
     temperature: number | null;
     lastUpdated: Date | null;
     setLocationInfo: (
-        coords: [number, number],
+        coords: Coordinate,
         address: string,
         temperature: number
     ) => void;
@@ -17,7 +18,7 @@ interface LocationInfoState {
 export const useLocationInfoStore = create<LocationInfoState>()(
     persist(
         (set) => ({
-            coords: [null, null],
+            coords: null,
             address: null,
             temperature: null,
             lastUpdated: null,

@@ -18,7 +18,6 @@ export default function HomeMap({ courses }: HomeMapProps) {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const handlePresentModalPress = () => {
         bottomSheetRef.current?.present();
-        console.log(bottomSheetRef.current);
     };
     const onClickCourse = (course: Course) => {
         setActiveCourse(course.id);
@@ -28,10 +27,8 @@ export default function HomeMap({ courses }: HomeMapProps) {
     const onZoomLevelChanged = (currentZoomLevel: number) => {
         if (zoomLevel > 14.5 && currentZoomLevel <= 14.5) {
             setZoomLevel(currentZoomLevel);
-            console.log("zoomLevel", zoomLevel);
         } else if (zoomLevel <= 14.5 && currentZoomLevel > 14.5) {
             setZoomLevel(currentZoomLevel);
-            console.log("zoomLevel", zoomLevel);
         }
     };
 
@@ -41,6 +38,9 @@ export default function HomeMap({ courses }: HomeMapProps) {
 
     const controlPannelPosition = useAnimatedStyle(() => {
         const baseHeight = deviceHeight - 64 - 56 - bottom;
+        if (heightVal.value === 0) {
+            return { top: baseHeight - 116 }; // 최초 위치 고정
+        }
         if (heightVal.value >= baseHeight) {
             return { top: baseHeight - 116 };
         } else {

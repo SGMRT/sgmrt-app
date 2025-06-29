@@ -19,6 +19,7 @@
     "@react-navigation/native": "^7.1.6",
     "@rnmapbox/maps": "^10.1.39",
     "@shopify/flash-list": "1.7.6",
+    "@shopify/react-native-skia": "v2.0.0-next.4",
     "axios": "^1.10.0",
     "expo": "~53.0.11",
     "expo-blur": "~14.1.5",
@@ -48,6 +49,7 @@
     "react-native-toast-message": "^2.3.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
+    "victory-native": "^41.17.4",
     "zustand": "^5.0.5"
   },
   "devDependencies": {

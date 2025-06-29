@@ -1,13 +1,14 @@
 const colors = {
     primary: "#e2ff00",
+    red: "#ff3358",
     secondary: "none",
-    black: "#090a0a",
+    black: "#181818",
     white: "#ffffff",
     gray: {
-        80: "#484e58",
-        60: "#7d859a",
-        40: "#b4bbcd",
-        20: "#dadee8",
+        80: "#3f3f3f",
+        60: "#676767",
+        40: "#b5b5b5",
+        20: "#e8e8e8",
     },
 };
 

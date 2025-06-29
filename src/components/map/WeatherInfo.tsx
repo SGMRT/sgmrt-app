@@ -22,17 +22,12 @@ export default function WeatherInfo() {
             if (isLoading) return;
             setIsLoading(true);
 
-            console.log("getLocationInfo");
-
             if (
                 lastUpdated &&
-                coords[0] &&
-                coords[1] &&
+                coords &&
                 new Date(lastUpdated).getTime() + 1000 * 60 * 60 > Date.now() &&
-                getDistance([longitude, latitude], [coords[0], coords[1]]) <
-                    5000
+                getDistance(coords, { longitude, latitude }) < 5000
             ) {
-                console.log("skip");
                 setIsLoading(false);
                 return;
             }
@@ -48,7 +43,7 @@ export default function WeatherInfo() {
             ]);
 
             setLocationInfo(
-                [longitude, latitude],
+                { longitude, latitude },
                 address[0].district ||
                     address[0].city ||
                     address[0].region ||
@@ -56,7 +51,6 @@ export default function WeatherInfo() {
                     "--",
                 temperature.data.main.temp
             );
-            console.log(address[0], temperature.data.main.temp);
             setIsLoading(false);
             return;
         },

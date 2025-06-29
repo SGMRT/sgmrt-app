@@ -1,3 +1,4 @@
+import { postRun } from "@/src/apis";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -8,7 +9,7 @@ import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunningSession } from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
-import { getRunTime } from "@/src/utils/runUtils";
+import { getFormattedPace, getRunName, getRunTime } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -28,35 +29,89 @@ export default function Run() {
     const {
         isRunning,
         runTime,
+        soloDashboardData,
         segments,
-        totalDistance,
-        elevationGain,
-        cadence,
-        calories,
-        pace,
+        telemetries,
         startRunning,
         stopRunning,
+        startTime,
+        hasPaused,
     } = useRunningSession();
 
+    async function saveRunning() {
+        if (!startTime) return;
+        if (soloDashboardData.distance === 0) {
+            Toast.show({
+                type: "info",
+                text1: "러닝 거리가 너무 짧습니다.",
+                position: "bottom",
+                bottomOffset: 60,
+            });
+            return;
+        }
+
+        const record: RunRecord = {
+            distance: soloDashboardData.distance,
+            altitude: soloDashboardData.gainElevation,
+            duration: runTime,
+            avgPace: soloDashboardData.avgPace,
+            calories: soloDashboardData.calories,
+            avgBpm:
+                soloDashboardData.avgBpm === "--"
+                    ? 0
+                    : Number(soloDashboardData.avgBpm),
+            avgCadence:
+                soloDashboardData.avgCadence === "--"
+                    ? 0
+                    : Number(soloDashboardData.avgCadence),
+        };
+
+        const lastTrueIndex = telemetries.findLastIndex(
+            (telemetry) => telemetry.isRunning
+        );
+
+        const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
+
+        const running: Running = {
+            runningName: getRunName(startTime),
+            mode: "SOLO",
+            startedAt: startTime,
+            record,
+            hasPaused,
+            isPublic: false,
+            telemetries: savedTelemetries,
+        };
+        const res = await postRun(running, 1);
+        return res;
+    }
+
     const stats = [
-        { label: "거리", value: (totalDistance / 1000).toFixed(2), unit: "km" },
+        {
+            label: "거리",
+            value: (soloDashboardData.distance / 1000).toFixed(2),
+            unit: "km",
+        },
         {
             label: "평균 페이스",
-            value: pace,
+            value: getFormattedPace(soloDashboardData.avgPace),
             unit: "",
         },
-        { label: "케이던스", value: cadence.toString(), unit: "spm" },
+        {
+            label: "케이던스",
+            value: soloDashboardData.avgCadence.toString(),
+            unit: "spm",
+        },
         {
             label: "고도",
-            value: elevationGain.toFixed(0),
+            value: soloDashboardData.gainElevation.toFixed(0),
             unit: "m",
         },
         {
             label: "칼로리",
-            value: calories.toFixed(0),
+            value: soloDashboardData.calories.toFixed(0),
             unit: "kcal",
         },
-        { label: "BPM", value: "--", unit: "" },
+        { label: "BPM", value: soloDashboardData.avgBpm, unit: "" },
     ];
 
     useEffect(() => {
@@ -116,16 +171,13 @@ export default function Run() {
                 )}
             </TopBlurView>
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {segments.map(
-                    (segment, index) =>
-                        segment.points.length > 0 && (
-                            <RunningLine
-                                key={index.toString()}
-                                index={index}
-                                segment={segment}
-                            />
-                        )
-                )}
+                {segments.map((segment, index) => (
+                    <RunningLine
+                        key={index.toString()}
+                        index={index}
+                        segment={segment}
+                    />
+                ))}
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
@@ -154,12 +206,12 @@ export default function Run() {
                 />
             ) : (
                 <SlideToDualAction
-                    onSlideLeft={() => {
+                    onSlideLeft={async () => {
                         console.log("기록 저장");
-                        router.back();
+                        const { courseId, runningId } = await saveRunning();
+                        router.replace(`/run/result/${courseId}/${runningId}`);
                     }}
                     onSlideRight={() => {
-                        console.log("이어서 뛰기");
                         setIsRestarting(true);
                     }}
                     leftLabel="기록 저장"

@@ -1,101 +1,186 @@
 import * as Location from "expo-location";
 import { Pedometer } from "expo-sensors";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Segment } from "../components/map/RunningLine";
 import { getDistance } from "../utils/mapUtils";
 import { getCalories, getPace } from "../utils/runUtils";
 
-interface GpsSegment {
-    isRunning: boolean;
-    points: {
-        latitude: number;
-        longitude: number;
-        altitude: number;
-    }[];
+interface Point {
+    latitude: number;
+    longitude: number;
+    altitude: number;
+}
+
+interface SoloDashBoardData {
+    distance: number;
+    avgPace: number;
+    avgCadence: string;
+    gainElevation: number;
+    calories: number;
+    avgBpm: string;
 }
 
 export function useRunningSession() {
     const [isRunning, setIsRunning] = useState(false);
-    const [runTime, setRunTime] = useState(0);
-    const [segments, setSegments] = useState<GpsSegment[]>([]);
-    const [totalDistance, setTotalDistance] = useState(0);
-    const [stepCount, setStepCount] = useState(0);
-    const [cumulativeStepCount, setCumulativeStepCount] = useState(0);
-    const [elevationGain, setElevationGain] = useState(0);
+    const [soloDashboardData, setSoloDashboardData] =
+        useState<SoloDashBoardData>({
+            distance: 0,
+            avgPace: 0,
+            avgCadence: "--",
+            gainElevation: 0,
+            calories: 0,
+            avgBpm: "--",
+        });
+    const [telemetries, setTelemetries] = useState<Telemetry[]>([]);
+    const [segments, setSegments] = useState<Segment[]>([]);
+    const [hasPaused, setHasPaused] = useState(false);
 
+    // 타이머 Ref
     const timerRef = useRef<number | null>(null);
-    const stopTimerRef = useRef<number | null>(null);
-    const pointRef = useRef<{
-        latitude: number;
-        longitude: number;
-        altitude: number;
-    } | null>(null);
+
+    // 구독하고 있는 Ref
+    const locationRef = useRef<Point | null>(null);
+    const pedometerRef = useRef(0);
+
+    // 데이터 Ref
+    const isRunningRef = useRef(false);
+    const lastLocationRef = useRef<Point | null>(null);
+    const timeRef = useRef(0);
+    const firstStartTimestampRef = useRef<number | null>(null);
+    const cumulativeDistanceRef = useRef(0);
+    const cumulativeElevationRef = useRef(0);
+    const lastElevationRef = useRef<number | null>(null);
     const stepCountRef = useRef(0);
+    const lastPedometerRef = useRef(0);
 
-    const addGpsPoint = useCallback(
-        (
-            point: { latitude: number; longitude: number; altitude: number },
-            isRunning: boolean
-        ) => {
-            setSegments((prev) => {
-                const last = prev[prev.length - 1];
-                if (!last) return [{ isRunning: isRunning, points: [point] }];
-                const lastPoint = last.points[last.points.length - 1];
-
-                const dist =
-                    lastPoint != null
-                        ? getDistance(
-                              [lastPoint.latitude, lastPoint.longitude],
-                              [point.latitude, point.longitude]
-                          )
-                        : 0;
-
-                if (dist < 100) {
-                    if (isRunning) {
-                        setTotalDistance((prevDist) => prevDist + dist);
-
-                        if (point.altitude !== 0 && lastPoint) {
-                            const gain = point.altitude - lastPoint.altitude;
-                            if (gain > 0) {
-                                setElevationGain((prevGain) => prevGain + gain);
-                            }
-                        }
-                    }
-
-                    if (last.isRunning !== isRunning) {
-                        return [
-                            ...prev,
-                            { isRunning, points: [lastPoint, point] },
-                        ];
-                    } else {
-                        return [
-                            ...prev.slice(0, -1),
-                            { ...last, points: [...last.points, point] },
-                        ];
-                    }
-                }
-                return prev;
-            });
-        },
-        []
-    );
+    // 데이터 state
+    const [runTime, setRunTime] = useState(0);
+    const [startTime, setStartTime] = useState<number | null>(null);
 
     // 달리기 시작
     const startRunning = () => {
-        console.log("startRunning");
-        if (timerRef.current) return;
-        if (stopTimerRef.current) {
-            clearInterval(stopTimerRef.current);
-            stopTimerRef.current = null;
-        }
-        const startStepCount = stepCountRef.current;
-
         setIsRunning(true);
-
+        isRunningRef.current = true;
+        if (timerRef.current) return;
         timerRef.current = setInterval(() => {
-            setRunTime((prev) => prev + 1);
-            setStepCount(stepCountRef.current - startStepCount);
-            if (pointRef.current) {
-                addGpsPoint(pointRef.current, true);
+            const isRunning = isRunningRef.current;
+            if (isRunning) {
+                timeRef.current += 1;
+                setRunTime(timeRef.current);
+            }
+            const location = locationRef.current;
+            const lastLocation = lastLocationRef.current;
+            if (!location) return;
+            if (
+                !lastLocation ||
+                lastLocation.latitude !== location.latitude ||
+                lastLocation.longitude !== location.longitude
+            ) {
+                if (!firstStartTimestampRef.current) {
+                    firstStartTimestampRef.current = Date.now();
+                    setStartTime(firstStartTimestampRef.current);
+                }
+                stepCountRef.current = isRunning
+                    ? pedometerRef.current -
+                      lastPedometerRef.current +
+                      stepCountRef.current
+                    : stepCountRef.current;
+                lastPedometerRef.current = pedometerRef.current;
+                const timeStamp = Date.now();
+                const lat = location.latitude;
+                const lng = location.longitude;
+                const dist = isRunning
+                    ? getDistance(lastLocation ?? location, location) +
+                      cumulativeDistanceRef.current
+                    : cumulativeDistanceRef.current;
+                const pace = getPace(timeRef.current, dist);
+                const calories = getCalories({
+                    distance: dist,
+                    timeInSec: timeRef.current,
+                    weight: 70,
+                });
+                const alt = location.altitude;
+                const elevation = alt - (lastElevationRef.current ?? alt);
+                if (elevation > 0 && isRunning) {
+                    cumulativeElevationRef.current += elevation;
+                }
+                lastElevationRef.current = alt;
+                const cadence =
+                    timeRef.current > 0
+                        ? Math.round(
+                              (stepCountRef.current / timeRef.current) * 60
+                          )
+                        : 0;
+                const bpm = 0;
+                const telemetry: Telemetry = {
+                    timeStamp: timeStamp.toString(),
+                    lat,
+                    lng,
+                    dist,
+                    pace,
+                    alt,
+                    cadence,
+                    bpm,
+                    isRunning,
+                };
+                cumulativeDistanceRef.current = dist;
+                lastLocationRef.current = location;
+                setTelemetries((prev) => [...prev, telemetry]);
+                if (isRunningRef.current) {
+                    setSoloDashboardData((prev) => ({
+                        distance: dist,
+                        avgPace: pace,
+                        avgCadence: cadence >= 1 ? cadence.toString() : "--",
+                        gainElevation: cumulativeElevationRef.current,
+                        calories: calories,
+                        avgBpm: "--",
+                    }));
+                }
+                setSegments((prev) => {
+                    const lastSegment = prev.at(-1);
+                    const newPoint = {
+                        longitude: telemetry.lng,
+                        latitude: telemetry.lat,
+                    };
+
+                    // 세그먼트가 아예 없을 때
+                    if (!lastSegment) {
+                        return [
+                            {
+                                isRunning: telemetry.isRunning,
+                                points: [newPoint],
+                            },
+                        ];
+                    }
+
+                    const lastPoint = lastSegment.points.at(-1);
+
+                    // 상태가 바뀌었을 경우 → 새 세그먼트 추가
+                    if (
+                        lastSegment.isRunning !== telemetry.isRunning &&
+                        lastPoint
+                    ) {
+                        if (telemetry.isRunning) setHasPaused(true);
+                        return [
+                            ...prev,
+                            {
+                                isRunning: telemetry.isRunning,
+                                points: [lastPoint, newPoint],
+                            },
+                        ];
+                    }
+
+                    // 상태가 같을 경우 → 기존 세그먼트에 point 추가
+                    const updatedSegments = [...prev];
+                    const updatedSegment = {
+                        ...lastSegment,
+                        points: [...lastSegment.points, newPoint],
+                    };
+                    updatedSegments[updatedSegments.length - 1] =
+                        updatedSegment;
+
+                    return updatedSegments;
+                });
             }
         }, 1000);
     };
@@ -103,17 +188,7 @@ export function useRunningSession() {
     // 달리기 종료
     const stopRunning = () => {
         setIsRunning(false);
-        setCumulativeStepCount((prev) => prev + stepCount);
-        setStepCount(0);
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-        stopTimerRef.current = setInterval(() => {
-            if (pointRef.current) {
-                addGpsPoint(pointRef.current, false);
-            }
-        }, 1000);
+        isRunningRef.current = false;
     };
 
     // 컴포넌트 언마운트 시 타이머 정리
@@ -122,10 +197,6 @@ export function useRunningSession() {
             if (timerRef.current) {
                 clearInterval(timerRef.current);
                 timerRef.current = null;
-            }
-            if (stopTimerRef.current) {
-                clearInterval(stopTimerRef.current);
-                stopTimerRef.current = null;
             }
         };
     }, []);
@@ -141,7 +212,7 @@ export function useRunningSession() {
                     timeInterval: 1000,
                 },
                 (location) => {
-                    pointRef.current = {
+                    locationRef.current = {
                         latitude: location.coords.latitude,
                         longitude: location.coords.longitude,
                         altitude: location.coords.altitude ?? 0,
@@ -152,7 +223,7 @@ export function useRunningSession() {
             const isAvailable = await Pedometer.isAvailableAsync();
             if (isAvailable) {
                 pedometerSubscription = Pedometer.watchStepCount((result) => {
-                    stepCountRef.current = result.steps;
+                    pedometerRef.current = result.steps;
                 });
             }
         };
@@ -165,30 +236,14 @@ export function useRunningSession() {
         };
     }, []);
 
-    const totalStepCount = cumulativeStepCount + stepCount;
-
-    const cadence =
-        runTime > 1 && totalStepCount > 0
-            ? Math.round((totalStepCount / runTime) * 60)
-            : 0;
-
-    const calories = getCalories({
-        distance: totalDistance,
-        timeInSec: runTime,
-        weight: 70,
-    });
-
-    const pace = getPace(runTime, totalDistance);
-
     return {
         isRunning,
         runTime,
+        soloDashboardData,
         segments,
-        totalDistance,
-        elevationGain,
-        cadence,
-        calories,
-        pace,
+        telemetries,
+        startTime,
+        hasPaused,
         startRunning,
         stopRunning,
     };

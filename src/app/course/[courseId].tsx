@@ -1,11 +1,11 @@
-import { BackIcon } from "@/assets/svgs/svgs";
-import UserWithRank from "@/src/components/map/courseInfo/UserWithRank";
+import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
+import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import { Typography } from "@/src/components/ui/Typography";
 import { FlashList } from "@shopify/flash-list";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const ghostList = [
@@ -57,23 +57,13 @@ export default function CourseScreen() {
         ghostList[0].id
     );
 
-    console.log(courseId);
-
-    const router = useRouter();
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <Pressable onPress={() => router.back()}>
-                    <BackIcon />
-                </Pressable>
-                <Typography variant="subhead2" color="gray20">
-                    소고기마라탕
-                </Typography>
-                <View style={{ width: 8.1, height: 16.2 }} />
-            </View>
+            <Header titleText="소고기마라탕" />
             <View
                 style={{
                     paddingLeft: 17,
+                    marginTop: 20,
                 }}
             >
                 <Typography
@@ -87,7 +77,7 @@ export default function CourseScreen() {
             <FlashList
                 data={ghostList}
                 renderItem={({ item, index }) => (
-                    <UserWithRank
+                    <UserStatItem
                         key={item.id}
                         rank={index + 1}
                         name={item.name}
@@ -102,6 +92,7 @@ export default function CourseScreen() {
                 )}
                 estimatedItemSize={83}
                 showsVerticalScrollIndicator={false}
+                extraData={selectedGhostId}
             />
             <SlideToAction
                 label="고스트와 러닝 시작"
