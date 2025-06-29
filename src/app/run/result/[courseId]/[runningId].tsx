@@ -1,20 +1,21 @@
-import { EditIcon, ShareIcon } from "@/assets/svgs/svgs";
+import { ShareIcon } from "@/assets/svgs/svgs";
 import StyledChart from "@/src/components/chart/StyledChart";
 import CourseLayer from "@/src/components/map/CourseLayer";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import BottomModal from "@/src/components/ui/BottomModal";
 import CollapsibleSection from "@/src/components/ui/CollapsibleSection";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
+import NameInput from "@/src/components/ui/NameInput";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
-import { Typography, typographyStyles } from "@/src/components/ui/Typography";
-import colors from "@/src/theme/colors";
+import { Typography } from "@/src/components/ui/Typography";
 import { Course } from "@/src/types/course";
 import { calculateCenter } from "@/src/utils/mapUtils";
-import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -35,6 +36,9 @@ export default function Result() {
         bottomSheetRef.current?.present();
     };
 
+    const [recordTitle, setRecordTitle] = useState("월요일 아침 러닝");
+    const [courseName, setCourseName] = useState("");
+
     //2025.06.24
     const date = new Date()
         .toLocaleDateString("ko-KR", {
@@ -45,10 +49,7 @@ export default function Result() {
         .slice(0, 12)
         .split(". ")
         .join(".");
-    const [isEditing, setIsEditing] = useState(false);
-    const titleInputRef = useRef<TextInput>(null);
     const router = useRouter();
-
     const course = {
         id: 1,
         name: "월요일 아침 러닝",
@@ -76,24 +77,11 @@ export default function Result() {
                     keyboardShouldPersistTaps="handled"
                 >
                     <View style={styles.titleContainer}>
-                        <View style={styles.titleLeft}>
-                            <TextInput
-                                editable={isEditing}
-                                placeholder="제목을 입력해주세요"
-                                defaultValue="월요일 아침 러닝"
-                                style={styles.titleInput}
-                                ref={titleInputRef}
-                                onBlur={() => {
-                                    setIsEditing(false);
-                                }}
-                            />
-                            <EditIcon
-                                onPress={() => {
-                                    setIsEditing(true);
-                                    titleInputRef.current?.focus();
-                                }}
-                            />
-                        </View>
+                        <NameInput
+                            defaultValue="월요일 아침 러닝"
+                            placeholder="제목을 입력해주세요"
+                            onChangeText={setRecordTitle}
+                        />
                         <ShareIcon />
                     </View>
                     <View style={styles.mapContainer}>
@@ -221,26 +209,29 @@ export default function Result() {
                         router.replace("/");
                     }}
                     onSlideRight={() => {
+                        console.log(courseName);
                         handlePresentModalPress();
                     }}
                     leftLabel="메인으로"
                     rightLabel="코스 등록"
                 />
             </SafeAreaView>
-            <BottomSheetModal
-                ref={bottomSheetRef}
-                backgroundStyle={styles.container}
+            <BottomModal
+                bottomSheetRef={bottomSheetRef}
                 bottomInset={bottom + 56}
+                canClose={true}
                 handleStyle={styles.handle}
-                handleIndicatorStyle={styles.handleIndicator}
-                enablePanDownToClose={true}
             >
-                <BottomSheetView>
-                    <View style={styles.bottomSheetContent}>
-                        <Typography variant="subhead1">코스 등록</Typography>
-                    </View>
-                </BottomSheetView>
-            </BottomSheetModal>
+                <View style={styles.bottomSheetContent}>
+                    <NameInput
+                        placeholder="코스명을 입력해주세요"
+                        onChangeText={setCourseName}
+                    />
+                    <Typography variant="body2" color="gray40">
+                        코스를 한 번 등록하면 삭제 및 수정이 어렵습니다
+                    </Typography>
+                </View>
+            </BottomModal>
         </>
     );
 }
@@ -267,19 +258,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: 17,
         paddingVertical: 20,
     },
-    titleLeft: {
-        flexDirection: "row",
-        gap: 4,
-    },
-    titleInput: {
-        ...typographyStyles.subhead1,
-        color: colors.white,
-        lineHeight: undefined,
-    },
     mapContainer: {
         height: 356,
     },
-
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",
         fontSize: 60,
@@ -289,15 +270,12 @@ const styles = StyleSheet.create({
     },
     bottomSheetContent: {
         paddingVertical: 30,
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 4,
     },
     handle: {
         paddingTop: 10,
         paddingBottom: 0,
-    },
-    handleIndicator: {
-        backgroundColor: colors.gray[40],
-        width: 50,
-        height: 5,
-        borderRadius: 100,
     },
 });
