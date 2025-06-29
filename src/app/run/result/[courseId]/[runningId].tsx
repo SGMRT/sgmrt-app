@@ -1,11 +1,12 @@
-import { ChevronIcon, EditIcon, ShareIcon } from "@/assets/svgs/svgs";
+import { EditIcon, ShareIcon } from "@/assets/svgs/svgs";
 import StyledChart from "@/src/components/chart/StyledChart";
 import CourseLayer from "@/src/components/map/CourseLayer";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import CollapsibleSection from "@/src/components/ui/CollapsibleSection";
 import Header from "@/src/components/ui/Header";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
-import { Typography, typographyStyles } from "@/src/components/ui/Typography";
+import { typographyStyles } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { Course } from "@/src/types/course";
 import { calculateCenter } from "@/src/utils/mapUtils";
@@ -97,7 +98,6 @@ export default function Result() {
                         />
                     </MapViewWrapper>
                 </View>
-
                 <View
                     style={{
                         paddingHorizontal: 17,
@@ -138,49 +138,40 @@ export default function Result() {
                             backgroundColor: "#3f3f3f",
                         }}
                     />
-                    <View style={{ paddingVertical: 15, gap: 10 }}>
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                            }}
-                        >
-                            <Typography variant="body1" color="gray60">
-                                페이스
-                            </Typography>
-                            <ChevronIcon
-                                style={{ transform: [{ rotate: "-90deg" }] }}
+                    <CollapsibleSection
+                        title="페이스"
+                        defaultOpen={true}
+                        alwaysVisibleChildren={
+                            <StatRow
+                                style={{
+                                    gap: 20,
+                                }}
+                                stats={[
+                                    {
+                                        value: "8'23''",
+                                        unit: "",
+                                        description: "평균",
+                                    },
+                                    {
+                                        value: "10'23''",
+                                        unit: "",
+                                        description: "최고",
+                                    },
+                                    {
+                                        value: "10'23''",
+                                        unit: "",
+                                        description: "최저",
+                                    },
+                                ]}
                             />
-                        </View>
-                        <StatRow
-                            style={{
-                                gap: 20,
-                            }}
-                            stats={[
-                                {
-                                    value: "8'23''",
-                                    unit: "",
-                                    description: "평균",
-                                },
-                                {
-                                    value: "10'23''",
-                                    unit: "",
-                                    description: "최고",
-                                },
-                                {
-                                    value: "10'23''",
-                                    unit: "",
-                                    description: "최저",
-                                },
-                            ]}
-                        />
+                        }
+                    >
                         <StyledChart
                             data={DATA}
                             xKey="distance"
                             yKeys={["paceLast30"]}
                         />
-                    </View>
+                    </CollapsibleSection>
                     <View
                         style={{
                             height: 1,
@@ -188,49 +179,40 @@ export default function Result() {
                             backgroundColor: "#3f3f3f",
                         }}
                     />
-                    <View style={{ paddingVertical: 15, gap: 10 }}>
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                            }}
-                        >
-                            <Typography variant="body1" color="gray60">
-                                고도
-                            </Typography>
-                            <ChevronIcon
-                                style={{ transform: [{ rotate: "-90deg" }] }}
+                    <CollapsibleSection
+                        title="고도"
+                        defaultOpen={true}
+                        alwaysVisibleChildren={
+                            <StatRow
+                                style={{
+                                    gap: 20,
+                                }}
+                                stats={[
+                                    {
+                                        value: "17",
+                                        unit: "m",
+                                        description: "평균",
+                                    },
+                                    {
+                                        value: "+18",
+                                        unit: "m",
+                                        description: "상승",
+                                    },
+                                    {
+                                        value: "-13",
+                                        unit: "m",
+                                        description: "하강",
+                                    },
+                                ]}
                             />
-                        </View>
-                        <StatRow
-                            style={{
-                                gap: 20,
-                            }}
-                            stats={[
-                                {
-                                    value: "17",
-                                    unit: "m",
-                                    description: "평균",
-                                },
-                                {
-                                    value: "+18",
-                                    unit: "m",
-                                    description: "상승",
-                                },
-                                {
-                                    value: "-13",
-                                    unit: "m",
-                                    description: "하강",
-                                },
-                            ]}
-                        />
+                        }
+                    >
                         <StyledChart
                             data={DATA}
                             xKey="distance"
                             yKeys={["altitude"]}
                         />
-                    </View>
+                    </CollapsibleSection>
                 </View>
             </ScrollView>
             <SlideToDualAction
