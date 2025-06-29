@@ -1,4 +1,4 @@
-import UserWithRank from "@/src/components/map/courseInfo/UserWithRank";
+import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import { Typography } from "@/src/components/ui/Typography";
@@ -77,7 +77,7 @@ export default function CourseScreen() {
             <FlashList
                 data={ghostList}
                 renderItem={({ item, index }) => (
-                    <UserWithRank
+                    <UserStatItem
                         key={item.id}
                         rank={index + 1}
                         name={item.name}

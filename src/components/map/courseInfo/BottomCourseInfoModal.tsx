@@ -10,7 +10,7 @@ import { Divider } from "../../ui/Divider";
 import SlideToAction from "../../ui/SlideToAction";
 import StatsIndicator from "../../ui/StatsIndicator";
 import { Typography } from "../../ui/Typography";
-import UserWithRank from "./UserWithRank";
+import UserStatItem from "./UserStatItem";
 
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
@@ -126,7 +126,7 @@ export default function BottomCourseInfoModal({
                         </View>
                         <View style={styles.marginBottom}>
                             {ghostList.slice(0, 3).map((ghost, index) => (
-                                <UserWithRank
+                                <UserStatItem
                                     key={ghost.id}
                                     rank={index + 1}
                                     name={ghost.name}

@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
 
 export default function Index() {
-    return <Redirect href="/run/result/1/1" />;
+    return <Redirect href="/course/1" />;
 }
