@@ -1,10 +1,10 @@
 import { ChevronIcon, EditIcon, ShareIcon } from "@/assets/svgs/svgs";
+import StyledChart from "@/src/components/chart/StyledChart";
 import CourseLayer from "@/src/components/map/CourseLayer";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
-import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
-import TextWithUnit from "@/src/components/ui/TextWithUnit";
+import StatRow from "@/src/components/ui/StatRow";
 import { Typography, typographyStyles } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { Course } from "@/src/types/course";
@@ -14,9 +14,16 @@ import { useRef, useState } from "react";
 import { ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+const DATA = Array.from({ length: 100 }, (_, i) => ({
+    distance: i * 10,
+    paceLast30: 40 + 30 * Math.random(),
+    altitude: 100 + 10 * Math.random(),
+    time: i * 10,
+}));
+
 export default function Result() {
     const { courseId, runningId } = useLocalSearchParams();
-    console.log(courseId, runningId);
+
     //2025.06.24
     const date = new Date()
         .toLocaleDateString("ko-KR", {
@@ -90,47 +97,40 @@ export default function Result() {
                         />
                     </MapViewWrapper>
                 </View>
+
                 <View
                     style={{
                         paddingHorizontal: 17,
                     }}
                 >
-                    <View
+                    <StatRow
                         style={{
-                            flexDirection: "row",
                             paddingVertical: 20,
                             justifyContent: "space-between",
-                            alignItems: "center",
                         }}
-                    >
-                        <TextWithUnit
-                            value="1.45"
-                            unit="km"
-                            align="flex-start"
-                            description="전체 거리"
-                        />
-                        <Divider />
-                        <TextWithUnit
-                            value="25:45"
-                            unit=""
-                            align="flex-start"
-                            description="시간"
-                        />
-                        <Divider />
-                        <TextWithUnit
-                            value="150"
-                            unit="spm"
-                            align="flex-start"
-                            description="케이던스"
-                        />
-                        <Divider />
-                        <TextWithUnit
-                            value="90"
-                            unit="kcal"
-                            align="flex-start"
-                            description="칼로리"
-                        />
-                    </View>
+                        stats={[
+                            {
+                                value: "1.45",
+                                unit: "km",
+                                description: "전체 거리",
+                            },
+                            {
+                                value: "25:45",
+                                unit: "",
+                                description: "시간",
+                            },
+                            {
+                                value: "150",
+                                unit: "spm",
+                                description: "케이던스",
+                            },
+                            {
+                                value: "90",
+                                unit: "kcal",
+                                description: "칼로리",
+                            },
+                        ]}
+                    />
                     <View
                         style={{
                             height: 1,
@@ -153,27 +153,33 @@ export default function Result() {
                                 style={{ transform: [{ rotate: "-90deg" }] }}
                             />
                         </View>
-                        <View
+                        <StatRow
                             style={{
-                                flexDirection: "row",
                                 gap: 20,
-                                alignItems: "center",
                             }}
-                        >
-                            <TextWithUnit
-                                value="8'23''"
-                                unit=""
-                                align="flex-start"
-                                description="평균"
-                            />
-                            <Divider />
-                            <TextWithUnit
-                                value="10'23''"
-                                unit=""
-                                align="flex-start"
-                                description="최고"
-                            />
-                        </View>
+                            stats={[
+                                {
+                                    value: "8'23''",
+                                    unit: "",
+                                    description: "평균",
+                                },
+                                {
+                                    value: "10'23''",
+                                    unit: "",
+                                    description: "최고",
+                                },
+                                {
+                                    value: "10'23''",
+                                    unit: "",
+                                    description: "최저",
+                                },
+                            ]}
+                        />
+                        <StyledChart
+                            data={DATA}
+                            xKey="distance"
+                            yKeys={["paceLast30"]}
+                        />
                     </View>
                     <View
                         style={{
@@ -197,34 +203,33 @@ export default function Result() {
                                 style={{ transform: [{ rotate: "-90deg" }] }}
                             />
                         </View>
-                        <View
+                        <StatRow
                             style={{
-                                flexDirection: "row",
                                 gap: 20,
-                                alignItems: "center",
                             }}
-                        >
-                            <TextWithUnit
-                                value="17'"
-                                unit="m"
-                                align="flex-start"
-                                description="평균"
-                            />
-                            <Divider />
-                            <TextWithUnit
-                                value="+18"
-                                unit="m"
-                                align="flex-start"
-                                description="상승"
-                            />
-                            <Divider />
-                            <TextWithUnit
-                                value="-13"
-                                unit="m"
-                                align="flex-start"
-                                description="하강"
-                            />
-                        </View>
+                            stats={[
+                                {
+                                    value: "17",
+                                    unit: "m",
+                                    description: "평균",
+                                },
+                                {
+                                    value: "+18",
+                                    unit: "m",
+                                    description: "상승",
+                                },
+                                {
+                                    value: "-13",
+                                    unit: "m",
+                                    description: "하강",
+                                },
+                            ]}
+                        />
+                        <StyledChart
+                            data={DATA}
+                            xKey="distance"
+                            yKeys={["altitude"]}
+                        />
                     </View>
                 </View>
             </ScrollView>
