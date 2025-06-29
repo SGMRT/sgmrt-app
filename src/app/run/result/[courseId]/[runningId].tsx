@@ -3,6 +3,7 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import CourseLayer from "@/src/components/map/CourseLayer";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import CollapsibleSection from "@/src/components/ui/CollapsibleSection";
+import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
@@ -131,13 +132,7 @@ export default function Result() {
                             },
                         ]}
                     />
-                    <View
-                        style={{
-                            height: 1,
-                            width: "100%",
-                            backgroundColor: "#3f3f3f",
-                        }}
-                    />
+                    <Divider direction="horizontal" />
                     <CollapsibleSection
                         title="페이스"
                         defaultOpen={true}
@@ -172,13 +167,7 @@ export default function Result() {
                             yKeys={["paceLast30"]}
                         />
                     </CollapsibleSection>
-                    <View
-                        style={{
-                            height: 1,
-                            width: "100%",
-                            backgroundColor: "#3f3f3f",
-                        }}
-                    />
+                    <Divider direction="horizontal" />
                     <CollapsibleSection
                         title="고도"
                         defaultOpen={true}
@@ -213,6 +202,7 @@ export default function Result() {
                             yKeys={["altitude"]}
                         />
                     </CollapsibleSection>
+                    <Divider direction="horizontal" />
                 </View>
             </ScrollView>
             <SlideToDualAction
