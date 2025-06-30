@@ -216,9 +216,11 @@ export function useRunningSession() {
                 },
                 (location) => {
                     locationRef.current = {
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                        altitude: location.coords.altitude ?? 0,
+                        latitude: Number(location.coords.latitude.toFixed(8)),
+                        longitude: Number(location.coords.longitude.toFixed(8)),
+                        altitude: Number(
+                            (location.coords.altitude ?? 0).toFixed(2)
+                        ),
                     };
                 }
             );
@@ -249,5 +251,6 @@ export function useRunningSession() {
         hasPaused,
         startRunning,
         stopRunning,
+        getCurrentLocation: () => locationRef.current,
     };
 }

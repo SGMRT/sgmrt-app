@@ -210,6 +210,7 @@ export default function Run() {
                     onSlideLeft={async () => {
                         console.log("기록 저장");
                         const { courseId, runningId } = await saveRunning();
+                        console.log(courseId, runningId);
                         router.replace(`/result/${courseId}/${runningId}`);
                     }}
                     onSlideRight={() => {

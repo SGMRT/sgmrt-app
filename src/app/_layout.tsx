@@ -1,5 +1,6 @@
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { useEffect } from "react";
@@ -17,6 +18,7 @@ export default function RootLayout() {
         "SpoqaHanSansNeo-Medium": require("@/assets/fonts/SpoqaHanSansNeo-Medium.ttf"),
         "SpoqaHanSansNeo-Bold": require("@/assets/fonts/SpoqaHanSansNeo-Bold.ttf"),
     });
+    const queryClient = new QueryClient();
 
     useEffect(() => {
         if (loaded) {
@@ -31,16 +33,18 @@ export default function RootLayout() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <BottomSheetModalProvider>
-                <Stack screenOptions={{ headerShown: false }}>
-                    <Stack.Screen name="(tabs)" />
-                    <Stack.Screen name="course" />
-                    <Stack.Screen name="result/[courseId]/[runningId]" />
-                    <Stack.Screen
-                        name="run"
-                        options={{ gestureEnabled: false }}
-                    />
-                </Stack>
-                <Toast config={toastConfig} />
+                <QueryClientProvider client={queryClient}>
+                    <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="(tabs)" />
+                        <Stack.Screen name="course" />
+                        <Stack.Screen name="result/[courseId]/[runningId]" />
+                        <Stack.Screen
+                            name="run"
+                            options={{ gestureEnabled: false }}
+                        />
+                    </Stack>
+                    <Toast config={toastConfig} />
+                </QueryClientProvider>
             </BottomSheetModalProvider>
         </GestureHandlerRootView>
     );

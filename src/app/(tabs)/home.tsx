@@ -76,7 +76,7 @@ export default function Home() {
             <SlideToAction
                 label="밀어서 러닝시작"
                 onSlideSuccess={() => {
-                    router.push("/run");
+                    router.push("/run/solo");
                 }}
                 color="green"
                 direction="left"

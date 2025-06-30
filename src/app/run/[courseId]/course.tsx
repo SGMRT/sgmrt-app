@@ -1,4 +1,4 @@
-import { postRun } from "@/src/apis";
+import { postCourseRun } from "@/src/apis";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -9,9 +9,16 @@ import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunningSession } from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
-import { getFormattedPace, getRunName, getRunTime } from "@/src/utils/runUtils";
+import { Coordinate, getDistance } from "@/src/utils/mapUtils";
+import {
+    getFormattedPace,
+    getRunName,
+    getRunTime,
+    telemetriesToSegment,
+} from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { useRouter } from "expo-router";
+import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { BackHandler, StyleSheet, View } from "react-native";
 import Animated, {
@@ -22,7 +29,242 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+const course: Telemetry[] = [
+    {
+        timeStamp: "0",
+        lat: 37.3311133,
+        lng: -122.03069859,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "1000",
+        lat: 37.33104629,
+        lng: -122.03067027,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "2000",
+        lat: 37.33097983,
+        lng: -122.03063943,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "3000",
+        lat: 37.33091383,
+        lng: -122.03061321,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "4000",
+        lat: 37.33084313,
+        lng: -122.03058427,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "5000",
+        lat: 37.33077759,
+        lng: -122.03056052,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "6000",
+        lat: 37.33072336,
+        lng: -122.0305179,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "7000",
+        lat: 37.33070386,
+        lng: -122.03044428,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "8000",
+        lat: 37.33069778,
+        lng: -122.03035543,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "9000",
+        lat: 37.33068392,
+        lng: -122.03028038,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "10000",
+        lat: 37.33067599,
+        lng: -122.03021599,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "11000",
+        lat: 37.33067237,
+        lng: -122.03014382,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "12000",
+        lat: 37.33067364,
+        lng: -122.03006986,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "13000",
+        lat: 37.33067784,
+        lng: -122.02998825,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "14000",
+        lat: 37.3306811,
+        lng: -122.02990041,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "15000",
+        lat: 37.33068623,
+        lng: -122.02980523,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "16000",
+        lat: 37.33069273,
+        lng: -122.02971484,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "17000",
+        lat: 37.33069782,
+        lng: -122.02962241,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "18000",
+        lat: 37.33070167,
+        lng: -122.02952527,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+    {
+        timeStamp: "19000",
+        lat: 37.33069587,
+        lng: -122.02943077,
+        dist: 0,
+        pace: 0,
+        alt: 0,
+        cadence: 0,
+        bpm: 0,
+        isRunning: true,
+    },
+];
+
+function checkStartPoint(currentPosition: Coordinate) {
+    const startPoint = course[0];
+    const distance = getDistance(
+        { latitude: startPoint.lat, longitude: startPoint.lng },
+        currentPosition
+    );
+    return distance < 10;
+}
+
 export default function Course() {
+    const { courseId } = useLocalSearchParams();
+    const [isPointSynced, setIsPointSynced] = useState(false);
+
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
@@ -36,6 +278,7 @@ export default function Course() {
         stopRunning,
         startTime,
         hasPaused,
+        getCurrentLocation,
     } = useRunningSession();
 
     async function saveRunning() {
@@ -76,13 +319,14 @@ export default function Course() {
         const running: Running = {
             runningName: getRunName(startTime),
             mode: "SOLO",
+            ghostRunningId: null,
             startedAt: startTime,
             record,
             hasPaused,
             isPublic: false,
             telemetries: savedTelemetries,
         };
-        const res = await postRun(running, 1);
+        const res = await postCourseRun(running, 1, 1);
         return res;
     }
 
@@ -143,6 +387,26 @@ export default function Course() {
         }
     }, [isRestarting]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const location = getCurrentLocation();
+            if (location && !checkStartPoint(location)) {
+                Toast.show({
+                    text1: "시작 위치가 아닙니다.",
+                    type: "info",
+                    position: "bottom",
+                    bottomOffset: 60,
+                });
+            } else {
+                setIsPointSynced(true);
+                clearInterval(interval);
+                setIsRestarting(true);
+            }
+        }, 2000);
+
+        return () => clearInterval(interval);
+    }, [isRunning, getCurrentLocation]);
+
     const heightVal = useSharedValue(0);
 
     const controlPannelPosition = useAnimatedStyle(() => {
@@ -171,7 +435,29 @@ export default function Course() {
                     </Animated.Text>
                 )}
             </TopBlurView>
+
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
+                {!isPointSynced && (
+                    <ShapeSource
+                        id="custom-puck"
+                        shape={{
+                            type: "Point",
+                            coordinates: [course[0].lng, course[0].lat],
+                        }}
+                    >
+                        <SymbolLayer
+                            id="custom-puck-layer"
+                            style={{
+                                iconImage: "puck2",
+                                iconAllowOverlap: true,
+                            }}
+                        />
+                    </ShapeSource>
+                )}
+                <RunningLine
+                    index={-1}
+                    segment={telemetriesToSegment(course)}
+                />
                 {segments.map((segment, index) => (
                     <RunningLine
                         key={index.toString()}
@@ -195,7 +481,7 @@ export default function Course() {
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {isRunning || isRestarting ? (
+            {isRunning || isRestarting || !isPointSynced ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {

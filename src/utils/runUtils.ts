@@ -1,3 +1,5 @@
+import { Segment } from "../components/map/RunningLine";
+
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
     const hours = Math.floor(runTime / 3600);
     const minutes = Math.floor((runTime % 3600) / 60);
@@ -77,4 +79,21 @@ function getRunName(date: number): string {
     return `${day} ${timeLabel} 러닝`;
 }
 
-export { getCalories, getFormattedPace, getPace, getRunName, getRunTime };
+function telemetriesToSegment(telemetries: Telemetry[]): Segment {
+    return {
+        isRunning: false,
+        points: telemetries.map((telemetry) => ({
+            longitude: telemetry.lng,
+            latitude: telemetry.lat,
+        })),
+    };
+}
+
+export {
+    getCalories,
+    getFormattedPace,
+    getPace,
+    getRunName,
+    getRunTime,
+    telemetriesToSegment,
+};
