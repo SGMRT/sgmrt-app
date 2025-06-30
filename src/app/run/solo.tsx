@@ -52,7 +52,8 @@ export default function Run() {
 
         const record: RunRecord = {
             distance: soloDashboardData.distance,
-            altitude: soloDashboardData.gainElevation,
+            elevationGain: soloDashboardData.gainElevation,
+            elevationLoss: soloDashboardData.lossElevation,
             duration: runTime,
             avgPace: soloDashboardData.avgPace,
             calories: soloDashboardData.calories,
@@ -209,7 +210,7 @@ export default function Run() {
                     onSlideLeft={async () => {
                         console.log("기록 저장");
                         const { courseId, runningId } = await saveRunning();
-                        router.replace(`/run/result/${courseId}/${runningId}`);
+                        router.replace(`/result/${courseId}/${runningId}`);
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);

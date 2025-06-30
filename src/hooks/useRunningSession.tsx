@@ -16,6 +16,7 @@ interface SoloDashBoardData {
     avgPace: number;
     avgCadence: string;
     gainElevation: number;
+    lossElevation: number;
     calories: number;
     avgBpm: string;
 }
@@ -28,6 +29,7 @@ export function useRunningSession() {
             avgPace: 0,
             avgCadence: "--",
             gainElevation: 0,
+            lossElevation: 0,
             calories: 0,
             avgBpm: "--",
         });
@@ -132,6 +134,7 @@ export function useRunningSession() {
                         avgPace: pace,
                         avgCadence: cadence >= 1 ? cadence.toString() : "--",
                         gainElevation: cumulativeElevationRef.current,
+                        lossElevation: 0,
                         calories: calories,
                         avgBpm: "--",
                     }));
