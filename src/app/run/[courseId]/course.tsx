@@ -15,8 +15,9 @@ import { getFormattedPace, getRunName, getRunTime } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { BackHandler, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { BackHandler, Dimensions, StyleSheet, View } from "react-native";
+import { ConfettiMethods, PIConfetti } from "react-native-fast-confetti";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
@@ -275,6 +276,8 @@ export default function Course() {
         ghostTelemetries: course,
     });
 
+    const confettiRef = useRef<ConfettiMethods | null>(null);
+
     async function saveRunning() {
         if (!startTime) return;
         if (userDashboardData.totalDistance === 0) {
@@ -378,9 +381,11 @@ export default function Course() {
         if (status === "waiting") {
             setIsRestarting(true);
         }
-    }, [status]);
 
-    console.log(status);
+        if (status === "completed") {
+            confettiRef.current?.restart();
+        }
+    }, [status]);
 
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
@@ -444,6 +449,16 @@ export default function Course() {
                     />
                 ))}
             </MapViewWrapper>
+
+            <PIConfetti
+                ref={confettiRef}
+                fallDuration={4000}
+                count={100}
+                colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
+                fadeOutOnEnd={true}
+                height={Dimensions.get("window").height / 2 - 100}
+            />
+
             <BottomSheet
                 backgroundStyle={styles.container}
                 bottomInset={bottom + 56}
@@ -452,6 +467,10 @@ export default function Course() {
                 snapPoints={[15]}
                 index={1}
                 animatedPosition={heightVal}
+                containerStyle={{
+                    position: "absolute",
+                    zIndex: 1000,
+                }}
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>

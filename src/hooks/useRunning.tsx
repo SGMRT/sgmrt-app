@@ -111,7 +111,6 @@ export function useRunning({
     const checkPointSynced = useCallback(
         (targetPosition: Coordinate, currentPosition: Coordinate) => {
             const distance = getDistance(targetPosition, currentPosition);
-            console.log(distance);
             return distance < 5;
         },
         []
