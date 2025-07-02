@@ -17,7 +17,7 @@ const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
 };
 
 function getPace(timeInSec: number, distanceInMeters: number): number {
-    if (distanceInMeters === 0) distanceInMeters = 3;
+    if (distanceInMeters <= 5 || timeInSec <= 5) return 0;
     const distanceInKm = distanceInMeters / 1000;
 
     const paceInSec = timeInSec / distanceInKm; // 초/km
@@ -79,14 +79,32 @@ function getRunName(date: number): string {
     return `${day} ${timeLabel} 러닝`;
 }
 
-function telemetriesToSegment(telemetries: Telemetry[]): Segment {
-    return {
-        isRunning: false,
-        points: telemetries.map((telemetry) => ({
-            longitude: telemetry.lng,
-            latitude: telemetry.lat,
-        })),
-    };
+function telemetriesToSegment(
+    telemetries: Telemetry[],
+    progress: number
+): Segment[] {
+    const run = telemetries.slice(
+        0,
+        progress >= telemetries.length ? telemetries.length : progress + 1
+    );
+    const rest = telemetries.slice(progress);
+
+    return [
+        {
+            isRunning: true,
+            points: run.map((telemetry) => ({
+                longitude: telemetry.lng,
+                latitude: telemetry.lat,
+            })),
+        },
+        {
+            isRunning: false,
+            points: rest.map((telemetry) => ({
+                longitude: telemetry.lng,
+                latitude: telemetry.lat,
+            })),
+        },
+    ];
 }
 
 export {

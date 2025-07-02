@@ -36,7 +36,7 @@ interface RunRecord {
 }
 
 interface Telemetry {
-    timeStamp: string;
+    timeStamp: number;
     lat: number;
     lng: number;
     dist: number;

@@ -1,13 +1,12 @@
 import { postRun } from "@/src/apis";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
-import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import Countdown from "@/src/components/ui/Countdown";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import { useRunningSession } from "@/src/hooks/useRunningSession";
+import { useRunning } from "@/src/hooks/useRunning";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunName, getRunTime } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -27,20 +26,23 @@ export default function Run() {
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const {
-        isRunning,
-        runTime,
-        soloDashboardData,
-        segments,
+        startTracking,
+        stopTracking,
+        userDashboardData,
         telemetries,
-        startRunning,
-        stopRunning,
+        runTime,
         startTime,
         hasPaused,
-    } = useRunningSession();
+        isRunning,
+    } = useRunning({
+        type: "free",
+        mode: "solo",
+        weight: 70,
+    });
 
     async function saveRunning() {
-        if (!startTime) return;
-        if (soloDashboardData.distance === 0) {
+        if (!userDashboardData) return;
+        if (userDashboardData.totalDistance === 0) {
             Toast.show({
                 type: "info",
                 text1: "러닝 거리가 너무 짧습니다.",
@@ -51,20 +53,17 @@ export default function Run() {
         }
 
         const record: RunRecord = {
-            distance: soloDashboardData.distance,
-            elevationGain: soloDashboardData.gainElevation,
-            elevationLoss: soloDashboardData.lossElevation,
+            distance: userDashboardData.totalDistance,
+            elevationGain: userDashboardData.totalElevationGain,
+            elevationLoss: userDashboardData.totalElevationGain,
             duration: runTime,
-            avgPace: soloDashboardData.avgPace,
-            calories: soloDashboardData.calories,
-            avgBpm:
-                soloDashboardData.avgBpm === "--"
-                    ? 0
-                    : Number(soloDashboardData.avgBpm),
+            avgPace: userDashboardData.paceOfLast10Points,
+            calories: userDashboardData.totalCalories,
+            avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
             avgCadence:
-                soloDashboardData.avgCadence === "--"
+                userDashboardData.cadenceOfLast10Points === 0
                     ? 0
-                    : Number(soloDashboardData.avgCadence),
+                    : userDashboardData.cadenceOfLast10Points,
         };
 
         const lastTrueIndex = telemetries.findLastIndex(
@@ -74,11 +73,11 @@ export default function Run() {
         const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
 
         const running: Running = {
-            runningName: getRunName(startTime),
+            runningName: getRunName(startTime ?? 0),
             mode: "SOLO",
-            startedAt: startTime,
+            startedAt: startTime ?? 0,
             record,
-            hasPaused,
+            hasPaused: hasPaused,
             isPublic: false,
             telemetries: savedTelemetries,
         };
@@ -89,30 +88,30 @@ export default function Run() {
     const stats = [
         {
             label: "거리",
-            value: (soloDashboardData.distance / 1000).toFixed(2),
+            value: (userDashboardData.totalDistance / 1000).toFixed(2),
             unit: "km",
         },
         {
             label: "평균 페이스",
-            value: getFormattedPace(soloDashboardData.avgPace),
+            value: getFormattedPace(userDashboardData.paceOfLast10Points),
             unit: "",
         },
         {
             label: "케이던스",
-            value: soloDashboardData.avgCadence.toString(),
+            value: userDashboardData.cadenceOfLast10Points.toString(),
             unit: "spm",
         },
         {
             label: "고도",
-            value: soloDashboardData.gainElevation.toFixed(0),
+            value: userDashboardData.totalElevationGain.toFixed(0),
             unit: "m",
         },
         {
             label: "칼로리",
-            value: soloDashboardData.calories.toFixed(0),
+            value: userDashboardData.totalCalories.toFixed(0),
             unit: "kcal",
         },
-        { label: "BPM", value: soloDashboardData.avgBpm, unit: "" },
+        { label: "BPM", value: userDashboardData.bpm, unit: "" },
     ];
 
     useEffect(() => {
@@ -128,7 +127,7 @@ export default function Run() {
 
     const onCompleteRestart = () => {
         setIsRestarting(false);
-        startRunning();
+        startTracking();
     };
 
     useEffect(() => {
@@ -172,13 +171,13 @@ export default function Run() {
                 )}
             </TopBlurView>
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {segments.map((segment, index) => (
+                {/* {segments.map((segment, index) => (
                     <RunningLine
                         key={index.toString()}
                         index={index}
                         segment={segment}
                     />
-                ))}
+                ))} */}
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
@@ -199,7 +198,7 @@ export default function Run() {
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
-                        stopRunning();
+                        stopTracking();
                     }}
                     color="red"
                     direction="right"

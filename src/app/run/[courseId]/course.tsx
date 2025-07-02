@@ -3,19 +3,15 @@ import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import Countdown from "@/src/components/ui/Countdown";
+import { Divider } from "@/src/components/ui/Divider";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import { useRunningSession } from "@/src/hooks/useRunningSession";
+import { Typography } from "@/src/components/ui/Typography";
+import { useRunning } from "@/src/hooks/useRunning";
 import colors from "@/src/theme/colors";
-import { Coordinate, getDistance } from "@/src/utils/mapUtils";
-import {
-    getFormattedPace,
-    getRunName,
-    getRunTime,
-    telemetriesToSegment,
-} from "@/src/utils/runUtils";
+import { getFormattedPace, getRunName, getRunTime } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -31,7 +27,7 @@ import Toast from "react-native-toast-message";
 
 const course: Telemetry[] = [
     {
-        timeStamp: "0",
+        timeStamp: 0,
         lat: 37.3311133,
         lng: -122.03069859,
         dist: 0,
@@ -42,7 +38,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "1000",
+        timeStamp: 1000,
         lat: 37.33104629,
         lng: -122.03067027,
         dist: 0,
@@ -53,7 +49,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "2000",
+        timeStamp: 2000,
         lat: 37.33097983,
         lng: -122.03063943,
         dist: 0,
@@ -64,7 +60,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "3000",
+        timeStamp: 3000,
         lat: 37.33091383,
         lng: -122.03061321,
         dist: 0,
@@ -75,7 +71,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "4000",
+        timeStamp: 4000,
         lat: 37.33084313,
         lng: -122.03058427,
         dist: 0,
@@ -86,7 +82,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "5000",
+        timeStamp: 5000,
         lat: 37.33077759,
         lng: -122.03056052,
         dist: 0,
@@ -97,7 +93,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "6000",
+        timeStamp: 6000,
         lat: 37.33072336,
         lng: -122.0305179,
         dist: 0,
@@ -108,7 +104,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "7000",
+        timeStamp: 7000,
         lat: 37.33070386,
         lng: -122.03044428,
         dist: 0,
@@ -119,7 +115,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "8000",
+        timeStamp: 8000,
         lat: 37.33069778,
         lng: -122.03035543,
         dist: 0,
@@ -130,7 +126,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "9000",
+        timeStamp: 9000,
         lat: 37.33068392,
         lng: -122.03028038,
         dist: 0,
@@ -141,7 +137,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "10000",
+        timeStamp: 10000,
         lat: 37.33067599,
         lng: -122.03021599,
         dist: 0,
@@ -152,7 +148,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "11000",
+        timeStamp: 11000,
         lat: 37.33067237,
         lng: -122.03014382,
         dist: 0,
@@ -163,7 +159,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "12000",
+        timeStamp: 12000,
         lat: 37.33067364,
         lng: -122.03006986,
         dist: 0,
@@ -174,7 +170,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "13000",
+        timeStamp: 13000,
         lat: 37.33067784,
         lng: -122.02998825,
         dist: 0,
@@ -185,7 +181,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "14000",
+        timeStamp: 14000,
         lat: 37.3306811,
         lng: -122.02990041,
         dist: 0,
@@ -196,7 +192,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "15000",
+        timeStamp: 15000,
         lat: 37.33068623,
         lng: -122.02980523,
         dist: 0,
@@ -207,7 +203,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "16000",
+        timeStamp: 16000,
         lat: 37.33069273,
         lng: -122.02971484,
         dist: 0,
@@ -218,7 +214,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "17000",
+        timeStamp: 17000,
         lat: 37.33069782,
         lng: -122.02962241,
         dist: 0,
@@ -229,7 +225,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "18000",
+        timeStamp: 18000,
         lat: 37.33070167,
         lng: -122.02952527,
         dist: 0,
@@ -240,7 +236,7 @@ const course: Telemetry[] = [
         isRunning: true,
     },
     {
-        timeStamp: "19000",
+        timeStamp: 19000,
         lat: 37.33069587,
         lng: -122.02943077,
         dist: 0,
@@ -252,38 +248,36 @@ const course: Telemetry[] = [
     },
 ];
 
-function checkStartPoint(currentPosition: Coordinate) {
-    const startPoint = course[0];
-    const distance = getDistance(
-        { latitude: startPoint.lat, longitude: startPoint.lng },
-        currentPosition
-    );
-    return distance < 10;
-}
-
 export default function Course() {
     const { courseId } = useLocalSearchParams();
-    const [isPointSynced, setIsPointSynced] = useState(false);
-
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
     const {
-        isRunning,
-        runTime,
-        soloDashboardData,
-        segments,
+        status,
+        startTracking,
+        pauseTracking,
+        stopTracking,
+        userDashboardData,
         telemetries,
-        startRunning,
-        stopRunning,
-        startTime,
+        runTime,
+        isRunning,
         hasPaused,
-        getCurrentLocation,
-    } = useRunningSession();
+        startTime,
+        courseIndex,
+        userSegments,
+        stopCourseAndFreeRun,
+        stopCourseRun,
+    } = useRunning({
+        type: "course",
+        mode: "ghost",
+        weight: 70,
+        ghostTelemetries: course,
+    });
 
     async function saveRunning() {
         if (!startTime) return;
-        if (soloDashboardData.distance === 0) {
+        if (userDashboardData.totalDistance === 0) {
             Toast.show({
                 type: "info",
                 text1: "러닝 거리가 너무 짧습니다.",
@@ -294,20 +288,17 @@ export default function Course() {
         }
 
         const record: RunRecord = {
-            distance: soloDashboardData.distance,
-            elevationGain: soloDashboardData.gainElevation,
-            elevationLoss: soloDashboardData.lossElevation,
+            distance: userDashboardData.totalDistance,
+            elevationGain: userDashboardData.totalElevationGain,
+            elevationLoss: userDashboardData.totalElevationGain,
             duration: runTime,
-            avgPace: soloDashboardData.avgPace,
-            calories: soloDashboardData.calories,
-            avgBpm:
-                soloDashboardData.avgBpm === "--"
-                    ? 0
-                    : Number(soloDashboardData.avgBpm),
+            avgPace: userDashboardData.paceOfLast10Points,
+            calories: userDashboardData.totalCalories,
+            avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
             avgCadence:
-                soloDashboardData.avgCadence === "--"
+                userDashboardData.cadenceOfLast10Points === 0
                     ? 0
-                    : Number(soloDashboardData.avgCadence),
+                    : userDashboardData.cadenceOfLast10Points,
         };
 
         const lastTrueIndex = telemetries.findLastIndex(
@@ -333,30 +324,30 @@ export default function Course() {
     const stats = [
         {
             label: "거리",
-            value: (soloDashboardData.distance / 1000).toFixed(2),
+            value: (userDashboardData.totalDistance / 1000).toFixed(2),
             unit: "km",
         },
         {
             label: "평균 페이스",
-            value: getFormattedPace(soloDashboardData.avgPace),
+            value: getFormattedPace(userDashboardData.paceOfLast10Points),
             unit: "",
         },
         {
             label: "케이던스",
-            value: soloDashboardData.avgCadence.toString(),
+            value: userDashboardData.cadenceOfLast10Points.toString(),
             unit: "spm",
         },
         {
             label: "고도",
-            value: soloDashboardData.gainElevation.toFixed(0),
+            value: userDashboardData.totalElevationGain.toFixed(0),
             unit: "m",
         },
         {
             label: "칼로리",
-            value: soloDashboardData.calories.toFixed(0),
+            value: userDashboardData.totalCalories.toFixed(0),
             unit: "kcal",
         },
-        { label: "BPM", value: soloDashboardData.avgBpm, unit: "" },
+        { label: "BPM", value: userDashboardData.bpm, unit: "" },
     ];
 
     useEffect(() => {
@@ -372,40 +363,8 @@ export default function Course() {
 
     const onCompleteRestart = () => {
         setIsRestarting(false);
-        startRunning();
+        startTracking();
     };
-
-    useEffect(() => {
-        if (isRestarting) {
-            Toast.show({
-                type: "info",
-                text1: "3초 뒤 러닝이 시작됩니다.",
-                position: "bottom",
-                bottomOffset: 60,
-                visibilityTime: 3000,
-            });
-        }
-    }, [isRestarting]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const location = getCurrentLocation();
-            if (location && !checkStartPoint(location)) {
-                Toast.show({
-                    text1: "시작 위치가 아닙니다.",
-                    type: "info",
-                    position: "bottom",
-                    bottomOffset: 60,
-                });
-            } else {
-                setIsPointSynced(true);
-                clearInterval(interval);
-                setIsRestarting(true);
-            }
-        }, 2000);
-
-        return () => clearInterval(interval);
-    }, [isRunning, getCurrentLocation]);
 
     const heightVal = useSharedValue(0);
 
@@ -414,6 +373,14 @@ export default function Course() {
             top: heightVal.value - 116,
         };
     });
+
+    useEffect(() => {
+        if (status === "waiting") {
+            setIsRestarting(true);
+        }
+    }, [status]);
+
+    console.log(status);
 
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
@@ -428,7 +395,17 @@ export default function Course() {
                     />
                 ) : (
                     <Animated.Text
-                        style={[styles.timeText, { color: colors.white }]}
+                        style={[
+                            styles.timeText,
+                            {
+                                color:
+                                    status === "stopped"
+                                        ? colors.red
+                                        : status === "completed"
+                                        ? colors.primary
+                                        : colors.white,
+                            },
+                        ]}
                         entering={FadeIn.duration(1000)}
                     >
                         {getRunTime(runTime, "MM:SS")}
@@ -437,31 +414,32 @@ export default function Course() {
             </TopBlurView>
 
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {!isPointSynced && (
-                    <ShapeSource
-                        id="custom-puck"
-                        shape={{
-                            type: "Point",
-                            coordinates: [course[0].lng, course[0].lat],
-                        }}
-                    >
-                        <SymbolLayer
-                            id="custom-puck-layer"
-                            style={{
-                                iconImage: "puck2",
-                                iconAllowOverlap: true,
+                {(!stopCourseRun && status === "stopped") ||
+                    (status === "idle" && (
+                        <ShapeSource
+                            id="custom-puck"
+                            shape={{
+                                type: "Point",
+                                coordinates: [
+                                    course[courseIndex].lng,
+                                    course[courseIndex].lat,
+                                ],
                             }}
-                        />
-                    </ShapeSource>
-                )}
-                <RunningLine
-                    index={-1}
-                    segment={telemetriesToSegment(course)}
-                />
-                {segments.map((segment, index) => (
+                        >
+                            <SymbolLayer
+                                id="custom-puck-layer"
+                                style={{
+                                    iconImage: "puck2",
+                                    iconAllowOverlap: true,
+                                }}
+                            />
+                        </ShapeSource>
+                    ))}
+
+                {userSegments.map((segment, index) => (
                     <RunningLine
                         key={index.toString()}
-                        index={index}
+                        index={-index}
                         segment={segment}
                     />
                 ))}
@@ -477,35 +455,81 @@ export default function Course() {
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
+                        {status === "completed" && (
+                            <>
+                                <View style={styles.courseComplete}>
+                                    <Typography
+                                        variant="headline"
+                                        color="white"
+                                    >
+                                        소고기마라탕 완주에 성공했어요!
+                                    </Typography>
+                                    <Typography variant="body2" color="gray40">
+                                        이어 달릴 경우 기록은 자동 저장됩니다
+                                    </Typography>
+                                </View>
+                                <Divider direction="horizontal" />
+                            </>
+                        )}
+
                         <StatsIndicator stats={stats} color="gray20" />
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {isRunning || isRestarting || !isPointSynced ? (
+            {status === "idle" ||
+            status === "running" ||
+            status === "waiting" ||
+            isRestarting ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
-                        stopRunning();
+                        if (status === "idle") {
+                            router.back();
+                        } else {
+                            pauseTracking();
+                        }
                     }}
                     color="red"
                     direction="right"
-                    disabled={isRestarting}
+                    disabled={isRestarting || status === "waiting"}
                 />
-            ) : (
+            ) : (status === "stopped" || status === "paused") &&
+              !stopCourseRun ? (
                 <SlideToDualAction
-                    onSlideLeft={async () => {
-                        console.log("기록 저장");
-                        const { courseId, runningId } = await saveRunning();
-                        router.replace(`/result/${courseId}/${runningId}`);
+                    leftLabel="러닝 종료"
+                    rightLabel="일반 러닝 전환"
+                    onSlideLeft={() => {
+                        // 일반 러닝 저장
                     }}
                     onSlideRight={() => {
-                        setIsRestarting(true);
+                        stopCourseAndFreeRun();
                     }}
+                    color="red"
+                />
+            ) : status === "paused" ? (
+                <SlideToDualAction
                     leftLabel="기록 저장"
                     rightLabel="이어서 뛰기"
-                    disabled={isRestarting}
+                    onSlideLeft={() => {
+                        // 일반 러닝 저장
+                    }}
+                    onSlideRight={() => {
+                        startTracking();
+                    }}
                 />
-            )}
+            ) : status === "completed" ? (
+                <SlideToDualAction
+                    leftLabel="결과 및 랭킹"
+                    rightLabel="이어서 뛰기"
+                    onSlideLeft={() => {
+                        console.log("결과 및 랭킹");
+                    }}
+                    onSlideRight={() => {
+                        // 코스 기록 저장
+                        stopCourseAndFreeRun();
+                    }}
+                />
+            ) : null}
         </View>
     );
 }
@@ -525,6 +549,7 @@ const styles = StyleSheet.create({
     },
     bottomSheetContent: {
         paddingVertical: 30,
+        gap: 30,
     },
     handle: {
         paddingTop: 10,
@@ -535,5 +560,9 @@ const styles = StyleSheet.create({
         width: 50,
         height: 5,
         borderRadius: 100,
+    },
+    courseComplete: {
+        gap: 4,
+        alignItems: "center",
     },
 });

@@ -26,7 +26,7 @@ export default function WeatherInfo() {
                 lastUpdated &&
                 coords &&
                 new Date(lastUpdated).getTime() + 1000 * 60 * 60 > Date.now() &&
-                getDistance(coords, { longitude, latitude }) < 5000
+                getDistance(coords, { lng: longitude, lat: latitude }) < 5000
             ) {
                 setIsLoading(false);
                 return;
@@ -43,7 +43,7 @@ export default function WeatherInfo() {
             ]);
 
             setLocationInfo(
-                { longitude, latitude },
+                { lng: longitude, lat: latitude },
                 address[0].district ||
                     address[0].city ||
                     address[0].region ||

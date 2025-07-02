@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import TextWithUnit from "./TextWithUnit";
 
 interface StatsIndicatorProps {
-    stats: { label: string; value: string; unit: string }[];
+    stats: { label: string; value: string | number; unit: string }[];
     color?: "gray20" | "gray40";
 }
 
@@ -14,7 +14,7 @@ export default function StatsIndicator({
         <View style={styles.courseInfoContainer}>
             {stats.map((stat) => (
                 <TextWithUnit
-                    value={stat.value}
+                    value={stat.value.toString()}
                     unit={stat.unit}
                     description={stat.label}
                     variant="display1"
