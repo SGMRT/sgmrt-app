@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import { Image as RNImage, View } from "react-native";
 
-import { Puck } from "@/assets/icons/icons";
+import { Puck, Puck2 } from "@/assets/icons/icons";
 import ControlPannel from "./ControlPannel";
 
 interface MapViewWrapperProps {
@@ -80,6 +80,9 @@ export default function MapViewWrapper({
                 <Images>
                     <Image name="puck">
                         <RNImage source={Puck} />
+                    </Image>
+                    <Image name="puck2">
+                        <RNImage source={Puck2} />
                     </Image>
                 </Images>
                 <StyleImport

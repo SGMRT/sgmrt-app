@@ -26,7 +26,8 @@ type Running = SoloRunning | CourseRunning | GhostRunning;
 
 interface RunRecord {
     distance: number;
-    altitude: number;
+    elevationGain: number;
+    elevationLoss: number;
     duration: number;
     avgPace: number;
     calories: number;
@@ -35,7 +36,7 @@ interface RunRecord {
 }
 
 interface Telemetry {
-    timeStamp: string;
+    timeStamp: number;
     lat: number;
     lng: number;
     dist: number;

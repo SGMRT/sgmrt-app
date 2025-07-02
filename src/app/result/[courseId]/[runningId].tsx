@@ -61,8 +61,8 @@ export default function Result() {
 
     const center = calculateCenter(
         course.coordinates.map((coordinate) => ({
-            latitude: coordinate[1],
-            longitude: coordinate[0],
+            lat: coordinate[1],
+            lng: coordinate[0],
         }))
     );
 

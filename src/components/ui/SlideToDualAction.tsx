@@ -20,6 +20,7 @@ interface SlideToDualActionProps {
     leftLabel: string;
     rightLabel: string;
     disabled?: boolean;
+    color?: "primary" | "red";
 }
 
 export default function SlideToDualAction({
@@ -28,6 +29,7 @@ export default function SlideToDualAction({
     leftLabel,
     rightLabel,
     disabled,
+    color = "primary",
 }: SlideToDualActionProps) {
     const trackWidth = useSharedValue(0);
     const translateX = useSharedValue(0);
@@ -36,7 +38,11 @@ export default function SlideToDualAction({
     const direction = useSharedValue<"left" | "right" | null>(null);
     const [gradientColors, setGradientColors] = useState<
         readonly [ColorValue, ColorValue, ...ColorValue[]]
-    >(["rgba(0, 0, 0, 0)", "#CFE900", "rgba(0, 0, 0, 0)"]);
+    >(
+        color === "primary"
+            ? ["rgba(0, 0, 0, 0)", "#CFE900", "rgba(0, 0, 0, 0)"]
+            : ["rgba(0, 0, 0, 0)", "#FF3358", "rgba(0, 0, 0, 0)"]
+    );
 
     const AnimatedLinearGradient =
         Animated.createAnimatedComponent(LinearGradient);
@@ -58,10 +64,14 @@ export default function SlideToDualAction({
                         direction.value === "left"
                             ? [
                                   "rgba(0, 0, 0, 0)",
-                                  "#CFE900",
+                                  color === "primary" ? "#CFE900" : "#FF3358",
                                   "rgba(0, 0, 0, 0)",
                               ]
-                            : ["#CFE900", "rgba(0, 0, 0, 0)", "#CFE900"]
+                            : [
+                                  color === "primary" ? "#CFE900" : "#FF3358",
+                                  "rgba(0, 0, 0, 0)",
+                                  color === "primary" ? "#CFE900" : "#FF3358",
+                              ]
                     );
                 }
             } else {
