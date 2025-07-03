@@ -29,7 +29,7 @@ const DATA = Array.from({ length: 100 }, (_, i) => ({
 }));
 
 export default function Result() {
-    const { courseId, runningId } = useLocalSearchParams();
+    const { runningId, ghostRunningId } = useLocalSearchParams();
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const handlePresentModalPress = () => {

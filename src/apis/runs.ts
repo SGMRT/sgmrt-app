@@ -1,3 +1,4 @@
+import { CourseRunning, GhostRunning, SoloRunning } from "../types/run";
 import server from "./instance";
 
 export async function postRun(data: SoloRunning, memberId: number) {
@@ -11,7 +12,7 @@ export async function postRun(data: SoloRunning, memberId: number) {
 }
 
 export async function postCourseRun(
-    data: CourseRunning,
+    data: CourseRunning | GhostRunning,
     courseId: number,
     memberId: number
 ) {
@@ -19,6 +20,25 @@ export async function postCourseRun(
         const response = await server.post(
             `runs/${courseId}/${memberId}`,
             data
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function patchRunName(
+    runningId: number,
+    name: string,
+    memberId: number
+) {
+    try {
+        const response = await server.patch(
+            `runs/${runningId}/name/${memberId}`,
+            {
+                name,
+            }
         );
         return response.data;
     } catch (error) {

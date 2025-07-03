@@ -69,6 +69,7 @@ export default function HomeMap({ courses }: HomeMapProps) {
             <BottomCourseInfoModal
                 bottomSheetRef={bottomSheetRef}
                 heightVal={heightVal}
+                courseId={activeCourse}
             />
         </>
     );
