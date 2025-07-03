@@ -292,8 +292,9 @@ export function useRunning({
                     .slice(-9);
                 const pointLength = runningTelemetries.length;
                 const stepCount = stepCountsRef.current
-                    .slice(-(pointLength + 1))
+                    .slice(-pointLength)
                     .reduce((acc, curr) => acc + curr, 0);
+
                 const tickDistance = lastTelemetry
                     ? getDistance(lastTelemetry, currentLocation)
                     : 0;
@@ -305,10 +306,13 @@ export function useRunning({
                     tickDistancesRef.current.shift();
                 }
                 const deltaDistance = tickDistancesRef.current
-                    .slice(-(pointLength + 1))
+                    .slice(-pointLength)
                     .reduce((acc, curr) => acc + curr, 0);
 
+                console.log(tickDistancesRef.current.slice(-pointLength));
+
                 const avgPace = getPace(pointLength, deltaDistance);
+
                 const avgCadence =
                     pointLength > 3 ? (stepCount / pointLength) * 60 : 0;
 
