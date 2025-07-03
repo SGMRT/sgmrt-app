@@ -3,6 +3,7 @@ import { Pedometer } from "expo-sensors";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Toast from "react-native-toast-message";
 import { Segment } from "../components/map/RunningLine";
+import { Telemetry } from "../types/run";
 import { Coordinate, getDistance } from "../utils/mapUtils";
 import { getCalories, getPace, telemetriesToSegment } from "../utils/runUtils";
 
@@ -13,7 +14,7 @@ interface RunningProps {
     ghostTelemetries?: Telemetry[];
 }
 
-interface UserDashBoardData {
+export interface UserDashBoardData {
     totalDistance: number;
     paceOfLast10Points: number;
     cadenceOfLast10Points: number;
@@ -309,8 +310,6 @@ export function useRunning({
                     .slice(-pointLength)
                     .reduce((acc, curr) => acc + curr, 0);
 
-                console.log(tickDistancesRef.current.slice(-pointLength));
-
                 const avgPace = getPace(pointLength, deltaDistance);
 
                 const avgCadence =
@@ -433,6 +432,10 @@ export function useRunning({
         stopCourseRun,
     ]);
 
+    const getTotalStepCount = useCallback(() => {
+        return totalStepCountRef.current;
+    }, []);
+
     return {
         completeIndex,
         startTime,
@@ -453,5 +456,6 @@ export function useRunning({
         userSegments,
         stopCourseAndFreeRun,
         stopCourseRun,
+        getTotalStepCount,
     };
 }

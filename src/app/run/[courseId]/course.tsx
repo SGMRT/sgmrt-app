@@ -1,4 +1,3 @@
-import { postCourseRun } from "@/src/apis";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -11,7 +10,12 @@ import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
 import { useRunning } from "@/src/hooks/useRunning";
 import colors from "@/src/theme/colors";
-import { getFormattedPace, getRunName, getRunTime } from "@/src/utils/runUtils";
+import { Telemetry } from "@/src/types/run";
+import {
+    getFormattedPace,
+    getRunTime,
+    saveRunning,
+} from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -269,6 +273,7 @@ export default function Course() {
         userSegments,
         stopCourseAndFreeRun,
         stopCourseRun,
+        getTotalStepCount,
     } = useRunning({
         type: "course",
         mode: "ghost",
@@ -277,52 +282,6 @@ export default function Course() {
     });
 
     const confettiRef = useRef<ConfettiMethods | null>(null);
-
-    async function saveRunning() {
-        if (!startTime) return;
-        if (userDashboardData.totalDistance === 0) {
-            Toast.show({
-                type: "info",
-                text1: "러닝 거리가 너무 짧습니다.",
-                position: "bottom",
-                bottomOffset: 60,
-            });
-            return;
-        }
-
-        const record: RunRecord = {
-            distance: userDashboardData.totalDistance,
-            elevationGain: userDashboardData.totalElevationGain,
-            elevationLoss: userDashboardData.totalElevationGain,
-            duration: runTime,
-            avgPace: userDashboardData.paceOfLast10Points,
-            calories: userDashboardData.totalCalories,
-            avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
-            avgCadence:
-                userDashboardData.cadenceOfLast10Points === 0
-                    ? 0
-                    : userDashboardData.cadenceOfLast10Points,
-        };
-
-        const lastTrueIndex = telemetries.findLastIndex(
-            (telemetry) => telemetry.isRunning
-        );
-
-        const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
-
-        const running: Running = {
-            runningName: getRunName(startTime),
-            mode: "SOLO",
-            ghostRunningId: null,
-            startedAt: startTime,
-            record,
-            hasPaused,
-            isPublic: false,
-            telemetries: savedTelemetries,
-        };
-        const res = await postCourseRun(running, 1, 1);
-        return res;
-    }
 
     const stats = [
         {
@@ -517,8 +476,18 @@ export default function Course() {
                 <SlideToDualAction
                     leftLabel="러닝 종료"
                     rightLabel="일반 러닝 전환"
-                    onSlideLeft={() => {
-                        // 일반 러닝 저장
+                    onSlideLeft={async () => {
+                        const { courseId, runningId } = await saveRunning({
+                            startTime: startTime!,
+                            telemetries,
+                            userDashboardData,
+                            runTime,
+                            hasPaused,
+                            isPublic: true,
+                            memberId: 1,
+                            totalStepCount: getTotalStepCount(),
+                        });
+                        router.push(`/result/${runningId}`);
                     }}
                     onSlideRight={() => {
                         stopCourseAndFreeRun();
@@ -529,8 +498,20 @@ export default function Course() {
                 <SlideToDualAction
                     leftLabel="기록 저장"
                     rightLabel="이어서 뛰기"
-                    onSlideLeft={() => {
-                        // 일반 러닝 저장
+                    onSlideLeft={async () => {
+                        const { runningId } = await saveRunning({
+                            startTime: startTime!,
+                            telemetries,
+                            userDashboardData,
+                            runTime,
+                            hasPaused,
+                            isPublic: true,
+                            memberId: 1,
+                            totalStepCount: getTotalStepCount(),
+                            ghostRunningId: null,
+                            courseId: Number(courseId),
+                        });
+                        router.push(`/result/${runningId}`);
                     }}
                     onSlideRight={() => {
                         startTracking();
@@ -540,12 +521,42 @@ export default function Course() {
                 <SlideToDualAction
                     leftLabel="결과 및 랭킹"
                     rightLabel="이어서 뛰기"
-                    onSlideLeft={() => {
-                        console.log("결과 및 랭킹");
+                    onSlideLeft={async () => {
+                        const { runningId } = await saveRunning({
+                            startTime: startTime!,
+                            telemetries,
+                            userDashboardData,
+                            runTime,
+                            hasPaused,
+                            isPublic: true,
+                            memberId: 1,
+                            totalStepCount: getTotalStepCount(),
+                            ghostRunningId: null,
+                            courseId: Number(courseId),
+                        });
+                        router.push(`/result/${runningId}`);
                     }}
-                    onSlideRight={() => {
-                        // 코스 기록 저장
-                        stopCourseAndFreeRun();
+                    onSlideRight={async () => {
+                        await saveRunning({
+                            startTime: startTime!,
+                            telemetries,
+                            userDashboardData,
+                            runTime,
+                            hasPaused,
+                            isPublic: true,
+                            memberId: 1,
+                            totalStepCount: getTotalStepCount(),
+                            ghostRunningId: null,
+                            courseId: Number(courseId),
+                        }).then(() => {
+                            Toast.show({
+                                type: "success",
+                                text1: "코스 기록 저장 완료",
+                                position: "bottom",
+                                visibilityTime: 1000,
+                            });
+                            stopCourseAndFreeRun();
+                        });
                     }}
                 />
             ) : null}

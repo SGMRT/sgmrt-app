@@ -8,23 +8,23 @@ interface RunningBase {
     telemetries: Telemetry[];
 }
 
-interface SoloRunning extends RunningBase {
+export interface SoloRunning extends RunningBase {
     mode: "SOLO";
 }
 
-interface CourseRunning extends RunningBase {
+export interface CourseRunning extends RunningBase {
     mode: "SOLO";
     ghostRunningId: null;
 }
 
-interface GhostRunning extends RunningBase {
+export interface GhostRunning extends RunningBase {
     mode: "GHOST";
     ghostRunningId: number;
 }
 
-type Running = SoloRunning | CourseRunning | GhostRunning;
+export type Running = SoloRunning | CourseRunning | GhostRunning;
 
-interface RunRecord {
+export interface RunRecord {
     distance: number;
     elevationGain: number;
     elevationLoss: number;
@@ -35,7 +35,7 @@ interface RunRecord {
     avgCadence: number;
 }
 
-interface Telemetry {
+export interface Telemetry {
     timeStamp: number;
     lat: number;
     lng: number;

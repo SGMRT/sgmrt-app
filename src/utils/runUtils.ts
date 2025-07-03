@@ -1,4 +1,14 @@
+import Toast from "react-native-toast-message";
+import { postCourseRun, postRun } from "../apis";
 import { Segment } from "../components/map/RunningLine";
+import { UserDashBoardData } from "../hooks/useRunning";
+import {
+    CourseRunning,
+    GhostRunning,
+    RunRecord,
+    SoloRunning,
+    Telemetry,
+} from "../types/run";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
     const hours = Math.floor(runTime / 3600);
@@ -105,6 +115,103 @@ function telemetriesToSegment(
             })),
         },
     ];
+}
+
+interface SaveRunningProps {
+    startTime: number;
+    telemetries: Telemetry[];
+    userDashboardData: UserDashBoardData;
+    runTime: number;
+    hasPaused: boolean;
+    isPublic: boolean;
+    memberId: number;
+    totalStepCount: number;
+    ghostRunningId?: number | null;
+    courseId?: number;
+}
+
+export async function saveRunning({
+    startTime,
+    telemetries,
+    userDashboardData,
+    runTime,
+    hasPaused,
+    isPublic,
+    memberId,
+    totalStepCount,
+    ghostRunningId,
+    courseId,
+}: SaveRunningProps) {
+    if (!userDashboardData) return;
+    if (
+        userDashboardData.totalDistance === 0 ||
+        userDashboardData.paceOfLast10Points === 0
+    ) {
+        Toast.show({
+            type: "info",
+            text1: "러닝 거리가 너무 짧습니다.",
+            position: "bottom",
+            bottomOffset: 60,
+        });
+        return;
+    }
+
+    const record: RunRecord = {
+        distance: userDashboardData.totalDistance,
+        elevationGain: userDashboardData.totalElevationGain,
+        elevationLoss: userDashboardData.totalElevationGain,
+        duration: runTime,
+        avgPace: getPace(runTime, userDashboardData.totalDistance),
+        calories: userDashboardData.totalCalories,
+        avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
+        avgCadence: (totalStepCount / runTime) * 60,
+    };
+
+    const lastTrueIndex = telemetries.findLastIndex(
+        (telemetry) => telemetry.isRunning
+    );
+
+    const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
+
+    if (ghostRunningId) {
+        const running: GhostRunning = {
+            runningName: getRunName(startTime ?? 0),
+            mode: "GHOST",
+            startedAt: startTime ?? 0,
+            record,
+            hasPaused: hasPaused,
+            isPublic: hasPaused ? false : isPublic,
+            telemetries: savedTelemetries,
+            ghostRunningId,
+        };
+        const res = await postCourseRun(running, courseId!, memberId);
+        return res;
+    } else if (courseId) {
+        const running: CourseRunning = {
+            runningName: getRunName(startTime ?? 0),
+            mode: "SOLO",
+            startedAt: startTime ?? 0,
+            record,
+            hasPaused: hasPaused,
+            isPublic,
+            telemetries: savedTelemetries,
+            ghostRunningId: null,
+        };
+        const res = await postCourseRun(running, courseId, memberId);
+        return res;
+    } else {
+        const running: SoloRunning = {
+            runningName: getRunName(startTime ?? 0),
+            mode: "SOLO",
+            startedAt: startTime ?? 0,
+            record,
+            hasPaused: hasPaused,
+            isPublic,
+            telemetries: savedTelemetries,
+        };
+        const res = await postRun(running, memberId);
+        return res;
+    }
 }
 
 export {

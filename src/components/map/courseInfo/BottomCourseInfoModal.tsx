@@ -15,6 +15,7 @@ import UserStatItem from "./UserStatItem";
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     canClose?: boolean;
+    courseId: number;
     heightVal: SharedValue<number>;
 }
 
@@ -58,6 +59,7 @@ export default function BottomCourseInfoModal({
     bottomSheetRef,
     canClose = true,
     heightVal,
+    courseId,
 }: BottomCourseInfoModalProps) {
     const [tab, setTab] = useState<"course" | "ghost">("course");
     const [selectedGhostId, setSelectedGhostId] = useState<string | null>(
@@ -104,7 +106,7 @@ export default function BottomCourseInfoModal({
                             <Pressable
                                 onPress={() => {
                                     bottomSheetRef.current?.dismiss();
-                                    router.push("/course/123");
+                                    router.push(`/course/${courseId}`);
                                 }}
                             >
                                 <Typography variant="body2" color="gray60">
@@ -142,6 +144,12 @@ export default function BottomCourseInfoModal({
                 }
                 onSlideSuccess={() => {
                     console.log("slide success");
+                    bottomSheetRef.current?.dismiss();
+                    if (tab === "course") {
+                        router.push(`/run/${courseId}/course`);
+                    } else {
+                        router.push(`/run/${courseId}/${selectedGhostId}`);
+                    }
                 }}
                 color="green"
                 direction="left"

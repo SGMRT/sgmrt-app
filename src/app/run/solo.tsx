@@ -1,4 +1,3 @@
-import { postRun } from "@/src/apis";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import Countdown from "@/src/components/ui/Countdown";
@@ -8,7 +7,11 @@ import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunning } from "@/src/hooks/useRunning";
 import colors from "@/src/theme/colors";
-import { getFormattedPace, getRunName, getRunTime } from "@/src/utils/runUtils";
+import {
+    getFormattedPace,
+    getRunTime,
+    saveRunning,
+} from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -34,56 +37,12 @@ export default function Run() {
         startTime,
         hasPaused,
         isRunning,
+        getTotalStepCount,
     } = useRunning({
         type: "free",
         mode: "solo",
         weight: 70,
     });
-
-    async function saveRunning() {
-        if (!userDashboardData) return;
-        if (userDashboardData.totalDistance === 0) {
-            Toast.show({
-                type: "info",
-                text1: "러닝 거리가 너무 짧습니다.",
-                position: "bottom",
-                bottomOffset: 60,
-            });
-            return;
-        }
-
-        const record: RunRecord = {
-            distance: userDashboardData.totalDistance,
-            elevationGain: userDashboardData.totalElevationGain,
-            elevationLoss: userDashboardData.totalElevationGain,
-            duration: runTime,
-            avgPace: userDashboardData.paceOfLast10Points,
-            calories: userDashboardData.totalCalories,
-            avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
-            avgCadence:
-                userDashboardData.cadenceOfLast10Points === 0
-                    ? 0
-                    : userDashboardData.cadenceOfLast10Points,
-        };
-
-        const lastTrueIndex = telemetries.findLastIndex(
-            (telemetry) => telemetry.isRunning
-        );
-
-        const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
-
-        const running: Running = {
-            runningName: getRunName(startTime ?? 0),
-            mode: "SOLO",
-            startedAt: startTime ?? 0,
-            record,
-            hasPaused: hasPaused,
-            isPublic: false,
-            telemetries: savedTelemetries,
-        };
-        const res = await postRun(running, 1);
-        return res;
-    }
 
     const stats = [
         {
@@ -208,9 +167,17 @@ export default function Run() {
                 <SlideToDualAction
                     onSlideLeft={async () => {
                         console.log("기록 저장");
-                        const { courseId, runningId } = await saveRunning();
-                        console.log(courseId, runningId);
-                        router.replace(`/result/${courseId}/${runningId}`);
+                        const { runningId } = await saveRunning({
+                            startTime: startTime!,
+                            telemetries,
+                            userDashboardData,
+                            runTime,
+                            hasPaused,
+                            isPublic: true,
+                            memberId: 1,
+                            totalStepCount: getTotalStepCount(),
+                        });
+                        router.replace(`/result/${runningId}`);
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);

@@ -5,7 +5,7 @@ export default function RunLayout() {
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="solo" />
             <Stack.Screen name="[courseId]/course" />
-            <Stack.Screen name="[courseId]/ghost" />
+            <Stack.Screen name="[courseId]/[ghostRunningId]" />
         </Stack>
     );
 }
