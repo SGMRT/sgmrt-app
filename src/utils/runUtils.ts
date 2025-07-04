@@ -185,7 +185,7 @@ export async function saveRunning({
             ghostRunningId,
         };
         const res = await postCourseRun(running, courseId!, memberId);
-        return res;
+        return { courseId: res };
     } else if (courseId) {
         const running: CourseRunning = {
             runningName: getRunName(startTime ?? 0),
@@ -193,12 +193,12 @@ export async function saveRunning({
             startedAt: startTime ?? 0,
             record,
             hasPaused: hasPaused,
-            isPublic,
+            isPublic: hasPaused ? false : isPublic,
             telemetries: savedTelemetries,
             ghostRunningId: null,
         };
         const res = await postCourseRun(running, courseId, memberId);
-        return res;
+        return { runningId: res };
     } else {
         const running: SoloRunning = {
             runningName: getRunName(startTime ?? 0),
@@ -206,7 +206,7 @@ export async function saveRunning({
             startedAt: startTime ?? 0,
             record,
             hasPaused: hasPaused,
-            isPublic,
+            isPublic: hasPaused ? false : isPublic,
             telemetries: savedTelemetries,
         };
         const res = await postRun(running, memberId);

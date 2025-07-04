@@ -315,7 +315,7 @@ export default function Course() {
                         leftLabel="결과 및 랭킹"
                         rightLabel="이어서 뛰기"
                         onSlideLeft={async () => {
-                            const res = await saveRunning({
+                            const { runningId } = await saveRunning({
                                 startTime: startTime!,
                                 telemetries,
                                 userDashboardData,
@@ -327,7 +327,7 @@ export default function Course() {
                                 ghostRunningId: null,
                                 courseId: Number(courseId),
                             });
-                            router.replace(`/result/${res}/-1`);
+                            router.replace(`/result/${runningId}/-1`);
                         }}
                         onSlideRight={async () => {
                             await saveRunning({
