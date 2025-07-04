@@ -23,7 +23,7 @@ export default function Home() {
                 <WeatherInfo />
                 <CourseFilter />
             </TopBlurView>
-            <HomeMap />
+            <HomeMap courses={[]} />
             <TabBar />
             <SlideToAction
                 label="밀어서 러닝시작"
