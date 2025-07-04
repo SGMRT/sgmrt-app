@@ -37,8 +37,7 @@ export default function RootLayout() {
                     <Stack screenOptions={{ headerShown: false }}>
                         <Stack.Screen name="(tabs)" />
                         <Stack.Screen name="course" />
-                        <Stack.Screen name="result/[runningId]/index" />
-                        <Stack.Screen name="result/[runningId]/[ghostRunningId]" />
+                        <Stack.Screen name="result/[runningId]/[courseId]/[ghostRunningId]" />
                         <Stack.Screen
                             name="run"
                             options={{ gestureEnabled: false }}

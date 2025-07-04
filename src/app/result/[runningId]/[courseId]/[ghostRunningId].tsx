@@ -8,6 +8,7 @@ import CollapsibleSection from "@/src/components/ui/CollapsibleSection";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
+import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
 import { Typography } from "@/src/components/ui/Typography";
@@ -29,7 +30,7 @@ import {
 import Toast from "react-native-toast-message";
 
 export default function Result() {
-    const { runningId, ghostRunningId } = useLocalSearchParams();
+    const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -240,41 +241,52 @@ export default function Result() {
                             <Divider direction="horizontal" />
                         </View>
                     </ScrollView>
-                    <SlideToDualAction
-                        onSlideLeft={() => {
-                            router.replace("/");
-                        }}
-                        onSlideRight={async () => {
-                            if (isCourseModalOpen) {
-                                if (data.courseInfo === null) {
-                                    console.log("NO COURSE");
+                    {courseId === "-1" ? (
+                        <SlideToDualAction
+                            onSlideLeft={() => {
+                                router.replace("/");
+                            }}
+                            onSlideRight={async () => {
+                                if (isCourseModalOpen) {
+                                    if (data.courseInfo === null) {
+                                        console.log("NO COURSE");
+                                        Toast.show({
+                                            type: "info",
+                                            text1: "코스 정보를 찾을 수 없습니다",
+                                            position: "bottom",
+                                        });
+                                        router.replace("/");
+                                        return;
+                                    }
+                                    await patchCourseName(
+                                        data.courseInfo.id,
+                                        courseName,
+                                        true
+                                    );
+                                    // TODO: 코스 등록 후 마이페이지 내 기록으로 이동
+                                    router.replace("/");
                                     Toast.show({
-                                        type: "info",
-                                        text1: "코스 정보를 찾을 수 없습니다",
+                                        type: "success",
+                                        text1: "코스가 등록 되었습니다",
                                         position: "bottom",
                                     });
-                                    router.replace("/");
-                                    return;
+                                } else {
+                                    handlePresentModalPress();
                                 }
-                                await patchCourseName(
-                                    data.courseInfo.id,
-                                    courseName,
-                                    true
-                                );
-                                // TODO: 코스 등록 후 마이페이지 내 기록으로 이동
+                            }}
+                            leftLabel="메인으로"
+                            rightLabel="코스 등록"
+                        />
+                    ) : (
+                        <SlideToAction
+                            onSlideSuccess={() => {
                                 router.replace("/");
-                                Toast.show({
-                                    type: "success",
-                                    text1: "코스가 등록 되었습니다",
-                                    position: "bottom",
-                                });
-                            } else {
-                                handlePresentModalPress();
-                            }
-                        }}
-                        leftLabel="메인으로"
-                        rightLabel="코스 등록"
-                    />
+                            }}
+                            label="메인으로"
+                            color="green"
+                            direction="left"
+                        />
+                    )}
                 </SafeAreaView>
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}

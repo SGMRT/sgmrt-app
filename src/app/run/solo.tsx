@@ -179,7 +179,7 @@ export default function Run() {
                             memberId: 1,
                             totalStepCount: getTotalStepCount(),
                         });
-                        router.replace(`/result/${runningId}/-1`);
+                        router.replace(`/result/${runningId}/-1/-1`);
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);

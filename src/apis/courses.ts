@@ -1,4 +1,5 @@
 import server from "./instance";
+import { CourseResponse, CoursesRequest } from "./types/course";
 
 export async function deleteCourse(courseId: number) {
     try {
@@ -21,6 +22,18 @@ export async function patchCourseName(
             name,
             isPublic,
         });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function getCourses(
+    request: CoursesRequest
+): Promise<CourseResponse[]> {
+    try {
+        const response = await server.get("/courses", { params: request });
         return response.data;
     } catch (error) {
         console.error(error);

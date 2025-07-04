@@ -280,7 +280,7 @@ export default function Course() {
                                 memberId: 1,
                                 totalStepCount: getTotalStepCount(),
                             });
-                            router.replace(`/result/${runningId}/-1`);
+                            router.replace(`/result/${runningId}/-1/-1`);
                         }}
                         onSlideRight={() => {
                             stopCourseAndFreeRun();
@@ -304,7 +304,7 @@ export default function Course() {
                                 ghostRunningId: null,
                                 courseId: Number(courseId),
                             });
-                            router.replace(`/result/${runningId}/-1`);
+                            router.replace(`/result/${runningId}/-1/-1`);
                         }}
                         onSlideRight={() => {
                             startTracking();
@@ -327,7 +327,9 @@ export default function Course() {
                                 ghostRunningId: null,
                                 courseId: Number(courseId),
                             });
-                            router.replace(`/result/${runningId}/-1`);
+                            router.replace(
+                                `/result/${runningId}/${courseId}/-1`
+                            );
                         }}
                         onSlideRight={async () => {
                             await saveRunning({
