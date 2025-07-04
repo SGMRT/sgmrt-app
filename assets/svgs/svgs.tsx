@@ -1,9 +1,6 @@
 import Compass from "./compass.svg";
 import LocateMe from "./focus.svg";
 
-import LogoText from "./logo.svg";
-import TouchText from "./touch.svg";
-
 import BackIcon from "./back.svg";
 import ChevronIcon from "./chevron.svg";
 
@@ -19,9 +16,7 @@ export {
     Compass,
     EditIcon,
     LocateMe,
-    LogoText,
     ShareIcon,
     ToastCheckIcon,
     ToastInfoIcon,
-    TouchText,
 };
