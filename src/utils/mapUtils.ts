@@ -1,3 +1,7 @@
+import { Dimensions } from "react-native";
+import { Telemetry } from "../apis/types/run";
+import { Course } from "../types/course";
+
 export interface Coordinate {
     lat: number;
     lng: number;
@@ -32,7 +36,48 @@ const calculateCenter = (coordinates: Coordinate[]) => {
     const maxY = Math.max(...coordinates.map((coord) => coord.lng));
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
-    return { latitude: centerX, longitude: centerY };
+    // 가로 길이, 세로 길이 중 더 긴쪽을 출력
+    const width = maxX - minX;
+    const height = maxY - minY;
+    const size = width > height ? width : height;
+    return { latitude: centerX, longitude: centerY, size: size };
 };
 
-export { calculateCenter, getDistance, getTopCoordinate };
+const convertTelemetriesToCourse = (telemetries: Telemetry[]): Course => {
+    return {
+        id: 0,
+        name: "",
+        coordinates: telemetries.map((telemetry) => [
+            telemetry.lng,
+            telemetry.lat,
+        ]),
+        count: 0,
+        topUsers: [],
+    };
+};
+
+const calculateZoomLevelFromSize = (
+    sizeInDegrees: number,
+    centerLat: number
+) => {
+    // 위도에 따라 조정된 meters per degree (경도 기준)
+    const meters =
+        sizeInDegrees * 111320 * Math.cos((centerLat * Math.PI) / 180); // 경도 → 미터
+
+    // Mapbox 기준 zoom 0에서 1px당 거리
+    const metersPerPixelAtZoom0 = 156543.03392;
+
+    const screenWidth = Dimensions.get("window").width;
+
+    const zoomLevel = Math.log2((metersPerPixelAtZoom0 * screenWidth) / meters);
+
+    return zoomLevel - 2;
+};
+
+export {
+    calculateCenter,
+    calculateZoomLevelFromSize,
+    convertTelemetriesToCourse,
+    getDistance,
+    getTopCoordinate,
+};

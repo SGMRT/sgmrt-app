@@ -1,4 +1,5 @@
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import Countdown from "@/src/components/ui/Countdown";
 import SlideToAction from "@/src/components/ui/SlideToAction";
@@ -38,6 +39,7 @@ export default function Run() {
         hasPaused,
         isRunning,
         getTotalStepCount,
+        userSegments,
     } = useRunning({
         type: "free",
         mode: "solo",
@@ -130,13 +132,13 @@ export default function Run() {
                 )}
             </TopBlurView>
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {/* {segments.map((segment, index) => (
+                {userSegments.map((segment, index) => (
                     <RunningLine
                         key={index.toString()}
                         index={index}
                         segment={segment}
                     />
-                ))} */}
+                ))}
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
@@ -177,7 +179,7 @@ export default function Run() {
                             memberId: 1,
                             totalStepCount: getTotalStepCount(),
                         });
-                        router.replace(`/result/${runningId}`);
+                        router.replace(`/result/${runningId}/-1`);
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);

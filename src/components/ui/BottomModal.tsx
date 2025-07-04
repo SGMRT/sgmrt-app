@@ -13,6 +13,7 @@ interface BottomModalProps {
     snapPoints?: number[];
     index?: number;
     bottomInset?: number;
+    onDismiss?: () => void;
 }
 
 export default function BottomModal({
@@ -24,6 +25,7 @@ export default function BottomModal({
     snapPoints,
     index,
     bottomInset,
+    onDismiss,
 }: BottomModalProps) {
     const { bottom } = useSafeAreaInsets();
     return (
@@ -37,6 +39,7 @@ export default function BottomModal({
             animatedPosition={heightVal ?? undefined}
             snapPoints={snapPoints}
             index={index}
+            onDismiss={onDismiss}
         >
             <BottomSheetView>{children}</BottomSheetView>
         </BottomSheetModal>

@@ -1,14 +1,14 @@
 import Toast from "react-native-toast-message";
 import { postCourseRun, postRun } from "../apis";
-import { Segment } from "../components/map/RunningLine";
-import { UserDashBoardData } from "../hooks/useRunning";
 import {
     CourseRunning,
     GhostRunning,
     RunRecord,
     SoloRunning,
     Telemetry,
-} from "../types/run";
+} from "../apis/types/run";
+import { Segment } from "../components/map/RunningLine";
+import { UserDashBoardData } from "../hooks/useRunning";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
     const hours = Math.floor(runTime / 3600);
@@ -185,7 +185,7 @@ export async function saveRunning({
             ghostRunningId,
         };
         const res = await postCourseRun(running, courseId!, memberId);
-        return res;
+        return { courseId: res };
     } else if (courseId) {
         const running: CourseRunning = {
             runningName: getRunName(startTime ?? 0),
@@ -193,12 +193,12 @@ export async function saveRunning({
             startedAt: startTime ?? 0,
             record,
             hasPaused: hasPaused,
-            isPublic,
+            isPublic: hasPaused ? false : isPublic,
             telemetries: savedTelemetries,
             ghostRunningId: null,
         };
         const res = await postCourseRun(running, courseId, memberId);
-        return res;
+        return { runningId: res };
     } else {
         const running: SoloRunning = {
             runningName: getRunName(startTime ?? 0),
@@ -206,7 +206,7 @@ export async function saveRunning({
             startedAt: startTime ?? 0,
             record,
             hasPaused: hasPaused,
-            isPublic,
+            isPublic: hasPaused ? false : isPublic,
             telemetries: savedTelemetries,
         };
         const res = await postRun(running, memberId);
@@ -214,8 +214,21 @@ export async function saveRunning({
     }
 }
 
+function getDate(date: number): string {
+    return new Date(date)
+        .toLocaleDateString("ko-KR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "numeric",
+        })
+        .slice(0, 12)
+        .split(". ")
+        .join(".");
+}
+
 export {
     getCalories,
+    getDate,
     getFormattedPace,
     getPace,
     getRunName,

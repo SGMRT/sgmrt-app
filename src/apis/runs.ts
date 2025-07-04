@@ -1,5 +1,11 @@
-import { CourseRunning, GhostRunning, SoloRunning } from "../types/run";
 import server from "./instance";
+import {
+    CourseRunning,
+    GhostRunning,
+    SoloRunGetResponse,
+    SoloRunning,
+    Telemetry,
+} from "./types/run";
 
 export async function postRun(data: SoloRunning, memberId: number) {
     try {
@@ -47,7 +53,7 @@ export async function patchRunName(
     }
 }
 
-export async function getRun(runningId: number) {
+export async function getRun(runningId: number): Promise<SoloRunGetResponse> {
     try {
         const response = await server.get(`runs/${runningId}`);
         return response.data;
@@ -57,7 +63,9 @@ export async function getRun(runningId: number) {
     }
 }
 
-export async function getRunTelemetries(runningId: number) {
+export async function getRunTelemetries(
+    runningId: number
+): Promise<Telemetry[]> {
     try {
         const response = await server.get(`runs/${runningId}/telemetries`);
         return response.data;
