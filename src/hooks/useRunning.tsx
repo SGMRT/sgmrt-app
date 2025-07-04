@@ -2,8 +2,8 @@ import * as Location from "expo-location";
 import { Pedometer } from "expo-sensors";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Toast from "react-native-toast-message";
+import { Telemetry } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
-import { Telemetry } from "../types/run";
 import { Coordinate, getDistance } from "../utils/mapUtils";
 import { getCalories, getPace, telemetriesToSegment } from "../utils/runUtils";
 

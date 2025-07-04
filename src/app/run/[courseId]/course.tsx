@@ -1,3 +1,4 @@
+import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -10,7 +11,6 @@ import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
 import { useRunning } from "@/src/hooks/useRunning";
 import colors from "@/src/theme/colors";
-import { Telemetry } from "@/src/types/run";
 import {
     getFormattedPace,
     getRunTime,

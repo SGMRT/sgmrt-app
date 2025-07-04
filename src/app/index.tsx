@@ -4,5 +4,5 @@ export default function Index() {
     return <Redirect href="/(tabs)/home" />;
     // return <Redirect href="/course/1" />;
     // return <Redirect href="/run/1/course" />;
-    // return <Redirect href="/result/1" />;
+    // return <Redirect href="/result/7" />;
 }

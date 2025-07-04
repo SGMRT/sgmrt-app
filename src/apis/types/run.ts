@@ -24,6 +24,14 @@ export interface GhostRunning extends RunningBase {
 
 export type Running = SoloRunning | CourseRunning | GhostRunning;
 
+export interface SoloRunGetResponse {
+    startedAt: number;
+    runningName: string;
+    courseInfo: CourseInfo;
+    recordInfo: RecordInfo;
+    telemetries: Telemetry[];
+}
+
 export interface RunRecord {
     distance: number;
     elevationGain: number;
@@ -45,4 +53,24 @@ export interface Telemetry {
     cadence: number;
     bpm: number;
     isRunning: boolean;
+}
+
+export interface CourseInfo {
+    id: number;
+    name: string;
+    runnerCount: number;
+}
+
+export interface RecordInfo {
+    distance: number;
+    duration: number;
+    cadence: number;
+    bpm: number;
+    calories: number;
+    averagePace: number;
+    highestPace: number;
+    lowestPace: number;
+    elevationGain: number;
+    elevationLoss: number;
+    totalElevation: number;
 }

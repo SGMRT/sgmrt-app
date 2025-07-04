@@ -8,12 +8,14 @@ interface NameInputProps {
     defaultValue?: string;
     placeholder?: string;
     onChangeText?: (text: string) => void;
+    onBlur?: () => Promise<void>;
 }
 
 export default function NameInput({
     defaultValue,
     placeholder,
     onChangeText,
+    onBlur,
 }: NameInputProps) {
     const [isEditing, setIsEditing] = useState(false);
     const InputRef = useRef<TextInput>(null);
@@ -35,8 +37,9 @@ export default function NameInput({
                     },
                 ]}
                 ref={InputRef}
-                onBlur={() => {
+                onBlur={async () => {
                     setIsEditing(false);
+                    onBlur && (await onBlur());
                 }}
                 onChangeText={onChangeText}
             />
