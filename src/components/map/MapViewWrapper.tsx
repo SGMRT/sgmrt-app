@@ -25,6 +25,8 @@ interface MapViewWrapperProps {
     };
     zoom?: number;
     showPuck?: boolean;
+    onRegionDidChange?: (event: any) => void;
+    ref?: React.RefObject<MapView | null>;
 }
 
 export default function MapViewWrapper({
@@ -35,6 +37,8 @@ export default function MapViewWrapper({
     center,
     zoom = 16,
     showPuck = true,
+    onRegionDidChange,
+    ref,
 }: MapViewWrapperProps) {
     const [isFollowing, setIsFollowing] = useState(true);
     const [followUserMode, setFollowUserMode] = useState(
@@ -66,6 +70,7 @@ export default function MapViewWrapper({
     return (
         <View style={{ flex: 1, position: "relative" }}>
             <MapView
+                ref={ref}
                 style={{ flex: 1 }}
                 scaleBarEnabled={false}
                 logoEnabled={false}
@@ -76,6 +81,9 @@ export default function MapViewWrapper({
                     onZoomLevelChanged?.(event.properties.zoom);
                 }}
                 scrollEnabled={controlEnabled}
+                onRegionDidChange={(event) => {
+                    onRegionDidChange?.(event);
+                }}
             >
                 <Images>
                     <Image name="puck">
