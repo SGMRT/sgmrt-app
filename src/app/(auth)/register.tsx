@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useAuthStore } from "@/src/store/authState";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { Pedometer } from "expo-sensors";
@@ -52,6 +53,7 @@ async function requestPermissions(): Promise<boolean> {
 
 export default function Register() {
     const [agreeState, dispatch] = useAgreeState();
+    const { login } = useAuthStore();
     const router = useRouter();
 
     const canRegister =
@@ -80,6 +82,7 @@ export default function Register() {
                     const result = await requestPermissions();
                     if (result) {
                         router.dismissAll();
+                        login("accessToken", "refreshToken");
                         router.replace("/(tabs)/home");
                     }
                 }}

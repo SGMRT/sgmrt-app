@@ -22,6 +22,9 @@ const config = {
                     NSAllowsArbitraryLoads: true,
                 },
             },
+            config: {
+                usesNonExemptEncryption: false,
+            },
         },
         android: {
             package: "com.sgmrt.ghostrunner",
@@ -67,6 +70,14 @@ const config = {
                 {
                     motionPermission:
                         "Allow $(PRODUCT_NAME) to access your device motion",
+                },
+            ],
+            [
+                "expo-secure-store",
+                {
+                    configureAndroidBackup: true,
+                    faceIdPermission:
+                        "Allow $(PRODUCT_NAME) to access your Face ID",
                 },
             ],
         ],
