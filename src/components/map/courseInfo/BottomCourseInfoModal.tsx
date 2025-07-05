@@ -113,7 +113,7 @@ export default function BottomCourseInfoModal({
                                     전체 보기
                                 </Typography>
                             </Pressable>
-                            <ChevronIcon />
+                            <ChevronIcon color="#676766" />
                         </View>
                     </View>
                     <View style={styles.marginBottom}>

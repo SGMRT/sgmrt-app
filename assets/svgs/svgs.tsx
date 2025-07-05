@@ -10,11 +10,19 @@ import ToastInfoIcon from "./toast-info.svg";
 import EditIcon from "./edit-alt.svg";
 import ShareIcon from "./share.svg";
 
+import AppleIcon from "./apple.svg";
+import KakaoIcon from "./kakao.svg";
+
+import CheckIcon from "./check.svg";
+
 export {
+    AppleIcon,
     BackIcon,
+    CheckIcon,
     ChevronIcon,
     Compass,
     EditIcon,
+    KakaoIcon,
     LocateMe,
     ShareIcon,
     ToastCheckIcon,

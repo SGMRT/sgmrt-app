@@ -34,6 +34,7 @@ export default function CollapsibleSection({
                         style={{
                             transform: [{ rotate: open ? "90deg" : "-90deg" }],
                         }}
+                        color="#676766"
                     />
                 </Pressable>
             </View>

@@ -35,6 +35,9 @@ export default function RootLayout() {
             <BottomSheetModalProvider>
                 <QueryClientProvider client={queryClient}>
                     <Stack screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="index" />
+                        <Stack.Screen name="intro" />
+                        <Stack.Screen name="(auth)" />
                         <Stack.Screen name="(tabs)" />
                         <Stack.Screen name="course" />
                         <Stack.Screen name="result/[runningId]/[courseId]/[ghostRunningId]" />
