@@ -14,7 +14,6 @@ export default memo(function CourseLayer({
     isActive,
     onClickCourse,
 }: CourseProps) {
-    console.log(course);
     return (
         <>
             <ShapeSource

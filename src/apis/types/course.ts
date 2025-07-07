@@ -20,3 +20,32 @@ export interface PathData {
     lat: number;
     lng: number;
 }
+
+export interface HistoryResponse {
+    runnerId: number;
+    runnerProfileUrl: string;
+    runningId: number;
+    runningName: string;
+    averagePace: number;
+    cadence: number;
+    bpm: number;
+    duration: number;
+    isPublic: boolean;
+    startedAt: string;
+}
+
+export type Pageable = {
+    page: number;
+    size: number;
+    sort: GhostSortOption;
+};
+
+export type GhostSortField =
+    | "id"
+    | "runningRecord.averagePace"
+    | "runningRecord.duration"
+    | "runningRecord.cadence";
+
+export type SortOrder = "asc" | "desc";
+
+export type GhostSortOption = `${GhostSortField},${SortOrder}`;

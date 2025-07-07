@@ -137,7 +137,7 @@ export default function HomeMap() {
             <BottomCourseInfoModal
                 bottomSheetRef={bottomSheetRef}
                 heightVal={heightVal}
-                courseId={activeCourse}
+                course={courses?.find((course) => course.id === activeCourse)}
             />
         </>
     );

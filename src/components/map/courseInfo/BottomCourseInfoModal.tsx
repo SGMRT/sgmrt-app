@@ -1,8 +1,12 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
+import { getCourseTopRanking } from "@/src/apis";
+import { CourseResponse, HistoryResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
+import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import BottomModal from "../../ui/BottomModal";
@@ -15,146 +19,162 @@ import UserStatItem from "./UserStatItem";
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     canClose?: boolean;
-    courseId: number;
+    course: CourseResponse | undefined;
     heightVal: SharedValue<number>;
 }
-
-const stats = [
-    { label: "전체 거리", value: "1.45", unit: "km" },
-    { label: "고도 상승", value: "+18", unit: "m" },
-    { label: "고도 하강", value: "-24", unit: "m" },
-    { label: "평균 시간", value: "24:21", unit: "" },
-    { label: "평균 페이스", value: "8’15”", unit: "" },
-    { label: "평균 케이던스", value: "24", unit: "spm" },
-];
-
-const ghostList = [
-    {
-        id: "1",
-        name: "윤다희",
-        avatar: "https://picsum.photos/200/300",
-        time: "25:12",
-        pace: "8’23”",
-        cadence: "124spm",
-    },
-    {
-        id: "2",
-        name: "정윤석",
-        avatar: "https://picsum.photos/200/300",
-        time: "25:12",
-        pace: "8’23”",
-        cadence: "124spm",
-    },
-    {
-        id: "3",
-        name: "이진",
-        avatar: "https://picsum.photos/200/300",
-        time: "25:12",
-        pace: "8’23”",
-        cadence: "124spm",
-    },
-];
 
 export default function BottomCourseInfoModal({
     bottomSheetRef,
     canClose = true,
     heightVal,
-    courseId,
+    course,
 }: BottomCourseInfoModalProps) {
     const [tab, setTab] = useState<"course" | "ghost">("course");
-    const [selectedGhostId, setSelectedGhostId] = useState<string | null>(
-        ghostList[0].id
-    );
+
+    const { data: ghostList } = useQuery<HistoryResponse[]>({
+        queryKey: ["course-top-ranking", course?.id],
+        queryFn: () => getCourseTopRanking({ courseId: course!.id, count: 3 }),
+        enabled: !!course?.id,
+    });
+
+    const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (ghostList) {
+            setSelectedGhostId(ghostList[0].runningId);
+        }
+    }, [ghostList]);
+
+    const stats = [
+        {
+            label: "전체 거리",
+            value: ((course!.distance ?? 0) / 1000).toFixed(2),
+            unit: "km",
+        },
+        {
+            label: "고도 상승",
+            value: course!.elevationGain.toString(),
+            unit: "m",
+        },
+        {
+            label: "고도 하강",
+            value: course!.elevationLoss.toString(),
+            unit: "m",
+        },
+        { label: "평균 시간", value: "--:--", unit: "" },
+        { label: "평균 페이스", value: "--”", unit: "" },
+        { label: "평균 케이던스", value: "--", unit: "spm" },
+    ];
+
     const router = useRouter();
     return (
-        <BottomModal
-            bottomSheetRef={bottomSheetRef}
-            canClose={canClose}
-            heightVal={heightVal}
-        >
-            <View style={styles.tabContainer}>
-                <Pressable onPress={() => setTab("course")} style={styles.tab}>
-                    <Typography
-                        variant="subhead2"
-                        color={tab === "course" ? "white" : "gray60"}
+        course && (
+            <BottomModal
+                bottomSheetRef={bottomSheetRef}
+                canClose={canClose}
+                heightVal={heightVal}
+            >
+                <View style={styles.tabContainer}>
+                    <Pressable
+                        onPress={() => setTab("course")}
+                        style={styles.tab}
                     >
-                        코스 상세 정보
-                    </Typography>
-                </Pressable>
-                <Divider />
-                <Pressable onPress={() => setTab("ghost")} style={styles.tab}>
-                    <Typography
-                        variant="subhead2"
-                        color={tab === "ghost" ? "white" : "gray60"}
-                    >
-                        고스트 선택
-                    </Typography>
-                </Pressable>
-            </View>
-            {tab === "course" && (
-                <View style={{ marginBottom: 30 }}>
-                    <StatsIndicator stats={stats} />
-                </View>
-            )}
-            {tab === "ghost" && (
-                <View style={{ gap: 10 }}>
-                    <View style={styles.ghostListContainer}>
-                        <Typography variant="body1" color="gray40">
-                            빠른 완주 순위
+                        <Typography
+                            variant="subhead2"
+                            color={tab === "course" ? "white" : "gray60"}
+                        >
+                            코스 상세 정보
                         </Typography>
-                        <View style={styles.ghostListContainerText}>
-                            <Pressable
-                                onPress={() => {
-                                    bottomSheetRef.current?.dismiss();
-                                    router.push(`/course/${courseId}`);
-                                }}
-                            >
-                                <Typography variant="body2" color="gray60">
-                                    전체 보기
-                                </Typography>
-                            </Pressable>
-                            <ChevronIcon />
-                        </View>
-                    </View>
-                    <View style={styles.marginBottom}>
-                        {ghostList.slice(0, 3).map((ghost, index) => (
-                            <UserStatItem
-                                key={ghost.id}
-                                rank={index + 1}
-                                name={ghost.name}
-                                avatar={ghost.avatar}
-                                time={ghost.time}
-                                pace={ghost.pace}
-                                cadence={ghost.cadence}
-                                ghostId={ghost.id}
-                                isGhostSelected={selectedGhostId === ghost.id}
-                                onPress={() => {
-                                    setSelectedGhostId(ghost.id);
-                                }}
-                            />
-                        ))}
-                    </View>
+                    </Pressable>
+                    <Divider />
+                    <Pressable
+                        onPress={() => setTab("ghost")}
+                        style={styles.tab}
+                    >
+                        <Typography
+                            variant="subhead2"
+                            color={tab === "ghost" ? "white" : "gray60"}
+                        >
+                            고스트 선택
+                        </Typography>
+                    </Pressable>
                 </View>
-            )}
-            <SlideToAction
-                label={
-                    tab === "course"
-                        ? "이 코스로 러닝 시작"
-                        : "고스트와 러닝 시작"
-                }
-                onSlideSuccess={() => {
-                    console.log("slide success");
-                    bottomSheetRef.current?.dismiss();
-                    if (tab === "course") {
-                        router.push(`/run/${courseId}/course`);
-                    } else {
-                        router.push(`/run/${courseId}/${selectedGhostId}`);
+                {tab === "course" && (
+                    <View style={{ marginBottom: 30 }}>
+                        <StatsIndicator stats={stats} />
+                    </View>
+                )}
+                {tab === "ghost" && (
+                    <View style={{ gap: 10 }}>
+                        <View style={styles.ghostListContainer}>
+                            <Typography variant="body1" color="gray40">
+                                빠른 완주 순위
+                            </Typography>
+                            <View style={styles.ghostListContainerText}>
+                                <Pressable
+                                    onPress={() => {
+                                        bottomSheetRef.current?.dismiss();
+                                        router.push(`/course/${course.id}`);
+                                    }}
+                                >
+                                    <Typography variant="body2" color="gray60">
+                                        전체 보기
+                                    </Typography>
+                                </Pressable>
+                                <ChevronIcon />
+                            </View>
+                        </View>
+                        {ghostList && ghostList.length > 0 && (
+                            <View style={styles.marginBottom}>
+                                {ghostList.map((ghost, index) => (
+                                    <UserStatItem
+                                        key={ghost.runningId}
+                                        rank={index + 1}
+                                        name={ghost.runningName}
+                                        avatar={ghost.runnerProfileUrl}
+                                        time={getRunTime(
+                                            ghost.duration,
+                                            "MM:SS"
+                                        )}
+                                        pace={getFormattedPace(
+                                            ghost.averagePace
+                                        )}
+                                        cadence={
+                                            ghost.cadence.toString() + " spm"
+                                        }
+                                        ghostId={ghost.runningId.toString()}
+                                        isGhostSelected={
+                                            selectedGhostId === ghost.runningId
+                                        }
+                                        onPress={() => {
+                                            setSelectedGhostId(ghost.runningId);
+                                        }}
+                                    />
+                                ))}
+                            </View>
+                        )}
+                    </View>
+                )}
+                <SlideToAction
+                    label={
+                        tab === "course"
+                            ? "이 코스로 러닝 시작"
+                            : "고스트와 러닝 시작"
                     }
-                }}
-                color="green"
-                direction="left"
-            />
-        </BottomModal>
+                    onSlideSuccess={() => {
+                        console.log("slide success");
+                        bottomSheetRef.current?.dismiss();
+                        if (tab === "course") {
+                            router.push(`/run/${course.id}/course`);
+                        } else {
+                            router.push(`/run/${course.id}/${selectedGhostId}`);
+                        }
+                    }}
+                    color="green"
+                    direction="left"
+                />
+            </BottomModal>
+        )
     );
 }
 
