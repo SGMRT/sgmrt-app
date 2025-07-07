@@ -17,7 +17,6 @@ export async function patchCourseName(
     isPublic: boolean
 ) {
     try {
-        console.log(courseId, name, isPublic);
         const response = await server.patch(`courses/${courseId}`, {
             name,
             isPublic,

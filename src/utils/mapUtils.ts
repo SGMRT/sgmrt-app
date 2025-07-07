@@ -1,6 +1,6 @@
 import { Dimensions } from "react-native";
+import { CourseResponse } from "../apis/types/course";
 import { Telemetry } from "../apis/types/run";
-import { Course } from "../types/course";
 
 export interface Coordinate {
     lat: number;
@@ -43,16 +43,21 @@ const calculateCenter = (coordinates: Coordinate[]) => {
     return { latitude: centerX, longitude: centerY, size: size };
 };
 
-const convertTelemetriesToCourse = (telemetries: Telemetry[]): Course => {
+const convertTelemetriesToCourse = (
+    telemetries: Telemetry[]
+): CourseResponse => {
     return {
         id: 0,
         name: "",
-        coordinates: telemetries.map((telemetry) => [
-            telemetry.lng,
-            telemetry.lat,
-        ]),
-        count: 0,
-        topUsers: [],
+        startLat: telemetries[0].lat,
+        startLng: telemetries[0].lng,
+        pathData: telemetries.map((telemetry) => ({
+            lat: telemetry.lat,
+            lng: telemetry.lng,
+        })),
+        distance: 0,
+        elevationGain: 0,
+        elevationLoss: 0,
     };
 };
 
