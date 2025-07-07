@@ -10,8 +10,13 @@ export interface CourseResponse {
     name: string;
     startLat: number;
     startLng: number;
-    pathData: string;
+    pathData: PathData[];
     distance: number;
     elevationGain: number;
     elevationLoss: number;
+}
+
+export interface PathData {
+    lat: number;
+    lng: number;
 }
