@@ -156,6 +156,9 @@ export async function saveRunning({
         return;
     }
 
+    console.log(isPublic);
+    console.log(hasPaused ? false : isPublic);
+
     const record: RunRecord = {
         distance: userDashboardData.totalDistance,
         elevationGain: userDashboardData.totalElevationGain,

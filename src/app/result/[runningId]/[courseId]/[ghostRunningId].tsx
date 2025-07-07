@@ -262,14 +262,24 @@ export default function Result() {
                                         data.courseInfo.id,
                                         courseName,
                                         true
-                                    );
-                                    // TODO: 코스 등록 후 마이페이지 내 기록으로 이동
-                                    router.replace("/");
-                                    Toast.show({
-                                        type: "success",
-                                        text1: "코스가 등록 되었습니다",
-                                        position: "bottom",
-                                    });
+                                    )
+                                        .then(() => {
+                                            Toast.show({
+                                                type: "success",
+                                                text1: "코스가 등록 되었습니다",
+                                                position: "bottom",
+                                            });
+                                        })
+                                        .catch((error) => {
+                                            Toast.show({
+                                                type: "info",
+                                                text1: "코스 등록에 실패했습니다",
+                                                position: "bottom",
+                                            });
+                                        })
+                                        .finally(() => {
+                                            router.replace("/");
+                                        });
                                 } else {
                                     handlePresentModalPress();
                                 }

@@ -1,12 +1,12 @@
+import { CourseResponse } from "@/src/apis/types/course";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
-import { Course } from "@/src/types/course";
 import { CircleLayer, LineLayer, ShapeSource } from "@rnmapbox/maps";
 import { memo } from "react";
 
 interface CourseProps {
-    course: Course;
+    course: CourseResponse;
     isActive: boolean;
-    onClickCourse?: (course: Course) => void;
+    onClickCourse?: (course: CourseResponse) => void;
 }
 
 export default memo(function CourseLayer({
@@ -27,7 +27,10 @@ export default memo(function CourseLayer({
                     },
                     geometry: {
                         type: "LineString",
-                        coordinates: course.coordinates,
+                        coordinates: course.pathData.map((path) => [
+                            path.lng,
+                            path.lat,
+                        ]),
                     },
                 }}
             >
@@ -46,8 +49,10 @@ export default memo(function CourseLayer({
                     type: "Feature",
                     geometry: {
                         type: "Point",
-                        coordinates:
-                            course.coordinates[course.coordinates.length - 1],
+                        coordinates: [
+                            course.pathData[course.pathData.length - 1].lng,
+                            course.pathData[course.pathData.length - 1].lat,
+                        ],
                     },
                     properties: {},
                 }}

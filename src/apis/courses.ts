@@ -1,5 +1,5 @@
 import server from "./instance";
-import { CourseResponse, CoursesRequest } from "./types/course";
+import { CourseResponse, CoursesRequest, Pageable } from "./types/course";
 
 export async function deleteCourse(courseId: number) {
     try {
@@ -17,7 +17,6 @@ export async function patchCourseName(
     isPublic: boolean
 ) {
     try {
-        console.log(courseId, name, isPublic);
         const response = await server.patch(`courses/${courseId}`, {
             name,
             isPublic,
@@ -34,6 +33,60 @@ export async function getCourses(
 ): Promise<CourseResponse[]> {
     try {
         const response = await server.get("/courses", { params: request });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function getCourseTopRanking({
+    courseId,
+    count,
+}: {
+    courseId: number;
+    count: number;
+}) {
+    try {
+        const response = await server.get(`/courses/${courseId}/top-ranking`, {
+            params: { count },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function getCourseUserRank({
+    courseId,
+    userId,
+}: {
+    courseId: number;
+    userId: number;
+}) {
+    try {
+        const response = await server.get(`/courses/${courseId}/ranking`, {
+            params: { userId },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function getCourseGhosts({
+    courseId,
+    pageable,
+}: {
+    courseId: number;
+    pageable: Pageable;
+}) {
+    try {
+        const response = await server.get(`/courses/${courseId}/ghosts`, {
+            params: { pageable },
+        });
         return response.data;
     } catch (error) {
         console.error(error);

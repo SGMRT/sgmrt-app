@@ -1,61 +1,52 @@
+import { getCourseGhosts } from "@/src/apis";
+import {
+    GhostSortOption,
+    HistoryResponse,
+    Pageable,
+} from "@/src/apis/types/course";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import { Typography } from "@/src/components/ui/Typography";
+import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { FlashList } from "@shopify/flash-list";
-import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const ghostList = [
-    {
-        id: "1",
-        name: "정윤석",
-        avatar: "https://picsum.photos/200/300",
-        time: "25:12",
-        pace: "8’23”",
-        cadence: "124spm",
-    },
-    {
-        id: "2",
-        name: "정윤석",
-        avatar: "https://picsum.photos/200/300",
-        time: "25:12",
-        pace: "8’23”",
-        cadence: "124spm",
-    },
-    {
-        id: "3",
-        name: "정윤석",
-        avatar: "https://picsum.photos/200/300",
-        time: "25:12",
-        pace: "8’23”",
-        cadence: "124spm",
-    },
-    {
-        id: "4",
-        name: "정윤석",
-        avatar: "https://picsum.photos/200/300",
-        time: "25:12",
-        pace: "8’23”",
-        cadence: "124spm",
-    },
-    {
-        id: "5",
-        name: "정윤석",
-        avatar: "https://picsum.photos/200/300",
-        time: "25:12",
-        pace: "8’23”",
-        cadence: "124spm",
-    },
-];
-
 export default function CourseScreen() {
     const { courseId } = useLocalSearchParams();
-    const [selectedGhostId, setSelectedGhostId] = useState<string | null>(
-        ghostList[0].id
+    const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
+    const router = useRouter();
+
+    const [page, setPage] = useState(1);
+    const [size, setSize] = useState(30);
+    const [sort, setSort] = useState<GhostSortOption>(
+        "runningRecord.duration,asc"
     );
+    const [ghostList, setGhostList] = useState<HistoryResponse[]>([]);
+
+    const pageable: Pageable = useMemo(
+        () => ({
+            page: page,
+            size: size,
+            sort: sort,
+        }),
+        [page, size, sort]
+    );
+
+    useEffect(() => {
+        const fetchGhosts = async () => {
+            if (!courseId) return;
+            const res = await getCourseGhosts({
+                courseId: Number(courseId),
+                pageable: pageable,
+            });
+            setGhostList((prev) => [...prev, ...res.content]);
+        };
+        fetchGhosts();
+    }, [courseId, pageable]);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -78,16 +69,16 @@ export default function CourseScreen() {
                 data={ghostList}
                 renderItem={({ item, index }) => (
                     <UserStatItem
-                        key={item.id}
+                        key={item.runningId}
                         rank={index + 1}
-                        name={item.name}
-                        avatar={item.avatar}
-                        time={item.time}
-                        pace={item.pace}
-                        cadence={item.cadence}
-                        ghostId={item.id}
-                        isGhostSelected={selectedGhostId === item.id}
-                        onPress={() => setSelectedGhostId(item.id)}
+                        name={item.runningName}
+                        avatar={item.runnerProfileUrl}
+                        time={getRunTime(item.duration, "MM:SS")}
+                        pace={getFormattedPace(item.averagePace)}
+                        cadence={item.cadence.toString() + " spm"}
+                        ghostId={item.runningId.toString()}
+                        isGhostSelected={selectedGhostId === item.runningId}
+                        onPress={() => setSelectedGhostId(item.runningId)}
                     />
                 )}
                 estimatedItemSize={83}
