@@ -106,7 +106,7 @@ export default function BottomCourseInfoModal({
                             <Pressable
                                 onPress={() => {
                                     bottomSheetRef.current?.dismiss();
-                                    router.push(`/course/${courseId}`);
+                                    router.push(`/course/${course.id}`);
                                 }}
                             >
                                 <Typography variant="body2" color="gray60">
