@@ -4,7 +4,6 @@ import { getDistance } from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { MapView } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Dimensions } from "react-native";
 import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
@@ -24,6 +23,8 @@ export default function HomeMap() {
         setActiveCourse(course.id);
         handlePresentModalPress();
     };
+
+    const [courses, setCourses] = useState<CourseResponse[]>([]);
     const [bounds, setBounds] = useState<Position[]>([]);
     const [center, setCenter] = useState<Position>([0, 0]);
     const [distance, setDistance] = useState(1);
@@ -105,16 +106,15 @@ export default function HomeMap() {
         }
     };
 
-    const { data: courses } = useQuery({
-        queryKey: ["courses", center[0], center[1], distance],
-        queryFn: () =>
-            getCourses({
-                lat: center[1],
-                lng: center[0],
-                radiusKm: distance,
-            }),
-        enabled: center[0] !== 0 || center[1] !== 0,
-    });
+    useEffect(() => {
+        getCourses({
+            lat: center[1],
+            lng: center[0],
+            radiusKm: distance,
+        }).then((res) => {
+            setCourses(res);
+        });
+    }, [center, distance]);
 
     return (
         <>
