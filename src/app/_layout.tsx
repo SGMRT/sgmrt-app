@@ -15,7 +15,7 @@ Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 
 export default function RootLayout() {
     const router = useRouter();
-    const { isLoggedIn } = useAuthStore();
+    const { isLoggedIn, logout } = useAuthStore();
     const [loaded] = useFonts({
         "SpoqaHanSansNeo-Regular": require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),
         "SpoqaHanSansNeo-Medium": require("@/assets/fonts/SpoqaHanSansNeo-Medium.ttf"),

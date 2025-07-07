@@ -39,10 +39,10 @@ function ToolTip({ data, x, index }: ToolTipProps) {
         (i) => {
             if (i < 0 || i >= data.length) return;
 
-            const runTime = data[i].time;
+            const runTime = data[i].timeStamp / 1000;
             const hours = Math.floor(runTime / 3600);
             const minutes = Math.floor((runTime % 3600) / 60);
-            const seconds = runTime % 60;
+            const seconds = Math.floor(runTime % 60);
 
             const formatted =
                 hours > 0
@@ -89,6 +89,7 @@ const StyledChart = ({
         x: 0,
         y: { [yKeys[0]]: 0 },
     });
+
     return (
         <View>
             {showToolTip && (

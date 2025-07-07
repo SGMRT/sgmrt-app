@@ -222,7 +222,7 @@ function getDate(date: number): string {
         .toLocaleDateString("ko-KR", {
             year: "numeric",
             month: "2-digit",
-            day: "numeric",
+            day: "2-digit",
         })
         .slice(0, 12)
         .split(". ")
