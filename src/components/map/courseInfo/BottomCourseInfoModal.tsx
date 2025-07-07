@@ -102,6 +102,19 @@ export default function BottomCourseInfoModal({
                 {tab === "course" && (
                     <View style={{ marginBottom: 30 }}>
                         <StatsIndicator stats={stats} />
+                        <View style={styles.ghostListContainerText}>
+                            <Pressable
+                                onPress={() => {
+                                    bottomSheetRef.current?.dismiss();
+                                    router.push(`/course/${courseId}`);
+                                }}
+                            >
+                                <Typography variant="body2" color="gray60">
+                                    전체 보기
+                                </Typography>
+                            </Pressable>
+                            <ChevronIcon color="#676766" />
+                        </View>
                     </View>
                 )}
                 {tab === "ghost" && (
