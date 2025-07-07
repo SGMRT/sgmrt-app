@@ -48,17 +48,17 @@ export default function BottomCourseInfoModal({
     const stats = [
         {
             label: "전체 거리",
-            value: ((course!.distance ?? 0) / 1000).toFixed(2),
+            value: ((course?.distance ?? 0) / 1000).toFixed(2),
             unit: "km",
         },
         {
             label: "고도 상승",
-            value: course!.elevationGain.toString(),
+            value: course?.elevationGain.toString() ?? "--",
             unit: "m",
         },
         {
             label: "고도 하강",
-            value: course!.elevationLoss.toString(),
+            value: course?.elevationLoss.toString() ?? "--",
             unit: "m",
         },
         { label: "평균 시간", value: "--:--", unit: "" },

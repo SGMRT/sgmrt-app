@@ -85,7 +85,7 @@ export async function getCourseGhosts({
     pageable: Pageable;
 }) {
     try {
-        const response = await server.get(`/courses/${courseId}/ranking`, {
+        const response = await server.get(`/courses/${courseId}/ghosts`, {
             params: { pageable },
         });
         return response.data;
