@@ -9,7 +9,12 @@ import {
 
 export async function postRun(data: SoloRunning, memberId: number) {
     try {
-        const response = await server.post(`runs/${memberId}`, data);
+        const trimmedData = {
+            ...data,
+            telemetries: data.telemetries.slice(5),
+        };
+
+        const response = await server.post(`runs/${memberId}`, trimmedData);
         return response.data;
     } catch (error) {
         console.error(error);
@@ -23,9 +28,14 @@ export async function postCourseRun(
     memberId: number
 ) {
     try {
+        const trimmedData = {
+            ...data,
+            telemetries: data.telemetries.slice(5),
+        };
+
         const response = await server.post(
             `runs/${courseId}/${memberId}`,
-            data
+            trimmedData
         );
         return response.data;
     } catch (error) {

@@ -313,7 +313,7 @@ export function useRunning({
                 const avgPace = getPace(pointLength, deltaDistance);
 
                 const avgCadence =
-                    pointLength > 3 ? (stepCount / pointLength) * 60 : 0;
+                    pointLength > 1 ? (stepCount / pointLength) * 60 : 0;
 
                 const newTelemetry: Telemetry = {
                     timeStamp: now,

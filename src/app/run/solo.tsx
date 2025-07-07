@@ -31,7 +31,7 @@ export default function Run() {
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const {
         startTracking,
-        stopTracking,
+        pauseTracking,
         userDashboardData,
         telemetries,
         runTime,
@@ -159,7 +159,7 @@ export default function Run() {
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
-                        stopTracking();
+                        pauseTracking();
                     }}
                     color="red"
                     direction="right"
@@ -175,7 +175,7 @@ export default function Run() {
                             userDashboardData,
                             runTime,
                             hasPaused,
-                            isPublic: true,
+                            isPublic: hasPaused ? false : true,
                             memberId: 1,
                             totalStepCount: getTotalStepCount(),
                         });

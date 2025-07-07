@@ -181,14 +181,14 @@ export default function Result() {
                                             },
                                             {
                                                 value: getFormattedPace(
-                                                    data.recordInfo.highestPace
+                                                    data.recordInfo.lowestPace
                                                 ),
                                                 unit: "",
                                                 description: "최고",
                                             },
                                             {
                                                 value: getFormattedPace(
-                                                    data.recordInfo.lowestPace
+                                                    data.recordInfo.highestPace
                                                 ),
                                                 unit: "",
                                                 description: "최저",

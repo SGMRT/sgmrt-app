@@ -27,7 +27,7 @@ const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
 };
 
 function getPace(timeInSec: number, distanceInMeters: number): number {
-    if (distanceInMeters <= 5 || timeInSec <= 5) return 0;
+    if (distanceInMeters <= 0 || timeInSec <= 0) return 0;
     const distanceInKm = distanceInMeters / 1000;
 
     const paceInSec = timeInSec / distanceInKm; // 초/km
