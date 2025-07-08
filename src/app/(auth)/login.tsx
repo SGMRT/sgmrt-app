@@ -2,9 +2,12 @@ import { Logo } from "@/assets/icons/icons";
 import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
 import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
+import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function Login() {
     const router = useRouter();
@@ -27,8 +30,37 @@ export default function Login() {
                     backgroundColor="#333333"
                     textColor="white"
                     icon={<AppleIcon />}
-                    onPress={() => {
-                        router.push("/register");
+                    onPress={async () => {
+                        const appleAuthRequestResponse =
+                            await AppleAuthentication.signInAsync({
+                                requestedScopes: [
+                                    AppleAuthentication.AppleAuthenticationScope
+                                        .FULL_NAME,
+                                    AppleAuthentication.AppleAuthenticationScope
+                                        .EMAIL,
+                                ],
+                            });
+
+                        if (!appleAuthRequestResponse.identityToken) {
+                            Toast.show({
+                                type: "info",
+                                text1: "애플 로그인 실패",
+                            });
+                            return;
+                        }
+
+                        const credential = await signInWithCredential(
+                            getAuth(),
+                            {
+                                providerId: "apple.com",
+                                token: appleAuthRequestResponse.identityToken,
+                                secret:
+                                    appleAuthRequestResponse.authorizationCode ??
+                                    "",
+                            }
+                        );
+
+                        console.log(credential);
                     }}
                 />
             </View>

@@ -28,6 +28,7 @@ const config = {
             googleServicesFile:
                 process.env.GOOGLE_SERVICES_INFO ||
                 "./GoogleService-Info.plist",
+            usesAppleSignIn: true,
         },
         android: {
             package: "com.sgmrt.ghostrunner",
@@ -95,6 +96,7 @@ const config = {
                     },
                 },
             ],
+            "expo-apple-authentication",
         ],
         experiments: {
             typedRoutes: true,
