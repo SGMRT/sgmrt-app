@@ -167,7 +167,7 @@ export async function saveRunning({
     const record: RunRecord = {
         distance: userDashboardData.totalDistance,
         elevationGain: userDashboardData.totalElevationGain,
-        elevationLoss: userDashboardData.totalElevationGain,
+        elevationLoss: userDashboardData.totalElevationLoss,
         duration: runTime,
         avgPace: getPace(runTime, userDashboardData.totalDistance),
         calories: userDashboardData.totalCalories,

@@ -25,6 +25,7 @@ export interface UserDashBoardData {
     cadenceOfLastPoints: number;
     totalCalories: number;
     totalElevationGain: number;
+    totalElevationLoss: number;
     bpm: number;
 }
 
@@ -73,6 +74,7 @@ export function useRunning({
             cadenceOfLastPoints: 0,
             totalCalories: 0,
             totalElevationGain: 0,
+            totalElevationLoss: 0,
             bpm: 0,
         });
     const [ghostDashboardData, setGhostDashboardData] =
@@ -374,6 +376,7 @@ export function useRunning({
                 weight: weight,
             }),
             totalElevationGain: elevationGainRef.current,
+            totalElevationLoss: elevationLossRef.current,
             bpm: 0,
         }));
     }, [shouldChangeUserDashboard, telemetries, weight]);
