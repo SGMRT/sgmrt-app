@@ -68,6 +68,11 @@ function getCalories({
     return Math.round(met * weight * timeInHours);
 }
 
+function getCadence(stepCount: number, timeInSec: number): number {
+    if (timeInSec === 0 || stepCount === 0) return 0;
+    return Math.round((stepCount / timeInSec) * 60);
+}
+
 // 요일/시간/러닝
 // 월요일 아침 러닝
 function getRunName(date: number): string {
@@ -145,7 +150,7 @@ export async function saveRunning({
     if (!userDashboardData) return;
     if (
         userDashboardData.totalDistance === 0 ||
-        userDashboardData.paceOfLast10Points === 0
+        userDashboardData.paceOfLastPoints === 0
     ) {
         Toast.show({
             type: "info",
@@ -162,12 +167,12 @@ export async function saveRunning({
     const record: RunRecord = {
         distance: userDashboardData.totalDistance,
         elevationGain: userDashboardData.totalElevationGain,
-        elevationLoss: userDashboardData.totalElevationGain,
+        elevationLoss: userDashboardData.totalElevationLoss,
         duration: runTime,
         avgPace: getPace(runTime, userDashboardData.totalDistance),
         calories: userDashboardData.totalCalories,
         avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
-        avgCadence: (totalStepCount / runTime) * 60,
+        avgCadence: getCadence(totalStepCount, runTime),
     };
 
     const lastTrueIndex = telemetries.findLastIndex(
@@ -230,6 +235,7 @@ function getDate(date: number): string {
 }
 
 export {
+    getCadence,
     getCalories,
     getDate,
     getFormattedPace,

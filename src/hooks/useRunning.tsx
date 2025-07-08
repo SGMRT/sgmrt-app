@@ -5,7 +5,12 @@ import Toast from "react-native-toast-message";
 import { Telemetry } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
 import { Coordinate, getDistance } from "../utils/mapUtils";
-import { getCalories, getPace, telemetriesToSegment } from "../utils/runUtils";
+import {
+    getCadence,
+    getCalories,
+    getPace,
+    telemetriesToSegment,
+} from "../utils/runUtils";
 
 interface RunningProps {
     type: "free" | "course";
@@ -16,20 +21,23 @@ interface RunningProps {
 
 export interface UserDashBoardData {
     totalDistance: number;
-    paceOfLast10Points: number;
-    cadenceOfLast10Points: number;
+    paceOfLastPoints: number;
+    cadenceOfLastPoints: number;
     totalCalories: number;
     totalElevationGain: number;
+    totalElevationLoss: number;
     bpm: number;
 }
 
 interface GhostDashBoardData {
     totalDistance: number;
-    cadenceOfLast10Points: number;
-    paceOfLast10Points: number;
+    cadenceOfLastPoints: number;
+    paceOfLastPoints: number;
 }
 
 type LocationPoint = { lat: number; lng: number; alt: number };
+
+const LENGTH_OF_LAST_POINTS = 30;
 
 export function useRunning({
     type,
@@ -62,17 +70,18 @@ export function useRunning({
     const [userDashboardData, setUserDashboardData] =
         useState<UserDashBoardData>({
             totalDistance: 0,
-            paceOfLast10Points: 0,
-            cadenceOfLast10Points: 0,
+            paceOfLastPoints: 0,
+            cadenceOfLastPoints: 0,
             totalCalories: 0,
             totalElevationGain: 0,
+            totalElevationLoss: 0,
             bpm: 0,
         });
     const [ghostDashboardData, setGhostDashboardData] =
         useState<GhostDashBoardData>({
             totalDistance: 0,
-            cadenceOfLast10Points: 0,
-            paceOfLast10Points: 0,
+            cadenceOfLastPoints: 0,
+            paceOfLastPoints: 0,
         });
 
     const locationRef = useRef<LocationPoint | null>(null);
@@ -219,7 +228,7 @@ export function useRunning({
             if (isRunning) {
                 totalStepCountRef.current += delta;
                 stepCountsRef.current.push(delta);
-                if (stepCountsRef.current.length > 10) {
+                if (stepCountsRef.current.length > LENGTH_OF_LAST_POINTS) {
                     stepCountsRef.current.shift();
                 }
                 if (!startTime) {
@@ -290,7 +299,7 @@ export function useRunning({
                 if (lastTelemetry?.isRunning === false) setHasPaused(true);
                 const runningTelemetries = telemetries
                     .filter((t) => t.isRunning)
-                    .slice(-9);
+                    .slice(-LENGTH_OF_LAST_POINTS);
                 const pointLength = runningTelemetries.length;
                 const stepCount = stepCountsRef.current
                     .slice(-pointLength)
@@ -303,7 +312,7 @@ export function useRunning({
                     ? lastTelemetry.dist + tickDistance
                     : tickDistance;
                 tickDistancesRef.current.push(tickDistance);
-                if (tickDistancesRef.current.length > 10) {
+                if (tickDistancesRef.current.length > LENGTH_OF_LAST_POINTS) {
                     tickDistancesRef.current.shift();
                 }
                 const deltaDistance = tickDistancesRef.current
@@ -312,8 +321,7 @@ export function useRunning({
 
                 const avgPace = getPace(pointLength, deltaDistance);
 
-                const avgCadence =
-                    pointLength > 1 ? (stepCount / pointLength) * 60 : 0;
+                const avgCadence = getCadence(stepCount, pointLength);
 
                 const newTelemetry: Telemetry = {
                     timeStamp: now,
@@ -360,14 +368,15 @@ export function useRunning({
         setUserDashboardData((prev) => ({
             ...prev,
             totalDistance: telemetries.at(-1)?.dist ?? 0,
-            paceOfLast10Points: telemetries.slice(-10).at(-1)?.pace ?? 0,
-            cadenceOfLast10Points: telemetries.slice(-10).at(-1)?.cadence ?? 0,
+            paceOfLastPoints: telemetries.at(-1)?.pace ?? 0,
+            cadenceOfLastPoints: telemetries.at(-1)?.cadence ?? 0,
             totalCalories: getCalories({
                 distance: telemetries.at(-1)?.dist ?? 0,
                 timeInSec: runtimeRef.current,
                 weight: weight,
             }),
             totalElevationGain: elevationGainRef.current,
+            totalElevationLoss: elevationLossRef.current,
             bpm: 0,
         }));
     }, [shouldChangeUserDashboard, telemetries, weight]);
@@ -386,7 +395,7 @@ export function useRunning({
                     locationRef.current = {
                         lat: Number(location.coords.latitude.toFixed(8)),
                         lng: Number(location.coords.longitude.toFixed(8)),
-                        alt: Number((location.coords.altitude ?? 0).toFixed(2)),
+                        alt: Number(Math.round(location.coords.altitude ?? 0)),
                     };
                 }
             );
