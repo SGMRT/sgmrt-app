@@ -54,12 +54,12 @@ export default function Run() {
         },
         {
             label: "평균 페이스",
-            value: getFormattedPace(userDashboardData.paceOfLast10Points),
+            value: getFormattedPace(userDashboardData.paceOfLastPoints),
             unit: "",
         },
         {
             label: "케이던스",
-            value: userDashboardData.cadenceOfLast10Points.toString(),
+            value: userDashboardData.cadenceOfLastPoints.toString(),
             unit: "spm",
         },
         {
