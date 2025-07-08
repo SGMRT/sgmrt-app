@@ -25,6 +25,9 @@ const config = {
             config: {
                 usesNonExemptEncryption: false,
             },
+            googleServicesFile:
+                process.env.GOOGLE_SERVICES_INFO ||
+                "./GoogleService-Info.plist",
         },
         android: {
             package: "com.sgmrt.ghostrunner",
@@ -33,6 +36,8 @@ const config = {
                 backgroundColor: "#ffffff",
             },
             edgeToEdgeEnabled: true,
+            googleServicesFile:
+                process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
         },
         web: {
             bundler: "metro",
@@ -78,6 +83,16 @@ const config = {
                     configureAndroidBackup: true,
                     faceIdPermission:
                         "Allow $(PRODUCT_NAME) to access your Face ID",
+                },
+            ],
+            "@react-native-firebase/app",
+            "@react-native-firebase/auth",
+            [
+                "expo-build-properties",
+                {
+                    ios: {
+                        useFrameworks: "static",
+                    },
                 },
             ],
         ],
