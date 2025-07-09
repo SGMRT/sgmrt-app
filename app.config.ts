@@ -94,9 +94,21 @@ const config = {
                     ios: {
                         useFrameworks: "static",
                     },
+                    android: {
+                        extraMavenRepos: [
+                            "https://devrepo.kakao.com/nexus/content/groups/public/",
+                        ],
+                    },
                 },
             ],
             "expo-apple-authentication",
+            [
+                "@react-native-seoul/kakao-login",
+                {
+                    kakaoAppKey: process.env.KAKAO_APP_KEY,
+                    kotlinVersion: "2",
+                },
+            ],
         ],
         experiments: {
             typedRoutes: true,

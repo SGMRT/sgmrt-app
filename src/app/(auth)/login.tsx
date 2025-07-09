@@ -3,6 +3,7 @@ import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
 import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
+import { login as kakaoLogin } from "@react-native-seoul/kakao-login";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, View } from "react-native";
@@ -21,7 +22,28 @@ export default function Login() {
                     text="카카오로 시작하기"
                     backgroundColor="#fee500"
                     icon={<KakaoIcon />}
-                    onPress={() => {
+                    onPress={async () => {
+                        const kakaoAuthRequestResponse = await kakaoLogin();
+
+                        if (!kakaoAuthRequestResponse.accessToken) {
+                            Toast.show({
+                                type: "info",
+                                text1: "카카오 로그인 실패",
+                            });
+                            return;
+                        }
+
+                        const credential = await signInWithCredential(
+                            getAuth(),
+                            {
+                                providerId: "oidc.kakao",
+                                token: kakaoAuthRequestResponse.idToken,
+                                secret: kakaoAuthRequestResponse.accessToken,
+                            }
+                        );
+
+                        console.log(credential);
+
                         router.push("/register");
                     }}
                 />
@@ -60,7 +82,7 @@ export default function Login() {
                             }
                         );
 
-                        console.log(credential);
+                        router.push("/register");
                     }}
                 />
             </View>
