@@ -1,13 +1,13 @@
 import server from "./instance";
 import {
-    CourseRunning,
-    GhostRunning,
+    BaseRunning,
+    CourseGhostRunning,
+    CourseSoloRunning,
     SoloRunGetResponse,
-    SoloRunning,
     Telemetry,
 } from "./types/run";
 
-export async function postRun(data: SoloRunning, memberId: number) {
+export async function postRun(data: BaseRunning, memberId: number) {
     try {
         const trimmedData = {
             ...data,
@@ -23,7 +23,7 @@ export async function postRun(data: SoloRunning, memberId: number) {
 }
 
 export async function postCourseRun(
-    data: CourseRunning | GhostRunning,
+    data: CourseSoloRunning | CourseGhostRunning,
     courseId: number,
     memberId: number
 ) {
