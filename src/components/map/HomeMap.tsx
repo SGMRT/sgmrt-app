@@ -4,6 +4,7 @@ import { getDistance } from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { MapView } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
+import * as Location from "expo-location";
 import { useEffect, useRef, useState } from "react";
 import { Dimensions } from "react-native";
 import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
@@ -39,13 +40,11 @@ export default function HomeMap() {
     };
 
     useEffect(() => {
-        if (mapRef.current) {
-            setTimeout(() => {
-                mapRef.current?.getCenter().then((center) => {
-                    setCenter(center);
-                });
-            }, 1000);
-        }
+        Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.BestForNavigation,
+        }).then((location) => {
+            setCenter([location.coords.longitude, location.coords.latitude]);
+        });
     }, []);
 
     const heightVal = useSharedValue(0);

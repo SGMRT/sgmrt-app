@@ -142,9 +142,10 @@ export function useRunning({
         if (stopCourseRun) {
             return;
         }
+        let syncInterval: number | null = null;
         if (shouldSyncCourse && ghostTelemetries) {
             let toastCount = 81;
-            const syncInterval = setInterval(() => {
+            syncInterval = setInterval(() => {
                 const currentLocation = locationRef.current;
                 const courseLocation = ghostTelemetries[courseIndex];
                 if (!currentLocation || !courseLocation) return;
@@ -160,7 +161,9 @@ export function useRunning({
                                 : "기록을 이어서 진행합니다",
                         position: "bottom",
                     });
-                    clearInterval(syncInterval);
+                    if (syncInterval) {
+                        clearInterval(syncInterval);
+                    }
                 } else {
                     if (courseIndex === 0) {
                         if (toastCount > 80) {
@@ -178,6 +181,11 @@ export function useRunning({
                 }
             }, 50);
         }
+        return () => {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+            }
+        };
     }, [
         shouldSyncCourse,
         ghostTelemetries,
@@ -197,18 +205,20 @@ export function useRunning({
                 type === "course" &&
                 ghostTelemetries &&
                 completeIndex === 0 &&
-                !stopCourseRun
+                !stopCourseRun &&
+                status === "running"
             ) {
-                const courseIndex = findClosestPointIndex(
+                const newCourseIndex = findClosestPointIndex(
                     locationRef.current,
                     ghostTelemetries
                 );
-                if (courseIndex <= courseIndex) {
-                    setCourseIndex(courseIndex);
-
-                    if (courseIndex === ghostTelemetries.length - 1) {
-                        completeTracking();
-                    }
+                if (newCourseIndex > -1) {
+                    setCourseIndex((prev) => {
+                        if (prev <= newCourseIndex) {
+                            return newCourseIndex;
+                        }
+                        return prev;
+                    });
                 } else {
                     stopTracking();
                     Toast.show({
@@ -237,7 +247,7 @@ export function useRunning({
             }
 
             setTelemetries((prev) => {
-                if (status === "completed") {
+                if (status === "completed" && completeIndex === 0) {
                     setCompleteIndex(prev.length);
                 }
                 setSegments((prev) => {

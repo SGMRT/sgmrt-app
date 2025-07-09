@@ -1,10 +1,10 @@
 import Toast from "react-native-toast-message";
 import { postCourseRun, postRun } from "../apis";
 import {
-    CourseRunning,
-    GhostRunning,
+    BaseRunning,
+    CourseGhostRunning,
+    CourseSoloRunning,
     RunRecord,
-    SoloRunning,
     Telemetry,
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
@@ -161,9 +161,6 @@ export async function saveRunning({
         return;
     }
 
-    console.log(isPublic);
-    console.log(hasPaused ? false : isPublic);
-
     const record: RunRecord = {
         distance: userDashboardData.totalDistance,
         elevationGain: userDashboardData.totalElevationGain,
@@ -182,7 +179,7 @@ export async function saveRunning({
     const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
 
     if (ghostRunningId) {
-        const running: GhostRunning = {
+        const running: CourseGhostRunning = {
             runningName: getRunName(startTime ?? 0),
             mode: "GHOST",
             startedAt: startTime ?? 0,
@@ -195,7 +192,7 @@ export async function saveRunning({
         const res = await postCourseRun(running, courseId!, memberId);
         return { courseId: res };
     } else if (courseId) {
-        const running: CourseRunning = {
+        const running: CourseSoloRunning = {
             runningName: getRunName(startTime ?? 0),
             mode: "SOLO",
             startedAt: startTime ?? 0,
@@ -208,9 +205,8 @@ export async function saveRunning({
         const res = await postCourseRun(running, courseId, memberId);
         return { runningId: res };
     } else {
-        const running: SoloRunning = {
+        const running: BaseRunning = {
             runningName: getRunName(startTime ?? 0),
-            mode: "SOLO",
             startedAt: startTime ?? 0,
             record,
             hasPaused: hasPaused,

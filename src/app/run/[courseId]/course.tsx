@@ -1,4 +1,4 @@
-import { getRunTelemetries } from "@/src/apis";
+import { getRunTelemetriesByCourseId } from "@/src/apis";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -38,7 +38,7 @@ export default function Course() {
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
     const { data: course, isLoading: courseIsLoading } = useQuery({
         queryKey: ["course", courseId],
-        queryFn: () => getRunTelemetries(Number(courseId)),
+        queryFn: () => getRunTelemetriesByCourseId(Number(courseId)),
         enabled: !!courseId,
     });
 
@@ -167,8 +167,10 @@ export default function Course() {
                 </TopBlurView>
 
                 <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                    {(!stopCourseRun && status === "stopped") ||
-                        (status === "idle" && (
+                    {!stopCourseRun &&
+                        (status === "idle" ||
+                            status === "paused" ||
+                            status === "stopped") && (
                             <ShapeSource
                                 id="custom-puck"
                                 shape={{
@@ -187,7 +189,7 @@ export default function Course() {
                                     }}
                                 />
                             </ShapeSource>
-                        ))}
+                        )}
 
                     {userSegments.map((segment, index) => (
                         <RunningLine
@@ -229,7 +231,7 @@ export default function Course() {
                                             variant="headline"
                                             color="white"
                                         >
-                                            소고기마라탕 완주에 성공했어요!
+                                            완주에 성공했어요!
                                         </Typography>
                                         <Typography
                                             variant="body2"

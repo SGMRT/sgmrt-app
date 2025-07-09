@@ -1,6 +1,5 @@
-interface RunningBase {
+export interface BaseRunning {
     runningName: string;
-    mode: "SOLO" | "GHOST";
     startedAt: number;
     record: RunRecord;
     hasPaused: boolean;
@@ -8,21 +7,17 @@ interface RunningBase {
     telemetries: Telemetry[];
 }
 
-export interface SoloRunning extends RunningBase {
-    mode: "SOLO";
-}
-
-export interface CourseRunning extends RunningBase {
+export interface CourseSoloRunning extends BaseRunning {
     mode: "SOLO";
     ghostRunningId: null;
 }
 
-export interface GhostRunning extends RunningBase {
+export interface CourseGhostRunning extends BaseRunning {
     mode: "GHOST";
     ghostRunningId: number;
 }
 
-export type Running = SoloRunning | CourseRunning | GhostRunning;
+export type Running = BaseRunning | CourseSoloRunning | CourseGhostRunning;
 
 export interface SoloRunGetResponse {
     startedAt: number;

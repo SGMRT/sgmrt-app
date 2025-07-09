@@ -28,10 +28,10 @@ export default function RootLayout() {
 
         SplashScreen.hideAsync();
 
-        logout();
+        // logout();
 
         if (isLoggedIn) {
-            router.replace("/(tabs)/home");
+            router.replace("/run/19/course");
         } else {
             router.replace("/(auth)/login");
         }

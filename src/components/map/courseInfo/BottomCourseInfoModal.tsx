@@ -40,6 +40,7 @@ export default function BottomCourseInfoModal({
     const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
 
     useEffect(() => {
+        console.log("course: ", course?.id);
         if (ghostList && ghostList.length > 0) {
             setSelectedGhostId(ghostList[0].runningId);
         }
@@ -65,8 +66,6 @@ export default function BottomCourseInfoModal({
         { label: "평균 페이스", value: "--”", unit: "" },
         { label: "평균 케이던스", value: "--", unit: "spm" },
     ];
-
-    console.log(course?.id);
 
     const router = useRouter();
     return (

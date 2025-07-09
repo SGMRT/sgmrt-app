@@ -1,13 +1,13 @@
 import server from "./instance";
 import {
-    CourseRunning,
-    GhostRunning,
+    BaseRunning,
+    CourseGhostRunning,
+    CourseSoloRunning,
     SoloRunGetResponse,
-    SoloRunning,
     Telemetry,
 } from "./types/run";
 
-export async function postRun(data: SoloRunning, memberId: number) {
+export async function postRun(data: BaseRunning, memberId: number) {
     try {
         const trimmedData = {
             ...data,
@@ -23,7 +23,7 @@ export async function postRun(data: SoloRunning, memberId: number) {
 }
 
 export async function postCourseRun(
-    data: CourseRunning | GhostRunning,
+    data: CourseSoloRunning | CourseGhostRunning,
     courseId: number,
     memberId: number
 ) {
@@ -34,7 +34,7 @@ export async function postCourseRun(
         };
 
         const response = await server.post(
-            `runs/${courseId}/${memberId}`,
+            `runs/courses/${courseId}/${memberId}`,
             trimmedData
         );
         return response.data;
@@ -92,6 +92,28 @@ export async function getRunComperison(
     try {
         const response = await server.get(
             `runs/${myRunningId}/ghosts/${ghostRunningId}`
+        );
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function toggleRunPublicStatus(runningId: number) {
+    try {
+        const response = await server.patch(`runs/${runningId}/public`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function getRunTelemetriesByCourseId(courseId: number) {
+    try {
+        const response = await server.get(
+            `runs/courses/${courseId}/telemetries`
         );
         return response.data;
     } catch (error) {
