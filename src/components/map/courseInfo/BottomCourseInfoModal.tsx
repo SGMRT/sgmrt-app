@@ -66,8 +66,6 @@ export default function BottomCourseInfoModal({
         { label: "평균 케이던스", value: "--", unit: "spm" },
     ];
 
-    console.log(course?.id);
-
     const router = useRouter();
     return (
         <BottomModal

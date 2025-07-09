@@ -1,4 +1,4 @@
-import { getRunTelemetries } from "@/src/apis";
+import { getRunTelemetriesByCourseId } from "@/src/apis";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -38,7 +38,7 @@ export default function Course() {
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
     const { data: course, isLoading: courseIsLoading } = useQuery({
         queryKey: ["course", courseId],
-        queryFn: () => getRunTelemetries(Number(courseId)),
+        queryFn: () => getRunTelemetriesByCourseId(Number(courseId)),
         enabled: !!courseId,
     });
 
@@ -133,6 +133,13 @@ export default function Course() {
     if (courseIsLoading) {
         return <></>;
     }
+
+    console.log(course);
+    console.log(courseIndex);
+    console.log(status);
+    console.log(course[courseIndex]);
+    console.log(course[courseIndex].lat);
+    console.log(course[courseIndex].lng);
 
     return (
         course && (

@@ -28,7 +28,7 @@ export default function RootLayout() {
 
         SplashScreen.hideAsync();
 
-        logout();
+        // logout();
 
         if (isLoggedIn) {
             router.replace("/(tabs)/home");
