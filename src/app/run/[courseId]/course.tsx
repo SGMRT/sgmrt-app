@@ -134,13 +134,6 @@ export default function Course() {
         return <></>;
     }
 
-    console.log(course);
-    console.log(courseIndex);
-    console.log(status);
-    console.log(course[courseIndex]);
-    console.log(course[courseIndex].lat);
-    console.log(course[courseIndex].lng);
-
     return (
         course && (
             <View style={[styles.container, { paddingBottom: bottom }]}>
