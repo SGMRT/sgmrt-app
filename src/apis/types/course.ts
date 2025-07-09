@@ -16,6 +16,18 @@ export interface CourseResponse {
     elevationLoss: number;
 }
 
+export interface CourseDetailResponse {
+    id: number;
+    name: string;
+    distance: number;
+    elevationGain: number;
+    elevationLoss: number;
+    averageCompletionTime: number;
+    averageFinisherPace: number;
+    averageFinisherCadence: number;
+    lowestFinisherPace: number;
+}
+
 export interface PathData {
     lat: number;
     lng: number;

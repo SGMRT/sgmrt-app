@@ -1,6 +1,6 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
-import { getCourseTopRanking } from "@/src/apis";
-import { CourseResponse, HistoryResponse } from "@/src/apis/types/course";
+import { getCourse, getCourseTopRanking } from "@/src/apis";
+import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -19,7 +19,7 @@ import UserStatItem from "./UserStatItem";
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     canClose?: boolean;
-    course: CourseResponse | undefined;
+    courseId: number;
     heightVal: SharedValue<number>;
 }
 
@@ -27,20 +27,26 @@ export default function BottomCourseInfoModal({
     bottomSheetRef,
     canClose = true,
     heightVal,
-    course,
+    courseId,
 }: BottomCourseInfoModalProps) {
     const [tab, setTab] = useState<"course" | "ghost">("course");
 
     const { data: ghostList } = useQuery<HistoryResponse[]>({
-        queryKey: ["course-top-ranking", course?.id],
-        queryFn: () => getCourseTopRanking({ courseId: course!.id, count: 3 }),
-        enabled: !!course?.id,
+        queryKey: ["course-top-ranking", courseId],
+        queryFn: () => getCourseTopRanking({ courseId: courseId, count: 3 }),
+        enabled: !!courseId,
+    });
+
+    const { data: course } = useQuery<CourseDetailResponse>({
+        queryKey: ["course", courseId],
+        queryFn: () => getCourse(courseId),
+        enabled: !!courseId,
     });
 
     const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
 
     useEffect(() => {
-        console.log("course: ", course?.id);
+        console.log("course: ", courseId);
         if (ghostList && ghostList.length > 0) {
             setSelectedGhostId(ghostList[0].runningId);
         }
@@ -62,9 +68,21 @@ export default function BottomCourseInfoModal({
             value: course?.elevationLoss.toString() ?? "--",
             unit: "m",
         },
-        { label: "평균 시간", value: "--:--", unit: "" },
-        { label: "평균 페이스", value: "--”", unit: "" },
-        { label: "평균 케이던스", value: "--", unit: "spm" },
+        {
+            label: "평균 시간",
+            value: getRunTime(course?.averageCompletionTime ?? 0, "MM:SS"),
+            unit: "",
+        },
+        {
+            label: "평균 페이스",
+            value: getFormattedPace(course?.averageFinisherPace ?? 0),
+            unit: "",
+        },
+        {
+            label: "평균 케이던스",
+            value: course?.averageFinisherCadence.toString() ?? "--",
+            unit: "spm",
+        },
     ];
 
     const router = useRouter();
