@@ -40,6 +40,16 @@ export async function getCourses(
     }
 }
 
+export async function getCourse(courseId: number) {
+    try {
+        const response = await server.get(`/courses/${courseId}`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
 export async function getCourseTopRanking({
     courseId,
     count,

@@ -43,6 +43,7 @@ export default function CourseScreen() {
                 courseId: Number(courseId),
                 pageable: pageable,
             });
+            setSelectedGhostId(res.content[0].runningId ?? null);
             setGhostList((prev) => [...prev, ...res.content]);
         };
         fetchGhosts();
