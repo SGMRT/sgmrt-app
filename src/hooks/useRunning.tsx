@@ -55,6 +55,9 @@ export function useRunning({
     const [hasPaused, setHasPaused] = useState<boolean>(false);
     const [completeIndex, setCompleteIndex] = useState<number>(0);
     const [stopCourseRun, setStopCourseRun] = useState<boolean>(false);
+    const [completeTime, setCompleteTime] = useState<number | null>(null);
+    const [lastRunningTime, setLastRunningTime] = useState<number | null>(null);
+    const [completeStepCount, setCompleteStepCount] = useState<number>(0);
 
     const isTracking =
         status === "running" || status === "paused" || status === "completed";
@@ -219,6 +222,10 @@ export function useRunning({
                         }
                         return prev;
                     });
+                    if (newCourseIndex === ghostTelemetries.length - 1) {
+                        setCompleteTime(runtimeRef.current);
+                        completeTracking();
+                    }
                 } else {
                     stopTracking();
                     Toast.show({
@@ -244,48 +251,51 @@ export function useRunning({
                 if (!startTime) {
                     setStartTime(now);
                 }
+                setLastRunningTime(runtimeRef.current);
             }
 
             setTelemetries((prev) => {
                 if (status === "completed" && completeIndex === 0) {
                     setCompleteIndex(prev.length);
+                    setCompleteTime(runtimeRef.current);
+                    setCompleteStepCount(totalStepCountRef.current);
                 }
                 setSegments((prev) => {
                     const point = {
                         latitude: currentLocation.lat,
                         longitude: currentLocation.lng,
                     };
+
                     const lastSegment = prev.at(-1);
+
+                    let newSegments = prev;
 
                     // 첫 세그먼트 생성
                     if (!lastSegment) {
-                        return [
+                        newSegments = [
                             {
                                 isRunning: true,
                                 points: [point],
                             },
                         ];
-                    }
-
-                    // 이전 세그먼트와 상태 동일 → 이어붙이기
-                    if (lastSegment.isRunning === isRunning) {
-                        return [
-                            ...prev.slice(0, -1),
+                    } else if (lastSegment.isRunning !== isRunning) {
+                        newSegments = [
+                            ...prev,
                             {
                                 isRunning,
-                                points: [...lastSegment.points, point],
+                                points: [lastSegment.points.at(-1)!, point],
+                            },
+                        ];
+                    } else {
+                        newSegments = [
+                            ...prev,
+                            {
+                                isRunning,
+                                points: [lastSegment.points.at(-1)!, point],
                             },
                         ];
                     }
-
-                    // 상태 전환됨 → 새로운 세그먼트 시작 (이전 점 + 현재 점)
-                    return [
-                        ...prev,
-                        {
-                            isRunning,
-                            points: [lastSegment.points.at(-1)!, point],
-                        },
-                    ];
+                    return newSegments;
                 });
                 if (!isRunning) {
                     return [
@@ -476,5 +486,8 @@ export function useRunning({
         stopCourseAndFreeRun,
         stopCourseRun,
         getTotalStepCount,
+        lastRunningTime,
+        completeTime,
+        completeStepCount,
     };
 }

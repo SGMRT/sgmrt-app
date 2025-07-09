@@ -46,11 +46,9 @@ export default function Course() {
         status,
         startTracking,
         pauseTracking,
-        stopTracking,
         userDashboardData,
         telemetries,
         runTime,
-        isRunning,
         hasPaused,
         startTime,
         courseIndex,
@@ -58,6 +56,9 @@ export default function Course() {
         stopCourseAndFreeRun,
         stopCourseRun,
         getTotalStepCount,
+        completeTime,
+        completeIndex,
+        completeStepCount,
     } = useRunning({
         type: "course",
         mode: "ghost",
@@ -319,13 +320,13 @@ export default function Course() {
                         onSlideLeft={async () => {
                             const { runningId } = await saveRunning({
                                 startTime: startTime!,
-                                telemetries,
+                                telemetries: course.slice(0, completeIndex),
                                 userDashboardData,
-                                runTime,
+                                runTime: completeTime!,
                                 hasPaused,
                                 isPublic: true,
                                 memberId: 1,
-                                totalStepCount: getTotalStepCount(),
+                                totalStepCount: completeStepCount,
                                 ghostRunningId: null,
                                 courseId: Number(courseId),
                             });
@@ -336,13 +337,13 @@ export default function Course() {
                         onSlideRight={async () => {
                             await saveRunning({
                                 startTime: startTime!,
-                                telemetries,
+                                telemetries: course.slice(0, completeIndex),
                                 userDashboardData,
-                                runTime,
+                                runTime: completeTime!,
                                 hasPaused,
                                 isPublic: true,
                                 memberId: 1,
-                                totalStepCount: getTotalStepCount(),
+                                totalStepCount: completeStepCount,
                                 ghostRunningId: null,
                                 courseId: Number(courseId),
                             }).then(() => {
