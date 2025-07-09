@@ -167,8 +167,10 @@ export default function Course() {
                 </TopBlurView>
 
                 <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                    {(!stopCourseRun && status === "stopped") ||
-                        (status === "idle" && (
+                    {!stopCourseRun &&
+                        (status === "idle" ||
+                            status === "paused" ||
+                            status === "stopped") && (
                             <ShapeSource
                                 id="custom-puck"
                                 shape={{
@@ -187,7 +189,7 @@ export default function Course() {
                                     }}
                                 />
                             </ShapeSource>
-                        ))}
+                        )}
 
                     {userSegments.map((segment, index) => (
                         <RunningLine
@@ -229,7 +231,7 @@ export default function Course() {
                                             variant="headline"
                                             color="white"
                                         >
-                                            소고기마라탕 완주에 성공했어요!
+                                            완주에 성공했어요!
                                         </Typography>
                                         <Typography
                                             variant="body2"

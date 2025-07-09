@@ -40,6 +40,7 @@ export default function BottomCourseInfoModal({
     const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
 
     useEffect(() => {
+        console.log("course: ", course?.id);
         if (ghostList && ghostList.length > 0) {
             setSelectedGhostId(ghostList[0].runningId);
         }

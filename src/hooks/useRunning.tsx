@@ -205,18 +205,20 @@ export function useRunning({
                 type === "course" &&
                 ghostTelemetries &&
                 completeIndex === 0 &&
-                !stopCourseRun
+                !stopCourseRun &&
+                status === "running"
             ) {
-                const courseIndex = findClosestPointIndex(
+                const newCourseIndex = findClosestPointIndex(
                     locationRef.current,
                     ghostTelemetries
                 );
-                if (courseIndex <= courseIndex) {
-                    setCourseIndex(courseIndex);
-
-                    if (courseIndex === ghostTelemetries.length - 1) {
-                        completeTracking();
-                    }
+                if (newCourseIndex > -1) {
+                    setCourseIndex((prev) => {
+                        if (prev <= newCourseIndex) {
+                            return newCourseIndex;
+                        }
+                        return prev;
+                    });
                 } else {
                     stopTracking();
                     Toast.show({
@@ -245,7 +247,7 @@ export function useRunning({
             }
 
             setTelemetries((prev) => {
-                if (status === "completed") {
+                if (status === "completed" && completeIndex === 0) {
                     setCompleteIndex(prev.length);
                 }
                 setSegments((prev) => {
