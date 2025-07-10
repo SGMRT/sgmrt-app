@@ -44,7 +44,18 @@ export default function CourseScreen() {
                 pageable: pageable,
             });
             setSelectedGhostId(res.content[0].runningId ?? null);
-            setGhostList((prev) => [...prev, ...res.content]);
+            setGhostList((prev) => {
+                const combined = [...prev, ...res.content];
+
+                const map = new Map<number, (typeof combined)[number]>();
+                combined.forEach((item) => {
+                    if (!map.has(item.runningId)) {
+                        map.set(item.runningId, item);
+                    }
+                });
+
+                return Array.from(map.values());
+            });
         };
         fetchGhosts();
     }, [courseId, pageable]);
@@ -80,6 +91,7 @@ export default function CourseScreen() {
                         ghostId={item.runningId.toString()}
                         isGhostSelected={selectedGhostId === item.runningId}
                         onPress={() => setSelectedGhostId(item.runningId)}
+                        isMyRecord={item.runnerId === 1}
                     />
                 )}
                 estimatedItemSize={83}

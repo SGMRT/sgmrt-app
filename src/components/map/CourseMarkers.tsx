@@ -1,6 +1,8 @@
 import { CourseResponse } from "@/src/apis/types/course";
+import { MarkerView } from "@rnmapbox/maps";
 import { View } from "react-native";
 import CourseLayer from "./CourseLayer";
+import CourseTitle from "./CourseTitle";
 
 interface CourseMarkersProps {
     course: CourseResponse;
@@ -17,9 +19,9 @@ export default function CourseMarkers({
 }: CourseMarkersProps) {
     return (
         <View>
-            {/* <MarkerView
+            <MarkerView
                 id={`marker-view-${course.id}`}
-                coordinate={course.coordinates[0]}
+                coordinate={[course.startLng, course.startLat]}
                 anchor={{ x: 0.5, y: 0.7 }}
             >
                 <CourseTitle
@@ -28,7 +30,7 @@ export default function CourseMarkers({
                     isActive={activeCourse === course.id}
                     zoomLevel={zoomLevel}
                 />
-            </MarkerView> */}
+            </MarkerView>
             <CourseLayer
                 course={course}
                 isActive={activeCourse === course.id}

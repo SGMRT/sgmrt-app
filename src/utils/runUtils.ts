@@ -150,7 +150,9 @@ export async function saveRunning({
     if (!userDashboardData) return;
     if (
         userDashboardData.totalDistance === 0 ||
-        userDashboardData.paceOfLastPoints === 0
+        userDashboardData.paceOfLastPoints === 0 ||
+        telemetries.filter((telemetry) => telemetry.isRunning).at(-1)?.pace ===
+            0
     ) {
         Toast.show({
             type: "info",
@@ -160,6 +162,18 @@ export async function saveRunning({
         });
         return;
     }
+
+    const filteredTelemetries = (() => {
+        let index = 0;
+
+        while (index < telemetries.length && telemetries[index].pace === 0) {
+            index++;
+        }
+
+        return telemetries.slice(index);
+    })();
+
+    console.log(filteredTelemetries);
 
     const record: RunRecord = {
         distance: userDashboardData.totalDistance,
@@ -172,11 +186,19 @@ export async function saveRunning({
         avgCadence: getCadence(totalStepCount, runTime),
     };
 
-    const lastTrueIndex = telemetries.findLastIndex(
+    filteredTelemetries.forEach((telemetry) => {
+        console.log(telemetries);
+    });
+
+    const lastTrueIndex = filteredTelemetries.findLastIndex(
         (telemetry) => telemetry.isRunning
     );
 
-    const savedTelemetries = telemetries.slice(0, lastTrueIndex + 1);
+    console.log(lastTrueIndex);
+
+    const savedTelemetries = filteredTelemetries.slice(0, lastTrueIndex + 1);
+
+    console.log(savedTelemetries);
 
     if (ghostRunningId) {
         const running: CourseGhostRunning = {

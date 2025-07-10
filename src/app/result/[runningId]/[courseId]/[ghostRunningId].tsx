@@ -201,6 +201,7 @@ export default function Result() {
                                     data={data.telemetries}
                                     xKey="dist"
                                     yKeys={["pace"]}
+                                    invertYAxis={true}
                                 />
                             </CollapsibleSection>
                             <Divider direction="horizontal" />

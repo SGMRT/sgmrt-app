@@ -154,6 +154,7 @@ export default function BottomCourseInfoModal({
                                     onPress={() => {
                                         setSelectedGhostId(ghost.runningId);
                                     }}
+                                    isMyRecord={ghost.runnerId === 1}
                                 />
                             ))}
                         </View>

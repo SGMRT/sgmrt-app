@@ -16,6 +16,7 @@ interface StyledChartProps {
     xKey: string;
     yKeys: string[];
     showToolTip?: boolean;
+    invertYAxis?: boolean;
 }
 
 interface ToolTipProps {
@@ -80,6 +81,7 @@ const StyledChart = ({
     xKey,
     yKeys,
     showToolTip = true,
+    invertYAxis = false,
 }: StyledChartProps) => {
     const font = useFont(
         require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),
@@ -108,6 +110,23 @@ const StyledChart = ({
                     data={data}
                     xKey={xKey}
                     yKeys={yKeys}
+                    domain={{
+                        y:
+                            invertYAxis && data.length > 0
+                                ? [
+                                      data.reduce(
+                                          (max, item) =>
+                                              Math.max(max, item[yKeys[0]]),
+                                          -Infinity
+                                      ),
+                                      data.reduce(
+                                          (min, item) =>
+                                              Math.min(min, item[yKeys[0]]),
+                                          Infinity
+                                      ),
+                                  ]
+                                : undefined,
+                    }}
                     xAxis={{
                         font: font,
                         formatXLabel: (label) => {

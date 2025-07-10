@@ -320,7 +320,10 @@ export default function Course() {
                         onSlideLeft={async () => {
                             const { runningId } = await saveRunning({
                                 startTime: startTime!,
-                                telemetries: course.slice(0, completeIndex),
+                                telemetries: telemetries.slice(
+                                    0,
+                                    completeIndex
+                                ),
                                 userDashboardData,
                                 runTime: completeTime!,
                                 hasPaused,
@@ -337,7 +340,10 @@ export default function Course() {
                         onSlideRight={async () => {
                             await saveRunning({
                                 startTime: startTime!,
-                                telemetries: course.slice(0, completeIndex),
+                                telemetries: telemetries.slice(
+                                    0,
+                                    completeIndex
+                                ),
                                 userDashboardData,
                                 runTime: completeTime!,
                                 hasPaused,

@@ -1,10 +1,10 @@
+import { CourseResponse } from "@/src/apis/types/course";
 import { Typography } from "@/src/components/ui/Typography";
-import { Course } from "@/src/types/course";
-import { Image, Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 
 interface CourseTitleProps {
-    course: Course;
-    onClickCourse: (course: Course) => void;
+    course: CourseResponse;
+    onClickCourse: (course: CourseResponse) => void;
     isActive: boolean;
     zoomLevel: number;
 }
@@ -15,7 +15,7 @@ export default function CourseTitle({
     isActive,
     zoomLevel,
 }: CourseTitleProps) {
-    const userCountWithoutTopUsers = course.count - course.topUsers.length;
+    // const userCountWithoutTopUsers = course.count - course.topUsers.length;
 
     return (
         <Pressable onPress={() => onClickCourse(course)}>
@@ -28,7 +28,7 @@ export default function CourseTitle({
                         {course.name}
                     </Typography>
                 </View>
-                {zoomLevel > 14.5 && (
+                {/* {zoomLevel > 14.5 && (
                     <View style={styles.topUsersContainer}>
                         {course.topUsers.map((user, index) => (
                             <Image
@@ -50,7 +50,7 @@ export default function CourseTitle({
                             </View>
                         )}
                     </View>
-                )}
+                )} */}
             </View>
         </Pressable>
     );
