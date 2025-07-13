@@ -8,7 +8,11 @@ import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import useRunning from "@/src/hooks/useRunningV2";
 import colors from "@/src/theme/colors";
-import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import {
+    getFormattedPace,
+    getRunTime,
+    saveRunning,
+} from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -29,9 +33,10 @@ export default function Run() {
         userDashboardData,
         segments,
         status,
-        completedAt,
         setRunningStatus,
         runTime,
+        telemetries,
+        totalStepCount,
     } = useRunning({
         type: "free",
         mode: "solo",
@@ -79,7 +84,6 @@ export default function Run() {
     }, []);
 
     const onCompleteRestart = () => {
-        console.log("호출");
         if (isRestarting) {
             setIsRestarting(false);
             setRunningStatus("free_running");
@@ -163,18 +167,15 @@ export default function Run() {
             ) : (
                 <SlideToDualAction
                     onSlideLeft={async () => {
-                        console.log("기록 저장");
-                        // const { runningId } = await saveRunning({
-                        //     startTime: startTime!,
-                        //     telemetries,
-                        //     userDashboardData,
-                        //     runTime,
-                        //     hasPaused,
-                        //     isPublic: hasPaused ? false : true,
-                        //     memberId: 1,
-                        //     totalStepCount: getTotalStepCount(),
-                        // });
-                        // router.replace(`/result/${runningId}/-1/-1`);
+                        const response = await saveRunning({
+                            telemetries,
+                            userDashboardData,
+                            runTime,
+                            isPublic: true,
+                            memberId: 1,
+                            totalStepCount,
+                        });
+                        router.replace(`/result/${response.runningId}/-1/-1`);
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);

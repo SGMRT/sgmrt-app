@@ -9,12 +9,7 @@ import {
 
 export async function postRun(data: BaseRunning, memberId: number) {
     try {
-        const trimmedData = {
-            ...data,
-            telemetries: data.telemetries.slice(5),
-        };
-
-        const response = await server.post(`runs/${memberId}`, trimmedData);
+        const response = await server.post(`runs/${memberId}`, data);
         return response.data;
     } catch (error) {
         console.error(error);

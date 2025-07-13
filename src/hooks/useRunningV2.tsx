@@ -58,6 +58,7 @@ export default function useRunning({
 
     const activeRef = useRef<number | null>(null);
     const baseAltitudeRef = useRef<number | null>(null);
+    const totalStepCountRef = useRef<number>(0);
 
     const telemetryRef = useRef<Telemetry[]>([]);
 
@@ -102,9 +103,8 @@ export default function useRunning({
 
     useEffect(() => {
         const currentRecord = mergedRecords.at(-1);
-        console.log(currentRecord);
         if (currentRecord === undefined) return;
-        const deltaDistanceM = currentRecord.deltaDistanceM;
+        const deltaDistanceM = Number(currentRecord.deltaDistanceM.toFixed(2));
         const deltaStep = currentRecord.deltaStep;
         if (status === "before_running" || status === "stopped") {
             // Do nothing
@@ -124,6 +124,7 @@ export default function useRunning({
                 isRunning: false,
             });
         } else {
+            totalStepCountRef.current += currentRecord.deltaStep;
             // 러닝 중 상태 데이터 저장
             runTimeRef.current += 1;
             setRunTime(runTimeRef.current);
@@ -259,6 +260,8 @@ export default function useRunning({
         setRunningStatus,
         userDashboardData,
         segments,
+        telemetries: telemetryRef.current,
         runTime,
+        totalStepCount: totalStepCountRef.current,
     };
 }

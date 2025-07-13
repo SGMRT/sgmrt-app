@@ -1,12 +1,6 @@
 import Toast from "react-native-toast-message";
-import { postCourseRun, postRun } from "../apis";
-import {
-    BaseRunning,
-    CourseGhostRunning,
-    CourseSoloRunning,
-    RunRecord,
-    Telemetry,
-} from "../apis/types/run";
+import { postRun } from "../apis";
+import { BaseRunning, RunRecord, Telemetry } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
 import { UserDashBoardData } from "../hooks/useRunning";
 
@@ -122,12 +116,18 @@ function telemetriesToSegment(
     ];
 }
 
+function getTelemetriesWithoutLastFalse(telemetries: Telemetry[]): Telemetry[] {
+    const lastTrueIndex = telemetries.findLastIndex(
+        (telemetry) => telemetry.isRunning
+    );
+
+    return telemetries.slice(0, lastTrueIndex + 1);
+}
+
 interface SaveRunningProps {
-    startTime: number;
     telemetries: Telemetry[];
     userDashboardData: UserDashBoardData;
     runTime: number;
-    hasPaused: boolean;
     isPublic: boolean;
     memberId: number;
     totalStepCount: number;
@@ -136,19 +136,17 @@ interface SaveRunningProps {
 }
 
 export async function saveRunning({
-    startTime,
     telemetries,
     userDashboardData,
     runTime,
-    hasPaused,
     isPublic,
     memberId,
     totalStepCount,
     ghostRunningId,
     courseId,
 }: SaveRunningProps) {
-    if (!userDashboardData) return;
     if (
+        !userDashboardData ||
         userDashboardData.totalDistance === 0 ||
         userDashboardData.paceOfLastPoints === 0 ||
         telemetries.filter((telemetry) => telemetry.isRunning).at(-1)?.pace ===
@@ -163,17 +161,13 @@ export async function saveRunning({
         return;
     }
 
-    const filteredTelemetries = (() => {
-        let index = 0;
+    const truncatedTelemetries = getTelemetriesWithoutLastFalse(telemetries);
 
-        while (index < telemetries.length && telemetries[index].pace === 0) {
-            index++;
-        }
+    const hasPaused = truncatedTelemetries.some(
+        (telemetry) => !telemetry.isRunning
+    );
 
-        return telemetries.slice(index);
-    })();
-
-    console.log(filteredTelemetries);
+    const startTime = truncatedTelemetries.at(0)?.timeStamp;
 
     const record: RunRecord = {
         distance: userDashboardData.totalDistance,
@@ -186,57 +180,21 @@ export async function saveRunning({
         avgCadence: getCadence(totalStepCount, runTime),
     };
 
-    filteredTelemetries.forEach((telemetry) => {
-        console.log(telemetries);
-    });
-
-    const lastTrueIndex = filteredTelemetries.findLastIndex(
-        (telemetry) => telemetry.isRunning
-    );
-
-    console.log(lastTrueIndex);
-
-    const savedTelemetries = filteredTelemetries.slice(0, lastTrueIndex + 1);
-
-    console.log(savedTelemetries);
-
     if (ghostRunningId) {
-        const running: CourseGhostRunning = {
-            runningName: getRunName(startTime ?? 0),
-            mode: "GHOST",
-            startedAt: startTime ?? 0,
-            record,
-            hasPaused: hasPaused,
-            isPublic: hasPaused ? false : isPublic,
-            telemetries: savedTelemetries,
-            ghostRunningId,
-        };
-        const res = await postCourseRun(running, courseId!, memberId);
-        return { courseId: res };
+        // 고스트 러닝
     } else if (courseId) {
-        const running: CourseSoloRunning = {
-            runningName: getRunName(startTime ?? 0),
-            mode: "SOLO",
-            startedAt: startTime ?? 0,
-            record,
-            hasPaused: hasPaused,
-            isPublic: hasPaused ? false : isPublic,
-            telemetries: savedTelemetries,
-            ghostRunningId: null,
-        };
-        const res = await postCourseRun(running, courseId, memberId);
-        return { runningId: res };
+        // 코스 러닝
     } else {
-        const running: BaseRunning = {
+        const request: BaseRunning = {
             runningName: getRunName(startTime ?? 0),
             startedAt: startTime ?? 0,
-            record,
-            hasPaused: hasPaused,
+            hasPaused,
             isPublic: hasPaused ? false : isPublic,
-            telemetries: savedTelemetries,
+            telemetries: truncatedTelemetries,
+            record,
         };
-        const res = await postRun(running, memberId);
-        return res;
+        const response = await postRun(request, memberId);
+        return response;
     }
 }
 
