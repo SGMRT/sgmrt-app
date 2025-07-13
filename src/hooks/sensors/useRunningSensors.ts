@@ -1,5 +1,6 @@
-import { getDistance } from "@/src/utils/mapUtils";
-import { useEffect, useState } from "react";
+import { Telemetry } from "@/src/apis/types/run";
+import { Coordinate, getDistance } from "@/src/utils/mapUtils";
+import { useCallback, useEffect, useState } from "react";
 import { useBarometerTracker } from "./useBarometerTracker";
 import { useLocationTracker } from "./useLocationTracker";
 import { usePedometerTracker } from "./usePedometerTracker";
@@ -35,14 +36,44 @@ export interface MergedRecord {
 
 export default function useRunningSensors({
     intervalMs = 1000,
+    course,
 }: {
     intervalMs?: number;
+    course?: Telemetry[];
 }) {
     const { locations } = useLocationTracker();
     const { stepRecords } = usePedometerTracker();
     const { baroRecords } = useBarometerTracker();
 
     const [mergedRecords, setMergedRecords] = useState<MergedRecord[]>([]);
+    const [courseIndex, setCourseIndex] = useState<number>(-1);
+
+    const checkPointSynced = useCallback(
+        (targetPosition: Coordinate, currentPosition: Coordinate) => {
+            const distance = getDistance(targetPosition, currentPosition);
+            return distance < 5;
+        },
+        []
+    );
+
+    const findClosestPointIndex = useCallback(
+        (currentPosition: Coordinate, telemetries: Telemetry[]) => {
+            return telemetries.findIndex((telemetry) =>
+                checkPointSynced(
+                    { lat: telemetry.lat, lng: telemetry.lng },
+                    currentPosition
+                )
+            );
+        },
+        [checkPointSynced]
+    );
+
+    useEffect(() => {
+        if (course) {
+            const index = findClosestPointIndex(locations.at(-1)!, course);
+            setCourseIndex(index);
+        }
+    }, [course, findClosestPointIndex, locations]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -104,5 +135,5 @@ export default function useRunningSensors({
         return () => clearInterval(interval);
     }, [intervalMs, locations, stepRecords, baroRecords]);
 
-    return { mergedRecords };
+    return { mergedRecords, courseIndex };
 }

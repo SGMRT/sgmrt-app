@@ -171,9 +171,11 @@ export default function BottomCourseInfoModal({
                     console.log("slide success");
                     bottomSheetRef.current?.dismiss();
                     if (tab === "course") {
-                        router.push(`/run/${course?.id}/course`);
+                        router.push(`/run/${course?.id}/${course?.name}`);
                     } else {
-                        router.push(`/run/${course?.id}/${selectedGhostId}`);
+                        router.push(
+                            `/run/${course?.id}/${course?.name}/${selectedGhostId}`
+                        );
                     }
                 }}
                 color="green"

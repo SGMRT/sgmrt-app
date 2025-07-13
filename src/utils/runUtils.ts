@@ -1,6 +1,11 @@
 import Toast from "react-native-toast-message";
-import { postRun } from "../apis";
-import { BaseRunning, RunRecord, Telemetry } from "../apis/types/run";
+import { postCourseRun, postRun } from "../apis";
+import {
+    BaseRunning,
+    CourseSoloRunning,
+    RunRecord,
+    Telemetry,
+} from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
 import { UserDashBoardData } from "../hooks/useRunning";
 
@@ -25,7 +30,7 @@ function getPace(timeInSec: number, distanceInMeters: number): number {
     const distanceInKm = distanceInMeters / 1000;
 
     const paceInSec = timeInSec / distanceInKm; // 초/km
-    return paceInSec;
+    return Number(paceInSec.toFixed(2));
 }
 
 function getFormattedPace(paceInSec: number): string {
@@ -183,7 +188,18 @@ export async function saveRunning({
     if (ghostRunningId) {
         // 고스트 러닝
     } else if (courseId) {
-        // 코스 러닝
+        const request: CourseSoloRunning = {
+            runningName: getRunName(startTime ?? 0),
+            startedAt: startTime ?? 0,
+            hasPaused,
+            isPublic: hasPaused ? false : isPublic,
+            telemetries: truncatedTelemetries,
+            mode: "SOLO",
+            ghostRunningId: null,
+            record,
+        };
+        const response = await postCourseRun(request, courseId, memberId);
+        return response;
     } else {
         const request: BaseRunning = {
             runningName: getRunName(startTime ?? 0),
