@@ -6,13 +6,9 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import { useRunning } from "@/src/hooks/useRunning";
+import useRunning from "@/src/hooks/useRunningV2";
 import colors from "@/src/theme/colors";
-import {
-    getFormattedPace,
-    getRunTime,
-    saveRunning,
-} from "@/src/utils/runUtils";
+import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -30,16 +26,12 @@ export default function Run() {
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const {
-        startTracking,
-        pauseTracking,
         userDashboardData,
-        telemetries,
+        segments,
+        status,
+        completedAt,
+        setRunningStatus,
         runTime,
-        startTime,
-        hasPaused,
-        isRunning,
-        getTotalStepCount,
-        userSegments,
     } = useRunning({
         type: "free",
         mode: "solo",
@@ -87,8 +79,11 @@ export default function Run() {
     }, []);
 
     const onCompleteRestart = () => {
-        setIsRestarting(false);
-        startTracking();
+        console.log("호출");
+        if (isRestarting) {
+            setIsRestarting(false);
+            setRunningStatus("free_running");
+        }
     };
 
     useEffect(() => {
@@ -132,7 +127,7 @@ export default function Run() {
                 )}
             </TopBlurView>
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {userSegments.map((segment, index) => (
+                {segments.map((segment, index) => (
                     <RunningLine
                         key={index.toString()}
                         index={index}
@@ -155,11 +150,11 @@ export default function Run() {
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {isRunning || isRestarting ? (
+            {status === "free_running" || isRestarting ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
-                        pauseTracking();
+                        setRunningStatus("paused");
                     }}
                     color="red"
                     direction="right"
@@ -169,17 +164,17 @@ export default function Run() {
                 <SlideToDualAction
                     onSlideLeft={async () => {
                         console.log("기록 저장");
-                        const { runningId } = await saveRunning({
-                            startTime: startTime!,
-                            telemetries,
-                            userDashboardData,
-                            runTime,
-                            hasPaused,
-                            isPublic: hasPaused ? false : true,
-                            memberId: 1,
-                            totalStepCount: getTotalStepCount(),
-                        });
-                        router.replace(`/result/${runningId}/-1/-1`);
+                        // const { runningId } = await saveRunning({
+                        //     startTime: startTime!,
+                        //     telemetries,
+                        //     userDashboardData,
+                        //     runTime,
+                        //     hasPaused,
+                        //     isPublic: hasPaused ? false : true,
+                        //     memberId: 1,
+                        //     totalStepCount: getTotalStepCount(),
+                        // });
+                        // router.replace(`/result/${runningId}/-1/-1`);
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);

@@ -7,18 +7,11 @@ import WeatherInfo from "@/src/components/map/WeatherInfo";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import useRunning from "@/src/hooks/useRunningV2";
 import { useRouter } from "expo-router";
 import { useEffect } from "react";
 
 export default function Home() {
     const router = useRouter();
-
-    useRunning({
-        type: "free",
-        mode: "solo",
-        weight: 70,
-    });
 
     useEffect(() => {
         setTelemetryEnabled(false);

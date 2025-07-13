@@ -52,44 +52,53 @@ export default function useRunningSensors({
             const step = findClosest(stepRecords, now);
             const baro = findClosest(baroRecords, now);
 
-            setMergedRecords((prev) => [
-                ...prev.slice(-29),
-                {
-                    timestamp: now,
-                    lat: Number((location?.lat ?? 0).toFixed(8)),
-                    lng: Number((location?.lng ?? 0).toFixed(8)),
-                    alt: Number((location?.alt ?? 0).toFixed(2)),
-                    relativeAltitude: Number(
-                        (baro?.relativeAltitude ?? 0).toFixed(2)
-                    ),
-                    deltaDistanceM:
-                        prev.length > 0
-                            ? Number(
-                                  getDistance(
-                                      {
-                                          lat: location?.lat ?? 0,
-                                          lng: location?.lng ?? 0,
-                                      },
-                                      {
-                                          lat: prev[prev.length - 1]?.lat ?? 0,
-                                          lng: prev[prev.length - 1]?.lng ?? 0,
-                                      }
-                                  ).toFixed(2)
-                              )
-                            : 0,
-                    deltaAltitudeM:
-                        Number((baro?.relativeAltitude ?? 0).toFixed(2)) -
-                        Number(
-                            (
-                                prev[prev.length - 1]?.relativeAltitude ?? 0
-                            ).toFixed(2)
+            setMergedRecords((prev) => {
+                if (location === undefined) return prev;
+                return [
+                    ...prev.slice(-29),
+                    {
+                        timestamp: now,
+                        lat: Number((location?.lat ?? 0).toFixed(8)),
+                        lng: Number((location?.lng ?? 0).toFixed(8)),
+                        alt: Number((location?.alt ?? 0).toFixed(2)),
+                        relativeAltitude: Number(
+                            (baro?.relativeAltitude ?? 0).toFixed(2)
                         ),
-                    deltaStep:
-                        (step?.stepCount ?? 0) -
-                        (prev[prev.length - 1]?.stepTotal ?? 0),
-                    stepTotal: step?.stepCount ?? 0,
-                },
-            ]);
+                        deltaDistanceM:
+                            prev.length > 0
+                                ? Number(
+                                      getDistance(
+                                          {
+                                              lat: location?.lat ?? 0,
+                                              lng: location?.lng ?? 0,
+                                          },
+                                          {
+                                              lat:
+                                                  prev[prev.length - 1]?.lat ??
+                                                  location?.lat ??
+                                                  0,
+                                              lng:
+                                                  prev[prev.length - 1]?.lng ??
+                                                  location?.lng ??
+                                                  0,
+                                          }
+                                      ).toFixed(2)
+                                  )
+                                : 0,
+                        deltaAltitudeM:
+                            Number((baro?.relativeAltitude ?? 0).toFixed(2)) -
+                            Number(
+                                (
+                                    prev[prev.length - 1]?.relativeAltitude ?? 0
+                                ).toFixed(2)
+                            ),
+                        deltaStep:
+                            (step?.stepCount ?? 0) -
+                            (prev[prev.length - 1]?.stepTotal ?? 0),
+                        stepTotal: step?.stepCount ?? 0,
+                    },
+                ];
+            });
         }, intervalMs);
 
         return () => clearInterval(interval);

@@ -62,8 +62,19 @@ export default function useRunning({
     const telemetryRef = useRef<Telemetry[]>([]);
 
     const [segments, setSegments] = useState<Segment[]>([]);
-    const [userDashboard, setUserDashboard] =
-        useState<UserDashBoardData | null>(null);
+    const [userDashboardData, setUserDashboardData] =
+        useState<UserDashBoardData>({
+            totalDistance: 0,
+            paceOfLastPoints: 0,
+            cadenceOfLastPoints: 0,
+            totalCalories: 0,
+            totalElevationGain: 0,
+            totalElevationLoss: 0,
+            bpm: 0,
+        });
+
+    const [runTime, setRunTime] = useState<number>(0);
+    const runTimeRef = useRef<number>(0);
 
     const setRunningStatus = useCallback((status: RunningStatus) => {
         if (status === "course_running" || status === "free_running") {
@@ -91,8 +102,10 @@ export default function useRunning({
 
     useEffect(() => {
         const currentRecord = mergedRecords.at(-1);
-        const deltaDistanceM = currentRecord?.deltaDistanceM;
-        const deltaStep = currentRecord?.deltaStep;
+        console.log(currentRecord);
+        if (currentRecord === undefined) return;
+        const deltaDistanceM = currentRecord.deltaDistanceM;
+        const deltaStep = currentRecord.deltaStep;
         if (status === "before_running" || status === "stopped") {
             // Do nothing
             return;
@@ -100,9 +113,9 @@ export default function useRunning({
             // 러닝 중지 상태 데이터 저장
             const lastTelemetry = telemetryRef.current.at(-1);
             telemetryRef.current.push({
-                timeStamp: currentRecord?.timestamp ?? 0,
-                lat: currentRecord?.lat ?? 0,
-                lng: currentRecord?.lng ?? 0,
+                timeStamp: currentRecord.timestamp,
+                lat: currentRecord.lat,
+                lng: currentRecord.lng,
                 dist: lastTelemetry?.dist ?? 0,
                 pace: 0,
                 alt: 0,
@@ -112,13 +125,14 @@ export default function useRunning({
             });
         } else {
             // 러닝 중 상태 데이터 저장
+            runTimeRef.current += 1;
+            setRunTime(runTimeRef.current);
             if (telemetryRef.current.length === 0) {
-                baseAltitudeRef.current =
-                    mergedRecords.at(-1)?.relativeAltitude ?? 0;
+                baseAltitudeRef.current = currentRecord.relativeAltitude ?? 0;
                 telemetryRef.current.push({
-                    timeStamp: currentRecord?.timestamp ?? 0,
-                    lat: currentRecord?.lat ?? 0,
-                    lng: currentRecord?.lng ?? 0,
+                    timeStamp: currentRecord.timestamp,
+                    lat: currentRecord.lat,
+                    lng: currentRecord.lng,
                     dist: deltaDistanceM ?? 0,
                     pace: deltaDistanceM ? getPace(1, deltaDistanceM) : 0,
                     alt: 0,
@@ -142,15 +156,15 @@ export default function useRunning({
                 );
 
                 telemetryRef.current.push({
-                    timeStamp: currentRecord?.timestamp ?? 0,
-                    lat: currentRecord?.lat ?? 0,
-                    lng: currentRecord?.lng ?? 0,
+                    timeStamp: currentRecord.timestamp,
+                    lat: currentRecord.lat,
+                    lng: currentRecord.lng,
                     dist:
                         (telemetryRef.current.at(-1)?.dist ?? 0) +
                         (deltaDistanceM ?? 0),
                     pace: getPace(recordsAfter.length, cumulativeDistanceM),
                     alt:
-                        (currentRecord?.relativeAltitude ?? 0) -
+                        (currentRecord.relativeAltitude ?? 0) -
                         (baseAltitudeRef.current ?? 0),
                     cadence: getCadence(cumulativeStep, recordsAfter.length),
                     bpm: 0,
@@ -158,14 +172,16 @@ export default function useRunning({
                 });
             }
             // 러닝 중일 경우 대시보드 데이터 업데이트
-            const lastTelemetry = telemetryRef.current.at(-1);
-            setUserDashboard({
+            const lastTelemetry = telemetryRef.current
+                .filter((telemetry) => telemetry.isRunning)
+                .at(-1);
+            setUserDashboardData({
                 totalDistance: lastTelemetry?.dist ?? 0,
                 paceOfLastPoints: lastTelemetry?.pace ?? 0,
                 cadenceOfLastPoints: lastTelemetry?.cadence ?? 0,
                 totalCalories: getCalories({
                     distance: lastTelemetry?.dist ?? 0,
-                    timeInSec: lastTelemetry?.timeStamp ?? 0,
+                    timeInSec: runTimeRef.current,
                     weight: weight,
                 }),
                 totalElevationGain: telemetryRef.current.reduce(
@@ -241,7 +257,8 @@ export default function useRunning({
         status,
         completedAt,
         setRunningStatus,
-        userDashboard,
+        userDashboardData,
         segments,
+        runTime,
     };
 }

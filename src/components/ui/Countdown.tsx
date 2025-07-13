@@ -1,5 +1,5 @@
 import colors from "@/src/theme/colors";
-import { useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
@@ -10,7 +10,7 @@ interface CountdownProps {
     onComplete: () => void;
 }
 
-export default function Countdown({
+export default memo(function Countdown({
     count,
     color,
     size,
@@ -29,11 +29,11 @@ export default function Countdown({
                 setCountdown(currentCount);
             }
         }, 1000);
-    }, [count, onComplete]);
+    }, [onComplete]);
 
     useEffect(() => {
         startCountdown();
-    }, [startCountdown]);
+    }, []);
 
     return (
         <Animated.Text
@@ -44,7 +44,7 @@ export default function Countdown({
             {countdown}
         </Animated.Text>
     );
-}
+});
 
 const styles = StyleSheet.create({
     timeText: {
