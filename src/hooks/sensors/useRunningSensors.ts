@@ -1,3 +1,4 @@
+import { getDistance } from "@/src/utils/mapUtils";
 import { useEffect, useState } from "react";
 import { useBarometerTracker } from "./useBarometerTracker";
 import { useLocationTracker } from "./useLocationTracker";
@@ -20,13 +21,15 @@ function findClosest<T extends { timestamp: number }>(
     return closest;
 }
 
-interface MergedRecord {
+export interface MergedRecord {
     timestamp: number;
     lat: number;
     lng: number;
     alt: number;
     relativeAltitude: number;
-    stepDelta: number;
+    deltaDistanceM: number;
+    deltaAltitudeM: number;
+    deltaStep: number;
     stepTotal: number;
 }
 
@@ -50,14 +53,38 @@ export default function useRunningSensors({
             const baro = findClosest(baroRecords, now);
 
             setMergedRecords((prev) => [
-                ...prev.slice(-100),
+                ...prev.slice(-29),
                 {
                     timestamp: now,
-                    lat: location?.lat ?? 0,
-                    lng: location?.lng ?? 0,
-                    alt: location?.alt ?? 0,
-                    relativeAltitude: baro?.relativeAltitude ?? 0,
-                    stepDelta:
+                    lat: Number((location?.lat ?? 0).toFixed(8)),
+                    lng: Number((location?.lng ?? 0).toFixed(8)),
+                    alt: Number((location?.alt ?? 0).toFixed(2)),
+                    relativeAltitude: Number(
+                        (baro?.relativeAltitude ?? 0).toFixed(2)
+                    ),
+                    deltaDistanceM:
+                        prev.length > 0
+                            ? Number(
+                                  getDistance(
+                                      {
+                                          lat: location?.lat ?? 0,
+                                          lng: location?.lng ?? 0,
+                                      },
+                                      {
+                                          lat: prev[prev.length - 1]?.lat ?? 0,
+                                          lng: prev[prev.length - 1]?.lng ?? 0,
+                                      }
+                                  ).toFixed(2)
+                              )
+                            : 0,
+                    deltaAltitudeM:
+                        Number((baro?.relativeAltitude ?? 0).toFixed(2)) -
+                        Number(
+                            (
+                                prev[prev.length - 1]?.relativeAltitude ?? 0
+                            ).toFixed(2)
+                        ),
+                    deltaStep:
                         (step?.stepCount ?? 0) -
                         (prev[prev.length - 1]?.stepTotal ?? 0),
                     stepTotal: step?.stepCount ?? 0,
@@ -66,7 +93,7 @@ export default function useRunningSensors({
         }, intervalMs);
 
         return () => clearInterval(interval);
-    }, [locations, stepRecords, baroRecords, intervalMs]);
+    }, [intervalMs, locations, stepRecords, baroRecords]);
 
     return { mergedRecords };
 }

@@ -1,5 +1,5 @@
 import { Barometer } from "expo-sensors";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface BaroRecord {
     pressure: number; // 현재 기압(hPa)
@@ -8,7 +8,7 @@ interface BaroRecord {
 }
 
 export function useBarometerTracker() {
-    const [baroRecords, setBaroRecords] = useState<BaroRecord[]>([]);
+    const baroRecordsRef = useRef<BaroRecord[]>([]);
     const basePressure = useRef<number | null>(null);
     const subRef = useRef<any>(null);
 
@@ -26,17 +26,21 @@ export function useBarometerTracker() {
                 data.relativeAltitude ??
                 (basePressure.current! - data.pressure) * 8.43;
 
-            setBaroRecords((prev) => [
-                ...prev.slice(-100),
+            baroRecordsRef.current = [
+                ...baroRecordsRef.current,
                 {
                     pressure: data.pressure,
                     relativeAltitude: relAlt,
                     timestamp: Date.now(),
                 },
-            ]);
+            ];
+
+            if (baroRecordsRef.current.length > 150) {
+                baroRecordsRef.current = baroRecordsRef.current.slice(-100);
+            }
         });
         return () => subRef.current && subRef.current.remove();
     }, []);
 
-    return { baroRecords };
+    return { baroRecords: baroRecordsRef.current };
 }

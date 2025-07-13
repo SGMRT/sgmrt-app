@@ -1,5 +1,5 @@
 import * as Location from "expo-location";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface LocationRecord {
     lat: number;
@@ -9,7 +9,7 @@ interface LocationRecord {
 }
 
 export function useLocationTracker() {
-    const [locations, setLocations] = useState<LocationRecord[]>([]);
+    const locationsRef = useRef<LocationRecord[]>([]);
     const subRef = useRef<Location.LocationSubscription | null>(null);
 
     useEffect(() => {
@@ -25,15 +25,19 @@ export function useLocationTracker() {
                 },
                 (result) => {
                     if (!isMounted) return;
-                    setLocations((prev) => [
-                        ...prev,
+                    locationsRef.current = [
+                        ...locationsRef.current,
                         {
                             lat: result.coords.latitude,
                             lng: result.coords.longitude,
                             alt: result.coords.altitude ?? null,
                             timestamp: result.timestamp,
                         },
-                    ]);
+                    ];
+
+                    if (locationsRef.current.length > 150) {
+                        locationsRef.current = locationsRef.current.slice(-100);
+                    }
                 }
             );
         };
@@ -46,5 +50,5 @@ export function useLocationTracker() {
         };
     }, []);
 
-    return { locations };
+    return { locations: locationsRef.current };
 }
