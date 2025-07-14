@@ -100,10 +100,15 @@ const config = {
             ],
             "expo-apple-authentication",
             [
-                "@react-native-seoul/kakao-login",
+                "@react-native-kakao/core",
                 {
-                    kakaoAppKey: process.env.KAKAO_APP_KEY,
-                    kotlinVersion: "2",
+                    nativeAppKey: process.env.EXPO_PUBLIC_KAKAO_APP_KEY,
+                    android: {
+                        authCodeHandlerActivity: true,
+                    },
+                    ios: {
+                        handleKakaoOpenUrl: true,
+                    },
                 },
             ],
         ],
