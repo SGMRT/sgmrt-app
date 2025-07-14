@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Toast from "react-native-toast-message";
 import { Telemetry } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
+import { getDistance } from "../utils/mapUtils";
 import {
     getCadence,
     getCalories,
@@ -87,10 +88,11 @@ export default function useRunning({ type, weight, course }: RunningProps) {
             bpm: 0,
         });
 
-    const [runTime, setRunTime] = useState<number>(0);
     const runTimeRef = useRef<number>(0);
 
     const alertRef = useRef<number>(0);
+
+    const lastUpdateTimestampRef = useRef<number>(0);
 
     const setRunningStatus = useCallback(
         (status: RunningStatus) => {
@@ -158,13 +160,13 @@ export default function useRunning({ type, weight, course }: RunningProps) {
             } else if (courseIndex === course.length - 1) {
                 setRunningStatus("completed");
                 courseIndexRef.current = courseIndex;
-            } else {
+            } else if (courseIndex > courseIndexRef.current) {
                 courseIndexRef.current = courseIndex;
             }
         } else if (status === "stopped") {
             if (
-                courseIndex >= courseIndexRef.current - 1 &&
-                courseIndex <= courseIndexRef.current + 1
+                courseIndex === courseIndexRef.current ||
+                courseIndex === courseIndexRef.current + 1
             ) {
                 setRunningStatus("course_running");
                 courseIndexRef.current = courseIndex;
@@ -174,13 +176,24 @@ export default function useRunning({ type, weight, course }: RunningProps) {
 
     useEffect(() => {
         const currentRecord = mergedRecords.at(-1);
+        const lastRecord = mergedRecords.find(
+            (record) => record.timestamp === lastUpdateTimestampRef.current
+        );
         if (currentRecord === undefined) return;
-        const deltaDistanceM = Number(currentRecord.deltaDistanceM.toFixed(2));
-        const deltaStep = currentRecord.deltaStep;
+        const deltaDistanceM = lastRecord
+            ? getDistance(
+                  { lat: lastRecord.lat, lng: lastRecord.lng },
+                  { lat: currentRecord.lat, lng: currentRecord.lng }
+              )
+            : currentRecord.deltaDistanceM;
+        const deltaStep = lastRecord
+            ? currentRecord.stepTotal - lastRecord.stepTotal
+            : currentRecord.deltaStep;
         if (
             status === "before_running" ||
             status === "stopped" ||
-            status === "before_course_running"
+            status === "before_course_running" ||
+            status === "cancel_course_running"
         ) {
             return;
         } else if (status === "paused") {
@@ -197,11 +210,20 @@ export default function useRunning({ type, weight, course }: RunningProps) {
                 bpm: 0,
                 isRunning: false,
             });
+            lastUpdateTimestampRef.current = currentRecord.timestamp;
         } else {
-            totalStepCountRef.current += currentRecord.deltaStep;
+            if (lastUpdateTimestampRef.current === 0) {
+                lastUpdateTimestampRef.current = currentRecord.timestamp;
+            }
+
+            const timeDiff =
+                (currentRecord.timestamp - lastUpdateTimestampRef.current) /
+                1000;
+            console.log(timeDiff);
+            totalStepCountRef.current += deltaStep;
             // 러닝 중 상태 데이터 저장
-            runTimeRef.current += 1;
-            setRunTime(runTimeRef.current);
+            runTimeRef.current += timeDiff;
+
             if (telemetryRef.current.length === 0) {
                 baseAltitudeRef.current = currentRecord.relativeAltitude ?? 0;
                 telemetryRef.current.push({
@@ -209,9 +231,11 @@ export default function useRunning({ type, weight, course }: RunningProps) {
                     lat: currentRecord.lat,
                     lng: currentRecord.lng,
                     dist: deltaDistanceM ?? 0,
-                    pace: deltaDistanceM ? getPace(1, deltaDistanceM) : 0,
+                    pace: deltaDistanceM
+                        ? getPace(timeDiff, deltaDistanceM)
+                        : 0,
                     alt: 0,
-                    cadence: deltaStep ? getCadence(deltaStep, 1) : 0,
+                    cadence: deltaStep ? getCadence(deltaStep, timeDiff) : 0,
                     bpm: 0,
                     isRunning: true,
                 });
@@ -229,6 +253,10 @@ export default function useRunning({ type, weight, course }: RunningProps) {
                     (acc, record) => acc + record.deltaStep,
                     0
                 );
+                const cumulativeTime =
+                    (Number(recordsAfter.at(-1)?.timestamp) -
+                        Number(recordsAfter[0]?.timestamp)) /
+                    1000;
 
                 telemetryRef.current.push({
                     timeStamp: currentRecord.timestamp,
@@ -237,11 +265,11 @@ export default function useRunning({ type, weight, course }: RunningProps) {
                     dist:
                         (telemetryRef.current.at(-1)?.dist ?? 0) +
                         (deltaDistanceM ?? 0),
-                    pace: getPace(recordsAfter.length, cumulativeDistanceM),
+                    pace: getPace(cumulativeTime, cumulativeDistanceM),
                     alt:
                         (currentRecord.relativeAltitude ?? 0) -
                         (baseAltitudeRef.current ?? 0),
-                    cadence: getCadence(cumulativeStep, recordsAfter.length),
+                    cadence: getCadence(cumulativeStep, cumulativeTime),
                     bpm: 0,
                     isRunning: true,
                 });
@@ -262,8 +290,14 @@ export default function useRunning({ type, weight, course }: RunningProps) {
 
             setUserDashboardData({
                 totalDistance: lastTelemetry?.dist ?? 0,
-                paceOfLastPoints: lastTelemetry?.pace ?? 0,
-                cadenceOfLastPoints: lastTelemetry?.cadence ?? 0,
+                paceOfLastPoints: getPace(
+                    runTimeRef.current,
+                    lastTelemetry?.dist ?? 0
+                ),
+                cadenceOfLastPoints: getCadence(
+                    totalStepCountRef.current,
+                    runTimeRef.current
+                ),
                 totalCalories: getCalories({
                     distance: lastTelemetry?.dist ?? 0,
                     timeInSec: runTimeRef.current,
@@ -330,6 +364,7 @@ export default function useRunning({ type, weight, course }: RunningProps) {
                 ];
             }
         });
+        lastUpdateTimestampRef.current = currentRecord.timestamp;
     }, [status, mergedRecords, weight]);
 
     const showSegment = useCallback(() => {
@@ -362,8 +397,8 @@ export default function useRunning({ type, weight, course }: RunningProps) {
         segments: showSegment(),
         telemetries: telemetryRef.current,
         courseCompletedTelemetries: getCourseCompletedTelemetries(),
-        runTime,
-        courseRunTime,
+        runTime: Math.round(runTimeRef.current),
+        courseRunTime: courseRunTime ? Math.round(courseRunTime) : null,
         totalStepCount: totalStepCountRef.current,
         courseIndex: courseIndexRef.current,
         courseStepCount: courseStepCountRef.current,

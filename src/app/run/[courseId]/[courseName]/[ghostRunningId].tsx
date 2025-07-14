@@ -441,7 +441,6 @@ export default function Course() {
                                         iconImage: "puck3",
                                         iconAllowOverlap: true,
                                     }}
-                                    aboveLayerID="custom-puck-layer"
                                 />
                             </ShapeSource>
                         </>

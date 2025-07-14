@@ -7,9 +7,8 @@ export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
     const elapsedTimeRef = useRef(0);
     const telemetryRef = useRef<Telemetry | null>(null);
     const [segments, setSegments] = useState<Segment[]>([]);
-    const animationRef = useRef<number | null>(null);
+    const intervalRef = useRef<number | null>(null);
     const startTimeRef = useRef<number | null>(null);
-    const lastUpdateTimeRef = useRef<number>(0);
 
     // 보간 포함, 원본값만 누적하는 세그먼트 생성
     const buildSegment = useCallback(
@@ -25,12 +24,10 @@ export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
                     latitude: t.lat,
                 }));
 
-            // 마지막 순간이 끝났다면(러닝 종료) 보간값 없이 원본만 반환
             if (second >= ghostTelemetry.length - 1) {
                 return { isRunning: true, points };
             }
 
-            // 아니면 마지막에 보간값 추가
             const prev = ghostTelemetry[second];
             const next = ghostTelemetry[second + 1];
             const fraction = elapsed / 1000 - second;
@@ -44,7 +41,6 @@ export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
         [ghostTelemetry]
     );
 
-    // 현재 텔레메트리 보간(지도에 표시하거나 러닝 정보로 쓸 용도)
     const getCurrentTelemetry = useCallback(
         (elapsed: number): Telemetry | null => {
             if (ghostTelemetry.length === 0) return null;
@@ -77,28 +73,25 @@ export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
 
     useEffect(() => {
         if (!isRunning || ghostTelemetry.length === 0) {
-            if (animationRef.current) {
-                cancelAnimationFrame(animationRef.current);
-                animationRef.current = null;
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
             }
             return;
         }
 
-        startTimeRef.current = performance.now() - elapsedTimeRef.current;
+        // 최초 시작 시간 기준
+        startTimeRef.current = Date.now() - elapsedTimeRef.current;
 
-        const animate = () => {
-            const now = performance.now();
+        intervalRef.current = setInterval(() => {
+            const now = Date.now();
             const elapsed = now - (startTimeRef.current ?? now);
 
             elapsedTimeRef.current = elapsed;
-
-            if (now - lastUpdateTimeRef.current > 500) {
-                const result = getCurrentTelemetry(elapsed);
-                if (result) {
-                    telemetryRef.current = result;
-                    setSegments([buildSegment(elapsed)]);
-                }
-                lastUpdateTimeRef.current = now;
+            const result = getCurrentTelemetry(elapsed);
+            if (result) {
+                telemetryRef.current = result;
+                setSegments([buildSegment(elapsed)]);
             }
 
             if (
@@ -106,16 +99,16 @@ export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
                 elapsed >= (ghostTelemetry.length - 1) * 1000
             ) {
                 setIsRunning(false);
-                return;
+                clearInterval(intervalRef.current!);
+                intervalRef.current = null;
             }
-            animationRef.current = requestAnimationFrame(animate);
-        };
-
-        animationRef.current = requestAnimationFrame(animate);
+        }, 1000);
 
         return () => {
-            if (animationRef.current)
-                cancelAnimationFrame(animationRef.current);
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
         };
     }, [isRunning, ghostTelemetry, getCurrentTelemetry, buildSegment]);
 
