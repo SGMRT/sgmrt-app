@@ -2,6 +2,7 @@ import Toast from "react-native-toast-message";
 import { postCourseRun, postRun } from "../apis";
 import {
     BaseRunning,
+    CourseGhostRunning,
     CourseSoloRunning,
     RunRecord,
     Telemetry,
@@ -168,6 +169,10 @@ export async function saveRunning({
 
     const truncatedTelemetries = getTelemetriesWithoutLastFalse(telemetries);
 
+    while (truncatedTelemetries[0].pace === 0) {
+        truncatedTelemetries.shift();
+    }
+
     const hasPaused = truncatedTelemetries.some(
         (telemetry) => !telemetry.isRunning
     );
@@ -186,7 +191,18 @@ export async function saveRunning({
     };
 
     if (ghostRunningId) {
-        // 고스트 러닝
+        const request: CourseGhostRunning = {
+            runningName: getRunName(startTime ?? 0),
+            startedAt: startTime ?? 0,
+            hasPaused,
+            isPublic: hasPaused ? false : isPublic,
+            telemetries: truncatedTelemetries,
+            mode: "GHOST",
+            ghostRunningId,
+            record,
+        };
+        const response = await postCourseRun(request, courseId!, memberId);
+        return response;
     } else if (courseId) {
         const request: CourseSoloRunning = {
             runningName: getRunName(startTime ?? 0),

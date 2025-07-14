@@ -91,7 +91,11 @@ export default function Course() {
     useEffect(() => {
         if (ghost.length === 0) return;
 
-        start();
+        if (status === "course_running") {
+            start();
+        } else {
+            pause();
+        }
     }, [status, start, pause, ghost]);
 
     const confettiRef = useRef<ConfettiMethods | null>(null);
@@ -103,34 +107,37 @@ export default function Course() {
         return userDashboardData;
     }, [status, courseDashboardData, userDashboardData]);
 
-    const stats = [
-        {
-            label: "거리",
-            value: (dashboardData.totalDistance / 1000).toFixed(2),
-            unit: "km",
-        },
-        {
-            label: "평균 페이스",
-            value: getFormattedPace(dashboardData.paceOfLastPoints),
-            unit: "",
-        },
-        {
-            label: "케이던스",
-            value: dashboardData.cadenceOfLastPoints.toString(),
-            unit: "spm",
-        },
-        {
-            label: "고도",
-            value: dashboardData.totalElevationGain.toFixed(0),
-            unit: "m",
-        },
-        {
-            label: "칼로리",
-            value: dashboardData.totalCalories.toFixed(0),
-            unit: "kcal",
-        },
-        { label: "BPM", value: dashboardData.bpm, unit: "" },
-    ];
+    const stats = useMemo(
+        () => [
+            {
+                label: "거리",
+                value: (dashboardData.totalDistance / 1000).toFixed(2),
+                unit: "km",
+            },
+            {
+                label: "평균 페이스",
+                value: getFormattedPace(dashboardData.paceOfLastPoints),
+                unit: "",
+            },
+            {
+                label: "케이던스",
+                value: dashboardData.cadenceOfLastPoints.toString(),
+                unit: "spm",
+            },
+            {
+                label: "고도",
+                value: dashboardData.totalElevationGain.toFixed(0),
+                unit: "m",
+            },
+            {
+                label: "칼로리",
+                value: dashboardData.totalCalories.toFixed(0),
+                unit: "kcal",
+            },
+            { label: "BPM", value: dashboardData.bpm, unit: "" },
+        ],
+        [dashboardData]
+    );
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -261,9 +268,13 @@ export default function Course() {
                                     memberId: 1,
                                     totalStepCount: courseStepCount,
                                     courseId: Number(courseId),
+                                    ghostRunningId:
+                                        ghostRunningId === "-1"
+                                            ? undefined
+                                            : Number(ghostRunningId),
                                 });
                                 router.replace(
-                                    `/result/${runningId}/${courseId}/-1`
+                                    `/result/${runningId}/${courseId}/${ghostRunningId}`
                                 );
                             }}
                             onSlideRight={async () => {
@@ -275,6 +286,10 @@ export default function Course() {
                                     memberId: 1,
                                     totalStepCount: courseStepCount,
                                     courseId: Number(courseId),
+                                    ghostRunningId:
+                                        ghostRunningId === "-1"
+                                            ? undefined
+                                            : Number(ghostRunningId),
                                 });
                                 setIsRestarting(true);
                             }}
@@ -295,6 +310,7 @@ export default function Course() {
             courseCompletedTelemetries,
             courseStepCount,
             courseDashboardData,
+            ghostRunningId,
         ]
     );
 
@@ -375,16 +391,30 @@ export default function Course() {
                     ) : null}
 
                     {segments
+                        .filter((segment) => segment.isRunning)
+                        .map((segment, index) => (
+                            <RunningLine
+                                key={index.toString()}
+                                index={"running" + index}
+                                segment={segment}
+                                aboveLayerID="custom-puck-layer"
+                            />
+                        ))}
+
+                    {segments
                         .filter((segment) => !segment.isRunning)
                         .map((segment, index) => (
                             <RunningLine
                                 key={index.toString()}
                                 index={"course" + index}
                                 segment={segment}
+                                belowLayerID="custom-puck-layer"
                             />
                         ))}
 
-                    {ghost.length > 0 && ghostTelemetry ? (
+                    {ghost.length > 0 &&
+                    ghostTelemetry &&
+                    status !== "completed" ? (
                         <>
                             {ghostSegments.map((segment, index) => (
                                 <RunningLine
@@ -392,6 +422,7 @@ export default function Course() {
                                     index={"ghost" + index}
                                     segment={segment}
                                     color="red"
+                                    aboveLayerID="segment-course0"
                                 />
                             ))}
                             <ShapeSource
@@ -410,30 +441,23 @@ export default function Course() {
                                         iconImage: "puck3",
                                         iconAllowOverlap: true,
                                     }}
+                                    aboveLayerID="custom-puck-layer"
                                 />
                             </ShapeSource>
                         </>
                     ) : null}
-
-                    {segments
-                        .filter((segment) => segment.isRunning)
-                        .map((segment, index) => (
-                            <RunningLine
-                                key={index.toString()}
-                                index={"running" + index}
-                                segment={segment}
-                            />
-                        ))}
                 </MapViewWrapper>
 
-                <PIConfetti
-                    ref={confettiRef}
-                    fallDuration={4000}
-                    count={100}
-                    colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
-                    fadeOutOnEnd={true}
-                    height={Dimensions.get("window").height / 2 - 100}
-                />
+                {status === "completed" && (
+                    <PIConfetti
+                        ref={confettiRef}
+                        fallDuration={4000}
+                        count={100}
+                        colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
+                        fadeOutOnEnd={true}
+                        height={Dimensions.get("window").height / 2 - 100}
+                    />
+                )}
 
                 <BottomSheet
                     backgroundStyle={styles.container}
@@ -473,7 +497,12 @@ export default function Course() {
                                     <Divider direction="horizontal" />
                                 </>
                             )}
-                            <StatsIndicator stats={stats} color="gray20" />
+                            <StatsIndicator
+                                stats={stats}
+                                ghost={ghost.length > 0}
+                                ghostTelemetry={ghostTelemetry}
+                                color="gray20"
+                            />
                         </View>
                     </BottomSheetView>
                 </BottomSheet>

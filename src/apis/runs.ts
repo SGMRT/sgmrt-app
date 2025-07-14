@@ -23,14 +23,9 @@ export async function postCourseRun(
     memberId: number
 ) {
     try {
-        const trimmedData = {
-            ...data,
-            telemetries: data.telemetries.slice(5),
-        };
-
         const response = await server.post(
             `runs/courses/${courseId}/${memberId}`,
-            trimmedData
+            data
         );
         return response.data;
     } catch (error) {
@@ -71,6 +66,9 @@ export async function getRun(runningId: number): Promise<SoloRunGetResponse> {
 export async function getRunTelemetries(
     runningId: number
 ): Promise<Telemetry[]> {
+    if (runningId === -1) {
+        return [];
+    }
     try {
         const response = await server.get(`runs/${runningId}/telemetries`);
         return response.data;

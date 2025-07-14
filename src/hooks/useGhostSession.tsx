@@ -5,12 +5,11 @@ import { Segment } from "../components/map/RunningLine";
 export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
     const [isRunning, setIsRunning] = useState(false);
     const elapsedTimeRef = useRef(0);
-    const [currentTelemetry, setCurrentTelemetry] = useState<Telemetry | null>(
-        null
-    );
+    const telemetryRef = useRef<Telemetry | null>(null);
     const [segments, setSegments] = useState<Segment[]>([]);
     const animationRef = useRef<number | null>(null);
     const startTimeRef = useRef<number | null>(null);
+    const lastUpdateTimeRef = useRef<number>(0);
 
     // 보간 포함, 원본값만 누적하는 세그먼트 생성
     const buildSegment = useCallback(
@@ -93,11 +92,13 @@ export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
 
             elapsedTimeRef.current = elapsed;
 
-            const result = getCurrentTelemetry(elapsed);
-
-            if (result) {
-                setCurrentTelemetry(result);
-                setSegments([buildSegment(elapsed)]);
+            if (now - lastUpdateTimeRef.current > 500) {
+                const result = getCurrentTelemetry(elapsed);
+                if (result) {
+                    telemetryRef.current = result;
+                    setSegments([buildSegment(elapsed)]);
+                }
+                lastUpdateTimeRef.current = now;
             }
 
             if (
@@ -123,7 +124,7 @@ export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
     const reset = useCallback(() => {
         setIsRunning(false);
         elapsedTimeRef.current = 0;
-        setCurrentTelemetry(null);
+        telemetryRef.current = null;
         setSegments([]);
     }, []);
 
@@ -132,7 +133,7 @@ export const useGhostSession = (ghostTelemetry: Telemetry[]) => {
     }, [reset, ghostTelemetry]);
 
     return {
-        currentTelemetry,
+        currentTelemetry: telemetryRef.current,
         segments,
         elapsedTime: elapsedTimeRef.current,
         isRunning,

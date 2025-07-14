@@ -14,10 +14,14 @@ export default function RunningLine({
     index,
     segment,
     color = "green",
+    aboveLayerID,
+    belowLayerID,
 }: {
     index: number | string;
     segment: Segment;
     color?: "red" | "green";
+    aboveLayerID?: string;
+    belowLayerID?: string;
 }) {
     return (
         <ShapeSource
@@ -47,6 +51,8 @@ export default function RunningLine({
                               }
                         : mapboxStyles.inactiveLineLayer
                 }
+                aboveLayerID={aboveLayerID}
+                belowLayerID={belowLayerID}
             />
         </ShapeSource>
     );

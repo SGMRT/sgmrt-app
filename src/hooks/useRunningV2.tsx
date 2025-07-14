@@ -134,6 +134,9 @@ export default function useRunning({ type, weight, course }: RunningProps) {
         } else {
             clearInterval(alertRef.current);
         }
+        return () => {
+            clearInterval(alertRef.current);
+        };
     }, [status]);
 
     useEffect(() => {
