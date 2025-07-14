@@ -3,6 +3,7 @@ import HomeIcon from "./map.png";
 import ProfileIcon from "./user.png";
 
 import Puck from "./puck.png";
+import Puck3 from "./red-puck.png";
 import Triangle from "./triangle.png";
 import Puck2 from "./white-puck.png";
 
@@ -19,6 +20,7 @@ export {
     ProfileIcon,
     Puck,
     Puck2,
+    Puck3,
     StatsIcon,
     TouchText,
     Triangle,

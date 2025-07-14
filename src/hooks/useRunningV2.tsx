@@ -13,9 +13,7 @@ import useRunningSensors, { MergedRecord } from "./sensors/useRunningSensors";
 
 interface RunningProps {
     type: "free" | "course";
-    mode: "solo" | "ghost";
     weight: number;
-    ghostRunningId?: number;
     course?: Telemetry[];
 }
 
@@ -49,12 +47,7 @@ function getRecordsAfter(
         .slice(-maxCount);
 }
 
-export default function useRunning({
-    type,
-    mode,
-    weight,
-    course,
-}: RunningProps) {
+export default function useRunning({ type, weight, course }: RunningProps) {
     const { mergedRecords, courseIndex } = useRunningSensors({
         intervalMs: 1000,
         course,

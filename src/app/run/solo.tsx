@@ -39,7 +39,6 @@ export default function Run() {
         totalStepCount,
     } = useRunning({
         type: "free",
-        mode: "solo",
         weight: 70,
     });
 

@@ -1,3 +1,4 @@
+import colors from "@/src/theme/colors";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import { LineLayer, ShapeSource } from "@rnmapbox/maps";
 
@@ -12,9 +13,11 @@ export interface Segment {
 export default function RunningLine({
     index,
     segment,
+    color = "green",
 }: {
-    index: number;
+    index: number | string;
     segment: Segment;
+    color?: "red" | "green";
 }) {
     return (
         <ShapeSource
@@ -36,7 +39,12 @@ export default function RunningLine({
                 id={`segment-${index}`}
                 style={
                     segment.isRunning
-                        ? mapboxStyles.activeLineLayer
+                        ? color === "green"
+                            ? mapboxStyles.activeLineLayer
+                            : {
+                                  ...mapboxStyles.activeLineLayer,
+                                  lineColor: colors.red,
+                              }
                         : mapboxStyles.inactiveLineLayer
                 }
             />
