@@ -3,7 +3,8 @@ import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
 import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
-import { login as kakaoLogin } from "@react-native-seoul/kakao-login";
+import { initializeKakaoSDK } from "@react-native-kakao/core";
+import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, View } from "react-native";
@@ -12,6 +13,8 @@ import Toast from "react-native-toast-message";
 
 export default function Login() {
     const router = useRouter();
+
+    initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_APP_KEY ?? "");
 
     return (
         <SafeAreaView style={styles.container}>
@@ -25,7 +28,7 @@ export default function Login() {
                     onPress={async () => {
                         const kakaoAuthRequestResponse = await kakaoLogin();
 
-                        if (!kakaoAuthRequestResponse.accessToken) {
+                        if (!kakaoAuthRequestResponse.idToken) {
                             Toast.show({
                                 type: "info",
                                 text1: "카카오 로그인 실패",

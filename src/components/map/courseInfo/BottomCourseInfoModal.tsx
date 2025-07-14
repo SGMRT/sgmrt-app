@@ -171,7 +171,7 @@ export default function BottomCourseInfoModal({
                     console.log("slide success");
                     bottomSheetRef.current?.dismiss();
                     if (tab === "course") {
-                        router.push(`/run/${course?.id}/${course?.name}`);
+                        router.push(`/run/${course?.id}/${course?.name}/-1`);
                     } else {
                         router.push(
                             `/run/${course?.id}/${course?.name}/${selectedGhostId}`
