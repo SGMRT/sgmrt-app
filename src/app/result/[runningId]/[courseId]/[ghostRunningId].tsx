@@ -1,5 +1,6 @@
 import { ShareIcon } from "@/assets/svgs/svgs";
 import {
+    deleteRun,
     getCourse,
     getCourseTopRanking,
     getRun,
@@ -116,13 +117,27 @@ export default function Result() {
         runData && (
             <>
                 <SafeAreaView style={styles.container}>
-                    <Header titleText={getDate(runData.startedAt)} />
+                    <Header
+                        titleText={getDate(runData.startedAt)}
+                        onDelete={() => {
+                            deleteRun(Number(runningId));
+                        }}
+                    />
                     <ScrollView
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
                     >
                         <View style={styles.titleContainer}>
-                            {courseId === "-1" ? (
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    gap: 4,
+                                    alignItems: "center",
+                                    justifyContent: "flex-start",
+                                    flex: 1,
+                                    maxWidth: "50%",
+                                }}
+                            >
                                 <NameInput
                                     defaultValue={runData.runningName}
                                     placeholder="제목을 입력해주세요"
@@ -135,19 +150,25 @@ export default function Result() {
                                         );
                                     }}
                                 />
-                            ) : (
-                                <CourseNameContainer
-                                    courseName={
-                                        courseData?.name ??
-                                        ghostData?.courseInfo.name ??
-                                        "무명의 코스"
-                                    }
-                                    userCount={
-                                        ghostData?.courseInfo.runnerCount ?? 452
-                                    }
-                                />
-                            )}
-                            <ShareIcon />
+                                {courseId !== "-1" && (
+                                    <>
+                                        <Divider direction="vertical" />
+                                        <CourseNameContainer
+                                            courseName={
+                                                courseData?.name ??
+                                                ghostData?.courseInfo.name ??
+                                                "무명의 코스"
+                                            }
+                                            onPress={() => {
+                                                router.push(
+                                                    `/course/${courseId}`
+                                                );
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </View>
+                            <ShareIcon style={{ marginLeft: 8, flex: 1 }} />
                         </View>
                         <ResultCorseMap
                             center={center}

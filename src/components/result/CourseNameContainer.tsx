@@ -1,43 +1,32 @@
-import { UserIcon } from "@/assets/svgs/svgs";
-import { RunComperisonResponse } from "@/src/apis";
-import { CourseResponse } from "@/src/apis/types/course";
-import { StyleSheet, View } from "react-native";
-import { Divider } from "../ui/Divider";
+import { ChevronIcon } from "@/assets/svgs/svgs";
+import colors from "@/src/theme/colors";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Typography } from "../ui/Typography";
 
 interface CourseNameContainerProps {
     courseName: string;
-    userCount: number;
+    onPress?: () => void;
 }
 
 export default function CourseNameContainer({
     courseName,
-    userCount,
+    onPress,
 }: CourseNameContainerProps) {
     return (
-        <View style={styles.courseNameContainer}>
-            <Typography variant="subhead1" color="white">
-                {courseName}
-            </Typography>
-            <Divider direction="vertical" />
-            <View style={styles.userCountContainer}>
-                <UserIcon />
+        <Pressable onPress={onPress}>
+            <View style={styles.courseNameContainer}>
                 <Typography variant="caption1" color="gray60">
-                    {userCount}
+                    {courseName}
                 </Typography>
+                <ChevronIcon color={colors.gray[60]} width={14} height={14} />
             </View>
-        </View>
+        </Pressable>
     );
 }
 
 const styles = StyleSheet.create({
-    userCountContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
     courseNameContainer: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 4,
     },
 });

@@ -139,3 +139,7 @@ export async function getRunTelemetriesByCourseId(courseId: number) {
         throw error;
     }
 }
+
+export async function deleteRun(runningId: number) {
+    console.log("deleteRun", runningId);
+}
