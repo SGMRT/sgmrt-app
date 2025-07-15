@@ -83,7 +83,7 @@ type RunInfo = {
     profileUrl: string;
     recordInfo: RecordInfo;
 };
-interface RunComperisonResponse {
+export interface RunComperisonResponse {
     startedAt: number;
     runningName: string;
     telemetries: Telemetry[];

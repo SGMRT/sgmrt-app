@@ -1,4 +1,4 @@
-import { ShareIcon, UserIcon } from "@/assets/svgs/svgs";
+import { ShareIcon } from "@/assets/svgs/svgs";
 import {
     getCourse,
     getRun,
@@ -8,8 +8,8 @@ import {
 } from "@/src/apis";
 import StyledChart from "@/src/components/chart/StyledChart";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
-import CourseLayer from "@/src/components/map/CourseLayer";
-import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import CourseNameContainer from "@/src/components/result/CourseNameContainer";
+import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import CollapsibleSection from "@/src/components/ui/CollapsibleSection";
 import { Divider } from "@/src/components/ui/Divider";
@@ -19,11 +19,7 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
 import { Typography } from "@/src/components/ui/Typography";
-import {
-    calculateCenter,
-    calculateZoomLevelFromSize,
-    convertTelemetriesToCourse,
-} from "@/src/utils/mapUtils";
+import { calculateCenter } from "@/src/utils/mapUtils";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -130,49 +126,23 @@ export default function Result() {
                                     }}
                                 />
                             ) : (
-                                <View style={styles.courseNameContainer}>
-                                    <Typography
-                                        variant="subhead1"
-                                        color="white"
-                                    >
-                                        {courseData?.name ??
-                                            ghostData?.courseInfo.name ??
-                                            "무명의 코스"}
-                                    </Typography>
-                                    <Divider direction="vertical" />
-                                    <View style={styles.userCountContainer}>
-                                        <UserIcon />
-                                        <Typography
-                                            variant="caption1"
-                                            color="gray60"
-                                        >
-                                            {ghostData?.courseInfo
-                                                .runnerCount ?? 452}
-                                        </Typography>
-                                    </View>
-                                </View>
+                                <CourseNameContainer
+                                    courseName={
+                                        courseData?.name ??
+                                        ghostData?.courseInfo.name ??
+                                        "무명의 코스"
+                                    }
+                                    userCount={
+                                        ghostData?.courseInfo.runnerCount ?? 452
+                                    }
+                                />
                             )}
                             <ShareIcon />
                         </View>
-                        <View style={styles.mapContainer}>
-                            <MapViewWrapper
-                                controlEnabled={false}
-                                showPuck={false}
-                                center={center}
-                                zoom={calculateZoomLevelFromSize(
-                                    center.size,
-                                    center.latitude
-                                )}
-                            >
-                                <CourseLayer
-                                    course={convertTelemetriesToCourse(
-                                        runData.telemetries ?? []
-                                    )}
-                                    isActive={true}
-                                    onClickCourse={() => {}}
-                                />
-                            </MapViewWrapper>
-                        </View>
+                        <ResultCorseMap
+                            center={center}
+                            telemetries={runData.telemetries ?? []}
+                        />
                         <View
                             style={{
                                 paddingHorizontal: 17,
@@ -490,9 +460,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 17,
         paddingVertical: 20,
     },
-    mapContainer: {
-        height: 356,
-    },
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",
         fontSize: 60,
@@ -509,14 +476,5 @@ const styles = StyleSheet.create({
     handle: {
         paddingTop: 10,
         paddingBottom: 0,
-    },
-    userCountContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    courseNameContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
     },
 });
