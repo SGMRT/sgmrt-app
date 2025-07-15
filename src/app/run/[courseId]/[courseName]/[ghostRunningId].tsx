@@ -556,7 +556,6 @@ export default function Course() {
                         </View>
                     </BottomSheetView>
                 </BottomSheet>
-
                 {renderSlideToAction(status)}
             </View>
         )

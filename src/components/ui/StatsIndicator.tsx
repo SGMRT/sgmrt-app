@@ -172,7 +172,7 @@ export default function StatsIndicator({
                                   color={"gray60"}
                                   style={{ width: 60, textAlign: "center" }}
                               >
-                                  평균 페이스
+                                  페이스
                               </Typography>
                               <TextWithUnit
                                   value={getFormattedPace(ghostTelemetry.pace)}

@@ -1,5 +1,5 @@
-import { ShareIcon } from "@/assets/svgs/svgs";
-import { getRun, patchCourseName, patchRunName } from "@/src/apis";
+import { ShareIcon, UserIcon } from "@/assets/svgs/svgs";
+import { getCourse, getRun, patchCourseName, patchRunName } from "@/src/apis";
 import StyledChart from "@/src/components/chart/StyledChart";
 import CourseLayer from "@/src/components/map/CourseLayer";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
@@ -39,7 +39,11 @@ export default function Result() {
         setIsCourseModalOpen(true);
     };
 
-    const { data, isLoading, isError } = useQuery({
+    const {
+        data: runData,
+        isLoading,
+        isError,
+    } = useQuery({
         queryKey: ["result", runningId],
         queryFn: () => getRun(Number(runningId)),
         enabled: !!runningId,
@@ -55,7 +59,21 @@ export default function Result() {
         enabled: ghostRunningId !== "-1",
     });
 
-    const [recordTitle, setRecordTitle] = useState(data?.runningName ?? "");
+    const {
+        data: courseData,
+        isLoading: courseIsLoading,
+        isError: courseIsError,
+    } = useQuery({
+        queryKey: ["course", courseId],
+        queryFn: () => getCourse(Number(courseId)),
+        enabled: courseId !== "-1",
+    });
+
+    console.log(runningId, courseId, ghostRunningId);
+    // console.log(data, ghostData);
+    console.log(courseData);
+
+    const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
     const [courseName, setCourseName] = useState("");
 
     const router = useRouter();
@@ -63,46 +81,78 @@ export default function Result() {
     const center = useMemo(
         () =>
             calculateCenter(
-                data?.telemetries?.map((telemetry) => ({
+                runData?.telemetries?.map((telemetry) => ({
                     lat: telemetry.lat,
                     lng: telemetry.lng,
                 })) ?? []
             ),
-        [data?.telemetries]
+        [runData?.telemetries]
     );
 
     const { bottom } = useSafeAreaInsets();
 
-    if (isLoading || ghostIsLoading) {
+    if (isLoading || ghostIsLoading || courseIsLoading) {
         return <></>;
     }
 
-    if (isError || ghostIsError) {
+    if (isError || ghostIsError || courseIsError) {
         router.replace("/");
     }
 
     return (
-        data && (
+        runData && (
             <>
                 <SafeAreaView style={styles.container}>
-                    <Header titleText={getDate(data.startedAt)} />
+                    <Header titleText={getDate(runData.startedAt)} />
                     <ScrollView
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
                     >
                         <View style={styles.titleContainer}>
-                            <NameInput
-                                defaultValue={data.runningName}
-                                placeholder="제목을 입력해주세요"
-                                onChangeText={setRecordTitle}
-                                onBlur={async () => {
-                                    await patchRunName(
-                                        Number(runningId),
-                                        recordTitle,
-                                        1
-                                    );
-                                }}
-                            />
+                            {courseId === "-1" ? (
+                                <NameInput
+                                    defaultValue={runData.runningName}
+                                    placeholder="제목을 입력해주세요"
+                                    onChangeText={setRecordTitle}
+                                    onBlur={async () => {
+                                        await patchRunName(
+                                            Number(runningId),
+                                            recordTitle,
+                                            1
+                                        );
+                                    }}
+                                />
+                            ) : (
+                                <View
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 4,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="subhead1"
+                                        color="white"
+                                    >
+                                        {courseData?.name ?? "무명의 코스"}
+                                    </Typography>
+                                    <Divider direction="vertical" />
+                                    <View
+                                        style={{
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <UserIcon />
+                                        <Typography
+                                            variant="caption1"
+                                            color="gray60"
+                                        >
+                                            452
+                                        </Typography>
+                                    </View>
+                                </View>
+                            )}
                             <ShareIcon />
                         </View>
                         <View style={styles.mapContainer}>
@@ -117,7 +167,7 @@ export default function Result() {
                             >
                                 <CourseLayer
                                     course={convertTelemetriesToCourse(
-                                        data.telemetries ?? []
+                                        runData.telemetries ?? []
                                     )}
                                     isActive={true}
                                     onClickCourse={() => {}}
@@ -137,26 +187,26 @@ export default function Result() {
                                 stats={[
                                     {
                                         value: (
-                                            data.recordInfo.distance / 1000
+                                            runData.recordInfo.distance / 1000
                                         ).toFixed(2),
                                         unit: "km",
                                         description: "전체 거리",
                                     },
                                     {
                                         value: getRunTime(
-                                            data.recordInfo.duration,
+                                            runData.recordInfo.duration,
                                             "MM:SS"
                                         ),
                                         unit: "",
                                         description: "시간",
                                     },
                                     {
-                                        value: data.recordInfo.cadence.toString(),
+                                        value: runData.recordInfo.cadence.toString(),
                                         unit: "spm",
                                         description: "케이던스",
                                     },
                                     {
-                                        value: data.recordInfo.calories.toString(),
+                                        value: runData.recordInfo.calories.toString(),
                                         unit: "kcal",
                                         description: "칼로리",
                                     },
@@ -174,21 +224,24 @@ export default function Result() {
                                         stats={[
                                             {
                                                 value: getFormattedPace(
-                                                    data.recordInfo.averagePace
+                                                    runData.recordInfo
+                                                        .averagePace
                                                 ),
                                                 unit: "",
                                                 description: "평균",
                                             },
                                             {
                                                 value: getFormattedPace(
-                                                    data.recordInfo.lowestPace
+                                                    runData.recordInfo
+                                                        .lowestPace
                                                 ),
                                                 unit: "",
                                                 description: "최고",
                                             },
                                             {
                                                 value: getFormattedPace(
-                                                    data.recordInfo.highestPace
+                                                    runData.recordInfo
+                                                        .highestPace
                                                 ),
                                                 unit: "",
                                                 description: "최저",
@@ -198,7 +251,7 @@ export default function Result() {
                                 }
                             >
                                 <StyledChart
-                                    data={data.telemetries}
+                                    data={runData.telemetries}
                                     xKey="dist"
                                     yKeys={["pace"]}
                                     invertYAxis={true}
@@ -215,17 +268,17 @@ export default function Result() {
                                         }}
                                         stats={[
                                             {
-                                                value: data.recordInfo.totalElevation.toString(),
+                                                value: runData.recordInfo.totalElevation.toString(),
                                                 unit: "m",
                                                 description: "평균",
                                             },
                                             {
-                                                value: data.recordInfo.elevationGain.toString(),
+                                                value: runData.recordInfo.elevationGain.toString(),
                                                 unit: "m",
                                                 description: "상승",
                                             },
                                             {
-                                                value: data.recordInfo.elevationLoss.toString(),
+                                                value: runData.recordInfo.elevationLoss.toString(),
                                                 unit: "m",
                                                 description: "하강",
                                             },
@@ -234,7 +287,7 @@ export default function Result() {
                                 }
                             >
                                 <StyledChart
-                                    data={data.telemetries}
+                                    data={runData.telemetries}
                                     xKey="dist"
                                     yKeys={["alt"]}
                                 />
@@ -249,7 +302,7 @@ export default function Result() {
                             }}
                             onSlideRight={async () => {
                                 if (isCourseModalOpen) {
-                                    if (data.courseInfo === null) {
+                                    if (runData.courseInfo === null) {
                                         console.log("NO COURSE");
                                         Toast.show({
                                             type: "info",
@@ -260,7 +313,7 @@ export default function Result() {
                                         return;
                                     }
                                     await patchCourseName(
-                                        data.courseInfo.id,
+                                        runData.courseInfo.id,
                                         courseName,
                                         true
                                     )
