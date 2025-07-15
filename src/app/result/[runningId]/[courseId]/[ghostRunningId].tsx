@@ -1,12 +1,15 @@
 import { ShareIcon } from "@/assets/svgs/svgs";
 import {
     getCourse,
+    getCourseTopRanking,
     getRun,
     getRunComperison,
     patchCourseName,
     patchRunName,
 } from "@/src/apis";
+import { HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
+import CourseTopUsers from "@/src/components/map/courseInfo/CourseTopUsers";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import CourseNameContainer from "@/src/components/result/CourseNameContainer";
 import ResultCorseMap from "@/src/components/result/ResultCorseMap";
@@ -71,6 +74,13 @@ export default function Result() {
         queryKey: ["course", courseId],
         queryFn: () => getCourse(Number(courseId)),
         enabled: courseId !== "-1",
+    });
+
+    const { data: ghostList } = useQuery<HistoryResponse[]>({
+        queryKey: ["course-top-ranking", courseId],
+        queryFn: () =>
+            getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
+        enabled: !!courseId,
     });
 
     console.log(runningId, courseId, ghostRunningId);
@@ -245,7 +255,6 @@ export default function Result() {
                                                     .averagePace
                                             )}
                                             paddingHorizontal={false}
-                                            backgroundColor={false}
                                             isMyRecord={true}
                                         />
                                         <UserStatItem
@@ -267,7 +276,6 @@ export default function Result() {
                                                 ghostData.ghostRunInfo
                                                     .recordInfo.averagePace
                                             )}
-                                            backgroundColor={false}
                                             paddingHorizontal={false}
                                             isMyRecord={false}
                                         />
@@ -355,6 +363,19 @@ export default function Result() {
                                 />
                             </CollapsibleSection>
                             <Divider direction="horizontal" />
+                            {courseId !== "-1" && (
+                                <>
+                                    <View style={{ height: 15 }} />
+                                    <CourseTopUsers
+                                        ghostList={ghostList ?? []}
+                                        setSelectedGhostId={() => {}}
+                                        selectedGhostId={Number(runningId)}
+                                        bottomSheetRef={bottomSheetRef}
+                                        courseId={Number(courseId)}
+                                        marginHorizontal={false}
+                                    />
+                                </>
+                            )}
                         </View>
                     </ScrollView>
                     {courseId === "-1" ? (

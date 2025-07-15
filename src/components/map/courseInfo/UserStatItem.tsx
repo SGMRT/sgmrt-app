@@ -16,7 +16,6 @@ interface UserStatItemProps {
     onPress?: (ghostId: string) => void;
     isMyRecord?: boolean;
     paddingHorizontal?: boolean;
-    backgroundColor?: boolean;
 }
 
 export default memo(function UserStatItem({
@@ -31,7 +30,6 @@ export default memo(function UserStatItem({
     isMyRecord,
     onPress,
     paddingHorizontal = true,
-    backgroundColor = true,
 }: UserStatItemProps) {
     return (
         <View
@@ -41,10 +39,8 @@ export default memo(function UserStatItem({
                     paddingHorizontal: 17,
                 },
                 {
-                    backgroundColor: backgroundColor
-                        ? isGhostSelected
-                            ? "#171717"
-                            : "#111111"
+                    backgroundColor: isGhostSelected
+                        ? "#171717"
                         : "transparent",
                 },
             ]}
