@@ -1,6 +1,13 @@
 import { ShareIcon, UserIcon } from "@/assets/svgs/svgs";
-import { getCourse, getRun, patchCourseName, patchRunName } from "@/src/apis";
+import {
+    getCourse,
+    getRun,
+    getRunComperison,
+    patchCourseName,
+    patchRunName,
+} from "@/src/apis";
 import StyledChart from "@/src/components/chart/StyledChart";
+import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import CourseLayer from "@/src/components/map/CourseLayer";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import BottomModal from "@/src/components/ui/BottomModal";
@@ -54,9 +61,10 @@ export default function Result() {
         isLoading: ghostIsLoading,
         isError: ghostIsError,
     } = useQuery({
-        queryKey: ["result", ghostRunningId],
-        queryFn: () => getRun(Number(ghostRunningId)),
-        enabled: ghostRunningId !== "-1",
+        queryKey: ["comparison", runningId, ghostRunningId],
+        queryFn: () =>
+            getRunComperison(Number(runningId), Number(ghostRunningId)),
+        enabled: !!ghostRunningId,
     });
 
     const {
@@ -71,7 +79,6 @@ export default function Result() {
 
     console.log(runningId, courseId, ghostRunningId);
     // console.log(data, ghostData);
-    console.log(courseData);
 
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
     const [courseName, setCourseName] = useState("");
@@ -123,32 +130,24 @@ export default function Result() {
                                     }}
                                 />
                             ) : (
-                                <View
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        gap: 4,
-                                    }}
-                                >
+                                <View style={styles.courseNameContainer}>
                                     <Typography
                                         variant="subhead1"
                                         color="white"
                                     >
-                                        {courseData?.name ?? "무명의 코스"}
+                                        {courseData?.name ??
+                                            ghostData?.courseInfo.name ??
+                                            "무명의 코스"}
                                     </Typography>
                                     <Divider direction="vertical" />
-                                    <View
-                                        style={{
-                                            flexDirection: "row",
-                                            alignItems: "center",
-                                        }}
-                                    >
+                                    <View style={styles.userCountContainer}>
                                         <UserIcon />
                                         <Typography
                                             variant="caption1"
                                             color="gray60"
                                         >
-                                            452
+                                            {ghostData?.courseInfo
+                                                .runnerCount ?? 452}
                                         </Typography>
                                     </View>
                                 </View>
@@ -212,6 +211,99 @@ export default function Result() {
                                     },
                                 ]}
                             />
+                            {ghostData && (
+                                <>
+                                    <Divider direction="horizontal" />
+                                    <CollapsibleSection
+                                        title="기록 비교"
+                                        defaultOpen={true}
+                                        alwaysVisibleChildren={
+                                            <StatRow
+                                                style={{
+                                                    gap: 20,
+                                                }}
+                                                stats={[
+                                                    {
+                                                        value: (ghostData?.comparisonInfo.distance).toFixed(
+                                                            2
+                                                        ),
+                                                        unit: "km",
+                                                        description: "거리",
+                                                    },
+                                                    {
+                                                        value: getRunTime(
+                                                            ghostData
+                                                                ?.comparisonInfo
+                                                                .duration,
+                                                            "MM:SS"
+                                                        ),
+                                                        unit: "",
+                                                        description: "시간",
+                                                    },
+                                                    {
+                                                        value: ghostData?.comparisonInfo.cadence.toString(),
+                                                        unit: "spm",
+                                                        description: "케이던스",
+                                                    },
+                                                    {
+                                                        value: getFormattedPace(
+                                                            ghostData
+                                                                ?.comparisonInfo
+                                                                .pace
+                                                        ),
+                                                        unit: "",
+                                                        description: "페이스",
+                                                    },
+                                                ]}
+                                            />
+                                        }
+                                    >
+                                        <UserStatItem
+                                            name={ghostData.myRunInfo.nickname}
+                                            avatar={
+                                                ghostData.myRunInfo.profileUrl
+                                            }
+                                            time={getRunTime(
+                                                ghostData.myRunInfo.recordInfo
+                                                    .duration,
+                                                "MM:SS"
+                                            )}
+                                            cadence={ghostData.myRunInfo.recordInfo.cadence.toString()}
+                                            isGhostSelected={true}
+                                            pace={getFormattedPace(
+                                                ghostData.myRunInfo.recordInfo
+                                                    .averagePace
+                                            )}
+                                            paddingHorizontal={false}
+                                            backgroundColor={false}
+                                            isMyRecord={true}
+                                        />
+                                        <UserStatItem
+                                            name={
+                                                ghostData.ghostRunInfo.nickname
+                                            }
+                                            avatar={
+                                                ghostData.ghostRunInfo
+                                                    .profileUrl
+                                            }
+                                            time={getRunTime(
+                                                ghostData.ghostRunInfo
+                                                    .recordInfo.duration,
+                                                "MM:SS"
+                                            )}
+                                            cadence={ghostData.ghostRunInfo.recordInfo.cadence.toString()}
+                                            isGhostSelected={false}
+                                            pace={getFormattedPace(
+                                                ghostData.ghostRunInfo
+                                                    .recordInfo.averagePace
+                                            )}
+                                            backgroundColor={false}
+                                            paddingHorizontal={false}
+                                            isMyRecord={false}
+                                        />
+                                    </CollapsibleSection>
+                                </>
+                            )}
                             <Divider direction="horizontal" />
                             <CollapsibleSection
                                 title="페이스"
@@ -417,5 +509,14 @@ const styles = StyleSheet.create({
     handle: {
         paddingTop: 10,
         paddingBottom: 0,
+    },
+    userCountContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    courseNameContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
     },
 });
