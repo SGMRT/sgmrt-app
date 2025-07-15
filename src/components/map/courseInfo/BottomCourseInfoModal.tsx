@@ -1,4 +1,3 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
@@ -14,7 +13,7 @@ import { Divider } from "../../ui/Divider";
 import SlideToAction from "../../ui/SlideToAction";
 import StatsIndicator from "../../ui/StatsIndicator";
 import { Typography } from "../../ui/Typography";
-import UserStatItem from "./UserStatItem";
+import CourseTopUsers from "./CourseTopUsers";
 
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
@@ -50,7 +49,7 @@ export default function BottomCourseInfoModal({
         if (ghostList && ghostList.length > 0) {
             setSelectedGhostId(ghostList[0].runningId);
         }
-    }, [ghostList]);
+    }, [ghostList, courseId]);
 
     const stats = [
         {
@@ -117,49 +116,13 @@ export default function BottomCourseInfoModal({
                 </View>
             )}
             {tab === "ghost" && (
-                <View style={{ gap: 10 }}>
-                    <View style={styles.ghostListContainer}>
-                        <Typography variant="body1" color="gray40">
-                            빠른 완주 순위
-                        </Typography>
-                        <View style={styles.ghostListContainerText}>
-                            <Pressable
-                                onPress={() => {
-                                    bottomSheetRef.current?.dismiss();
-                                    router.push(`/course/${course?.id}`);
-                                }}
-                            >
-                                <Typography variant="body2" color="gray60">
-                                    전체 보기
-                                </Typography>
-                            </Pressable>
-                            <ChevronIcon />
-                        </View>
-                    </View>
-                    {ghostList && ghostList.length > 0 && (
-                        <View style={styles.marginBottom}>
-                            {ghostList.map((ghost, index) => (
-                                <UserStatItem
-                                    key={ghost.runningId}
-                                    rank={index + 1}
-                                    name={ghost.runningName}
-                                    avatar={ghost.runnerProfileUrl}
-                                    time={getRunTime(ghost.duration, "MM:SS")}
-                                    pace={getFormattedPace(ghost.averagePace)}
-                                    cadence={ghost.cadence.toString() + " spm"}
-                                    ghostId={ghost.runningId.toString()}
-                                    isGhostSelected={
-                                        selectedGhostId === ghost.runningId
-                                    }
-                                    onPress={() => {
-                                        setSelectedGhostId(ghost.runningId);
-                                    }}
-                                    isMyRecord={ghost.runnerId === 1}
-                                />
-                            ))}
-                        </View>
-                    )}
-                </View>
+                <CourseTopUsers
+                    ghostList={ghostList ?? []}
+                    selectedGhostId={selectedGhostId ?? 0}
+                    setSelectedGhostId={setSelectedGhostId}
+                    bottomSheetRef={bottomSheetRef}
+                    courseId={courseId}
+                />
             )}
             <SlideToAction
                 label={
@@ -224,18 +187,5 @@ const styles = StyleSheet.create({
     courseInfoItemValue: {
         flexDirection: "row",
         alignItems: "flex-end",
-    },
-    ghostListContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 17,
-    },
-    ghostListContainerText: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    marginBottom: {
-        marginBottom: 20,
     },
 });

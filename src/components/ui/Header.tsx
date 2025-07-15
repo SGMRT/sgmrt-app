@@ -1,4 +1,4 @@
-import { BackIcon } from "@/assets/svgs/svgs";
+import { BackIcon, TrashIcon } from "@/assets/svgs/svgs";
 import { useRouter } from "expo-router";
 import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -8,12 +8,14 @@ interface HeaderProps {
     titleText: string;
     titleComponent?: React.ReactNode;
     hasBackButton?: boolean;
+    onDelete?: () => void;
 }
 
 export default memo(function Header({
     titleText,
     titleComponent,
     hasBackButton = true,
+    onDelete,
 }: HeaderProps) {
     const router = useRouter();
     return (
@@ -40,7 +42,14 @@ export default memo(function Header({
                         {titleText}
                     </Typography>
                 )}
-                {hasBackButton && <View style={{ width: 11, height: 18 }} />}
+                {hasBackButton && !onDelete && (
+                    <View style={{ width: 11, height: 18 }} />
+                )}
+                {onDelete && (
+                    <Pressable onPress={onDelete}>
+                        <TrashIcon />
+                    </Pressable>
+                )}
             </View>
         </View>
     );

@@ -3,6 +3,7 @@ import {
     BaseRunning,
     CourseGhostRunning,
     CourseSoloRunning,
+    RecordInfo,
     SoloRunGetResponse,
     Telemetry,
 } from "./types/run";
@@ -77,11 +78,35 @@ export async function getRunTelemetries(
         throw error;
     }
 }
+type RunInfo = {
+    nickname: string;
+    profileUrl: string;
+    recordInfo: RecordInfo;
+};
+export interface RunComperisonResponse {
+    startedAt: number;
+    runningName: string;
+    telemetries: Telemetry[];
+    courseInfo: {
+        id: number;
+        name: string;
+        isPublic: boolean;
+        runnerCount: number;
+    };
+    myRunInfo: RunInfo;
+    ghostRunInfo: RunInfo;
+    comparisonInfo: {
+        distance: number;
+        duration: number;
+        cadence: number;
+        pace: number;
+    };
+}
 
 export async function getRunComperison(
     myRunningId: number,
     ghostRunningId: number
-) {
+): Promise<RunComperisonResponse> {
     try {
         const response = await server.get(
             `runs/${myRunningId}/ghosts/${ghostRunningId}`
@@ -113,4 +138,8 @@ export async function getRunTelemetriesByCourseId(courseId: number) {
         console.error(error);
         throw error;
     }
+}
+
+export async function deleteRun(runningId: number) {
+    console.log("deleteRun", runningId);
 }

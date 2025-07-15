@@ -15,6 +15,9 @@ import KakaoIcon from "./kakao.svg";
 
 import CheckIcon from "./check.svg";
 
+import TrashIcon from "./delete.svg";
+import UserIcon from "./user.svg";
+
 export {
     AppleIcon,
     BackIcon,
@@ -27,4 +30,6 @@ export {
     ShareIcon,
     ToastCheckIcon,
     ToastInfoIcon,
+    TrashIcon,
+    UserIcon,
 };

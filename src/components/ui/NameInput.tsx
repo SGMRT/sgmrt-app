@@ -33,7 +33,7 @@ export default function NameInput({
                 style={[
                     styles.titleInput,
                     {
-                        maxWidth: "80%",
+                        maxWidth: "100%",
                     },
                 ]}
                 ref={InputRef}
@@ -58,7 +58,6 @@ const styles = StyleSheet.create({
         gap: 4,
         alignItems: "center",
         overflow: "hidden",
-        flex: 1,
     },
     titleInput: {
         ...typographyStyles.subhead1,

@@ -5,16 +5,17 @@ import { Divider } from "../../ui/Divider";
 import { Typography } from "../../ui/Typography";
 
 interface UserStatItemProps {
-    rank: number;
+    rank?: number;
     name: string;
     avatar: string;
     time: string;
     pace: string;
     cadence: string;
-    ghostId: string;
+    ghostId?: string;
     isGhostSelected: boolean;
-    onPress: (ghostId: string) => void;
+    onPress?: (ghostId: string) => void;
     isMyRecord?: boolean;
+    paddingHorizontal?: boolean;
 }
 
 export default memo(function UserStatItem({
@@ -28,13 +29,19 @@ export default memo(function UserStatItem({
     ghostId,
     isMyRecord,
     onPress,
+    paddingHorizontal = true,
 }: UserStatItemProps) {
     return (
         <View
             style={[
                 styles.container,
+                paddingHorizontal && {
+                    paddingHorizontal: 17,
+                },
                 {
-                    backgroundColor: isGhostSelected ? "#171717" : "#111111",
+                    backgroundColor: isGhostSelected
+                        ? "#171717"
+                        : "transparent",
                 },
             ]}
         >
@@ -87,7 +94,7 @@ export default memo(function UserStatItem({
                     </View>
                 </View>
             </View>
-            <Pressable onPress={() => onPress(ghostId)}>
+            <Pressable onPress={() => onPress?.(ghostId ?? "")}>
                 <View
                     style={[
                         styles.rankContainer,
@@ -127,7 +134,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         alignItems: "center",
         paddingVertical: 15,
-        paddingHorizontal: 17,
     },
     textContainer: {
         flexDirection: "row",

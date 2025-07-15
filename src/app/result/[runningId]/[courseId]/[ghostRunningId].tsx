@@ -1,8 +1,19 @@
 import { ShareIcon } from "@/assets/svgs/svgs";
-import { getRun, patchCourseName, patchRunName } from "@/src/apis";
+import {
+    deleteRun,
+    getCourse,
+    getCourseTopRanking,
+    getRun,
+    getRunComperison,
+    patchCourseName,
+    patchRunName,
+} from "@/src/apis";
+import { HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
-import CourseLayer from "@/src/components/map/CourseLayer";
-import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import CourseTopUsers from "@/src/components/map/courseInfo/CourseTopUsers";
+import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
+import CourseNameContainer from "@/src/components/result/CourseNameContainer";
+import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import CollapsibleSection from "@/src/components/ui/CollapsibleSection";
 import { Divider } from "@/src/components/ui/Divider";
@@ -12,11 +23,7 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
 import { Typography } from "@/src/components/ui/Typography";
-import {
-    calculateCenter,
-    calculateZoomLevelFromSize,
-    convertTelemetriesToCourse,
-} from "@/src/utils/mapUtils";
+import { calculateCenter } from "@/src/utils/mapUtils";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -39,7 +46,11 @@ export default function Result() {
         setIsCourseModalOpen(true);
     };
 
-    const { data, isLoading, isError } = useQuery({
+    const {
+        data: runData,
+        isLoading,
+        isError,
+    } = useQuery({
         queryKey: ["result", runningId],
         queryFn: () => getRun(Number(runningId)),
         enabled: !!runningId,
@@ -50,12 +61,33 @@ export default function Result() {
         isLoading: ghostIsLoading,
         isError: ghostIsError,
     } = useQuery({
-        queryKey: ["result", ghostRunningId],
-        queryFn: () => getRun(Number(ghostRunningId)),
-        enabled: ghostRunningId !== "-1",
+        queryKey: ["comparison", runningId, ghostRunningId],
+        queryFn: () =>
+            getRunComperison(Number(runningId), Number(ghostRunningId)),
+        enabled: !!ghostRunningId,
     });
 
-    const [recordTitle, setRecordTitle] = useState(data?.runningName ?? "");
+    const {
+        data: courseData,
+        isLoading: courseIsLoading,
+        isError: courseIsError,
+    } = useQuery({
+        queryKey: ["course", courseId],
+        queryFn: () => getCourse(Number(courseId)),
+        enabled: courseId !== "-1",
+    });
+
+    const { data: ghostList } = useQuery<HistoryResponse[]>({
+        queryKey: ["course-top-ranking", courseId],
+        queryFn: () =>
+            getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
+        enabled: !!courseId,
+    });
+
+    console.log(runningId, courseId, ghostRunningId);
+    // console.log(data, ghostData);
+
+    const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
     const [courseName, setCourseName] = useState("");
 
     const router = useRouter();
@@ -63,67 +95,85 @@ export default function Result() {
     const center = useMemo(
         () =>
             calculateCenter(
-                data?.telemetries?.map((telemetry) => ({
+                runData?.telemetries?.map((telemetry) => ({
                     lat: telemetry.lat,
                     lng: telemetry.lng,
                 })) ?? []
             ),
-        [data?.telemetries]
+        [runData?.telemetries]
     );
 
     const { bottom } = useSafeAreaInsets();
 
-    if (isLoading || ghostIsLoading) {
+    if (isLoading || ghostIsLoading || courseIsLoading) {
         return <></>;
     }
 
-    if (isError || ghostIsError) {
+    if (isError || ghostIsError || courseIsError) {
         router.replace("/");
     }
 
     return (
-        data && (
+        runData && (
             <>
                 <SafeAreaView style={styles.container}>
-                    <Header titleText={getDate(data.startedAt)} />
+                    <Header
+                        titleText={getDate(runData.startedAt)}
+                        onDelete={() => {
+                            deleteRun(Number(runningId));
+                        }}
+                    />
                     <ScrollView
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
                     >
                         <View style={styles.titleContainer}>
-                            <NameInput
-                                defaultValue={data.runningName}
-                                placeholder="제목을 입력해주세요"
-                                onChangeText={setRecordTitle}
-                                onBlur={async () => {
-                                    await patchRunName(
-                                        Number(runningId),
-                                        recordTitle,
-                                        1
-                                    );
+                            <View
+                                style={{
+                                    flexDirection: "row",
+                                    gap: 4,
+                                    alignItems: "center",
+                                    justifyContent: "flex-start",
+                                    flex: 1,
+                                    maxWidth: "50%",
                                 }}
-                            />
-                            <ShareIcon />
-                        </View>
-                        <View style={styles.mapContainer}>
-                            <MapViewWrapper
-                                controlEnabled={false}
-                                showPuck={false}
-                                center={center}
-                                zoom={calculateZoomLevelFromSize(
-                                    center.size,
-                                    center.latitude
-                                )}
                             >
-                                <CourseLayer
-                                    course={convertTelemetriesToCourse(
-                                        data.telemetries ?? []
-                                    )}
-                                    isActive={true}
-                                    onClickCourse={() => {}}
+                                <NameInput
+                                    defaultValue={runData.runningName}
+                                    placeholder="제목을 입력해주세요"
+                                    onChangeText={setRecordTitle}
+                                    onBlur={async () => {
+                                        await patchRunName(
+                                            Number(runningId),
+                                            recordTitle,
+                                            1
+                                        );
+                                    }}
                                 />
-                            </MapViewWrapper>
+                                {courseId !== "-1" && (
+                                    <>
+                                        <Divider direction="vertical" />
+                                        <CourseNameContainer
+                                            courseName={
+                                                courseData?.name ??
+                                                ghostData?.courseInfo.name ??
+                                                "무명의 코스"
+                                            }
+                                            onPress={() => {
+                                                router.push(
+                                                    `/course/${courseId}`
+                                                );
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </View>
+                            <ShareIcon style={{ marginLeft: 8, flex: 1 }} />
                         </View>
+                        <ResultCorseMap
+                            center={center}
+                            telemetries={runData.telemetries ?? []}
+                        />
                         <View
                             style={{
                                 paddingHorizontal: 17,
@@ -137,31 +187,122 @@ export default function Result() {
                                 stats={[
                                     {
                                         value: (
-                                            data.recordInfo.distance / 1000
+                                            runData.recordInfo.distance / 1000
                                         ).toFixed(2),
                                         unit: "km",
                                         description: "전체 거리",
                                     },
                                     {
                                         value: getRunTime(
-                                            data.recordInfo.duration,
+                                            runData.recordInfo.duration,
                                             "MM:SS"
                                         ),
                                         unit: "",
                                         description: "시간",
                                     },
                                     {
-                                        value: data.recordInfo.cadence.toString(),
+                                        value: runData.recordInfo.cadence.toString(),
                                         unit: "spm",
                                         description: "케이던스",
                                     },
                                     {
-                                        value: data.recordInfo.calories.toString(),
+                                        value: runData.recordInfo.calories.toString(),
                                         unit: "kcal",
                                         description: "칼로리",
                                     },
                                 ]}
                             />
+                            {ghostData && (
+                                <>
+                                    <Divider direction="horizontal" />
+                                    <CollapsibleSection
+                                        title="기록 비교"
+                                        defaultOpen={true}
+                                        alwaysVisibleChildren={
+                                            <StatRow
+                                                style={{
+                                                    gap: 20,
+                                                }}
+                                                stats={[
+                                                    {
+                                                        value: (ghostData?.comparisonInfo.distance).toFixed(
+                                                            2
+                                                        ),
+                                                        unit: "km",
+                                                        description: "거리",
+                                                    },
+                                                    {
+                                                        value: getRunTime(
+                                                            ghostData
+                                                                ?.comparisonInfo
+                                                                .duration,
+                                                            "MM:SS"
+                                                        ),
+                                                        unit: "",
+                                                        description: "시간",
+                                                    },
+                                                    {
+                                                        value: ghostData?.comparisonInfo.cadence.toString(),
+                                                        unit: "spm",
+                                                        description: "케이던스",
+                                                    },
+                                                    {
+                                                        value: getFormattedPace(
+                                                            ghostData
+                                                                ?.comparisonInfo
+                                                                .pace
+                                                        ),
+                                                        unit: "",
+                                                        description: "페이스",
+                                                    },
+                                                ]}
+                                            />
+                                        }
+                                    >
+                                        <UserStatItem
+                                            name={ghostData.myRunInfo.nickname}
+                                            avatar={
+                                                ghostData.myRunInfo.profileUrl
+                                            }
+                                            time={getRunTime(
+                                                ghostData.myRunInfo.recordInfo
+                                                    .duration,
+                                                "MM:SS"
+                                            )}
+                                            cadence={ghostData.myRunInfo.recordInfo.cadence.toString()}
+                                            isGhostSelected={true}
+                                            pace={getFormattedPace(
+                                                ghostData.myRunInfo.recordInfo
+                                                    .averagePace
+                                            )}
+                                            paddingHorizontal={false}
+                                            isMyRecord={true}
+                                        />
+                                        <UserStatItem
+                                            name={
+                                                ghostData.ghostRunInfo.nickname
+                                            }
+                                            avatar={
+                                                ghostData.ghostRunInfo
+                                                    .profileUrl
+                                            }
+                                            time={getRunTime(
+                                                ghostData.ghostRunInfo
+                                                    .recordInfo.duration,
+                                                "MM:SS"
+                                            )}
+                                            cadence={ghostData.ghostRunInfo.recordInfo.cadence.toString()}
+                                            isGhostSelected={false}
+                                            pace={getFormattedPace(
+                                                ghostData.ghostRunInfo
+                                                    .recordInfo.averagePace
+                                            )}
+                                            paddingHorizontal={false}
+                                            isMyRecord={false}
+                                        />
+                                    </CollapsibleSection>
+                                </>
+                            )}
                             <Divider direction="horizontal" />
                             <CollapsibleSection
                                 title="페이스"
@@ -174,21 +315,24 @@ export default function Result() {
                                         stats={[
                                             {
                                                 value: getFormattedPace(
-                                                    data.recordInfo.averagePace
+                                                    runData.recordInfo
+                                                        .averagePace
                                                 ),
                                                 unit: "",
                                                 description: "평균",
                                             },
                                             {
                                                 value: getFormattedPace(
-                                                    data.recordInfo.lowestPace
+                                                    runData.recordInfo
+                                                        .lowestPace
                                                 ),
                                                 unit: "",
                                                 description: "최고",
                                             },
                                             {
                                                 value: getFormattedPace(
-                                                    data.recordInfo.highestPace
+                                                    runData.recordInfo
+                                                        .highestPace
                                                 ),
                                                 unit: "",
                                                 description: "최저",
@@ -198,7 +342,7 @@ export default function Result() {
                                 }
                             >
                                 <StyledChart
-                                    data={data.telemetries}
+                                    data={runData.telemetries}
                                     xKey="dist"
                                     yKeys={["pace"]}
                                     invertYAxis={true}
@@ -215,17 +359,17 @@ export default function Result() {
                                         }}
                                         stats={[
                                             {
-                                                value: data.recordInfo.totalElevation.toString(),
+                                                value: runData.recordInfo.totalElevation.toString(),
                                                 unit: "m",
                                                 description: "평균",
                                             },
                                             {
-                                                value: data.recordInfo.elevationGain.toString(),
+                                                value: runData.recordInfo.elevationGain.toString(),
                                                 unit: "m",
                                                 description: "상승",
                                             },
                                             {
-                                                value: data.recordInfo.elevationLoss.toString(),
+                                                value: runData.recordInfo.elevationLoss.toString(),
                                                 unit: "m",
                                                 description: "하강",
                                             },
@@ -234,12 +378,25 @@ export default function Result() {
                                 }
                             >
                                 <StyledChart
-                                    data={data.telemetries}
+                                    data={runData.telemetries}
                                     xKey="dist"
                                     yKeys={["alt"]}
                                 />
                             </CollapsibleSection>
                             <Divider direction="horizontal" />
+                            {courseId !== "-1" && (
+                                <>
+                                    <View style={{ height: 15 }} />
+                                    <CourseTopUsers
+                                        ghostList={ghostList ?? []}
+                                        setSelectedGhostId={() => {}}
+                                        selectedGhostId={Number(runningId)}
+                                        bottomSheetRef={bottomSheetRef}
+                                        courseId={Number(courseId)}
+                                        marginHorizontal={false}
+                                    />
+                                </>
+                            )}
                         </View>
                     </ScrollView>
                     {courseId === "-1" ? (
@@ -249,7 +406,7 @@ export default function Result() {
                             }}
                             onSlideRight={async () => {
                                 if (isCourseModalOpen) {
-                                    if (data.courseInfo === null) {
+                                    if (runData.courseInfo === null) {
                                         console.log("NO COURSE");
                                         Toast.show({
                                             type: "info",
@@ -260,7 +417,7 @@ export default function Result() {
                                         return;
                                     }
                                     await patchCourseName(
-                                        data.courseInfo.id,
+                                        runData.courseInfo.id,
                                         courseName,
                                         true
                                     )
@@ -344,9 +501,6 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         paddingHorizontal: 17,
         paddingVertical: 20,
-    },
-    mapContainer: {
-        height: 356,
     },
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",
