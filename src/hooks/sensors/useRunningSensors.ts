@@ -4,23 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useBarometerTracker } from "./useBarometerTracker";
 import { useLocationTracker } from "./useLocationTracker";
 import { usePedometerTracker } from "./usePedometerTracker";
-
-function findClosest<T extends { timestamp: number }>(
-    records: T[],
-    target: number
-): T | undefined {
-    if (!records.length) return undefined;
-    let closest = records[0];
-    let minDiff = Math.abs(records[0].timestamp - target);
-    for (let i = 1; i < records.length; i++) {
-        const diff = Math.abs(records[i].timestamp - target);
-        if (diff < minDiff) {
-            closest = records[i];
-            minDiff = diff;
-        }
-    }
-    return closest;
-}
+import { findClosest } from "@/src/utils/interpolateTelemetries";
 
 export interface MergedRecord {
     timestamp: number;

@@ -200,7 +200,7 @@ export default function useRunning({ type, weight, course }: RunningProps) {
             // 러닝 중지 상태 데이터 저장
             const lastTelemetry = telemetryRef.current.at(-1);
             telemetryRef.current.push({
-                timeStamp: currentRecord.timestamp,
+                timeStamp: lastRecord?.timestamp ?? 0,
                 lat: currentRecord.lat,
                 lng: currentRecord.lng,
                 dist: lastTelemetry?.dist ?? 0,
@@ -219,10 +219,21 @@ export default function useRunning({ type, weight, course }: RunningProps) {
             const timeDiff =
                 (currentRecord.timestamp - lastUpdateTimestampRef.current) /
                 1000;
-            console.log(timeDiff);
+
+            if (timeDiff === 0) {
+                console.log("timeDiff is 0");
+                return;
+            }
+
             totalStepCountRef.current += deltaStep;
             // 러닝 중 상태 데이터 저장
             runTimeRef.current += timeDiff;
+
+            const alt =
+                (currentRecord.relativeAltitude ?? 0) -
+                (baseAltitudeRef.current ??
+                    currentRecord.relativeAltitude ??
+                    0);
 
             if (telemetryRef.current.length === 0) {
                 baseAltitudeRef.current = currentRecord.relativeAltitude ?? 0;
@@ -257,18 +268,15 @@ export default function useRunning({ type, weight, course }: RunningProps) {
                     (Number(recordsAfter.at(-1)?.timestamp) -
                         Number(recordsAfter[0]?.timestamp)) /
                     1000;
-
                 telemetryRef.current.push({
-                    timeStamp: currentRecord.timestamp,
+                    timeStamp: lastRecord?.timestamp! + timeDiff,
                     lat: currentRecord.lat,
                     lng: currentRecord.lng,
                     dist:
                         (telemetryRef.current.at(-1)?.dist ?? 0) +
                         (deltaDistanceM ?? 0),
                     pace: getPace(cumulativeTime, cumulativeDistanceM),
-                    alt:
-                        (currentRecord.relativeAltitude ?? 0) -
-                        (baseAltitudeRef.current ?? 0),
+                    alt: alt,
                     cadence: getCadence(cumulativeStep, cumulativeTime),
                     bpm: 0,
                     isRunning: true,
@@ -279,16 +287,9 @@ export default function useRunning({ type, weight, course }: RunningProps) {
                 .filter((telemetry) => telemetry.isRunning)
                 .at(-1);
 
-            const elevationDiffs = telemetryRef.current.map(
-                (telemetry, index) => {
-                    if (index === 0) return 0;
-                    return (
-                        telemetry.alt - telemetryRef.current.at(index - 1)!.alt
-                    );
-                }
-            );
+            const elevationDiff = (lastTelemetry?.alt ?? alt) - alt;
 
-            setUserDashboardData({
+            setUserDashboardData((prev) => ({
                 totalDistance: lastTelemetry?.dist ?? 0,
                 paceOfLastPoints: getPace(
                     runTimeRef.current,
@@ -303,20 +304,14 @@ export default function useRunning({ type, weight, course }: RunningProps) {
                     timeInSec: runTimeRef.current,
                     weight: weight,
                 }),
-                totalElevationGain: elevationDiffs.reduce((acc, diff) => {
-                    if (diff > 0) {
-                        return acc + diff;
-                    }
-                    return acc;
-                }, 0),
-                totalElevationLoss: elevationDiffs.reduce((acc, diff) => {
-                    if (diff < 0) {
-                        return acc + diff;
-                    }
-                    return acc;
-                }, 0),
+                totalElevationGain:
+                    prev.totalElevationGain +
+                    (elevationDiff > 0 ? elevationDiff : 0),
+                totalElevationLoss:
+                    prev.totalElevationLoss +
+                    (elevationDiff < 0 ? elevationDiff : 0),
                 bpm: 0,
-            });
+            }));
         }
         setSegments((prev) => {
             const lastTelemetry = telemetryRef.current.at(-1);

@@ -35,8 +35,8 @@ export function useBarometerTracker() {
                 },
             ];
 
-            if (baroRecordsRef.current.length > 150) {
-                baroRecordsRef.current = baroRecordsRef.current.slice(-100);
+            if (baroRecordsRef.current.length > 100) {
+                baroRecordsRef.current = baroRecordsRef.current.slice(-50);
             }
         });
         return () => subRef.current && subRef.current.remove();

@@ -1,7 +1,7 @@
 import { getRunTelemetries, getRunTelemetriesByCourseId } from "@/src/apis";
 import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
-import RunningLine from "@/src/components/map/RunningLine";
+import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import Countdown from "@/src/components/ui/Countdown";
 import { Divider } from "@/src/components/ui/Divider";
@@ -10,9 +10,12 @@ import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
-import { useGhostSession } from "@/src/hooks/useGhostSession";
 import useRunning, { RunningStatus } from "@/src/hooks/useRunningV2";
 import colors from "@/src/theme/colors";
+import {
+    findClosest,
+    interpolateTelemetries,
+} from "@/src/utils/interpolateTelemetries";
 import {
     getFormattedPace,
     getRunTime,
@@ -43,17 +46,24 @@ export default function Course() {
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
     const [course, setCourse] = useState<Telemetry[]>([]);
-    const [ghost, setGhost] = useState<Telemetry[]>([]);
+    const ghostTelemetries = useRef<Telemetry[]>([]);
+    const [ghostSegments, setGhostSegments] = useState<Segment[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    const isGhostRunning =
+        ghostTelemetries.current.length > 0 || ghostSegments.length > 0;
 
     useEffect(() => {
         const fetch = () => {
             Promise.all([
                 getRunTelemetriesByCourseId(Number(courseId)),
                 getRunTelemetries(Number(ghostRunningId)),
-            ]).then(([course, ghost]) => {
+            ]).then(([course, rawGhostTelemetries]) => {
                 setCourse(course);
-                setGhost(ghost);
+                const newGhostTelemetries = interpolateTelemetries(
+                    rawGhostTelemetries,
+                    250
+                );
+                ghostTelemetries.current = newGhostTelemetries;
                 setIsLoading(false);
             });
         };
@@ -81,22 +91,65 @@ export default function Course() {
         course,
     });
 
-    const {
-        start,
-        pause,
-        currentTelemetry: ghostTelemetry,
-        segments: ghostSegments,
-    } = useGhostSession(ghost);
-
     useEffect(() => {
-        if (ghost.length === 0) return;
+        if (ghostTelemetries.current.length <= 1) return;
 
-        if (status === "course_running") {
-            start();
-        } else {
-            pause();
-        }
-    }, [status, start, pause, ghost]);
+        const ghostTelemetry = findClosest(
+            ghostTelemetries.current,
+            runTime * 1000,
+            (r) => r.timeStamp
+        );
+
+        if (!ghostTelemetry) return;
+
+        ghostTelemetries.current = ghostTelemetries.current.filter((t) => {
+            // 현재 선택된 ghostTelemetry의 timeStamp보다 큰 값만 남김
+            return t.timeStamp >= ghostTelemetry.timeStamp;
+        });
+
+        setGhostSegments((prev) => {
+            // 마지막 points
+            const lastPoints = prev.length > 0 ? prev.at(-1)!.points : [];
+            // 마지막 위치와 다를 때만 push
+            const lastPoint = lastPoints.at(-1);
+            const isNewPoint =
+                !lastPoint ||
+                lastPoint.latitude !== ghostTelemetry.lat ||
+                lastPoint.longitude !== ghostTelemetry.lng;
+
+            if (!isNewPoint) return prev;
+
+            console.log(isNewPoint);
+
+            // 새 배열/객체로 복사 (불변성 유지)
+            const newSegments = prev.length
+                ? [
+                      ...prev.slice(0, -1),
+                      {
+                          ...prev.at(-1)!,
+                          points: [
+                              ...lastPoints,
+                              {
+                                  latitude: ghostTelemetry.lat,
+                                  longitude: ghostTelemetry.lng,
+                              },
+                          ],
+                      },
+                  ]
+                : [
+                      {
+                          isRunning: true,
+                          points: [
+                              {
+                                  latitude: ghostTelemetry.lat,
+                                  longitude: ghostTelemetry.lng,
+                              },
+                          ],
+                      },
+                  ];
+            return newSegments;
+        });
+    }, [runTime]);
 
     const confettiRef = useRef<ConfettiMethods | null>(null);
 
@@ -412,9 +465,7 @@ export default function Course() {
                             />
                         ))}
 
-                    {ghost.length > 0 &&
-                    ghostTelemetry &&
-                    status !== "completed" ? (
+                    {isGhostRunning && status !== "completed" ? (
                         <>
                             {ghostSegments.map((segment, index) => (
                                 <RunningLine
@@ -430,8 +481,8 @@ export default function Course() {
                                 shape={{
                                     type: "Point",
                                     coordinates: [
-                                        ghostTelemetry.lng,
-                                        ghostTelemetry.lat,
+                                        ghostTelemetries.current[0].lng,
+                                        ghostTelemetries.current[0].lat,
                                     ],
                                 }}
                             >
@@ -498,8 +549,8 @@ export default function Course() {
                             )}
                             <StatsIndicator
                                 stats={stats}
-                                ghost={ghost.length > 0}
-                                ghostTelemetry={ghostTelemetry}
+                                ghost={isGhostRunning}
+                                ghostTelemetry={ghostTelemetries.current[0]}
                                 color="gray20"
                             />
                         </View>

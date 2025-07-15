@@ -35,8 +35,8 @@ export function useLocationTracker() {
                         },
                     ];
 
-                    if (locationsRef.current.length > 150) {
-                        locationsRef.current = locationsRef.current.slice(-100);
+                    if (locationsRef.current.length > 100) {
+                        locationsRef.current = locationsRef.current.slice(-50);
                     }
                 }
             );

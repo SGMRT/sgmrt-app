@@ -24,8 +24,8 @@ export function usePedometerTracker() {
                 },
             ];
 
-            if (stepRecordsRef.current.length > 150) {
-                stepRecordsRef.current = stepRecordsRef.current.slice(-100);
+            if (stepRecordsRef.current.length > 100) {
+                stepRecordsRef.current = stepRecordsRef.current.slice(-50);
             }
         });
         return () => subRef.current && subRef.current.remove();
