@@ -5,12 +5,12 @@ import { Divider } from "../../ui/Divider";
 import { Typography } from "../../ui/Typography";
 
 interface UserStatItemProps {
-    rank?: number;
+    rank?: number | string;
     name: string;
     avatar: string;
     time: string;
     pace: string;
-    cadence: string;
+    cadence: number | string;
     ghostId?: string;
     isGhostSelected: boolean;
     onPress?: (ghostId: string) => void;

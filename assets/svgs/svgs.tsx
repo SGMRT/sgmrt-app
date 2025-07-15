@@ -18,6 +18,8 @@ import CheckIcon from "./check.svg";
 import TrashIcon from "./delete.svg";
 import UserIcon from "./user.svg";
 
+import ElipsisVerticalIcon from "./elipsis.svg";
+
 export {
     AppleIcon,
     BackIcon,
@@ -25,6 +27,7 @@ export {
     ChevronIcon,
     Compass,
     EditIcon,
+    ElipsisVerticalIcon,
     KakaoIcon,
     LocateMe,
     ShareIcon,

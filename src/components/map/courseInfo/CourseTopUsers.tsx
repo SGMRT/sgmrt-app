@@ -1,19 +1,24 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
+import { ChevronIcon, ElipsisVerticalIcon } from "@/assets/svgs/svgs";
+import { getCourseUserRank } from "@/src/apis";
+import { HistoryResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Typography } from "../../ui/Typography";
+import { Typography, TypographyColor } from "../../ui/Typography";
 import UserStatItem from "./UserStatItem";
 
 interface CourseTopUsersProps {
-    ghostList: any[];
+    ghostList: HistoryResponse[];
     selectedGhostId?: number;
     setSelectedGhostId: (ghostId: number) => void;
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     courseId: number;
+    userCount: number;
     marginHorizontal?: boolean;
+    titleColor?: TypographyColor;
 }
 
 export default function CourseTopUsers({
@@ -23,8 +28,34 @@ export default function CourseTopUsers({
     bottomSheetRef,
     courseId,
     marginHorizontal = true,
+    userCount,
+    titleColor = "gray40",
 }: CourseTopUsersProps) {
     const router = useRouter();
+    const [includeMyRecord, setIncludeMyRecord] = useState(false);
+    const [myRecord, setMyRecord] = useState<HistoryResponse | null>(null);
+
+    const myId = 1;
+
+    useEffect(() => {
+        if (includeMyRecord) return;
+        async function getMyRecord() {
+            const record = await getCourseUserRank({
+                courseId,
+                userId: myId,
+            });
+            console.log("myRecord", record);
+            setMyRecord(record);
+        }
+        getMyRecord();
+    }, [myId, includeMyRecord, courseId]);
+
+    useEffect(() => {
+        if (ghostList.map((ghost) => ghost.runnerId).includes(myId)) {
+            setIncludeMyRecord(true);
+        }
+    }, [ghostList, myId]);
+
     return (
         <View style={{ gap: 10 }}>
             <View
@@ -33,8 +64,8 @@ export default function CourseTopUsers({
                     marginHorizontal && { paddingHorizontal: 17 },
                 ]}
             >
-                <Typography variant="body1" color="gray40">
-                    빠른 완주 순위
+                <Typography variant="body1" color={titleColor}>
+                    {userCount}명 참여
                 </Typography>
                 <View style={styles.ghostListContainerText}>
                     <Pressable
@@ -52,26 +83,52 @@ export default function CourseTopUsers({
             </View>
             {ghostList && ghostList.length > 0 && (
                 <View style={styles.marginBottom}>
-                    {ghostList.map((ghost, index) => (
-                        <UserStatItem
-                            key={ghost.runningId}
-                            rank={index + 1}
-                            name={ghost.runningName}
-                            avatar={ghost.runnerProfileUrl}
-                            time={getRunTime(ghost.duration, "MM:SS")}
-                            pace={getFormattedPace(ghost.averagePace)}
-                            cadence={ghost.cadence.toString() + " spm"}
-                            ghostId={ghost.runningId.toString()}
-                            isGhostSelected={
-                                selectedGhostId === ghost.runningId
-                            }
-                            onPress={() => {
-                                setSelectedGhostId(ghost.runningId);
-                            }}
-                            isMyRecord={ghost.runnerId === 1}
-                            paddingHorizontal={marginHorizontal}
-                        />
-                    ))}
+                    {ghostList
+                        .filter((_, index) =>
+                            includeMyRecord ? true : index < 2
+                        )
+                        .map((ghost, index) => (
+                            <UserStatItem
+                                key={ghost.runningId}
+                                rank={index + 1}
+                                name={ghost.runningName}
+                                avatar={ghost.runnerProfileUrl}
+                                time={getRunTime(ghost.duration, "MM:SS")}
+                                pace={getFormattedPace(ghost.averagePace)}
+                                cadence={ghost.cadence.toString() + " spm"}
+                                ghostId={ghost.runningId.toString()}
+                                isGhostSelected={
+                                    selectedGhostId === ghost.runningId
+                                }
+                                onPress={() => {
+                                    setSelectedGhostId(ghost.runningId);
+                                }}
+                                isMyRecord={ghost.runnerId === 1}
+                                paddingHorizontal={marginHorizontal}
+                            />
+                        ))}
+                    {myRecord && !includeMyRecord && (
+                        <>
+                            <ElipsisVerticalIcon
+                                style={{ alignSelf: "center" }}
+                            />
+                            <UserStatItem
+                                rank={myRecord.rank ?? "-"}
+                                name={myRecord.runningName}
+                                avatar={myRecord.runnerProfileUrl}
+                                time={getRunTime(myRecord.duration, "MM:SS")}
+                                pace={getFormattedPace(myRecord.averagePace)}
+                                cadence={myRecord.cadence ?? "--" + " spm"}
+                                isMyRecord={true}
+                                isGhostSelected={
+                                    selectedGhostId === myRecord.runningId
+                                }
+                                onPress={() => {
+                                    setSelectedGhostId(myRecord.runningId);
+                                }}
+                            />
+                        </>
+                    )}
                 </View>
             )}
         </View>

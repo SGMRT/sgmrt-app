@@ -389,11 +389,13 @@ export default function Result() {
                                     <View style={{ height: 15 }} />
                                     <CourseTopUsers
                                         ghostList={ghostList ?? []}
+                                        userCount={courseData?.runnerCount ?? 0}
                                         setSelectedGhostId={() => {}}
                                         selectedGhostId={Number(runningId)}
                                         bottomSheetRef={bottomSheetRef}
                                         courseId={Number(courseId)}
                                         marginHorizontal={false}
+                                        titleColor="gray60"
                                     />
                                 </>
                             )}

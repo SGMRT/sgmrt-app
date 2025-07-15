@@ -34,6 +34,7 @@ export interface PathData {
 }
 
 export interface HistoryResponse {
+    rank?: number;
     runnerId: number;
     runnerProfileUrl: string;
     runningId: number;

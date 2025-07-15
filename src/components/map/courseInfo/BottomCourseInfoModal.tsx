@@ -79,7 +79,7 @@ export default function BottomCourseInfoModal({
         },
         {
             label: "평균 케이던스",
-            value: course?.averageFinisherCadence.toString() ?? "--",
+            value: course?.averageFinisherCadence ?? "--",
             unit: "spm",
         },
     ];
@@ -117,6 +117,7 @@ export default function BottomCourseInfoModal({
             )}
             {tab === "ghost" && (
                 <CourseTopUsers
+                    userCount={0}
                     ghostList={ghostList ?? []}
                     selectedGhostId={selectedGhostId ?? 0}
                     setSelectedGhostId={setSelectedGhostId}
