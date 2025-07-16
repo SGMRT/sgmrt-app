@@ -55,13 +55,19 @@ export default function Course() {
     useEffect(() => {
         const fetch = () => {
             Promise.all([
-                getRunTelemetriesByCourseId(Number(courseId)),
-                getRunTelemetries(Number(ghostRunningId)),
+                ghostRunningId !== "-1"
+                    ? Promise.resolve([])
+                    : getRunTelemetriesByCourseId(Number(courseId)),
+                ghostRunningId !== "-1"
+                    ? getRunTelemetries(Number(ghostRunningId))
+                    : Promise.resolve([]),
             ]).then(([course, rawGhostTelemetries]) => {
-                setCourse(course);
                 const newGhostTelemetries = interpolateTelemetries(
                     rawGhostTelemetries,
                     250
+                );
+                setCourse(
+                    course.length > 0 ? course.coordinates : newGhostTelemetries
                 );
                 ghostTelemetries.current = newGhostTelemetries;
                 setIsLoading(false);

@@ -1,8 +1,12 @@
 export interface CoursesRequest {
     lat: number;
     lng: number;
-    radiusKm?: number;
+    radiusM?: number;
     ownerId?: number;
+    minDistance?: number;
+    maxDistance?: number;
+    minElevationM?: number;
+    maxElevationM?: number;
 }
 
 export interface CourseResponse {

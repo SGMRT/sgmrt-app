@@ -8,10 +8,11 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
     const router = useRouter();
+    const [type, setType] = useState<"all" | "my">("all");
 
     useEffect(() => {
         setTelemetryEnabled(false);
@@ -21,9 +22,9 @@ export default function Home() {
         <View style={styles.container}>
             <TopBlurView>
                 <WeatherInfo />
-                <CourseFilter />
+                <CourseFilter type={type} setType={setType} />
             </TopBlurView>
-            <HomeMap />
+            <HomeMap courseType={type} />
             <TabBar />
             <SlideToAction
                 label="밀어서 러닝시작"
