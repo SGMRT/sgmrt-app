@@ -4,6 +4,7 @@ import { getDistance } from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { MapView } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
+import { useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useEffect, useRef, useState } from "react";
 import { Dimensions } from "react-native";
@@ -13,7 +14,11 @@ import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
 
-export default function HomeMap() {
+interface HomeMapProps {
+    courseType: "all" | "my";
+}
+
+export default function HomeMap({ courseType }: HomeMapProps) {
     const [activeCourse, setActiveCourse] = useState<number>(0);
     const [zoomLevel, setZoomLevel] = useState(16);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -25,7 +30,6 @@ export default function HomeMap() {
         handlePresentModalPress();
     };
 
-    const [courses, setCourses] = useState<CourseResponse[]>([]);
     const [bounds, setBounds] = useState<Position[]>([]);
     const [center, setCenter] = useState<Position>([0, 0]);
     const [distance, setDistance] = useState(1);
@@ -105,15 +109,19 @@ export default function HomeMap() {
         }
     };
 
-    useEffect(() => {
-        getCourses({
-            lat: center[1],
-            lng: center[0],
-            radiusM: distance * 1000,
-        }).then((res) => {
-            setCourses(res);
-        });
-    }, [center, distance]);
+    //
+    const { data: courses } = useQuery({
+        queryKey: ["courses", courseType, center, distance],
+        queryFn: () => {
+            return getCourses({
+                lat: center[1],
+                lng: center[0],
+                radiusM: distance * 1000,
+                ownerId: courseType === "my" ? 2 : undefined,
+            });
+        },
+        enabled: !!center[0] && !!center[1] && !!distance,
+    });
 
     return (
         <>

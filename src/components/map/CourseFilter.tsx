@@ -1,7 +1,12 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { Typography } from "../ui/Typography";
 
-export default function CourseFilter() {
+interface CourseFilterProps {
+    type: "all" | "my";
+    setType: (type: "all" | "my") => void;
+}
+
+export default function CourseFilter({ type, setType }: CourseFilterProps) {
     return (
         <View style={styles.filterContainer}>
             <Pressable>
@@ -9,13 +14,19 @@ export default function CourseFilter() {
                     필터
                 </Typography>
             </Pressable>
-            <Pressable>
-                <Typography variant="subhead2" color="primary">
+            <Pressable onPress={() => setType("all")}>
+                <Typography
+                    variant="subhead2"
+                    color={type === "all" ? "primary" : "gray60"}
+                >
                     고스트 코스
                 </Typography>
             </Pressable>
-            <Pressable>
-                <Typography variant="subhead2" color="gray60">
+            <Pressable onPress={() => setType("my")}>
+                <Typography
+                    variant="subhead2"
+                    color={type === "my" ? "primary" : "gray60"}
+                >
                     내 코스
                 </Typography>
             </Pressable>
