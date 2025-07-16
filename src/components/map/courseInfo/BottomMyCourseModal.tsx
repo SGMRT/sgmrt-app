@@ -39,6 +39,7 @@ export default function BottomMyCourseModal({
                 onPress={() => {
                     console.log("press");
                     bottomSheetRef.current?.dismiss();
+                    router.push("/course");
                 }}
             />
             <CoursesInfoList />

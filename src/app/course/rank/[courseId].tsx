@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function CourseScreen() {
+export default function CourseRankScreen() {
     const { courseId } = useLocalSearchParams();
     const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
     const router = useRouter();

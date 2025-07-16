@@ -7,7 +7,8 @@ interface ExpendHeaderProps {
     title: string;
     titleColor: TypographyColor;
     marginHorizontal?: boolean;
-    onPress: () => void;
+    onPress?: () => void;
+    rightChildren?: React.ReactNode;
 }
 
 export default function ExpendHeader({
@@ -15,6 +16,7 @@ export default function ExpendHeader({
     titleColor,
     marginHorizontal = true,
     onPress,
+    rightChildren,
 }: ExpendHeaderProps) {
     return (
         <View
@@ -27,16 +29,21 @@ export default function ExpendHeader({
                 {title}
             </Typography>
             <View style={styles.ghostListContainerText}>
-                <Pressable
-                    onPress={() => {
-                        onPress();
-                    }}
-                >
-                    <Typography variant="body2" color="gray60">
-                        전체 보기
-                    </Typography>
-                </Pressable>
-                <ChevronIcon color={colors.gray[60]} />
+                {onPress && (
+                    <>
+                        <Pressable
+                            onPress={() => {
+                                onPress();
+                            }}
+                        >
+                            <Typography variant="body2" color="gray60">
+                                전체 보기
+                            </Typography>
+                        </Pressable>
+                        <ChevronIcon color={colors.gray[60]} />
+                    </>
+                )}
+                {rightChildren}
             </View>
         </View>
     );

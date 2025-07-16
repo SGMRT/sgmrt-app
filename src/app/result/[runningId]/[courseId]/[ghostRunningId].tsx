@@ -161,7 +161,7 @@ export default function Result() {
                                             }
                                             onPress={() => {
                                                 router.push(
-                                                    `/course/${courseId}`
+                                                    `/course/rank/${courseId}`
                                                 );
                                             }}
                                         />
