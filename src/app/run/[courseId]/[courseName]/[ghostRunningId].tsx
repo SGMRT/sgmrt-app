@@ -66,7 +66,9 @@ export default function Course() {
                     rawGhostTelemetries,
                     250
                 );
-                setCourse(course.length > 0 ? course : newGhostTelemetries);
+                setCourse(
+                    course.length > 0 ? course.coordinates : newGhostTelemetries
+                );
                 ghostTelemetries.current = newGhostTelemetries;
                 setIsLoading(false);
             });

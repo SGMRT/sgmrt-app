@@ -11,6 +11,7 @@ import { Dimensions } from "react-native";
 import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
+import BottomMyCourseModal from "./courseInfo/BottomMyCourseModal";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
 
@@ -117,7 +118,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                 lat: center[1],
                 lng: center[0],
                 radiusM: distance * 1000,
-                ownerId: courseType === "my" ? 2 : undefined,
+                ownerId: courseType === "my" ? 1 : undefined,
             });
         },
         enabled: !!center[0] && !!center[1] && !!distance,
@@ -141,11 +142,18 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                     />
                 ))}
             </MapViewWrapper>
-            <BottomCourseInfoModal
-                bottomSheetRef={bottomSheetRef}
-                heightVal={heightVal}
-                courseId={activeCourse}
-            />
+            {courseType === "all" ? (
+                <BottomCourseInfoModal
+                    bottomSheetRef={bottomSheetRef}
+                    heightVal={heightVal}
+                    courseId={activeCourse}
+                />
+            ) : (
+                <BottomMyCourseModal
+                    bottomSheetRef={bottomSheetRef}
+                    heightVal={heightVal}
+                />
+            )}
         </>
     );
 }

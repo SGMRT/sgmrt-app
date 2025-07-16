@@ -1,6 +1,5 @@
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
-import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -150,21 +149,6 @@ export default function BottomCourseInfoModal({
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#111111",
-        borderRadius: 0,
-    },
-    handle: {
-        paddingTop: 10,
-        paddingBottom: 20,
-    },
-    handleIndicator: {
-        backgroundColor: colors.gray[40],
-        width: 50,
-        height: 5,
-        borderRadius: 100,
-    },
     tabContainer: {
         flexDirection: "row",
         alignItems: "center",
@@ -173,20 +157,5 @@ const styles = StyleSheet.create({
     tab: {
         flex: 1,
         alignItems: "center",
-    },
-    courseInfoContainer: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "space-between",
-        rowGap: 20,
-        marginBottom: 30,
-    },
-    courseInfoItem: {
-        width: "33%",
-        alignItems: "center",
-    },
-    courseInfoItemValue: {
-        flexDirection: "row",
-        alignItems: "flex-end",
     },
 });

@@ -1,7 +1,7 @@
-import colors from "@/src/theme/colors";
 import { memo } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { Divider } from "../../ui/Divider";
+import RadioButton from "../../ui/RadioButton";
 import { Typography } from "../../ui/Typography";
 
 interface UserStatItemProps {
@@ -94,36 +94,11 @@ export default memo(function UserStatItem({
                     </View>
                 </View>
             </View>
-            <Pressable onPress={() => onPress?.(ghostId ?? "")}>
-                <View
-                    style={[
-                        styles.rankContainer,
-                        {
-                            backgroundColor: isMyRecord
-                                ? isGhostSelected
-                                    ? colors.primary
-                                    : colors.gray[60]
-                                : "transparent",
-                            borderColor: isGhostSelected
-                                ? colors.primary
-                                : colors.gray[60],
-                            borderWidth: 1.5,
-                        },
-                    ]}
-                >
-                    {isMyRecord && (
-                        <Text
-                            style={{
-                                color: colors.black,
-                                fontFamily: "SpoqaHanSansNeo-Bold",
-                                fontSize: 12,
-                            }}
-                        >
-                            나
-                        </Text>
-                    )}
-                </View>
-            </Pressable>
+            <RadioButton
+                isSelected={isGhostSelected}
+                showMyRecord={isMyRecord}
+                onPress={() => onPress?.(ghostId ?? "")}
+            />
         </View>
     );
 });
@@ -144,13 +119,5 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 100,
-    },
-    rankContainer: {
-        width: 20,
-        height: 20,
-        borderRadius: 100,
-        borderWidth: 1.5,
-        justifyContent: "center",
-        alignItems: "center",
     },
 });

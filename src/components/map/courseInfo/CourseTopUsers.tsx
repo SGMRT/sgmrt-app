@@ -1,13 +1,13 @@
-import { ChevronIcon, ElipsisVerticalIcon } from "@/assets/svgs/svgs";
+import { ElipsisVerticalIcon } from "@/assets/svgs/svgs";
 import { getCourseUserRank } from "@/src/apis";
 import { HistoryResponse } from "@/src/apis/types/course";
-import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Typography, TypographyColor } from "../../ui/Typography";
+import { StyleSheet, View } from "react-native";
+import ExpendHeader from "../../ui/ExpendHeader";
+import { TypographyColor } from "../../ui/Typography";
 import UserStatItem from "./UserStatItem";
 
 interface CourseTopUsersProps {
@@ -58,29 +58,15 @@ export default function CourseTopUsers({
 
     return (
         <View style={{ gap: 10 }}>
-            <View
-                style={[
-                    styles.ghostListContainer,
-                    marginHorizontal && { paddingHorizontal: 17 },
-                ]}
-            >
-                <Typography variant="body1" color={titleColor}>
-                    {userCount}명 참여
-                </Typography>
-                <View style={styles.ghostListContainerText}>
-                    <Pressable
-                        onPress={() => {
-                            bottomSheetRef.current?.dismiss();
-                            router.push(`/course/${courseId}`);
-                        }}
-                    >
-                        <Typography variant="body2" color="gray60">
-                            전체 보기
-                        </Typography>
-                    </Pressable>
-                    <ChevronIcon color={colors.gray[60]} />
-                </View>
-            </View>
+            <ExpendHeader
+                title={`${userCount}명 참여`}
+                titleColor={titleColor}
+                marginHorizontal={marginHorizontal}
+                onPress={() => {
+                    bottomSheetRef.current?.dismiss();
+                    router.push(`/course/${courseId}`);
+                }}
+            />
             {ghostList && ghostList.length > 0 && (
                 <View style={styles.marginBottom}>
                     {ghostList
@@ -136,15 +122,6 @@ export default function CourseTopUsers({
 }
 
 const styles = StyleSheet.create({
-    ghostListContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    ghostListContainerText: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
     marginBottom: {
         marginBottom: 20,
     },
