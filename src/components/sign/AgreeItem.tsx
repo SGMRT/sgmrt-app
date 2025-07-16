@@ -1,23 +1,27 @@
 import { CheckIcon, ChevronIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
-import { useState } from "react";
 import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Typography } from "../ui/Typography";
 
 interface AgreeItemProps {
     title: string;
-    content: string;
     isAgreed: boolean;
-    onPress: () => void;
+    onPressAgree: () => void;
+    onPressDetail: () => void;
 }
 
-const AgreeItem = ({ title, content, isAgreed, onPress }: AgreeItemProps) => {
-    const [isOpen, setIsOpen] = useState(false);
+const AgreeItem = ({
+    title,
+    isAgreed,
+    onPressAgree,
+    onPressDetail,
+}: AgreeItemProps) => {
+    // const [isOpen, setIsOpen] = useState(false);
     return (
         <>
             <View style={styles.container}>
                 <View style={styles.contentContainer}>
-                    <TouchableOpacity onPress={onPress}>
+                    <TouchableOpacity onPress={onPressAgree}>
                         <CheckIcon
                             color={isAgreed ? colors.primary : colors.gray[60]}
                         />
@@ -26,22 +30,22 @@ const AgreeItem = ({ title, content, isAgreed, onPress }: AgreeItemProps) => {
                         {title}
                     </Typography>
                 </View>
-                <Pressable onPress={() => setIsOpen(!isOpen)}>
+                <Pressable onPress={onPressDetail}>
                     <ChevronIcon
                         color={colors.gray[40]}
-                        style={{
-                            transform: [{ rotate: isOpen ? "90deg" : "0deg" }],
-                        }}
+                        // style={{
+                        //     transform: [{ rotate: isOpen ? "90deg" : "0deg" }],
+                        // }}
                     />
                 </Pressable>
             </View>
-            {isOpen && (
+            {/* {isOpen && (
                 <View>
                     <Typography variant="body1" color="gray40">
                         {content}
                     </Typography>
                 </View>
-            )}
+            )} */}
         </>
     );
 };
