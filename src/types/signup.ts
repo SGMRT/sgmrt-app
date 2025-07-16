@@ -9,7 +9,7 @@ export interface SignupAgreement {
 
 export interface SignupState {
     nickname: string;
-    profileImageUrl: string;
+    profileImageUrl: string | null;
     gender: "MALE" | "FEMALE" | "";
     height: number | null;
     weight: number | null;

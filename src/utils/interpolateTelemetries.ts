@@ -5,38 +5,46 @@ function lerp(a: number, b: number, t: number) {
 }
 export function interpolateTelemetries(
     telemetries: Telemetry[],
-    interval: number = 250
+    interval: number = 250,
+    speed: number = 1 // 추가
 ): Telemetry[] {
     if (!telemetries.length) return [];
     const sorted = [...telemetries].sort((a, b) => a.timeStamp - b.timeStamp);
     const startTime = sorted[0].timeStamp;
     const endTime = sorted[sorted.length - 1].timeStamp;
+    const duration = endTime - startTime;
+    const virtualDuration = duration / speed;
+    const virtualEndTime = startTime + virtualDuration;
     const result: Telemetry[] = [];
     let currIdx = 0;
-    for (let t = startTime; t <= endTime; t += interval) {
+    // virtualTime: 실제 시간축이 아니라 배속이 적용된 새로운 시간축
+    for (let vt = startTime; vt <= virtualEndTime; vt += interval) {
+        // 실제 타임스탬프로 변환 (가상 타임스탬프 → 실제 타임스탬프)
+        const realTime = startTime + (vt - startTime) * speed;
         while (
             currIdx < sorted.length - 2 &&
-            t > sorted[currIdx + 1].timeStamp
+            realTime > sorted[currIdx + 1].timeStamp
         ) {
             currIdx++;
         }
         const prev = sorted[currIdx];
         const next = sorted[Math.min(currIdx + 1, sorted.length - 1)];
-        if (t === prev.timeStamp) {
-            result.push({ ...prev });
+        if (realTime === prev.timeStamp) {
+            result.push({ ...prev, timeStamp: vt });
             continue;
         }
-        if (t === next.timeStamp) {
-            result.push({ ...next });
+        if (realTime === next.timeStamp) {
+            result.push({ ...next, timeStamp: vt });
             continue;
         }
         if (prev.timeStamp === next.timeStamp) {
-            result.push({ ...prev });
+            result.push({ ...prev, timeStamp: vt });
             continue;
         }
-        const frac = (t - prev.timeStamp) / (next.timeStamp - prev.timeStamp);
+        const frac =
+            (realTime - prev.timeStamp) / (next.timeStamp - prev.timeStamp);
         result.push({
-            timeStamp: t,
+            timeStamp: vt,
             lat: lerp(prev.lat, next.lat, frac),
             lng: lerp(prev.lng, next.lng, frac),
             dist: lerp(prev.dist, next.dist, frac),

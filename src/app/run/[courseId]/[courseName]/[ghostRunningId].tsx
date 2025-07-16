@@ -64,7 +64,8 @@ export default function Course() {
             ]).then(([course, rawGhostTelemetries]) => {
                 const newGhostTelemetries = interpolateTelemetries(
                     rawGhostTelemetries,
-                    250
+                    250,
+                    0.5
                 );
                 setCourse(
                     course.length > 0 ? course.coordinates : newGhostTelemetries

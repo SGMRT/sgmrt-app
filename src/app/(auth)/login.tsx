@@ -1,7 +1,9 @@
 import { Logo } from "@/assets/icons/icons";
 import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
+import { signIn } from "@/src/apis";
 import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
+import { useAuthStore } from "@/src/store/authState";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
 import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
@@ -13,6 +15,8 @@ import Toast from "react-native-toast-message";
 
 export default function Login() {
     const router = useRouter();
+
+    const { login } = useAuthStore();
 
     initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_APP_KEY ?? "");
 
@@ -45,9 +49,31 @@ export default function Login() {
                             }
                         );
 
-                        console.log(credential);
-
-                        router.push("/register");
+                        signIn({
+                            idToken: await credential.user.getIdToken(),
+                        })
+                            .then((res) => {
+                                console.log(res);
+                                login(
+                                    res.accessToken,
+                                    res.refreshToken,
+                                    res.uuid
+                                );
+                                router.push("/intro");
+                            })
+                            .catch((err) => {
+                                console.log(err);
+                                if (err.response.status !== 403) {
+                                    Toast.show({
+                                        type: "info",
+                                        text1: "로그인에 실패했습니다.",
+                                    });
+                                    return;
+                                } else {
+                                    router.push("/register");
+                                    return;
+                                }
+                            });
                     }}
                 />
                 <LoginButton
@@ -85,7 +111,31 @@ export default function Login() {
                             }
                         );
 
-                        router.push("/register");
+                        signIn({
+                            idToken: await credential.user.getIdToken(),
+                        })
+                            .then((res) => {
+                                console.log(res);
+                                login(
+                                    res.accessToken,
+                                    res.refreshToken,
+                                    res.uuid
+                                );
+                                router.push("/intro");
+                            })
+                            .catch((err) => {
+                                console.log(err);
+                                if (err.response.status !== 403) {
+                                    Toast.show({
+                                        type: "info",
+                                        text1: "로그인에 실패했습니다.",
+                                    });
+                                    return;
+                                } else {
+                                    router.push("/register");
+                                    return;
+                                }
+                            });
                     }}
                 />
             </View>

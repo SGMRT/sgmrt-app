@@ -1,6 +1,8 @@
 import { Logo, TouchText } from "@/assets/icons/icons";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { Image, Pressable, StyleSheet } from "react-native";
+import { Barometer, Pedometer } from "expo-sensors";
+import { Alert, Image, Linking, Pressable, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBreathingAnimation } from "../animation/useBreathingAnimation";
@@ -11,11 +13,50 @@ export default function Index() {
 
     const router = useRouter();
 
+    // Location, Pedometer 권한 받기
+    async function requestPermissions(): Promise<boolean> {
+        const locationPermission =
+            await Location.requestForegroundPermissionsAsync();
+        const pedometerPermission = await Pedometer.requestPermissionsAsync();
+        const barometerPermission = await Barometer.requestPermissionsAsync();
+
+        const locationGranted = locationPermission.status === "granted";
+        const pedometerGranted = pedometerPermission.status === "granted";
+        const barometerGranted = barometerPermission.status === "granted";
+
+        if (locationGranted && pedometerGranted && barometerGranted) {
+            return true;
+        }
+
+        let missingPermissions = [];
+        if (!locationGranted) missingPermissions.push("위치");
+        if (!pedometerGranted) missingPermissions.push("활동");
+        if (!barometerGranted) missingPermissions.push("기압");
+
+        const message = `${missingPermissions.join(
+            ", "
+        )} 권한이 허용되지 않았습니다.\n\n서비스 이용을 위해 설정에서 권한을 허용해주세요.`;
+
+        Alert.alert("권한이 부족해요", message, [
+            { text: "취소", style: "cancel" },
+            {
+                text: "설정으로 이동",
+                onPress: () => Linking.openSettings(),
+            },
+        ]);
+
+        return false;
+    }
+
     return (
         <Pressable
             style={styles.container}
             onPress={() => {
-                router.replace("/(tabs)/home");
+                requestPermissions().then((granted) => {
+                    if (granted) {
+                        router.replace("/(tabs)/home");
+                    }
+                });
             }}
         >
             <SafeAreaView style={styles.safeArea}>

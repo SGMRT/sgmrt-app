@@ -11,18 +11,25 @@ import { Segment } from "../components/map/RunningLine";
 import { UserDashBoardData } from "../hooks/useRunning";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
+    let isNegative = false;
+    if (runTime < 0) {
+        isNegative = true;
+        runTime = -runTime;
+    }
     const hours = Math.floor(runTime / 3600);
     const minutes = Math.floor((runTime % 3600) / 60);
     const seconds = runTime % 60;
 
     if (hours > 0) {
-        return `${hours.toString().padStart(2, "0")}:${minutes
+        return `${isNegative ? "-" : ""}${hours
             .toString()
-            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    } else {
-        return `${minutes.toString().padStart(2, "0")}:${seconds
+            .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
             .toString()
             .padStart(2, "0")}`;
+    } else {
+        return `${isNegative ? "-" : ""}${minutes
+            .toString()
+            .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     }
 };
 

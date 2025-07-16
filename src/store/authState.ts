@@ -29,9 +29,11 @@ const secureStorage: PersistStorage<AuthState> = {
 interface AuthState {
     accessToken: string | null;
     refreshToken: string | null;
+    uuid: string | null;
     isLoggedIn: boolean;
 
-    login: (accessToken: string, refreshToken: string) => void;
+    login: (accessToken: string, refreshToken: string, uuid: string) => void;
+    refresh: (accessToken: string, refreshToken: string) => void;
     logout: () => void;
 }
 
@@ -41,13 +43,22 @@ export const useAuthStore = create<AuthState>()(
             (set) => ({
                 accessToken: null,
                 refreshToken: null,
+                uuid: null,
                 isLoggedIn: false,
 
-                login: (access, refresh) => {
+                login: (access, refresh, uuid) => {
                     set({
                         accessToken: access,
                         refreshToken: refresh,
+                        uuid: uuid,
                         isLoggedIn: true,
+                    });
+                },
+
+                refresh: (access, refresh) => {
+                    set({
+                        accessToken: access,
+                        refreshToken: refresh,
                     });
                 },
 
@@ -55,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
                     set({
                         accessToken: null,
                         refreshToken: null,
+                        uuid: null,
                         isLoggedIn: false,
                     });
                 },

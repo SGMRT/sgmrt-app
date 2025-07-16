@@ -131,7 +131,7 @@ export async function toggleRunPublicStatus(runningId: number) {
 export async function getRunTelemetriesByCourseId(courseId: number) {
     try {
         const response = await server.get(
-            `courses/${courseId}/first-telemetries`
+            `courses/${courseId}/first-telemetry`
         );
         return response.data;
     } catch (error) {

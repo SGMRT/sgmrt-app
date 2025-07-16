@@ -156,7 +156,11 @@ export default function useRunning({ type, weight, course }: RunningProps) {
             }
         } else if (status === "course_running") {
             if (courseIndex === -1) {
-                setRunningStatus("stopped");
+                if (courseIndexRef.current >= course.length - 2) {
+                    setRunningStatus("completed");
+                } else {
+                    setRunningStatus("stopped");
+                }
             } else if (courseIndex === course.length - 1) {
                 setRunningStatus("completed");
                 courseIndexRef.current = courseIndex;

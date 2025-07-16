@@ -1,8 +1,16 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
+import { signUp } from "@/src/apis";
+import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import Header from "@/src/components/ui/Header";
 import { Typography, TypographyColor } from "@/src/components/ui/Typography";
+import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import colors from "@/src/theme/colors";
+import { getAuth } from "@react-native-firebase/auth";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 import {
     Image,
     KeyboardType,
@@ -15,6 +23,7 @@ import {
     View,
     ViewStyle,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function Profile() {
     const {
@@ -28,7 +37,77 @@ export default function Profile() {
         setGender,
         setHeight,
         setWeight,
+        getSignupData,
     } = useSignupStore();
+
+    const [image, setImage] = useState<string | null>(null);
+    const { login } = useAuthStore();
+    const router = useRouter();
+
+    const pickImage = async () => {
+        // No permissions request is necessary for launching the image library
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ["images"],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+            selectionLimit: 1,
+        });
+
+        console.log(result);
+
+        if (!result.canceled) {
+            const manipulated = await ImageManipulator.manipulateAsync(
+                result.assets[0].uri,
+                [],
+                { format: ImageManipulator.SaveFormat.PNG }
+            );
+            setImage(manipulated.uri);
+        }
+    };
+
+    // 특수문자 검사 regex
+    const specialCharacterRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+
+    const isActive =
+        nickname !== null &&
+        gender !== null &&
+        gender !== "" &&
+        nickname.length > 0 &&
+        !specialCharacterRegex.test(nickname);
+
+    const handleSubmit = async () => {
+        const data = getSignupData();
+        data.agreement.agreedAt = new Date().toISOString();
+        const idToken = await getAuth().currentUser?.getIdToken();
+        if (!idToken) {
+            Toast.show({
+                type: "info",
+                text1: "로그인에 실패했습니다.",
+            });
+            router.dismissAll();
+            router.replace("/login");
+            return;
+        }
+        signUp({
+            ...data,
+            idToken: idToken,
+        })
+            .then((res) => {
+                console.log(res);
+                login(res.accessToken, res.refreshToken, res.uuid);
+                router.push("/intro");
+            })
+            .catch((err) => {
+                console.log(err);
+                Toast.show({
+                    type: "info",
+                    text1: "가입에 실패했습니다.",
+                });
+                router.dismissAll();
+                router.replace("/login");
+            });
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -45,12 +124,12 @@ export default function Profile() {
                     {/* 프로필 이미지 */}
                     <View style={styles.profileContainer}>
                         <Image
-                            source={DefaultProfileIcon}
+                            source={image ? { uri: image } : DefaultProfileIcon}
                             style={styles.profileImage}
                         />
                         <Button
                             title="프로필 이미지 등록"
-                            onPress={() => {}}
+                            onPress={pickImage}
                             style={{ width: 178 }}
                         />
                     </View>
@@ -128,6 +207,12 @@ export default function Profile() {
                     </View>
                 </ScrollView>
             </View>
+            <BottomAgreementButton
+                isActive={isActive}
+                canPress={isActive}
+                onPress={handleSubmit}
+                title="가입완료"
+            />
         </SafeAreaView>
     );
 }
