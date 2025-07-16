@@ -109,7 +109,7 @@ export default function HomeMap() {
         getCourses({
             lat: center[1],
             lng: center[0],
-            radiusKm: distance,
+            radiusM: distance * 1000,
         }).then((res) => {
             setCourses(res);
         });

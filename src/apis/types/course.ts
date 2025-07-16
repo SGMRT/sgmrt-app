@@ -1,7 +1,7 @@
 export interface CoursesRequest {
     lat: number;
     lng: number;
-    radiusKm?: number;
+    radiusM?: number;
     ownerId?: number;
 }
 
