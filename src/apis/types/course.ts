@@ -3,6 +3,10 @@ export interface CoursesRequest {
     lng: number;
     radiusM?: number;
     ownerId?: number;
+    minDistance?: number;
+    maxDistance?: number;
+    minElevationM?: number;
+    maxElevationM?: number;
 }
 
 export interface CourseResponse {
