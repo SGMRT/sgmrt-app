@@ -26,4 +26,4 @@ jobs:
       #   run: eas build --non-interactive --profile release --platform android
       
       - name: 🚀 Build iOS app
-        run: eas build --non-interactive --profile release --platform ios
+        run: eas build --non-interactive --profile production --platform ios
