@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_KAKAO_APP_KEY: ${{ secrets.KAKAO_APP_KEY }}
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v3
