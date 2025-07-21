@@ -20,21 +20,16 @@ export default memo(function Header({
     const router = useRouter();
     return (
         <View>
-            <View
-                style={[
-                    styles.header,
-                    {
-                        justifyContent: hasBackButton
-                            ? "space-between"
-                            : "center",
-                    },
-                ]}
-            >
+            <View style={[styles.header]}>
                 {hasBackButton && (
-                    <Pressable onPress={() => router.back()}>
+                    <Pressable
+                        onPress={() => router.back()}
+                        style={{ width: 20, height: 20 }}
+                    >
                         <BackIcon />
                     </Pressable>
                 )}
+                {!hasBackButton && <View style={{ width: 20, height: 20 }} />}
                 {titleComponent ? (
                     titleComponent
                 ) : (
@@ -42,9 +37,7 @@ export default memo(function Header({
                         {titleText}
                     </Typography>
                 )}
-                {hasBackButton && !onDelete && (
-                    <View style={{ width: 11, height: 18 }} />
-                )}
+                {!onDelete && <View style={{ width: 20, height: 20 }} />}
                 {onDelete && (
                     <Pressable onPress={onDelete}>
                         <TrashIcon />
@@ -61,5 +54,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: 17,
         height: 50,
+        justifyContent: "space-between",
     },
 });

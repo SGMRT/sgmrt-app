@@ -29,7 +29,7 @@ export default function ExpendHeader({
                 {title}
             </Typography>
             <View style={styles.ghostListContainerText}>
-                {onPress && (
+                {onPress && !rightChildren && (
                     <>
                         <Pressable
                             onPress={() => {
@@ -43,7 +43,7 @@ export default function ExpendHeader({
                         <ChevronIcon color={colors.gray[60]} />
                     </>
                 )}
-                {rightChildren}
+                <Pressable onPress={onPress}>{rightChildren}</Pressable>
             </View>
         </View>
     );

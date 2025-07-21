@@ -2,10 +2,11 @@ import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { signUp } from "@/src/apis";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import Header from "@/src/components/ui/Header";
-import { Typography, TypographyColor } from "@/src/components/ui/Typography";
+import InfoItem, { InfoFieldTitle } from "@/src/components/ui/InfoItem";
+import { StyledButton } from "@/src/components/ui/StyledButton";
+import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
-import colors from "@/src/theme/colors";
 import { getAuth } from "@react-native-firebase/auth";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
@@ -13,15 +14,10 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
     Image,
-    KeyboardType,
     SafeAreaView,
     ScrollView,
-    StyleProp,
     StyleSheet,
-    TextInput,
-    TouchableOpacity,
     View,
-    ViewStyle,
 } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -127,7 +123,7 @@ export default function Profile() {
                             source={image ? { uri: image } : DefaultProfileIcon}
                             style={styles.profileImage}
                         />
-                        <Button
+                        <StyledButton
                             title="프로필 이미지 등록"
                             onPress={pickImage}
                             style={{ width: 178 }}
@@ -135,20 +131,18 @@ export default function Profile() {
                     </View>
                     <View style={{ gap: 20 }}>
                         {/* 닉네임 */}
-                        <View>
-                            <InfoFieldTitle title="닉네임" required />
-                            <InfoField
-                                placeholder="특수문자 제외 최대 10자"
-                                maxLength={10}
-                                value={nickname}
-                                onChangeText={setNickname}
-                            />
-                        </View>
+                        <InfoItem
+                            title="닉네임"
+                            placeholder="특수문자 제외 최대 10자"
+                            maxLength={10}
+                            value={nickname}
+                            onChangeText={setNickname}
+                        />
                         {/* 성별 */}
                         <View>
                             <InfoFieldTitle title="성별" required />
                             <View style={styles.genderButtonContainer}>
-                                <Button
+                                <StyledButton
                                     title="여성"
                                     onPress={() => {
                                         setGender("FEMALE");
@@ -157,7 +151,7 @@ export default function Profile() {
                                     active={gender === "FEMALE"}
                                     activeTextColor="primary"
                                 />
-                                <Button
+                                <StyledButton
                                     title="남성"
                                     onPress={() => {
                                         setGender("MALE");
@@ -169,23 +163,21 @@ export default function Profile() {
                             </View>
                         </View>
                         {/* 신장 */}
-                        <View>
-                            <InfoFieldTitle title="신장" />
-                            <InfoField
-                                placeholder="소숫점 제외 입력 (예: 172)"
-                                keyboardType="numeric"
-                                maxLength={3}
-                                unit="cm"
-                                value={height?.toString()}
-                                onChangeText={(text) => {
-                                    setHeight(Number(text));
-                                }}
-                            />
-                        </View>
+                        <InfoItem
+                            title="신장"
+                            placeholder="소숫점 제외 입력 (예: 172)"
+                            keyboardType="numeric"
+                            maxLength={3}
+                            unit="cm"
+                            value={height?.toString()}
+                            onChangeText={(text) => {
+                                setHeight(Number(text));
+                            }}
+                        />
                         {/* 몸무게 */}
                         <View>
-                            <InfoFieldTitle title="몸무게" />
-                            <InfoField
+                            <InfoItem
+                                title="몸무게"
                                 placeholder="소숫점 제외 입력 (예: 60)"
                                 keyboardType="numeric"
                                 maxLength={3}
@@ -217,99 +209,6 @@ export default function Profile() {
     );
 }
 
-interface InfoFieldTitleProps {
-    title: string;
-    required?: boolean;
-}
-
-const InfoFieldTitle = ({ title, required }: InfoFieldTitleProps) => {
-    return (
-        <View
-            style={{
-                flexDirection: "row",
-            }}
-        >
-            <Typography variant="subhead2" color="white">
-                {title}
-            </Typography>
-            {required && (
-                <Typography variant="subhead2" color="red">
-                    *
-                </Typography>
-            )}
-        </View>
-    );
-};
-
-interface InfoFieldProps {
-    placeholder?: string;
-    unit?: string;
-    keyboardType?: KeyboardType;
-    maxLength?: number;
-    value?: string | null;
-    onChangeText?: (text: string) => void;
-}
-
-const InfoField = ({
-    placeholder,
-    value,
-    keyboardType,
-    maxLength,
-    unit,
-    onChangeText,
-}: InfoFieldProps) => {
-    return (
-        <View style={styles.infoField}>
-            <TextInput
-                style={styles.infoFieldInput}
-                placeholderTextColor={colors.gray[60]}
-                placeholder={placeholder}
-                keyboardType={keyboardType}
-                maxLength={maxLength ?? undefined}
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="off"
-                value={value ?? undefined}
-                onChangeText={onChangeText}
-            />
-            {unit && (
-                <Typography variant="body1" color="gray60">
-                    {unit}
-                </Typography>
-            )}
-        </View>
-    );
-};
-
-interface ButtonProps {
-    title: string;
-    style?: StyleProp<ViewStyle>;
-    active?: boolean;
-    activeTextColor?: TypographyColor;
-    inactiveTextColor?: TypographyColor;
-    onPress: () => void;
-}
-
-const Button = ({
-    title,
-    style,
-    active,
-    activeTextColor = "gray40",
-    inactiveTextColor = "gray40",
-    onPress,
-}: ButtonProps) => {
-    return (
-        <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
-            <Typography
-                variant="caption1"
-                color={active ? activeTextColor : inactiveTextColor}
-            >
-                {title}
-            </Typography>
-        </TouchableOpacity>
-    );
-};
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -333,29 +232,7 @@ const styles = StyleSheet.create({
         height: 90,
         borderRadius: 100,
     },
-    button: {
-        paddingVertical: 8,
-        borderColor: colors.gray[80],
-        borderWidth: 1,
-        backgroundColor: "#171717",
-        borderRadius: 6,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    infoFieldInput: {
-        color: colors.gray[20],
-        fontSize: 16,
-        fontFamily: "SpoqaHanSansNeo-Regular",
-    },
-    infoField: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingTop: 6,
-        paddingBottom: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: "#212121",
-    },
+
     genderButtonContainer: {
         flexDirection: "row",
         gap: 4,

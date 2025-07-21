@@ -40,7 +40,11 @@ export const useSignupStore = create<SignupStore>((set, get) => ({
     agreementFullfilled: false,
     allAgreementFullfilled: false,
 
-    getSignupData: () => get(),
+    getSignupData: () => {
+        const { nickname, profileImageUrl, gender, height, weight, agreement } =
+            get();
+        return { nickname, profileImageUrl, gender, height, weight, agreement };
+    },
 
     setNickname: (nickname) => set({ nickname }),
     setProfileImageUrl: (url) => set({ profileImageUrl: url }),
