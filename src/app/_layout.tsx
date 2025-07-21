@@ -31,7 +31,7 @@ export default function RootLayout() {
         // logout();
 
         if (isLoggedIn) {
-            router.replace("/result/1/-1/-1");
+            router.replace("/(tabs)/home");
         } else {
             router.replace("/(auth)/login");
         }

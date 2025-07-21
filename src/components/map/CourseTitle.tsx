@@ -1,6 +1,7 @@
+import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { CourseResponse } from "@/src/apis/types/course";
 import { Typography } from "@/src/components/ui/Typography";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Image, Pressable, StyleSheet, View } from "react-native";
 
 interface CourseTitleProps {
     course: CourseResponse;
@@ -15,8 +16,6 @@ export default function CourseTitle({
     isActive,
     zoomLevel,
 }: CourseTitleProps) {
-    // const userCountWithoutTopUsers = course.count - course.topUsers.length;
-
     return (
         <Pressable onPress={() => onClickCourse(course)}>
             <View style={styles.container}>
@@ -28,12 +27,16 @@ export default function CourseTitle({
                         {course.name}
                     </Typography>
                 </View>
-                {/* {zoomLevel > 14.5 && (
+                {zoomLevel > 14.5 && (
                     <View style={styles.topUsersContainer}>
-                        {course.topUsers.map((user, index) => (
+                        {course.runners.map((user, index) => (
                             <Image
-                                key={user.userId}
-                                source={{ uri: user.profileImage }}
+                                key={index}
+                                source={
+                                    user.profileUrl
+                                        ? { uri: user.profileUrl }
+                                        : DefaultProfileIcon
+                                }
                                 style={[
                                     styles.topUserImage,
                                     {
@@ -42,15 +45,15 @@ export default function CourseTitle({
                                 ]}
                             />
                         ))}
-                        {userCountWithoutTopUsers > 0 && (
+                        {course.runnersCount - course.runners.length > 0 && (
                             <View style={styles.userCountContainer}>
                                 <Typography variant="body2" color="gray40">
-                                    +{userCountWithoutTopUsers}
+                                    +{course.runnersCount}
                                 </Typography>
                             </View>
                         )}
                     </View>
-                )} */}
+                )}
             </View>
         </Pressable>
     );
