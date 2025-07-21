@@ -7,10 +7,12 @@ export const CoursesWithFilter = ({
     data,
     selectedCourseId,
     setSelectedCourseId,
+    onClickFilter,
 }: {
     data: any[];
     selectedCourseId: number | null;
     setSelectedCourseId: (id: number | null) => void;
+    onClickFilter: () => void;
 }) => {
     return (
         <>
@@ -23,6 +25,7 @@ export const CoursesWithFilter = ({
                         필터
                     </Typography>
                 }
+                onPress={onClickFilter}
             />
             <FlashList
                 data={data}
