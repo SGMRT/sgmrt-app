@@ -63,7 +63,7 @@ export default function Login() {
                             })
                             .catch((err) => {
                                 console.log(err);
-                                if (err.response.status !== 403) {
+                                if (err.response.status !== 404) {
                                     Toast.show({
                                         type: "info",
                                         text1: "로그인에 실패했습니다.",

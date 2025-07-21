@@ -12,6 +12,7 @@ interface SignResponse {
 }
 
 export async function signIn(data: SignInRequest): Promise<SignResponse> {
+    console.log("signIn", data);
     try {
         const response = await server.post(
             `auth/firebase-signin`,
