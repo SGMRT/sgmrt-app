@@ -1,17 +1,19 @@
 import { AlertIcon } from "@/assets/svgs/svgs";
 import { invalidateToken } from "@/src/apis";
+import { CourseFilter } from "@/src/components/course/CourseFilter";
 import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
 import { Info } from "@/src/components/profile/Info";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
+import { TabItem } from "@/src/components/ui/TabItem";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { SafeAreaView, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
@@ -50,7 +52,7 @@ export default function ProfileScreen() {
                 <View>
                     <Header
                         titleText="마이페이지"
-                        // hasBackButton={false}
+                        hasBackButton={false}
                         onDelete={
                             selectedTab === "course" && selectedCourseId
                                 ? () => {
@@ -60,12 +62,12 @@ export default function ProfileScreen() {
                         }
                     />
                     <View style={{ flexDirection: "row", marginTop: 10 }}>
-                        <HeaderTabItem
+                        <TabItem
                             title="내 정보"
                             onPress={() => setSelectedTab("info")}
                             isSelected={selectedTab === "info"}
                         />
-                        <HeaderTabItem
+                        <TabItem
                             title="내 코스"
                             onPress={() => setSelectedTab("course")}
                             isSelected={selectedTab === "course"}
@@ -162,43 +164,23 @@ const Course = ({
     selectedCourseId: number | null;
     setSelectedCourseId: (id: number | null) => void;
 }) => {
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const [selectedFilter, setSelectedFilter] = useState<
+        "day" | "week" | "month" | "year"
+    >("month");
     return (
         <View style={{ marginTop: 20, flex: 1 }}>
             <CoursesWithFilter
                 data={data}
                 selectedCourseId={selectedCourseId}
                 setSelectedCourseId={setSelectedCourseId}
+                onClickFilter={() => bottomSheetRef.current?.present()}
+            />
+            <CourseFilter
+                bottomSheetRef={bottomSheetRef}
+                setSelectedFilter={setSelectedFilter}
+                selectedFilter={selectedFilter}
             />
         </View>
-    );
-};
-
-const HeaderTabItem = ({
-    title,
-    onPress,
-    isSelected,
-}: {
-    title: string;
-    onPress: () => void;
-    isSelected: boolean;
-}) => {
-    return (
-        <TouchableOpacity
-            onPress={onPress}
-            style={{
-                flex: 1,
-                alignItems: "center",
-                borderBottomColor: isSelected ? "#3f3f3f" : "transparent",
-                borderBottomWidth: 1,
-                paddingBottom: 10,
-            }}
-        >
-            <Typography
-                variant="subhead2"
-                color={isSelected ? "white" : "gray80"}
-            >
-                {title}
-            </Typography>
-        </TouchableOpacity>
     );
 };

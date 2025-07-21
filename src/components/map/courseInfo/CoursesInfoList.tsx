@@ -1,6 +1,6 @@
+import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import CourseInfoItem from "./CourseInfoItem";
-import { useState } from "react";
 
 export default function CoursesInfoList() {
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -24,7 +24,6 @@ export default function CoursesInfoList() {
 
 const styles = StyleSheet.create({
     container: {
-        marginHorizontal: 17,
         marginTop: 10,
         marginBottom: 20,
     },

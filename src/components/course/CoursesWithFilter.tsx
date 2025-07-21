@@ -1,4 +1,5 @@
 import { FlashList } from "@shopify/flash-list";
+import { View } from "react-native";
 import CourseInfoItem from "../map/courseInfo/CourseInfoItem";
 import ExpendHeader from "../ui/ExpendHeader";
 import { Typography } from "../ui/Typography";
@@ -15,7 +16,7 @@ export const CoursesWithFilter = ({
     onClickFilter: () => void;
 }) => {
     return (
-        <>
+        <View style={{ flex: 1, gap: 15 }}>
             <ExpendHeader
                 title="2025"
                 titleColor="gray40"
@@ -35,12 +36,10 @@ export const CoursesWithFilter = ({
                         onPress={() => setSelectedCourseId(item.id)}
                     />
                 )}
-                contentContainerStyle={{
-                    paddingHorizontal: 17,
-                }}
                 showsVerticalScrollIndicator={false}
                 extraData={selectedCourseId}
+                estimatedItemSize={83}
             />
-        </>
+        </View>
     );
 };
