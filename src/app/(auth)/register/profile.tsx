@@ -2,7 +2,8 @@ import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { signUp } from "@/src/apis";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import Header from "@/src/components/ui/Header";
-import { Typography, TypographyColor } from "@/src/components/ui/Typography";
+import { StyledButton } from "@/src/components/ui/StyledButton";
+import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import colors from "@/src/theme/colors";
@@ -16,12 +17,9 @@ import {
     KeyboardType,
     SafeAreaView,
     ScrollView,
-    StyleProp,
     StyleSheet,
     TextInput,
-    TouchableOpacity,
     View,
-    ViewStyle,
 } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -127,7 +125,7 @@ export default function Profile() {
                             source={image ? { uri: image } : DefaultProfileIcon}
                             style={styles.profileImage}
                         />
-                        <Button
+                        <StyledButton
                             title="프로필 이미지 등록"
                             onPress={pickImage}
                             style={{ width: 178 }}
@@ -148,7 +146,7 @@ export default function Profile() {
                         <View>
                             <InfoFieldTitle title="성별" required />
                             <View style={styles.genderButtonContainer}>
-                                <Button
+                                <StyledButton
                                     title="여성"
                                     onPress={() => {
                                         setGender("FEMALE");
@@ -157,7 +155,7 @@ export default function Profile() {
                                     active={gender === "FEMALE"}
                                     activeTextColor="primary"
                                 />
-                                <Button
+                                <StyledButton
                                     title="남성"
                                     onPress={() => {
                                         setGender("MALE");
@@ -281,35 +279,6 @@ const InfoField = ({
     );
 };
 
-interface ButtonProps {
-    title: string;
-    style?: StyleProp<ViewStyle>;
-    active?: boolean;
-    activeTextColor?: TypographyColor;
-    inactiveTextColor?: TypographyColor;
-    onPress: () => void;
-}
-
-const Button = ({
-    title,
-    style,
-    active,
-    activeTextColor = "gray40",
-    inactiveTextColor = "gray40",
-    onPress,
-}: ButtonProps) => {
-    return (
-        <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
-            <Typography
-                variant="caption1"
-                color={active ? activeTextColor : inactiveTextColor}
-            >
-                {title}
-            </Typography>
-        </TouchableOpacity>
-    );
-};
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -332,15 +301,6 @@ const styles = StyleSheet.create({
         width: 90,
         height: 90,
         borderRadius: 100,
-    },
-    button: {
-        paddingVertical: 8,
-        borderColor: colors.gray[80],
-        borderWidth: 1,
-        backgroundColor: "#171717",
-        borderRadius: 6,
-        alignItems: "center",
-        justifyContent: "center",
     },
     infoFieldInput: {
         color: colors.gray[20],
