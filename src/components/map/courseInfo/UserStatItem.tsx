@@ -1,3 +1,4 @@
+import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { memo } from "react";
 import { Image, StyleSheet, View } from "react-native";
 import { Divider } from "../../ui/Divider";
@@ -55,9 +56,7 @@ export default memo(function UserStatItem({
                     </Typography>
                 )}
                 <Image
-                    source={{
-                        uri: avatar,
-                    }}
+                    source={avatar ? { uri: avatar } : DefaultProfileIcon}
                     style={styles.avatar}
                 />
                 <View>

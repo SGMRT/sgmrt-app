@@ -124,6 +124,8 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         enabled: !!center[0] && !!center[1] && !!distance,
     });
 
+    console.log(courses);
+
     return (
         <>
             <MapViewWrapper

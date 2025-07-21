@@ -62,15 +62,17 @@ export default function Course() {
                     ? getRunTelemetries(Number(ghostRunningId))
                     : Promise.resolve([]),
             ]).then(([course, rawGhostTelemetries]) => {
-                const newGhostTelemetries = interpolateTelemetries(
-                    rawGhostTelemetries,
-                    250,
-                    0.5
-                );
-                setCourse(
-                    course.length > 0 ? course.coordinates : newGhostTelemetries
-                );
-                ghostTelemetries.current = newGhostTelemetries;
+                if (rawGhostTelemetries.length > 0) {
+                    const newGhostTelemetries = interpolateTelemetries(
+                        rawGhostTelemetries,
+                        250
+                    );
+                    setCourse(newGhostTelemetries);
+                    ghostTelemetries.current = newGhostTelemetries;
+                } else {
+                    setCourse(course.coordinates);
+                }
+
                 setIsLoading(false);
             });
         };

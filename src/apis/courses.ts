@@ -1,5 +1,10 @@
 import server from "./instance";
-import { CourseResponse, CoursesRequest, Pageable } from "./types/course";
+import {
+    CourseResponse,
+    CoursesRequest,
+    Pageable,
+    UserRankResponse,
+} from "./types/course";
 
 export async function deleteCourse(courseId: number) {
     try {
@@ -73,8 +78,8 @@ export async function getCourseUserRank({
     userId,
 }: {
     courseId: number;
-    userId: number;
-}) {
+    userId: string;
+}): Promise<UserRankResponse> {
     try {
         const response = await server.get(`/courses/${courseId}/ranking`, {
             params: { userId },

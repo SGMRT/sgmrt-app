@@ -1,6 +1,7 @@
 import { ElipsisVerticalIcon } from "@/assets/svgs/svgs";
 import { getCourseUserRank } from "@/src/apis";
-import { HistoryResponse } from "@/src/apis/types/course";
+import { HistoryResponse, UserRankResponse } from "@/src/apis/types/course";
+import { useAuthStore } from "@/src/store/authState";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
@@ -33,28 +34,26 @@ export default function CourseTopUsers({
 }: CourseTopUsersProps) {
     const router = useRouter();
     const [includeMyRecord, setIncludeMyRecord] = useState(false);
-    const [myRecord, setMyRecord] = useState<HistoryResponse | null>(null);
-
-    const myId = 1;
+    const [myRecord, setMyRecord] = useState<UserRankResponse | null>(null);
+    const { uuid } = useAuthStore();
 
     useEffect(() => {
         if (includeMyRecord) return;
         async function getMyRecord() {
             const record = await getCourseUserRank({
                 courseId,
-                userId: myId,
+                userId: uuid ?? "",
             });
-            console.log("myRecord", record);
             setMyRecord(record);
         }
         getMyRecord();
-    }, [myId, includeMyRecord, courseId]);
+    }, [uuid, includeMyRecord, courseId]);
 
     useEffect(() => {
-        if (ghostList.map((ghost) => ghost.runnerId).includes(myId)) {
+        if (uuid && ghostList.map((ghost) => ghost.runnerUuid).includes(uuid)) {
             setIncludeMyRecord(true);
         }
-    }, [ghostList, myId]);
+    }, [ghostList, uuid]);
 
     return (
         <View style={{ gap: 10 }}>
@@ -89,7 +88,7 @@ export default function CourseTopUsers({
                                 onPress={() => {
                                     setSelectedGhostId(ghost.runningId);
                                 }}
-                                isMyRecord={ghost.runnerId === 1}
+                                isMyRecord={ghost.runnerUuid === uuid}
                                 paddingHorizontal={marginHorizontal}
                             />
                         ))}
@@ -104,7 +103,7 @@ export default function CourseTopUsers({
                                 avatar={myRecord.runnerProfileUrl}
                                 time={getRunTime(myRecord.duration, "MM:SS")}
                                 pace={getFormattedPace(myRecord.averagePace)}
-                                cadence={myRecord.cadence ?? "--" + " spm"}
+                                cadence={"--" + " spm"}
                                 isMyRecord={true}
                                 isGhostSelected={
                                     selectedGhostId === myRecord.runningId

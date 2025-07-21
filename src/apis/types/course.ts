@@ -45,9 +45,9 @@ export interface PathData {
 }
 
 export interface HistoryResponse {
-    rank?: number;
-    runnerId: number;
+    runnerUuid: string;
     runnerProfileUrl: string;
+    runnerNickname: string;
     runningId: number;
     runningName: string;
     averagePace: number;
@@ -56,6 +56,16 @@ export interface HistoryResponse {
     duration: number;
     isPublic: boolean;
     startedAt: string;
+}
+
+export interface UserRankResponse {
+    rank: number;
+    runningId: number;
+    runningName: string;
+    duration: number;
+    bpm: number;
+    averagePace: number;
+    runnerProfileUrl: string;
 }
 
 export type Pageable = {

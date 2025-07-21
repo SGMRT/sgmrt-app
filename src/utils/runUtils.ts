@@ -185,7 +185,7 @@ export async function saveRunning({
     const startTime = truncatedTelemetries.at(0)?.timeStamp;
 
     const record: RunRecord = {
-        distance: userDashboardData.totalDistance,
+        distance: userDashboardData.totalDistance / 1000,
         elevationGain: userDashboardData.totalElevationGain,
         elevationLoss: userDashboardData.totalElevationLoss,
         duration: runTime,

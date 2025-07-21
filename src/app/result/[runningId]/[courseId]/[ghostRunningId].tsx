@@ -187,9 +187,9 @@ export default function Result() {
                                 }}
                                 stats={[
                                     {
-                                        value: (
-                                            runData.recordInfo.distance / 1000
-                                        ).toFixed(2),
+                                        value: runData.recordInfo.distance.toFixed(
+                                            2
+                                        ),
                                         unit: "km",
                                         description: "전체 거리",
                                     },
