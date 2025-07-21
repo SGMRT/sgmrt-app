@@ -6,6 +6,7 @@ import TabBar from "@/src/components/ui/TabBar";
 import { Typography, TypographyColor } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import * as Application from "expo-application";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
     Image,
@@ -18,6 +19,7 @@ import { Switch } from "react-native-gesture-handler";
 
 export default function ProfileScreen() {
     const [selectedTab, setSelectedTab] = useState<"info" | "course">("info");
+    const router = useRouter();
     return (
         <View style={{ flex: 1 }}>
             <SafeAreaView
@@ -52,6 +54,7 @@ export default function ProfileScreen() {
 }
 
 const Info = () => {
+    const router = useRouter();
     return (
         <ScrollView
             contentContainerStyle={{
@@ -71,7 +74,9 @@ const Info = () => {
                     />
                     <StyledButton
                         title="회원 정보 변경"
-                        onPress={() => {}}
+                        onPress={() => {
+                            router.push("/(tabs)/(profile)/editInfo");
+                        }}
                         style={{ width: "50%" }}
                     />
                 </View>
@@ -171,22 +176,24 @@ const ProfileOptionItem = ({
     borderBottom = false,
 }: ProfileOptionItemProps) => {
     return (
-        <View
-            style={{
-                height: 62,
-                paddingHorizontal: 17,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                borderBottomWidth: borderBottom ? 1 : 0,
-                borderBottomColor: "#212121",
-            }}
-        >
-            <Typography variant="subhead2" color={titleColor}>
-                {title}
-            </Typography>
-            {rightElement}
-        </View>
+        <TouchableOpacity onPress={onPress} activeOpacity={onPress ? 0.5 : 1}>
+            <View
+                style={{
+                    height: 62,
+                    paddingHorizontal: 17,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    borderBottomWidth: borderBottom ? 1 : 0,
+                    borderBottomColor: "#212121",
+                }}
+            >
+                <Typography variant="subhead2" color={titleColor}>
+                    {title}
+                </Typography>
+                {rightElement}
+            </View>
+        </TouchableOpacity>
     );
 };
 
