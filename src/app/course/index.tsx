@@ -1,9 +1,6 @@
-import CourseInfoItem from "@/src/components/map/courseInfo/CourseInfoItem";
-import ExpendHeader from "@/src/components/ui/ExpendHeader";
+import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
 import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
-import { Typography } from "@/src/components/ui/Typography";
-import { FlashList } from "@shopify/flash-list";
 import { useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,29 +24,10 @@ export default function CourseScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <Header titleText="내 코스" />
-            <ExpendHeader
-                title="2025"
-                titleColor="gray40"
-                marginHorizontal={true}
-                rightChildren={
-                    <Typography variant="body1" color="gray60">
-                        필터
-                    </Typography>
-                }
-            />
-            <FlashList
+            <CoursesWithFilter
                 data={data}
-                renderItem={({ item, index }) => (
-                    <CourseInfoItem
-                        isSelected={selectedCourseId === item.id}
-                        onPress={() => setSelectedCourseId(item.id)}
-                    />
-                )}
-                contentContainerStyle={{
-                    paddingHorizontal: 17,
-                }}
-                showsVerticalScrollIndicator={false}
-                extraData={selectedCourseId}
+                selectedCourseId={selectedCourseId}
+                setSelectedCourseId={setSelectedCourseId}
             />
             <SlideToAction
                 label="이 코스로 러닝 시작"
