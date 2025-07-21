@@ -16,7 +16,12 @@ export default function CourseInfoItem({
     onPress,
 }: CourseInfoItemProps) {
     return (
-        <View style={styles.container}>
+        <View
+            style={[
+                styles.container,
+                { backgroundColor: isSelected ? "#171717" : "transparent" },
+            ]}
+        >
             <View style={styles.leftSection}>
                 <CourseHeader />
                 <StatRow
@@ -81,6 +86,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         paddingVertical: 15,
+        paddingHorizontal: 17,
     },
     headerContainer: {
         flexDirection: "row",

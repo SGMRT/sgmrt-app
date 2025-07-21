@@ -8,9 +8,9 @@ import {
     Telemetry,
 } from "./types/run";
 
-export async function postRun(data: BaseRunning, memberId: number) {
+export async function postRun(data: BaseRunning) {
     try {
-        const response = await server.post(`runs/${memberId}`, data);
+        const response = await server.post(`runs`, data);
         return response.data;
     } catch (error) {
         console.error(error);
@@ -20,14 +20,10 @@ export async function postRun(data: BaseRunning, memberId: number) {
 
 export async function postCourseRun(
     data: CourseSoloRunning | CourseGhostRunning,
-    courseId: number,
-    memberId: number
+    courseId: number
 ) {
     try {
-        const response = await server.post(
-            `runs/courses/${courseId}/${memberId}`,
-            data
-        );
+        const response = await server.post(`runs/courses/${courseId}`, data);
         return response.data;
     } catch (error) {
         console.error(error);
@@ -35,18 +31,11 @@ export async function postCourseRun(
     }
 }
 
-export async function patchRunName(
-    runningId: number,
-    name: string,
-    memberId: number
-) {
+export async function patchRunName(runningId: number, name: string) {
     try {
-        const response = await server.patch(
-            `runs/${runningId}/name/${memberId}`,
-            {
-                name,
-            }
-        );
+        const response = await server.patch(`runs/${runningId}/name`, {
+            name,
+        });
         return response.data;
     } catch (error) {
         console.error(error);
@@ -141,5 +130,15 @@ export async function getRunTelemetriesByCourseId(courseId: number) {
 }
 
 export async function deleteRun(runningId: number) {
-    console.log("deleteRun", runningId);
+    try {
+        const response = await server.delete(`runs`, {
+            data: {
+                runningIds: [runningId],
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 }

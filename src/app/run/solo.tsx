@@ -171,7 +171,6 @@ export default function Run() {
                             userDashboardData,
                             runTime,
                             isPublic: true,
-                            memberId: 1,
                             totalStepCount,
                         });
                         router.replace(`/result/${response.runningId}/-1/-1`);

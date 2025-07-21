@@ -137,6 +137,7 @@ export default function Profile() {
                             maxLength={10}
                             value={nickname}
                             onChangeText={setNickname}
+                            required
                         />
                         {/* 성별 */}
                         <View>

@@ -18,6 +18,13 @@ export interface CourseResponse {
     distance: number;
     elevationGain: number;
     elevationLoss: number;
+    runners: [
+        {
+            uuId: string;
+            profileUrl: string;
+        }
+    ];
+    runnersCount: number;
 }
 
 export interface CourseDetailResponse {

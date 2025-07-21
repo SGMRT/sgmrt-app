@@ -64,7 +64,7 @@ export default function Result() {
         queryKey: ["comparison", runningId, ghostRunningId],
         queryFn: () =>
             getRunComperison(Number(runningId), Number(ghostRunningId)),
-        enabled: !!ghostRunningId,
+        enabled: !!ghostRunningId && ghostRunningId !== "-1",
     });
 
     const {
@@ -74,14 +74,14 @@ export default function Result() {
     } = useQuery({
         queryKey: ["course", courseId],
         queryFn: () => getCourse(Number(courseId)),
-        enabled: courseId !== "-1",
+        enabled: !!courseId && courseId !== "-1",
     });
 
     const { data: ghostList } = useQuery<HistoryResponse[]>({
         queryKey: ["course-top-ranking", courseId],
         queryFn: () =>
             getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
-        enabled: !!courseId,
+        enabled: !!courseId && courseId !== "-1",
     });
 
     console.log(runningId, courseId, ghostRunningId);
@@ -120,7 +120,9 @@ export default function Result() {
                     <Header
                         titleText={getDate(runData.startedAt)}
                         onDelete={() => {
-                            deleteRun(Number(runningId));
+                            deleteRun(Number(runningId)).then(() => {
+                                router.replace("/");
+                            });
                         }}
                     />
                     <ScrollView
@@ -145,8 +147,7 @@ export default function Result() {
                                     onBlur={async () => {
                                         await patchRunName(
                                             Number(runningId),
-                                            recordTitle,
-                                            1
+                                            recordTitle
                                         );
                                     }}
                                 />
@@ -438,7 +439,13 @@ export default function Result() {
                                             });
                                         })
                                         .finally(() => {
-                                            router.replace("/");
+                                            router.replace({
+                                                pathname:
+                                                    "/(tabs)/(profile)/profile",
+                                                params: {
+                                                    tab: "course",
+                                                },
+                                            });
                                         });
                                 } else {
                                     handlePresentModalPress();
