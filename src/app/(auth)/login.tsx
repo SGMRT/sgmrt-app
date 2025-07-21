@@ -53,7 +53,6 @@ export default function Login() {
                             idToken: await credential.user.getIdToken(),
                         })
                             .then((res) => {
-                                console.log(res);
                                 login(
                                     res.accessToken,
                                     res.refreshToken,

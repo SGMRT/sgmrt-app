@@ -1,4 +1,5 @@
 import { AlertIcon, ChevronIcon } from "@/assets/svgs/svgs";
+import { invalidateToken } from "@/src/apis";
 import BottomModal from "@/src/components/ui/BottomModal";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
@@ -91,9 +92,10 @@ export default function ProfileScreen() {
                                 ? "밀어서 로그아웃"
                                 : "밀어서 회원 탈퇴"
                         }
-                        onSlideSuccess={() => {
+                        onSlideSuccess={async () => {
                             bottomSheetRef.current?.close();
                             if (modalType === "logout") {
+                                await invalidateToken();
                                 logout();
                             } else {
                                 console.log("회원 탈퇴");

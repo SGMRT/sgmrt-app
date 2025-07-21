@@ -1,3 +1,4 @@
+import { useAuthStore } from "../store/authState";
 import { SignupState } from "../types/signup";
 import server from "./instance";
 
@@ -41,6 +42,52 @@ export async function signUp(data: SignUpRequest): Promise<SignResponse> {
                 Authorization: `Bearer ${data.idToken}`,
             },
         });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function reIssueToken() {
+    try {
+        const response = await server.post(
+            `auth/reissue`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${
+                        useAuthStore.getState().refreshToken
+                    }`,
+                },
+                canRetry: false,
+            }
+        );
+        const { uuid, accessToken, refreshToken } = response.data;
+        useAuthStore.getState().login(uuid, accessToken, refreshToken);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function invalidateToken() {
+    try {
+        const response = await server.post(
+            `auth/logout`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${
+                        useAuthStore.getState().refreshToken
+                    }`,
+                },
+                canRetry: false,
+                withAuth: false,
+            }
+        );
+        useAuthStore.getState().logout();
         return response.data;
     } catch (error) {
         console.error(error);
