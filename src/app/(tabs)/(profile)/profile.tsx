@@ -11,13 +11,16 @@ import { TabItem } from "@/src/components/ui/TabItem";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { SafeAreaView, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
-    const [selectedTab, setSelectedTab] = useState<"info" | "course">("info");
+    const { tab } = useLocalSearchParams();
+    const [selectedTab, setSelectedTab] = useState<"info" | "course">(
+        tab === "course" ? "course" : "info"
+    );
     const [modalType, setModalType] = useState<"logout" | "withdraw">("logout");
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const router = useRouter();

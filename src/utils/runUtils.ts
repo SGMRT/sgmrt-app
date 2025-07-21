@@ -142,7 +142,6 @@ interface SaveRunningProps {
     userDashboardData: UserDashBoardData;
     runTime: number;
     isPublic: boolean;
-    memberId: number;
     totalStepCount: number;
     ghostRunningId?: number | null;
     courseId?: number;
@@ -153,7 +152,6 @@ export async function saveRunning({
     userDashboardData,
     runTime,
     isPublic,
-    memberId,
     totalStepCount,
     ghostRunningId,
     courseId,
@@ -208,7 +206,7 @@ export async function saveRunning({
             ghostRunningId,
             record,
         };
-        const response = await postCourseRun(request, courseId!, memberId);
+        const response = await postCourseRun(request, courseId!);
         return response;
     } else if (courseId) {
         const request: CourseSoloRunning = {
@@ -221,7 +219,7 @@ export async function saveRunning({
             ghostRunningId: null,
             record,
         };
-        const response = await postCourseRun(request, courseId, memberId);
+        const response = await postCourseRun(request, courseId);
         return response;
     } else {
         const request: BaseRunning = {
@@ -232,7 +230,7 @@ export async function saveRunning({
             telemetries: truncatedTelemetries,
             record,
         };
-        const response = await postRun(request, memberId);
+        const response = await postRun(request);
         return response;
     }
 }

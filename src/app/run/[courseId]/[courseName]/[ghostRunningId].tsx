@@ -278,7 +278,6 @@ export default function Course() {
                                     userDashboardData,
                                     runTime,
                                     isPublic: true,
-                                    memberId: 1,
                                     totalStepCount,
                                 });
                                 router.replace(
@@ -301,7 +300,6 @@ export default function Course() {
                                     userDashboardData,
                                     runTime,
                                     isPublic: true,
-                                    memberId: 1,
                                     totalStepCount,
                                 });
                                 router.replace(
@@ -325,7 +323,6 @@ export default function Course() {
                                     userDashboardData: courseDashboardData,
                                     runTime: courseRunTime || runTime,
                                     isPublic: true,
-                                    memberId: 1,
                                     totalStepCount: courseStepCount,
                                     courseId: Number(courseId),
                                     ghostRunningId:
@@ -343,7 +340,6 @@ export default function Course() {
                                     userDashboardData: courseDashboardData,
                                     runTime: courseRunTime || runTime,
                                     isPublic: true,
-                                    memberId: 1,
                                     totalStepCount: courseStepCount,
                                     courseId: Number(courseId),
                                     ghostRunningId:
