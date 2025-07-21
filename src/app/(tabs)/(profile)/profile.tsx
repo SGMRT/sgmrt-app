@@ -1,13 +1,17 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
+import { AlertIcon, ChevronIcon } from "@/assets/svgs/svgs";
+import BottomModal from "@/src/components/ui/BottomModal";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
+import SlideToAction from "@/src/components/ui/SlideToAction";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import TabBar from "@/src/components/ui/TabBar";
 import { Typography, TypographyColor } from "@/src/components/ui/Typography";
+import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Application from "expo-application";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
     Image,
     SafeAreaView,
@@ -19,7 +23,10 @@ import { Switch } from "react-native-gesture-handler";
 
 export default function ProfileScreen() {
     const [selectedTab, setSelectedTab] = useState<"info" | "course">("info");
-    const router = useRouter();
+    const [modalType, setModalType] = useState<"logout" | "withdraw">("logout");
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const { logout } = useAuthStore();
+
     return (
         <View style={{ flex: 1 }}>
             <SafeAreaView
@@ -45,15 +52,69 @@ export default function ProfileScreen() {
                     </View>
                 </View>
                 {/* Content */}
-                {selectedTab === "info" && <Info />}
+                {selectedTab === "info" && (
+                    <Info
+                        setModalType={setModalType}
+                        modalRef={bottomSheetRef}
+                    />
+                )}
                 {selectedTab === "course" && <Course />}
             </SafeAreaView>
             <TabBar />
+            <BottomModal
+                bottomSheetRef={bottomSheetRef}
+                canClose={true}
+                handleStyle={{
+                    paddingTop: 10,
+                    paddingBottom: 30,
+                }}
+            >
+                <View style={{ gap: 30 }}>
+                    <View style={{ gap: 15, alignItems: "center" }}>
+                        <AlertIcon />
+                        <View style={{ gap: 4, alignItems: "center" }}>
+                            <Typography variant="headline" color="white">
+                                {modalType === "logout"
+                                    ? "로그아웃 하시겠습니까?"
+                                    : "회원 탈퇴하시겠습니까?"}
+                            </Typography>
+                            <Typography variant="body2" color="gray40">
+                                {modalType === "logout"
+                                    ? "간편 로그인을 통해 다시 로그인할 수 있습니다"
+                                    : "활동 내역 및 저장된 정보는 삭제되며 복구할 수 없습니다"}
+                            </Typography>
+                        </View>
+                    </View>
+                    <SlideToAction
+                        label={
+                            modalType === "logout"
+                                ? "밀어서 로그아웃"
+                                : "밀어서 회원 탈퇴"
+                        }
+                        onSlideSuccess={() => {
+                            bottomSheetRef.current?.close();
+                            if (modalType === "logout") {
+                                logout();
+                            } else {
+                                console.log("회원 탈퇴");
+                            }
+                        }}
+                        color="red"
+                        direction="left"
+                    />
+                </View>
+            </BottomModal>
         </View>
     );
 }
 
-const Info = () => {
+const Info = ({
+    setModalType,
+    modalRef,
+}: {
+    setModalType: (type: "logout" | "withdraw") => void;
+    modalRef: React.RefObject<BottomSheetModal | null>;
+}) => {
     const router = useRouter();
     return (
         <ScrollView
@@ -134,12 +195,18 @@ const Info = () => {
                 <ProfileOptionItem
                     title="로그아웃"
                     titleColor="red"
-                    onPress={() => {}}
+                    onPress={() => {
+                        setModalType("logout");
+                        modalRef.current?.present();
+                    }}
                     rightElement={<ChevronIcon color={colors.gray[60]} />}
                 />
                 <ProfileOptionItem
                     title="탈퇴하기"
-                    onPress={() => {}}
+                    onPress={() => {
+                        setModalType("withdraw");
+                        modalRef.current?.present();
+                    }}
                     rightElement={<ChevronIcon color={colors.gray[60]} />}
                 />
             </ProfileOptionSection>

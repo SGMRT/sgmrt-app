@@ -20,7 +20,10 @@ import UserIcon from "./user.svg";
 
 import ElipsisVerticalIcon from "./elipsis.svg";
 
+import AlertIcon from "./alert.svg";
+
 export {
+    AlertIcon,
     AppleIcon,
     BackIcon,
     CheckIcon,
