@@ -134,11 +134,9 @@ export default function BottomCourseInfoModal({
                     console.log("slide success");
                     bottomSheetRef.current?.dismiss();
                     if (tab === "course") {
-                        router.push(`/run/${course?.id}/${course?.name}/-1`);
+                        router.push(`/run/${course?.id}/-1`);
                     } else {
-                        router.push(
-                            `/run/${course?.id}/${course?.name}/${selectedGhostId}`
-                        );
+                        router.push(`/run/${course?.id}/${selectedGhostId}`);
                     }
                 }}
                 color="green"

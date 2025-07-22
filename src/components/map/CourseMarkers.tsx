@@ -22,7 +22,7 @@ export default function CourseMarkers({
             <MarkerView
                 id={`marker-view-${course.id}`}
                 coordinate={[course.startLng, course.startLat]}
-                anchor={{ x: 0.5, y: 1.1 }}
+                anchor={{ x: 0.5, y: 1.0 }}
             >
                 <CourseTitle
                     course={course}

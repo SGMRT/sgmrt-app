@@ -1,33 +1,36 @@
+import { UserCourseInfo } from "@/src/apis/types/course";
 import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
 import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
+import { Typography } from "@/src/components/ui/Typography";
 import { useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useUserCourses } from "../(tabs)/(profile)/profile";
 
 export default function CourseScreen() {
-    const [selectedCourseId, setSelectedCourseId] = useState<number | null>(1);
-    const data = [
-        {
-            id: 1,
-            name: "소고기마라탕",
-        },
-        {
-            id: 2,
-            name: "소고기마라탕",
-        },
-        {
-            id: 3,
-            name: "소고기마라탕",
-        },
-    ];
+    const [selectedCourse, setSelectedCourse] = useState<UserCourseInfo | null>(
+        null
+    );
+    const { data, isLoading, isError, fetchNextPage, hasNextPage } =
+        useUserCourses();
+
+    if (isLoading) {
+        return <></>;
+    }
+    if (isError) {
+        return <Typography>코스 정보를 불러오는데 실패했습니다.</Typography>;
+    }
     return (
         <SafeAreaView style={styles.container}>
             <Header titleText="내 코스" />
             <CoursesWithFilter
-                data={data}
-                selectedCourseId={selectedCourseId}
-                setSelectedCourseId={setSelectedCourseId}
+                data={data?.pages.flatMap((page) => page.content) ?? []}
+                selectedCourse={selectedCourse}
+                setSelectedCourse={setSelectedCourse}
+                onClickFilter={() => {}}
+                hasNextPage={hasNextPage}
+                fetchNextPage={fetchNextPage}
             />
             <SlideToAction
                 label="이 코스로 러닝 시작"

@@ -8,6 +8,7 @@ import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import { Typography } from "@/src/components/ui/Typography";
+import { useAuthStore } from "@/src/store/authState";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { FlashList } from "@shopify/flash-list";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -26,6 +27,8 @@ export default function CourseRankScreen() {
         "runningRecord.duration,asc"
     );
     const [ghostList, setGhostList] = useState<HistoryResponse[]>([]);
+
+    const { uuid } = useAuthStore();
 
     const pageable: Pageable = useMemo(
         () => ({
@@ -91,7 +94,7 @@ export default function CourseRankScreen() {
                         ghostId={item.runningId.toString()}
                         isGhostSelected={selectedGhostId === item.runningId}
                         onPress={() => setSelectedGhostId(item.runningId)}
-                        isMyRecord={item.runnerId === 1}
+                        isMyRecord={item.runnerUuid === uuid}
                     />
                 )}
                 estimatedItemSize={83}
