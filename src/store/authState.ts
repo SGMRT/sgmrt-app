@@ -26,15 +26,25 @@ const secureStorage: PersistStorage<AuthState> = {
     },
 };
 
+interface UserInfo {
+    username: string;
+    height: number | null;
+    weight: number | null;
+    gender: "MALE" | "FEMALE" | "";
+}
+
 interface AuthState {
     accessToken: string | null;
     refreshToken: string | null;
     uuid: string | null;
     isLoggedIn: boolean;
 
+    userInfo: UserInfo | null;
+
     login: (accessToken: string, refreshToken: string, uuid: string) => void;
     refresh: (accessToken: string, refreshToken: string) => void;
     logout: () => void;
+    setUserInfo: (userInfo: UserInfo) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -45,6 +55,7 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken: null,
                 uuid: null,
                 isLoggedIn: false,
+                userInfo: null,
 
                 login: (access, refresh, uuid) => {
                     set({
@@ -60,6 +71,10 @@ export const useAuthStore = create<AuthState>()(
                         accessToken: access,
                         refreshToken: refresh,
                     });
+                },
+
+                setUserInfo: (userInfo: UserInfo) => {
+                    set({ userInfo });
                 },
 
                 logout: () => {

@@ -22,6 +22,7 @@ export async function signIn(data: SignInRequest): Promise<SignResponse> {
                 headers: {
                     Authorization: `Bearer ${data.idToken}`,
                 },
+                withAuth: false,
             }
         );
         return response.data;
@@ -41,6 +42,7 @@ export async function signUp(data: SignUpRequest): Promise<SignResponse> {
             headers: {
                 Authorization: `Bearer ${data.idToken}`,
             },
+            withAuth: false,
         });
         return response.data;
     } catch (error) {
@@ -61,6 +63,7 @@ export async function reIssueToken() {
                     }`,
                 },
                 canRetry: false,
+                withAuth: false,
             }
         );
         const { uuid, accessToken, refreshToken } = response.data;
