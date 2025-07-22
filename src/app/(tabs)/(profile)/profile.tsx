@@ -182,7 +182,10 @@ const Course = ({
     );
 };
 
-function useUserCourses(size: number = 10, sort: GhostSortOption = "id,asc") {
+export function useUserCourses(
+    size: number = 10,
+    sort: GhostSortOption = "id,asc"
+) {
     return useInfiniteQuery({
         queryKey: ["user-courses", size, sort],
         queryFn: async ({ pageParam = 0 }) =>

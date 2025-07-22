@@ -1,6 +1,7 @@
+import { CourseResponse } from "@/src/apis/types/course";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import BottomModal from "../../ui/BottomModal";
@@ -12,19 +13,32 @@ interface BottomMyCourseModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     canClose?: boolean;
     heightVal: SharedValue<number>;
+    courses: CourseResponse[];
 }
 
 export default function BottomMyCourseModal({
     bottomSheetRef,
     canClose = true,
     heightVal,
+    courses,
 }: BottomMyCourseModalProps) {
+    const [selectedCourse, setSelectedCourse] = useState<CourseResponse | null>(
+        null
+    );
     const router = useRouter();
 
     useEffect(() => {
         bottomSheetRef.current?.present();
         console.log("bottomSheetRef: ", bottomSheetRef.current);
     }, [bottomSheetRef]);
+
+    useEffect(() => {
+        if (courses && courses.length > 0) {
+            setSelectedCourse(courses[0]);
+        }
+    }, [courses]);
+
+    console.log(courses);
 
     return (
         <BottomModal
@@ -42,7 +56,11 @@ export default function BottomMyCourseModal({
                     router.push("/course");
                 }}
             />
-            <CoursesInfoList />
+            <CoursesInfoList
+                courses={courses}
+                selectedCourse={selectedCourse}
+                setSelectedCourse={setSelectedCourse}
+            />
             <SlideToAction
                 label={"이 코스로 러닝 시작"}
                 onSlideSuccess={() => {
