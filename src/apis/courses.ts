@@ -130,7 +130,11 @@ export async function getUserCourses(
     }
     try {
         const response = await server.get(`/members/${memberUuid}/courses`, {
-            params: { pageable },
+            params: {
+                page: pageable.page,
+                size: pageable.size,
+                sort: pageable.sort,
+            },
         });
         return response.data;
     } catch (error) {

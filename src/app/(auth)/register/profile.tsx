@@ -218,7 +218,7 @@ export default function Profile() {
             </View>
             <BottomAgreementButton
                 isActive={isActive}
-                canPress={true}
+                canPress={isActive}
                 onPress={() => {
                     handleSubmit();
                 }}

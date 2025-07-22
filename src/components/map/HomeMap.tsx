@@ -34,7 +34,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
 
     const [bounds, setBounds] = useState<Position[]>([]);
     const [center, setCenter] = useState<Position>([0, 0]);
-    const [distance, setDistance] = useState(1);
+    const [distance, setDistance] = useState(10);
     const mapRef = useRef<MapView>(null);
     const { uuid } = useAuthStore();
 
@@ -125,6 +125,8 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         },
         enabled: !!center[0] && !!center[1] && !!distance,
     });
+
+    console.log(courses);
 
     return (
         <>

@@ -131,7 +131,6 @@ export default function BottomCourseInfoModal({
                         : "고스트와 러닝 시작"
                 }
                 onSlideSuccess={() => {
-                    console.log("slide success");
                     bottomSheetRef.current?.dismiss();
                     if (tab === "course") {
                         router.push(`/run/${course?.id}/-1`);
