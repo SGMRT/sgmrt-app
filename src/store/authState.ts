@@ -26,7 +26,7 @@ const secureStorage: PersistStorage<AuthState> = {
     },
 };
 
-interface UserInfo {
+export interface UserInfo {
     username: string;
     height: number | null;
     weight: number | null;

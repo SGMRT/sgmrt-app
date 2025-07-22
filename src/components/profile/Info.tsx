@@ -1,4 +1,5 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
+import { useAuthStore, UserInfo } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Application from "expo-application";
@@ -22,6 +23,8 @@ export const Info = ({
     modalRef: React.RefObject<BottomSheetModal | null>;
 }) => {
     const router = useRouter();
+    const { userInfo } = useAuthStore();
+
     return (
         <ScrollView
             contentContainerStyle={{
@@ -32,7 +35,7 @@ export const Info = ({
         >
             {/* Profile */}
             <View style={{ gap: 15, marginTop: 10 }}>
-                <Profile />
+                <Profile userInfo={userInfo} />
                 <View style={{ flexDirection: "row", gap: 4 }}>
                     <StyledButton
                         title="프로필 이미지 변경"
@@ -194,7 +197,7 @@ const StyledSwitch = ({
     );
 };
 
-const Profile = () => {
+const Profile = ({ userInfo }: { userInfo: UserInfo | null }) => {
     return (
         <View
             style={{
@@ -211,7 +214,7 @@ const Profile = () => {
             />
             <View>
                 <Typography variant="headline" color="gray20">
-                    윤다희
+                    {userInfo?.username ?? "고스트러너"}
                 </Typography>
                 <View
                     style={{
@@ -221,15 +224,24 @@ const Profile = () => {
                     }}
                 >
                     <Typography variant="body1" color="gray40">
-                        166cm
+                        {userInfo?.height
+                            ? `${userInfo.height}cm`
+                            : "키 비공개"}
+                    </Typography>
+
+                    <Divider />
+                    <Typography variant="body1" color="gray40">
+                        {userInfo?.weight
+                            ? `${userInfo.weight}kg`
+                            : "몸무게 비공개"}
                     </Typography>
                     <Divider />
                     <Typography variant="body1" color="gray40">
-                        55kg
-                    </Typography>
-                    <Divider />
-                    <Typography variant="body1" color="gray40">
-                        여성
+                        {userInfo?.gender === "MALE"
+                            ? "남성"
+                            : userInfo?.gender === "FEMALE"
+                            ? "여성"
+                            : "성별 비공개"}
                     </Typography>
                 </View>
             </View>

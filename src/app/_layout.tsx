@@ -15,7 +15,7 @@ Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 
 export default function RootLayout() {
     const router = useRouter();
-    const { isLoggedIn, logout } = useAuthStore();
+    const { isLoggedIn, logout, userInfo } = useAuthStore();
     const [loaded] = useFonts({
         "SpoqaHanSansNeo-Regular": require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),
         "SpoqaHanSansNeo-Medium": require("@/assets/fonts/SpoqaHanSansNeo-Medium.ttf"),
@@ -28,14 +28,16 @@ export default function RootLayout() {
 
         SplashScreen.hideAsync();
 
-        // logout();
+        // if (!userInfo?.username) {
+        //     logout();
+        // }
 
         if (isLoggedIn) {
             router.replace("/intro");
         } else {
             router.replace("/(auth)/login");
         }
-    }, [isLoggedIn, loaded]);
+    }, [isLoggedIn, loaded, userInfo]);
 
     if (!loaded) {
         return null;

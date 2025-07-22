@@ -3,11 +3,23 @@ import Header from "@/src/components/ui/Header";
 import InfoItem, { InfoFieldTitle } from "@/src/components/ui/InfoItem";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
-import { useState } from "react";
+import { useAuthStore, UserInfo } from "@/src/store/authState";
+import { useEffect, useState } from "react";
 import { SafeAreaView, ScrollView, View } from "react-native";
 
 export default function EditInfo() {
-    const [nickname, setNickname] = useState("");
+    const { userInfo: userInfoState, setUserInfo: setUserInfoState } =
+        useAuthStore();
+    const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+
+    useEffect(() => {
+        setUserInfo(userInfoState);
+    }, [userInfoState]);
+
+    const onSubmit = () => {
+        setUserInfoState(userInfo!);
+    };
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "#111111" }}>
             <Header titleText="회원 정보 변경" />
@@ -21,10 +33,15 @@ export default function EditInfo() {
                 {/* 닉네임 */}
                 <InfoItem
                     title="닉네임"
-                    placeholder="윤다희"
+                    placeholder={userInfo?.username ?? "닉네임"}
                     maxLength={10}
-                    value={nickname}
-                    onChangeText={setNickname}
+                    value={userInfo?.username ?? ""}
+                    onChangeText={(text) => {
+                        setUserInfo({
+                            ...userInfo!,
+                            username: text,
+                        } as UserInfo);
+                    }}
                     required
                 />
                 {/* 성별 */}
@@ -33,35 +50,73 @@ export default function EditInfo() {
                     <View style={{ flexDirection: "row", gap: 4, flex: 1 }}>
                         <StyledButton
                             title="여성"
-                            onPress={() => {}}
+                            onPress={() => {
+                                if (userInfo?.gender === "FEMALE") {
+                                    setUserInfo({
+                                        ...userInfo!,
+                                        gender: "",
+                                    } as UserInfo);
+                                } else {
+                                    setUserInfo({
+                                        ...userInfo!,
+                                        gender: "FEMALE",
+                                    } as UserInfo);
+                                }
+                            }}
                             style={{ paddingHorizontal: 12 }}
                             activeTextColor="primary"
-                            active={true}
+                            active={userInfo?.gender === "FEMALE"}
                         />
                         <StyledButton
                             title="남성"
-                            onPress={() => {}}
+                            onPress={() => {
+                                if (userInfo?.gender === "MALE") {
+                                    setUserInfo({
+                                        ...userInfo!,
+                                        gender: "",
+                                    } as UserInfo);
+                                } else {
+                                    setUserInfo({
+                                        ...userInfo!,
+                                        gender: "MALE",
+                                    } as UserInfo);
+                                }
+                            }}
                             style={{ paddingHorizontal: 12 }}
                             activeTextColor="primary"
-                            active={false}
+                            active={userInfo?.gender === "MALE"}
                         />
                     </View>
                 </View>
                 {/* 신장 */}
                 <InfoItem
                     title="신장"
-                    placeholder="170"
+                    placeholder={userInfo?.height?.toString() ?? "ex) 170"}
                     keyboardType="numeric"
                     maxLength={3}
                     unit="cm"
+                    value={userInfo?.height?.toString() ?? ""}
+                    onChangeText={(text) => {
+                        setUserInfo({
+                            ...userInfo!,
+                            height: Number(text),
+                        } as UserInfo);
+                    }}
                 />
                 {/* 몸무게 */}
                 <InfoItem
                     title="몸무게"
-                    placeholder="60"
+                    placeholder={userInfo?.weight?.toString() ?? "ex) 60"}
                     keyboardType="numeric"
                     maxLength={3}
                     unit="kg"
+                    value={userInfo?.weight?.toString() ?? ""}
+                    onChangeText={(text) => {
+                        setUserInfo({
+                            ...userInfo!,
+                            weight: Number(text),
+                        } as UserInfo);
+                    }}
                 />
                 <Typography
                     variant="caption1"
@@ -76,7 +131,7 @@ export default function EditInfo() {
             <BottomAgreementButton
                 isActive={true}
                 canPress={true}
-                onPress={() => {}}
+                onPress={onSubmit}
                 title="수정 완료"
             />
         </SafeAreaView>

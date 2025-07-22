@@ -30,7 +30,6 @@ export default function ProfileScreen() {
     const [selectedCourse, setSelectedCourse] = useState<UserCourseInfo | null>(
         null
     );
-
     return (
         <View style={{ flex: 1 }}>
             <SafeAreaView
