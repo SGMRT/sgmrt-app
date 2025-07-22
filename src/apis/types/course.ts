@@ -2,7 +2,7 @@ export interface CoursesRequest {
     lat: number;
     lng: number;
     radiusM?: number;
-    ownerId?: number;
+    ownerId?: number | string;
     minDistance?: number;
     maxDistance?: number;
     minElevationM?: number;

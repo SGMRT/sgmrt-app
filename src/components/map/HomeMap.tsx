@@ -1,5 +1,6 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
+import { useAuthStore } from "@/src/store/authState";
 import { getDistance } from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { MapView } from "@rnmapbox/maps";
@@ -35,6 +36,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     const [center, setCenter] = useState<Position>([0, 0]);
     const [distance, setDistance] = useState(1);
     const mapRef = useRef<MapView>(null);
+    const { uuid } = useAuthStore();
 
     const onZoomLevelChanged = (currentZoomLevel: number) => {
         if (zoomLevel > 14.5 && currentZoomLevel <= 14.5) {
@@ -118,7 +120,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                 lat: center[1],
                 lng: center[0],
                 radiusM: distance * 1000,
-                ownerId: courseType === "my" ? 1 : undefined,
+                ownerId: courseType === "my" ? uuid ?? "" : undefined,
             });
         },
         enabled: !!center[0] && !!center[1] && !!distance,
