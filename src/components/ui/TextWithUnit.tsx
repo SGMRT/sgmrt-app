@@ -8,7 +8,7 @@ import {
 import { Typography, TypographyColor, TypographyVariant } from "./Typography";
 
 interface TextWithUnitProps {
-    value: string;
+    value: string | number;
     unit?: string;
     description?: string;
     align?: FlexAlignType;

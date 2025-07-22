@@ -72,14 +72,14 @@ export interface RecordInfo {
 
 export type RunsRequest = {
     runningMode: "SOLO" | "GHOST";
-    cursorStartedAt: string | null;
+    cursorStartedAt: number | null;
     cursorRunningId: number | null;
 };
 
 export type RunResponse = {
     runningId: number;
     name: string;
-    startedAt: string;
+    startedAt: number;
     recordInfo: {
         distance: number;
         duration: number;

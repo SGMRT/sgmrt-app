@@ -41,7 +41,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Course() {
-    const { courseId, courseName, ghostRunningId } = useLocalSearchParams();
+    const { courseId, ghostRunningId } = useLocalSearchParams();
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
@@ -51,14 +51,15 @@ export default function Course() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const isGhostRunning =
         ghostTelemetries.current.length > 0 || ghostSegments.length > 0;
+    const [courseName, setCourseName] = useState<string>("");
 
     useEffect(() => {
         const fetch = () => {
             Promise.all([
-                ghostRunningId !== "-1"
+                courseId !== "-1"
                     ? Promise.resolve([])
                     : getRunTelemetriesByCourseId(Number(courseId)),
-                ghostRunningId !== "-1"
+                courseId !== "-1"
                     ? getRunTelemetries(Number(ghostRunningId))
                     : Promise.resolve([]),
             ]).then(([course, rawGhostTelemetries]) => {
@@ -67,9 +68,11 @@ export default function Course() {
                         rawGhostTelemetries,
                         250
                     );
+                    setCourseName(course.name);
                     setCourse(newGhostTelemetries);
                     ghostTelemetries.current = newGhostTelemetries;
                 } else {
+                    setCourseName(course.name);
                     setCourse(course.coordinates);
                 }
 

@@ -1,6 +1,8 @@
 import { ChevronIcon, UserIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
-import { StyleSheet, View } from "react-native";
+import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import { useRouter } from "expo-router";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Divider } from "../../ui/Divider";
 import RadioButton from "../../ui/RadioButton";
 import StatRow from "../../ui/StatRow";
@@ -9,11 +11,33 @@ import { Typography } from "../../ui/Typography";
 interface CourseInfoItemProps {
     isSelected: boolean;
     onPress: () => void;
+    distance: number;
+    duration: number;
+    averagePace: number;
+    cadence: number;
+    runnerCount: number | null;
+    courseName: string | null;
+    courseId: number | null;
+    runningId: number | null;
+    ghostRunningId: number | null;
+    startedAt: number | null;
+    historyName: string | null;
 }
 
 export default function CourseInfoItem({
     isSelected,
     onPress,
+    distance,
+    duration,
+    averagePace,
+    cadence,
+    runnerCount,
+    courseName,
+    courseId,
+    runningId,
+    ghostRunningId,
+    startedAt,
+    historyName,
 }: CourseInfoItemProps) {
     return (
         <View
@@ -23,24 +47,33 @@ export default function CourseInfoItem({
             ]}
         >
             <View style={styles.leftSection}>
-                <CourseHeader />
+                <HistoryHeader
+                    historyName={historyName ?? ""}
+                    historyDate={getDate(startedAt ?? 0)}
+                    courseName={courseName ?? ""}
+                    courseUserCount={runnerCount ?? 0}
+                    courseId={courseId ?? 0}
+                    runningId={runningId ?? 0}
+                    ghostRunningId={ghostRunningId ?? 0}
+                />
                 <StatRow
                     style={{
                         gap: 10,
                     }}
                     stats={[
                         {
-                            value: "10.0",
+                            value: distance.toFixed(2),
                             unit: "km",
                         },
                         {
-                            value: "24:21",
+                            value: getRunTime(duration, "HH:MM:SS"),
                         },
                         {
-                            value: "8'23''",
+                            value: getFormattedPace(averagePace),
+                            unit: "",
                         },
                         {
-                            value: "124",
+                            value: cadence,
                             unit: "spm",
                         },
                     ]}
@@ -56,25 +89,72 @@ export default function CourseInfoItem({
     );
 }
 
-const CourseHeader = () => {
+interface HistoryHeaderProps {
+    historyName: string;
+    historyDate: string;
+    courseName: string;
+    courseUserCount: number | null;
+    courseId: number | null;
+    runningId: number | null;
+    ghostRunningId: number | null;
+}
+
+const HistoryHeader = ({
+    historyName,
+    historyDate,
+    courseName,
+    courseUserCount,
+    courseId,
+    runningId,
+    ghostRunningId,
+}: HistoryHeaderProps) => {
+    const router = useRouter();
     return (
         <View style={styles.headerContainer}>
             <Typography variant="body1" color="white">
-                집앞코스
+                {historyName}
             </Typography>
-            <View style={styles.titleRightSection}>
-                <Typography variant="caption1" color="gray60">
-                    2025.06.17
-                </Typography>
-                <Divider />
-                <View style={styles.userCountContainer}>
-                    <UserIcon />
+            <TouchableOpacity
+                onPress={() => {
+                    router.push(
+                        `/result/${runningId}/${courseId}/${ghostRunningId}`
+                    );
+                }}
+            >
+                <View style={styles.titleRightSection}>
                     <Typography variant="caption1" color="gray60">
-                        100
+                        {historyDate}
                     </Typography>
+                    {courseUserCount !== undefined &&
+                        courseUserCount !== null && (
+                            <>
+                                <Divider />
+                                <View style={styles.userCountContainer}>
+                                    <UserIcon />
+                                    <Typography
+                                        variant="caption1"
+                                        color="gray60"
+                                    >
+                                        {courseUserCount}
+                                    </Typography>
+                                </View>
+                            </>
+                        )}
+                    {courseName !== "" && (
+                        <>
+                            <Divider />
+                            <Typography variant="caption1" color="gray60">
+                                {courseName}
+                            </Typography>
+                        </>
+                    )}
+                    <ChevronIcon
+                        color={colors.gray[60]}
+                        width={16}
+                        height={16}
+                    />
                 </View>
-                <ChevronIcon color={colors.gray[60]} width={16} height={16} />
-            </View>
+            </TouchableOpacity>
         </View>
     );
 };

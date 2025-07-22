@@ -5,7 +5,7 @@ import TextWithUnit from "./TextWithUnit";
 import { TypographyVariant } from "./Typography";
 
 export type Stat = {
-    value: string;
+    value: string | number;
     unit?: string;
     description?: string;
 };
