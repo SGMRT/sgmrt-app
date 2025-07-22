@@ -68,6 +68,19 @@ export interface UserRankResponse {
     runnerProfileUrl: string;
 }
 
+export interface UserCourseInfo {
+    id: number;
+    name: string;
+    createdAt: number;
+    uniqueRunnersCount: number;
+    totalRunsCount: number;
+    distance: number;
+    averageCompletionTime: number;
+    averageFinisherPace: number;
+    averageFinisherCadence: number;
+    isPublic: true;
+}
+
 export type Pageable = {
     page: number;
     size: number;

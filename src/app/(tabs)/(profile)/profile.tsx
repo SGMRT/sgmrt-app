@@ -1,5 +1,6 @@
 import { AlertIcon } from "@/assets/svgs/svgs";
-import { invalidateToken } from "@/src/apis";
+import { getUserCourses, invalidateToken } from "@/src/apis";
+import { GhostSortOption, UserCourseInfo } from "@/src/apis/types/course";
 import { CourseFilter } from "@/src/components/course/CourseFilter";
 import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
 import { Info } from "@/src/components/profile/Info";
@@ -11,6 +12,7 @@ import { TabItem } from "@/src/components/ui/TabItem";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { SafeAreaView, View } from "react-native";
@@ -25,24 +27,10 @@ export default function ProfileScreen() {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const router = useRouter();
     const { logout } = useAuthStore();
-    const [selectedCourseId, setSelectedCourseId] = useState<number | null>(1);
-    const data = [
-        {
-            id: 1,
-            name: "소고기마라탕",
-        },
-        {
-            id: 2,
-            name: "소고기마라탕",
-        },
-        {
-            id: 3,
-            name: "소고기마라탕",
-        },
-    ];
-    const selectedCourseName = data.find(
-        (course) => course.id === selectedCourseId
-    )?.name;
+    const [selectedCourse, setSelectedCourse] = useState<UserCourseInfo | null>(
+        null
+    );
+
     return (
         <View style={{ flex: 1 }}>
             <SafeAreaView
@@ -57,9 +45,9 @@ export default function ProfileScreen() {
                         titleText="마이페이지"
                         hasBackButton={false}
                         onDelete={
-                            selectedTab === "course" && selectedCourseId
+                            selectedTab === "course" && selectedCourse
                                 ? () => {
-                                      setSelectedCourseId(null);
+                                      setSelectedCourse(null);
                                   }
                                 : undefined
                         }
@@ -86,9 +74,8 @@ export default function ProfileScreen() {
                 )}
                 {selectedTab === "course" && (
                     <Course
-                        data={data}
-                        selectedCourseId={selectedCourseId}
-                        setSelectedCourseId={setSelectedCourseId}
+                        selectedCourse={selectedCourse}
+                        setSelectedCourse={setSelectedCourse}
                     />
                 )}
             </SafeAreaView>
@@ -142,13 +129,11 @@ export default function ProfileScreen() {
                     />
                 </View>
             </BottomModal>
-            {selectedTab === "course" && selectedCourseId && (
+            {selectedTab === "course" && selectedCourse && (
                 <SlideToAction
                     label="이 코스로 러닝 시작"
                     onSlideSuccess={() => {
-                        router.push(
-                            `/run/${selectedCourseId}/${selectedCourseName}/-1`
-                        );
+                        router.push(`/run/${selectedCourse.id}/-1`);
                     }}
                     color="green"
                     direction="left"
@@ -159,25 +144,34 @@ export default function ProfileScreen() {
 }
 
 const Course = ({
-    data,
-    selectedCourseId,
-    setSelectedCourseId,
+    selectedCourse,
+    setSelectedCourse,
 }: {
-    data: any[];
-    selectedCourseId: number | null;
-    setSelectedCourseId: (id: number | null) => void;
+    selectedCourse: UserCourseInfo | null;
+    setSelectedCourse: (course: UserCourseInfo | null) => void;
 }) => {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const [selectedFilter, setSelectedFilter] = useState<
         "day" | "week" | "month" | "year"
     >("month");
+    const { data, isLoading, isError, fetchNextPage, hasNextPage } =
+        useUserCourses();
+
+    if (isLoading) {
+        return <></>;
+    }
+    if (isError) {
+        return <Typography>코스 정보를 불러오는데 실패했습니다.</Typography>;
+    }
     return (
         <View style={{ marginTop: 20, flex: 1 }}>
             <CoursesWithFilter
-                data={data}
-                selectedCourseId={selectedCourseId}
-                setSelectedCourseId={setSelectedCourseId}
+                data={data?.pages.flatMap((page) => page.content) ?? []}
+                selectedCourse={selectedCourse}
+                setSelectedCourse={setSelectedCourse}
                 onClickFilter={() => bottomSheetRef.current?.present()}
+                hasNextPage={hasNextPage}
+                fetchNextPage={fetchNextPage}
             />
             <CourseFilter
                 bottomSheetRef={bottomSheetRef}
@@ -187,3 +181,16 @@ const Course = ({
         </View>
     );
 };
+
+function useUserCourses(size: number = 10, sort: GhostSortOption = "id,asc") {
+    return useInfiniteQuery({
+        queryKey: ["user-courses", size, sort],
+        queryFn: async ({ pageParam = 0 }) =>
+            getUserCourses({ page: pageParam, size, sort }),
+        getNextPageParam: (lastPage) => {
+            const { number, totalPages } = lastPage.page;
+            return number + 1 < totalPages ? number + 1 : undefined;
+        },
+        initialPageParam: 0,
+    });
+}

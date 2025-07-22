@@ -1,7 +1,7 @@
 import { getRuns } from "@/src/apis";
 import { RunResponse } from "@/src/apis/types/run";
 import { CourseFilter } from "@/src/components/course/CourseFilter";
-import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
+import { HistoryWithFilter } from "@/src/components/course/HistoryWithFilter";
 import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
@@ -117,7 +117,7 @@ const UserHistory = ({
 
     return (
         data && (
-            <CoursesWithFilter
+            <HistoryWithFilter
                 data={data.pages.flat() as RunResponse[]}
                 selectedCourse={selectedItem}
                 setSelectedCourse={setSelectedItem}
@@ -126,7 +126,6 @@ const UserHistory = ({
                 }}
                 hasNextPage={hasNextPage}
                 fetchNextPage={fetchNextPage}
-                hasUserCount={false}
             />
         )
     );

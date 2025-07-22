@@ -1,27 +1,27 @@
-import { UserCourseInfo } from "@/src/apis/types/course";
+import { RunResponse } from "@/src/apis/types/run";
 import { FlashList } from "@shopify/flash-list";
 import { View } from "react-native";
 import CourseInfoItem from "../map/courseInfo/CourseInfoItem";
 import ExpendHeader from "../ui/ExpendHeader";
 import { Typography } from "../ui/Typography";
 
-type CoursesWithFilterProps = {
-    data: UserCourseInfo[];
-    selectedCourse: UserCourseInfo | null;
-    setSelectedCourse: (course: UserCourseInfo | null) => void;
+type HistoryWithFilterProps = {
+    data: RunResponse[];
+    selectedCourse: RunResponse | null;
+    setSelectedCourse: (course: RunResponse | null) => void;
     onClickFilter: () => void;
     hasNextPage: boolean;
     fetchNextPage: () => void;
 };
 
-export const CoursesWithFilter = ({
+export const HistoryWithFilter = ({
     data,
     selectedCourse,
     setSelectedCourse,
     onClickFilter,
     hasNextPage,
     fetchNextPage,
-}: CoursesWithFilterProps) => {
+}: HistoryWithFilterProps) => {
     return (
         <View style={{ flex: 1, gap: 15 }}>
             <ExpendHeader
@@ -39,23 +39,25 @@ export const CoursesWithFilter = ({
                 data={data}
                 renderItem={({ item, index }) => (
                     <CourseInfoItem
-                        distance={item.distance}
-                        duration={item.averageCompletionTime}
-                        averagePace={item.averageFinisherPace}
-                        cadence={item.averageFinisherCadence}
-                        runnerCount={item.uniqueRunnersCount}
-                        courseName={item.name}
-                        courseId={item.id}
-                        runningId={item.id}
+                        distance={item.recordInfo.distance}
+                        duration={item.recordInfo.duration}
+                        averagePace={item.recordInfo.averagePace}
+                        cadence={item.recordInfo.cadence}
+                        runnerCount={null}
+                        courseName={item.courseInfo.name ?? null}
+                        courseId={item.courseInfo.id ?? -1}
+                        runningId={item.runningId ?? -1}
                         ghostRunningId={-1}
-                        startedAt={item.createdAt}
-                        historyName={item.name}
-                        isSelected={selectedCourse?.id === item.id}
+                        startedAt={item.startedAt ?? null}
+                        historyName={item.name ?? null}
+                        isSelected={
+                            selectedCourse?.runningId === item.runningId
+                        }
                         onPress={() => setSelectedCourse(item)}
                     />
                 )}
                 showsVerticalScrollIndicator={false}
-                extraData={selectedCourse?.id}
+                extraData={selectedCourse?.runningId}
                 estimatedItemSize={83}
                 onEndReached={hasNextPage ? fetchNextPage : undefined}
                 onEndReachedThreshold={0.5}

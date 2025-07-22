@@ -1,8 +1,10 @@
+import { useAuthStore } from "../store/authState";
 import server from "./instance";
 import {
     CourseResponse,
     CoursesRequest,
     Pageable,
+    UserCourseInfo,
     UserRankResponse,
 } from "./types/course";
 
@@ -100,6 +102,34 @@ export async function getCourseGhosts({
 }) {
     try {
         const response = await server.get(`/courses/${courseId}/ghosts`, {
+            params: { pageable },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+interface UserCoursesResponse {
+    content: UserCourseInfo[];
+    page: {
+        size: number;
+        number: number;
+        totalElements: number;
+        totalPages: number;
+    };
+}
+
+export async function getUserCourses(
+    pageable: Pageable
+): Promise<UserCoursesResponse> {
+    const memberUuid = useAuthStore.getState().uuid;
+    if (!memberUuid) {
+        throw new Error("Member UUID is not found");
+    }
+    try {
+        const response = await server.get(`/members/${memberUuid}/courses`, {
             params: { pageable },
         });
         return response.data;
