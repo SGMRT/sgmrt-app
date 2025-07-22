@@ -62,21 +62,17 @@ export default function Stats() {
             </View>
             <TabBar />
             {((selectedTab === "SOLO" && selectedCourse?.courseInfo.id) ||
-                (selectedTab === "GHOST" && selectedGhost)) && (
+                (selectedTab === "GHOST" && selectedGhost?.courseInfo.id)) && (
                 <SlideToAction
-                    label={
-                        selectedTab === "SOLO" && selectedCourse
-                            ? "이 코스로 러닝 시작"
-                            : "이 고스트와 러닝 시작"
-                    }
+                    label={"이 코스로 러닝 시작"}
                     onSlideSuccess={() => {
                         if (selectedTab === "SOLO") {
-                            router.push(`/run/${selectedCourse!.runningId}/-1`);
+                            router.push(
+                                `/run/${selectedCourse!.courseInfo.id}/-1`
+                            );
                         } else {
                             router.push(
-                                `/run/${selectedGhost!.courseInfo.id}/${
-                                    selectedGhost!.runningId
-                                }`
+                                `/run/${selectedGhost!.courseInfo.id}/-1`
                             );
                         }
                     }}
