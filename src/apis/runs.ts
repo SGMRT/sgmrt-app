@@ -4,6 +4,8 @@ import {
     CourseGhostRunning,
     CourseSoloRunning,
     RecordInfo,
+    RunResponse,
+    RunsRequest,
     SoloRunGetResponse,
     Telemetry,
 } from "./types/run";
@@ -135,6 +137,18 @@ export async function deleteRun(runningId: number) {
             data: {
                 runningIds: [runningId],
             },
+        });
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+export async function getRuns(request: RunsRequest): Promise<RunResponse[]> {
+    try {
+        const response = await server.get(`runs`, {
+            params: request,
         });
         return response.data;
     } catch (error) {

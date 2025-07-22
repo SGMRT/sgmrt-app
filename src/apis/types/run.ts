@@ -69,3 +69,25 @@ export interface RecordInfo {
     elevationLoss: number;
     totalElevation: number;
 }
+
+export type RunsRequest = {
+    runningMode: "SOLO" | "GHOST";
+    cursorStartedAt: string | null;
+    cursorRunningId: number | null;
+};
+
+export type RunResponse = {
+    runningId: number;
+    name: string;
+    startedAt: string;
+    recordInfo: {
+        distance: number;
+        duration: number;
+        cadence: number;
+        averagePace: number;
+    };
+    courseInfo: {
+        id: number | null;
+        name: string | null;
+    };
+};
