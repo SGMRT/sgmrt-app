@@ -53,7 +53,7 @@ export interface Telemetry {
 export interface CourseInfo {
     id: number;
     name: string;
-    runnerCount: number;
+    runnersCount: number;
 }
 
 export interface RecordInfo {

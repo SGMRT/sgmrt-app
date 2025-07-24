@@ -1,0 +1,147 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Telemetry } from "../apis/types/run";
+import { RunData, RunnningStatus } from "../types/run";
+
+export async function removeRunData(sessionId: string) {
+    console.log("================================================");
+    console.log("[SESSION] 러닝 데이터 삭제", sessionId);
+    const batch = await AsyncStorage.getItem(sessionId + "_batch");
+    if (batch) {
+        for (let i = 0; i <= Number(batch); i++) {
+            await AsyncStorage.removeItem(sessionId + "_data_" + i);
+        }
+    }
+    await AsyncStorage.removeItem(sessionId + "_status");
+    await AsyncStorage.removeItem(sessionId + "_batch");
+    await AsyncStorage.removeItem("sessionId");
+    console.log("[SESSION] 러닝 데이터 삭제 완료", sessionId);
+    console.log("================================================");
+}
+
+export async function getAllRunData(sessionId: string) {
+    const batch = await AsyncStorage.getItem(sessionId + "_batch");
+    if (!batch) return { data: [], batch: "0" };
+
+    const runDataList: RunData[] = [];
+    for (let i = 0; i <= Number(batch); i++) {
+        const runData = await AsyncStorage.getItem(sessionId + "_data_" + i);
+        if (runData) {
+            runDataList.push(...JSON.parse(runData));
+        }
+    }
+    return { data: getUniqueAndSortedRunData(runDataList), batch: batch };
+}
+
+export async function getRunDataFromBatch(
+    sessionId: string,
+    fromBatch: string
+) {
+    const endBatch = await AsyncStorage.getItem(sessionId + "_batch");
+    if (!endBatch) return { data: [], batch: "0" };
+    if (Number(endBatch) < Number(fromBatch)) return { data: [], batch: "0" };
+
+    const runDataList: RunData[] = [];
+    for (let i = Number(fromBatch); i <= Number(endBatch); i++) {
+        const runData = await AsyncStorage.getItem(sessionId + "_data_" + i);
+        if (runData) {
+            runDataList.push(...JSON.parse(runData));
+        }
+    }
+    return { data: runDataList, batch: endBatch };
+}
+
+export function mergeRunData(
+    runDataList: RunData[],
+    newRunDataList: RunData[]
+) {
+    const allRunData = [...runDataList, ...newRunDataList];
+    return getUniqueAndSortedRunData(allRunData);
+}
+
+function getUniqueAndSortedRunData(runDataList: RunData[]) {
+    const byTimestamp = new Map<number, RunData>();
+    for (const data of runDataList) {
+        byTimestamp.set(data.timestamp, data);
+    }
+
+    return Array.from(byTimestamp.values()).sort(
+        (a, b) => a.timestamp - b.timestamp
+    );
+}
+
+export async function getCurrentSessionId() {
+    return await AsyncStorage.getItem("sessionId");
+}
+
+export async function getCurrentRunStatus(sessionId: string) {
+    return await AsyncStorage.getItem(sessionId + "_status");
+}
+
+export async function getCurrentRunBatch(sessionId: string) {
+    return await AsyncStorage.getItem(sessionId + "_batch");
+}
+
+export async function getCurrentRunDataOfBatch(
+    sessionId: string,
+    batch: string
+) {
+    return await AsyncStorage.getItem(sessionId + "_data_" + batch);
+}
+
+export async function setCurrentRunDataToBatch(
+    sessionId: string,
+    batch: string,
+    data: string
+) {
+    return await AsyncStorage.setItem(sessionId + "_data_" + batch, data);
+}
+
+export async function setCurrentSessionId(sessionId: string) {
+    return await AsyncStorage.setItem("sessionId", sessionId);
+}
+
+export async function setCurrentRunBatch(sessionId: string, batch: string) {
+    return await AsyncStorage.setItem(sessionId + "_batch", batch);
+}
+
+export async function setCurrentRunStatus(
+    sessionId: string,
+    status: RunnningStatus
+) {
+    return await AsyncStorage.setItem(sessionId + "_status", status);
+}
+
+export async function setCurrentCourse(sessionId: string, course: Telemetry[]) {
+    return await AsyncStorage.setItem(
+        sessionId + "_course",
+        JSON.stringify(course)
+    );
+}
+
+export async function getCurrentCourse(sessionId: string) {
+    return await AsyncStorage.getItem(sessionId + "_course");
+}
+
+export async function setCurrentRunType(
+    sessionId: string,
+    type: "SOLO" | "COURSE"
+) {
+    return await AsyncStorage.setItem(sessionId + "_type", type);
+}
+
+export async function getCurrentRunType(sessionId: string) {
+    return await AsyncStorage.getItem(sessionId + "_type");
+}
+
+export async function setCurrentCourseIndex(sessionId: string, index: number) {
+    return await AsyncStorage.setItem(sessionId + "_index", index.toString());
+}
+
+export async function getCurrentCourseIndex(sessionId: string) {
+    return await AsyncStorage.getItem(sessionId + "_index");
+}
+
+export function getOnlyNewData(target: RunData[], reference: RunData[]) {
+    const referenceSet = new Set(reference.map((d) => d.timestamp));
+    return target.filter((d) => !referenceSet.has(d.timestamp));
+}

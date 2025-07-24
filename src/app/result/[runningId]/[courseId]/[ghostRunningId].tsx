@@ -1,7 +1,6 @@
 import { ShareIcon } from "@/assets/svgs/svgs";
 import {
     deleteRun,
-    getCourse,
     getCourseTopRanking,
     getRun,
     getRunComperison,
@@ -67,25 +66,12 @@ export default function Result() {
         enabled: !!ghostRunningId && ghostRunningId !== "-1",
     });
 
-    const {
-        data: courseData,
-        isLoading: courseIsLoading,
-        isError: courseIsError,
-    } = useQuery({
-        queryKey: ["course", courseId],
-        queryFn: () => getCourse(Number(courseId)),
-        enabled: !!courseId && courseId !== "-1",
-    });
-
     const { data: ghostList } = useQuery<HistoryResponse[]>({
         queryKey: ["course-top-ranking", courseId],
         queryFn: () =>
             getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
         enabled: !!courseId && courseId !== "-1",
     });
-
-    console.log(runningId, courseId, ghostRunningId);
-    // console.log(data, ghostData);
 
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
     const [courseName, setCourseName] = useState("");
@@ -105,11 +91,11 @@ export default function Result() {
 
     const { bottom } = useSafeAreaInsets();
 
-    if (isLoading || ghostIsLoading || courseIsLoading) {
+    if (isLoading || ghostIsLoading) {
         return <></>;
     }
 
-    if (isError || ghostIsError || courseIsError) {
+    if (isError || ghostIsError) {
         router.replace("/");
     }
 
@@ -156,7 +142,7 @@ export default function Result() {
                                         <Divider direction="vertical" />
                                         <CourseNameContainer
                                             courseName={
-                                                courseData?.name ??
+                                                runData?.courseInfo.name ??
                                                 ghostData?.courseInfo.name ??
                                                 "무명의 코스"
                                             }
@@ -390,7 +376,9 @@ export default function Result() {
                                     <View style={{ height: 15 }} />
                                     <CourseTopUsers
                                         ghostList={ghostList ?? []}
-                                        userCount={courseData?.runnerCount ?? 0}
+                                        userCount={
+                                            runData.courseInfo.runnersCount ?? 0
+                                        }
                                         setSelectedGhostId={() => {}}
                                         selectedGhostId={Number(runningId)}
                                         bottomSheetRef={bottomSheetRef}

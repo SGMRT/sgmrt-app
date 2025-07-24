@@ -56,10 +56,10 @@ export default function Course() {
     useEffect(() => {
         const fetch = () => {
             Promise.all([
-                courseId !== "-1"
+                courseId === "-1"
                     ? Promise.resolve([])
                     : getRunTelemetriesByCourseId(Number(courseId)),
-                courseId !== "-1"
+                ghostRunningId !== "-1"
                     ? getRunTelemetries(Number(ghostRunningId))
                     : Promise.resolve([]),
             ]).then(([course, rawGhostTelemetries]) => {

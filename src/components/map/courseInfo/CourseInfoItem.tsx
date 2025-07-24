@@ -51,7 +51,7 @@ export default function CourseInfoItem({
                     historyName={historyName ?? ""}
                     historyDate={getDate(startedAt ?? 0)}
                     courseName={courseName ?? ""}
-                    courseUserCount={runnerCount ?? 0}
+                    courseUserCount={runnerCount ?? null}
                     courseId={courseId ?? 0}
                     runningId={runningId ?? 0}
                     ghostRunningId={ghostRunningId ?? 0}

@@ -3,6 +3,7 @@ import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
 import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import { Typography } from "@/src/components/ui/Typography";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +15,7 @@ export default function CourseScreen() {
     );
     const { data, isLoading, isError, fetchNextPage, hasNextPage } =
         useUserCourses();
+    const router = useRouter();
 
     if (isLoading) {
         return <></>;
@@ -35,7 +37,7 @@ export default function CourseScreen() {
             <SlideToAction
                 label="이 코스로 러닝 시작"
                 onSlideSuccess={() => {
-                    console.log("slide success");
+                    router.push(`/run/${selectedCourse?.id}/-1`);
                 }}
                 color="green"
                 direction="left"

@@ -39,6 +39,7 @@ export default function Stats() {
                         ? () => setSelectedGhost(null)
                         : undefined
                 }
+                hasBackButton={false}
             />
             <View style={{ flexDirection: "row", marginTop: 10 }}>
                 <TabItem

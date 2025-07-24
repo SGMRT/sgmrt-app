@@ -58,6 +58,8 @@ const config = {
                 {
                     locationAlwaysAndWhenInUsePermission:
                         "Allow $(PRODUCT_NAME) to use your location.",
+                    isIosBackgroundLocationEnabled: true,
+                    isAndroidBackgroundLocationEnabled: true,
                 },
             ],
             [

@@ -45,7 +45,7 @@ export default function Profile() {
     const { login, setUserInfo } = useAuthStore();
     const router = useRouter();
     const { height: windowHeight, width: windowWidth } = useWindowDimensions();
-
+    const [res, setRes] = useState<any>(null);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const confettiRef = useRef<ConfettiMethods | null>(null);
     const pickImage = async () => {
@@ -99,14 +99,7 @@ export default function Profile() {
         })
             .then((res) => {
                 console.log(res);
-                login(res.accessToken, res.refreshToken, res.uuid);
-                setUserInfo({
-                    username: nickname,
-                    height: height,
-                    weight: weight,
-                    gender: gender,
-                });
-
+                setRes(res);
                 bottomSheetRef.current?.present();
                 confettiRef.current?.restart();
             })
@@ -218,7 +211,7 @@ export default function Profile() {
             </View>
             <BottomAgreementButton
                 isActive={isActive}
-                canPress={true}
+                canPress={isActive}
                 onPress={() => {
                     handleSubmit();
                 }}
@@ -263,8 +256,13 @@ export default function Profile() {
                 <SlideToAction
                     label="밀어서 메인으로"
                     onSlideSuccess={() => {
-                        router.dismissAll();
-                        router.replace("/intro");
+                        setUserInfo({
+                            username: nickname,
+                            height: height,
+                            weight: weight,
+                            gender: gender,
+                        });
+                        login(res.accessToken, res.refreshToken, res.uuid);
                     }}
                     color="green"
                     direction="left"
