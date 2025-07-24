@@ -7,7 +7,12 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/ui/toastConfig";
+import useRunningSession from "../hooks/useRunningSession";
 import { useAuthStore } from "../store/authState";
+import {
+    getCurrentSessionId,
+    setCurrentRunStatus,
+} from "../utils/runningUtils";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,6 +27,16 @@ export default function RootLayout() {
         "SpoqaHanSansNeo-Bold": require("@/assets/fonts/SpoqaHanSansNeo-Bold.ttf"),
     });
     const queryClient = new QueryClient();
+
+    useRunningSession();
+    setRunStatus();
+
+    async function setRunStatus() {
+        const sessionId = await getCurrentSessionId();
+        if (sessionId) {
+            await setCurrentRunStatus(sessionId, "start_running");
+        }
+    }
 
     useEffect(() => {
         if (!loaded) return;
