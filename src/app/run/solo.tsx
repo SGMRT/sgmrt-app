@@ -6,13 +6,9 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import useRunning from "@/src/hooks/useRunningV2";
+import useRunningSession from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
-import {
-    getFormattedPace,
-    getRunTime,
-    saveRunning,
-} from "@/src/utils/runUtils";
+import { getRunTime } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -29,47 +25,8 @@ export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
-    const {
-        userDashboardData,
-        segments,
-        status,
-        setRunningStatus,
-        runTime,
-        telemetries,
-        totalStepCount,
-    } = useRunning({
-        type: "free",
-        weight: 70,
-    });
-
-    const stats = [
-        {
-            label: "거리",
-            value: (userDashboardData.totalDistance / 1000).toFixed(2),
-            unit: "km",
-        },
-        {
-            label: "평균 페이스",
-            value: getFormattedPace(userDashboardData.paceOfLastPoints),
-            unit: "",
-        },
-        {
-            label: "케이던스",
-            value: userDashboardData.cadenceOfLastPoints.toString(),
-            unit: "spm",
-        },
-        {
-            label: "고도",
-            value: userDashboardData.totalElevationGain.toFixed(0),
-            unit: "m",
-        },
-        {
-            label: "칼로리",
-            value: userDashboardData.totalCalories.toFixed(0),
-            unit: "kcal",
-        },
-        { label: "BPM", value: userDashboardData.bpm, unit: "" },
-    ];
+    const { runSegments, updateRunStatus, runStatus, runTime } =
+        useRunningSession();
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -82,10 +39,10 @@ export default function Run() {
         return () => backHandler.remove();
     }, []);
 
-    const onCompleteRestart = () => {
+    const onCompleteRestart = async () => {
         if (isRestarting) {
             setIsRestarting(false);
-            setRunningStatus("free_running");
+            await updateRunStatus("start_running");
         }
     };
 
@@ -130,7 +87,7 @@ export default function Run() {
                 )}
             </TopBlurView>
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {segments.map((segment, index) => (
+                {runSegments.map((segment, index) => (
                     <RunningLine
                         key={index.toString()}
                         index={index}
@@ -149,15 +106,15 @@ export default function Run() {
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
-                        <StatsIndicator stats={stats} color="gray20" />
+                        <StatsIndicator stats={[]} color="gray20" />
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {status === "free_running" || isRestarting ? (
+            {runStatus === "start_running" ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
-                    onSlideSuccess={() => {
-                        setRunningStatus("paused");
+                    onSlideSuccess={async () => {
+                        await updateRunStatus("pause_running");
                     }}
                     color="red"
                     direction="right"
@@ -166,14 +123,15 @@ export default function Run() {
             ) : (
                 <SlideToDualAction
                     onSlideLeft={async () => {
-                        const response = await saveRunning({
-                            telemetries,
-                            userDashboardData,
-                            runTime,
-                            isPublic: true,
-                            totalStepCount,
-                        });
-                        router.replace(`/result/${response.runningId}/-1/-1`);
+                        // const response = await saveRunning({
+                        //     telemetries,
+                        //     userDashboardData,
+                        //     runTime,
+                        //     isPublic: true,
+                        //     totalStepCount,
+                        // });
+                        // router.replace(`/result/${response.runningId}/-1/-1`);
+                        console.log("saveRunning");
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);

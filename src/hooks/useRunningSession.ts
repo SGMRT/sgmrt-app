@@ -30,7 +30,6 @@ import {
 
 async function setTaskManager(taskName: string) {
     console.log("================================================");
-    console.log("[SESSION] 태스크 매니저 설정", taskName);
     if (TaskManager.isTaskDefined(taskName)) {
         console.log("[SESSION] 기존 태스크 삭제");
         await TaskManager.unregisterTaskAsync(taskName);
@@ -38,7 +37,7 @@ async function setTaskManager(taskName: string) {
 
     const batchSize = 100;
     const sessionId = await getCurrentSessionId();
-
+    console.log("[SESSION] 태스크 매니저 설정", sessionId);
     if (!sessionId) return;
 
     const course = await getCurrentCourse(sessionId);
@@ -107,8 +106,27 @@ export default function useRunningSession(
 ) {
     const runData = useRef<RunData[]>([]);
     const [runSegments, setRunSegments] = useState<Segment[]>([]);
-    const sessionId = useRef<string>("");
+    const [sessionId, setSessionId] = useState<string>("");
+    const [runStatus, setRunStatus] =
+        useState<RunnningStatus>("before_running");
     const runBatch = useRef<string>("0");
+
+    const [startTime, setStartTime] = useState<number | null>(null);
+    const [elapsedTime, setElapsedTime] = useState<number>(0);
+    const pauseRef = useRef<number | null>(null);
+    const intervalRef = useRef<number | null>(null);
+
+    async function updateRunStatus(status: RunnningStatus) {
+        setRunStatus(status);
+        if (sessionId) {
+            await setCurrentRunStatus(sessionId, status);
+        } else {
+            const sessionId = await getCurrentSessionId();
+            if (sessionId) {
+                await setCurrentRunStatus(sessionId, status);
+            }
+        }
+    }
 
     useEffect(() => {
         (async () => {
@@ -127,7 +145,7 @@ export default function useRunningSession(
                 console.log("================================================");
                 console.log("[SESSION] 세션 생성", newSessionId);
                 await setCurrentSessionId(newSessionId);
-                await setCurrentRunStatus(newSessionId, "before_running");
+                await setCurrentRunStatus(newSessionId, runStatus);
                 await setCurrentRunBatch(newSessionId, "0");
                 await setCurrentRunType(newSessionId, type);
                 console.log("[SESSION] 러닝 유형", type);
@@ -136,7 +154,7 @@ export default function useRunningSession(
                     await setCurrentCourse(newSessionId, course);
                     await setCurrentCourseIndex(newSessionId, 0);
                 }
-                sessionId.current = newSessionId;
+                setSessionId(newSessionId);
                 console.log("[SESSION] 세션 생성 완료", newSessionId);
                 console.log("================================================");
             }
@@ -171,16 +189,17 @@ export default function useRunningSession(
         })();
     }, []);
 
+    // 러닝 데이터 처리
     useEffect(() => {
         const interval = setInterval(async () => {
-            if (!sessionId.current || !runBatch.current) return;
+            if (!sessionId || !runBatch.current) return;
             const { data: batchData, batch: batchCount } =
-                await getRunDataFromBatch(sessionId.current, runBatch.current);
+                await getRunDataFromBatch(sessionId, runBatch.current);
 
             let newRunData: RunData[] = [];
 
             const mergedData = mergeRunData(runData.current, batchData);
-            newRunData = getOnlyNewData(runData.current, batchData);
+            newRunData = getOnlyNewData(batchData, runData.current);
 
             runData.current = mergedData;
 
@@ -191,6 +210,7 @@ export default function useRunningSession(
                 }));
 
                 newRunData.forEach((data) => {
+                    if (data.runStatus === "before_running") return;
                     if (segments.length === 0) {
                         segments.push({
                             isRunning: data.runStatus === "start_running",
@@ -235,7 +255,48 @@ export default function useRunningSession(
         return () => {
             clearInterval(interval);
         };
-    }, []);
+    }, [sessionId]);
 
-    return { runData: runData.current, runSegments };
+    // 러닝 시간 처리
+    useEffect(() => {
+        if (runStatus === "start_running") {
+            // resume from pause
+            const now = Date.now();
+            if (pauseRef.current) {
+                const pauseDuration = Math.floor(
+                    (now - pauseRef.current) / 1000
+                );
+                setStartTime((prev) =>
+                    prev ? prev + pauseDuration * 1000 : now
+                );
+                pauseRef.current = null;
+            }
+
+            if (!startTime) {
+                setStartTime(now); // 처음 시작한 경우
+            }
+
+            intervalRef.current = setInterval(() => {
+                if (startTime) {
+                    setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+                }
+            }, 1000);
+        } else if (runStatus === "pause_running") {
+            pauseRef.current = Date.now();
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        }
+
+        return () => {
+            if (intervalRef.current) clearInterval(intervalRef.current);
+        };
+    }, [runStatus, startTime]);
+
+    return {
+        runData: runData.current,
+        runSegments,
+        sessionId,
+        updateRunStatus,
+        runStatus,
+        runTime: elapsedTime,
+    };
 }
