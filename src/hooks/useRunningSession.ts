@@ -1,12 +1,19 @@
 import * as Location from "expo-location";
+import { Pedometer } from "expo-sensors";
 import * as TaskManager from "expo-task-manager";
 import { useEffect, useRef, useState } from "react";
 import "react-native-get-random-values";
-import Toast from "react-native-toast-message";
 import { v4 as uuidv4 } from "uuid";
 import { Telemetry } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
-import { LOCATION_TASK, RunData, RunnningStatus } from "../types/run";
+import { useAuthStore } from "../store/authState";
+import {
+    LOCATION_TASK,
+    RunData,
+    RunnningStatus,
+    UserDashBoardData,
+} from "../types/run";
+import { getDistance } from "../utils/mapUtils";
 import {
     getCurrentCourse,
     getCurrentCourseIndex,
@@ -27,6 +34,7 @@ import {
     setCurrentRunType,
     setCurrentSessionId,
 } from "../utils/runningUtils";
+import { getCadence, getCalories, getPace } from "../utils/runUtils";
 
 async function setTaskManager(taskName: string) {
     console.log("================================================");
@@ -66,14 +74,37 @@ async function setTaskManager(taskName: string) {
                 ? JSON.parse(previousRunData)
                 : [];
 
-            const newRunData: RunData[] = data.locations.map((location) => ({
-                timestamp: location.timestamp,
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-                altitude: location.coords.altitude,
-                speed: location.coords.speed,
-                runStatus: runStatus,
-            }));
+            let lastRunData = runDataArray.at(-1);
+            let lastTimestamp = lastRunData?.timestamp;
+
+            const newRunData: RunData[] = [];
+
+            for (const location of data.locations) {
+                const currentTimestamp = location.timestamp;
+
+                let stepCount = 0;
+                try {
+                    const result = await Pedometer.getStepCountAsync(
+                        new Date(lastTimestamp),
+                        new Date(currentTimestamp)
+                    );
+                    stepCount = result.steps;
+                } catch (error) {
+                    // console.warn("걸음 수 가져오기 실패:", error);
+                }
+
+                newRunData.push({
+                    timestamp: currentTimestamp,
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                    altitude: location.coords.altitude,
+                    speed: location.coords.speed,
+                    steps: stepCount,
+                    runStatus: runStatus,
+                });
+
+                lastTimestamp = currentTimestamp;
+            }
 
             console.log("[RUN] 러닝 데이터 수신", newRunData.at(-1));
 
@@ -102,17 +133,29 @@ async function setTaskManager(taskName: string) {
 export default function useRunningSession(
     restore: boolean = false,
     course: Telemetry[] = [],
-    type: "SOLO" | "COURSE" = "SOLO"
+    type: "SOLO" | "COURSE" = "SOLO",
+    recentPointNumber: number = 30
 ) {
+    const { userInfo } = useAuthStore();
     const runData = useRef<RunData[]>([]);
     const [runSegments, setRunSegments] = useState<Segment[]>([]);
+    const runTelemetries = useRef<Telemetry[]>([]);
+    const runUserDashboardData = useRef<UserDashBoardData>({
+        totalDistance: 0,
+        totalCalories: 0,
+        averagePace: 0,
+        averageCadence: 0,
+        recentPointsPace: 0,
+        bpm: 0,
+    });
+
     const [sessionId, setSessionId] = useState<string>("");
     const [runStatus, setRunStatus] =
         useState<RunnningStatus>("before_running");
     const runBatch = useRef<string>("0");
 
     const [startTime, setStartTime] = useState<number | null>(null);
-    const [elapsedTime, setElapsedTime] = useState<number>(0);
+    const elapsedTime = useRef<number>(0);
     const pauseRef = useRef<number | null>(null);
     const intervalRef = useRef<number | null>(null);
 
@@ -163,20 +206,6 @@ export default function useRunningSession(
         })();
 
         (async () => {
-            const { status: status_fg } =
-                await Location.requestForegroundPermissionsAsync();
-            const { status: status_bg } =
-                await Location.requestBackgroundPermissionsAsync();
-
-            if (status_fg !== "granted" || status_bg !== "granted") {
-                Toast.show({
-                    type: "info",
-                    text1: "위치 권한이 필요합니다.",
-                    position: "bottom",
-                });
-                return;
-            }
-
             await Location.startLocationUpdatesAsync(LOCATION_TASK, {
                 accuracy: Location.Accuracy.BestForNavigation,
                 deferredUpdatesInterval: 3000,
@@ -200,6 +229,104 @@ export default function useRunningSession(
 
             const mergedData = mergeRunData(runData.current, batchData);
             newRunData = getOnlyNewData(batchData, runData.current);
+
+            newRunData.forEach((data) => {
+                if (data.runStatus === "before_running") return;
+                const lastTelemetry = runTelemetries.current.at(-1);
+                if (runStatus === "start_running") {
+                    if (!lastTelemetry) {
+                        runTelemetries.current.push({
+                            timeStamp: data.timestamp,
+                            lat: data.latitude,
+                            lng: data.longitude,
+                            dist: 0,
+                            pace: 0,
+                            alt: data.altitude ?? 0,
+                            cadence: 0,
+                            bpm: 0,
+                            isRunning: true,
+                        });
+                        runUserDashboardData.current = {
+                            totalDistance: 0,
+                            totalCalories: 0,
+                            averagePace: 0,
+                            averageCadence: 0,
+                            recentPointsPace: 0,
+                            bpm: 0,
+                        };
+                    } else {
+                        const recentPoints = runTelemetries.current
+                            .filter((telemetry) => telemetry.isRunning)
+                            .slice(-recentPointNumber);
+                        const recentPointsLength = recentPoints.length;
+                        const distance =
+                            lastTelemetry.dist +
+                            getDistance(
+                                {
+                                    lat: lastTelemetry.lat,
+                                    lng: lastTelemetry.lng,
+                                },
+                                {
+                                    lat: data.latitude,
+                                    lng: data.longitude,
+                                }
+                            );
+                        const pace = getPace(elapsedTime.current, distance);
+                        const cadence = getCadence(
+                            data.steps ?? 0,
+                            elapsedTime.current
+                        );
+                        const bpm = 0;
+                        const calories = getCalories({
+                            distance,
+                            timeInSec: elapsedTime.current,
+                            weight: userInfo?.weight ?? 70,
+                        });
+                        const recentPointsPace =
+                            recentPointsLength < recentPointNumber
+                                ? pace
+                                : getPace(
+                                      (data.timestamp -
+                                          (recentPoints.at(0)?.timeStamp ??
+                                              data.timestamp)) /
+                                          1000,
+                                      distance - (recentPoints.at(0)?.dist ?? 0)
+                                  );
+                        runTelemetries.current.push({
+                            timeStamp: data.timestamp,
+                            lat: data.latitude,
+                            lng: data.longitude,
+                            dist: distance,
+                            pace: recentPointsPace,
+                            alt: data.altitude ?? 0,
+                            cadence: cadence,
+                            bpm: bpm,
+                            isRunning: true,
+                        });
+                        runUserDashboardData.current = {
+                            totalDistance: distance,
+                            totalCalories: calories,
+                            averagePace: pace,
+                            averageCadence: cadence,
+                            recentPointsPace: recentPointsPace,
+                            bpm: bpm,
+                        };
+                    }
+                } else {
+                    if (!lastTelemetry) return;
+                    runTelemetries.current.push({
+                        timeStamp: data.timestamp,
+                        lat: data.latitude,
+                        lng: data.longitude,
+                        dist: lastTelemetry.dist,
+                        pace: lastTelemetry.pace,
+                        alt: data.altitude ?? 0,
+                        cadence: lastTelemetry.cadence,
+                        bpm: lastTelemetry.bpm,
+                        isRunning: false,
+                    });
+                }
+            });
 
             runData.current = mergedData;
 
@@ -255,7 +382,7 @@ export default function useRunningSession(
         return () => {
             clearInterval(interval);
         };
-    }, [sessionId]);
+    }, [recentPointNumber, runStatus, sessionId, userInfo?.weight]);
 
     // 러닝 시간 처리
     useEffect(() => {
@@ -278,7 +405,9 @@ export default function useRunningSession(
 
             intervalRef.current = setInterval(() => {
                 if (startTime) {
-                    setElapsedTime(Math.floor((Date.now() - startTime) / 1000));
+                    elapsedTime.current = Math.floor(
+                        (Date.now() - startTime) / 1000
+                    );
                 }
             }, 1000);
         } else if (runStatus === "pause_running") {
@@ -297,6 +426,7 @@ export default function useRunningSession(
         sessionId,
         updateRunStatus,
         runStatus,
-        runTime: elapsedTime,
+        runTime: elapsedTime.current,
+        runUserDashboardData: runUserDashboardData.current,
     };
 }

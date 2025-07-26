@@ -5,6 +5,7 @@ export interface RunData {
     longitude: number;
     altitude: number | null;
     speed: number | null;
+    steps: number | null;
     runStatus: RunnningStatus;
 }
 export type RunnningStatus =
@@ -12,3 +13,12 @@ export type RunnningStatus =
     | "start_running"
     | "pause_running"
     | "stop_running";
+
+export interface UserDashBoardData {
+    totalDistance: number;
+    totalCalories: number;
+    averagePace: number;
+    averageCadence: number;
+    recentPointsPace: number;
+    bpm: number;
+}

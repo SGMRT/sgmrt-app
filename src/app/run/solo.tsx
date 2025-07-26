@@ -8,7 +8,7 @@ import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import useRunningSession from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
-import { getRunTime } from "@/src/utils/runUtils";
+import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -25,8 +25,13 @@ export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
-    const { runSegments, updateRunStatus, runStatus, runTime } =
-        useRunningSession();
+    const {
+        runSegments,
+        updateRunStatus,
+        runStatus,
+        runTime,
+        runUserDashboardData,
+    } = useRunningSession();
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -106,7 +111,48 @@ export default function Run() {
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
-                        <StatsIndicator stats={[]} color="gray20" />
+                        <StatsIndicator
+                            stats={[
+                                {
+                                    label: "거리",
+                                    value: (
+                                        runUserDashboardData.totalDistance /
+                                        1000
+                                    ).toFixed(2),
+                                    unit: "km",
+                                },
+                                {
+                                    label: "평균 페이스",
+                                    value: getFormattedPace(
+                                        runUserDashboardData.averagePace
+                                    ),
+                                    unit: "",
+                                },
+                                {
+                                    label: "최근 페이스",
+                                    value: getFormattedPace(
+                                        runUserDashboardData.recentPointsPace
+                                    ),
+                                    unit: "",
+                                },
+                                {
+                                    label: "케이던스",
+                                    value: runUserDashboardData.averageCadence,
+                                    unit: "spm",
+                                },
+                                {
+                                    label: "심박수",
+                                    value: runUserDashboardData.bpm,
+                                    unit: "",
+                                },
+                                {
+                                    label: "소모 칼로리",
+                                    value: runUserDashboardData.totalCalories,
+                                    unit: "kcal",
+                                },
+                            ]}
+                            color="gray20"
+                        />
                     </View>
                 </BottomSheetView>
             </BottomSheet>
