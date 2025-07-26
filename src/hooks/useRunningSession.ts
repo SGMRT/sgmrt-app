@@ -1,8 +1,10 @@
 import * as Location from "expo-location";
+import { useRouter } from "expo-router";
 import { Pedometer } from "expo-sensors";
 import * as TaskManager from "expo-task-manager";
 import { useEffect, useRef, useState } from "react";
 import "react-native-get-random-values";
+import Toast from "react-native-toast-message";
 import { v4 as uuidv4 } from "uuid";
 import { Telemetry } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
@@ -159,6 +161,8 @@ export default function useRunningSession(
     const pauseRef = useRef<number | null>(null);
     const intervalRef = useRef<number | null>(null);
 
+    const router = useRouter();
+
     async function updateRunStatus(status: RunnningStatus) {
         setRunStatus(status);
         if (sessionId) {
@@ -206,6 +210,20 @@ export default function useRunningSession(
         })();
 
         (async () => {
+            const { status: status_fg } =
+                await Location.requestForegroundPermissionsAsync();
+            const { status: status_bg } =
+                await Location.requestBackgroundPermissionsAsync();
+
+            if (status_fg !== "granted" || status_bg !== "granted") {
+                Toast.show({
+                    type: "info",
+                    text1: "위치 권한이 필요합니다.",
+                    position: "bottom",
+                });
+                router.back();
+            }
+
             await Location.startLocationUpdatesAsync(LOCATION_TASK, {
                 accuracy: Location.Accuracy.BestForNavigation,
                 deferredUpdatesInterval: 3000,
