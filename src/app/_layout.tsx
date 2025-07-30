@@ -2,12 +2,15 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
+import * as Location from "expo-location";
 import { SplashScreen, Stack, useRouter } from "expo-router";
+import * as TaskManager from "expo-task-manager";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/ui/toastConfig";
 import { useAuthStore } from "../store/authState";
+import { LOCATION_TASK } from "../types/run";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -31,6 +34,12 @@ export default function RootLayout() {
         // if (!userInfo?.username) {
         //     logout();
         // }
+        (async () => {
+            if (TaskManager.isTaskDefined(LOCATION_TASK)) {
+                await TaskManager.unregisterTaskAsync(LOCATION_TASK);
+            }
+            await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+        })();
 
         if (isLoggedIn) {
             router.replace("/intro");

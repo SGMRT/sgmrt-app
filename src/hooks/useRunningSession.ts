@@ -1,3 +1,4 @@
+import LiveActivities from "@/modules/expo-live-activity";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { Pedometer } from "expo-sensors";
@@ -36,101 +37,109 @@ import {
     setCurrentRunType,
     setCurrentSessionId,
 } from "../utils/runningUtils";
-import { getCadence, getCalories, getPace } from "../utils/runUtils";
+import {
+    getCadence,
+    getCalories,
+    getFormattedPace,
+    getPace,
+} from "../utils/runUtils";
 
-async function setTaskManager(taskName: string) {
-    console.log("================================================");
-    if (TaskManager.isTaskDefined(taskName)) {
-        console.log("[SESSION] 기존 태스크 삭제");
-        await TaskManager.unregisterTaskAsync(taskName);
-    }
+if (TaskManager.isTaskDefined(LOCATION_TASK)) {
+    console.log("[SESSION] 기존 태스크 삭제");
+    TaskManager.unregisterTaskAsync(LOCATION_TASK);
+}
 
-    const batchSize = 100;
-    const sessionId = await getCurrentSessionId();
-    console.log("[SESSION] 태스크 매니저 설정", sessionId);
-    if (!sessionId) return;
+TaskManager.defineTask(
+    LOCATION_TASK,
+    async ({ data }: { data: { locations: Location.LocationObject[] } }) => {
+        const batchSize = 100;
+        const sessionId = await getCurrentSessionId();
+        console.log("[SESSION] 태스크 매니저 설정", sessionId);
+        if (!sessionId) return;
 
-    const course = await getCurrentCourse(sessionId);
-    const runType = await getCurrentRunType(sessionId);
+        const course = await getCurrentCourse(sessionId);
+        const runType = await getCurrentRunType(sessionId);
 
-    TaskManager.defineTask(
-        taskName,
-        async ({
-            data,
-        }: {
-            data: { locations: Location.LocationObject[] };
-        }) => {
-            const runStatus = (await getCurrentRunStatus(
-                sessionId
-            )) as RunnningStatus;
-            if (!runStatus) return;
-            const runBatch = await getCurrentRunBatch(sessionId);
-            if (!runBatch) return;
+        const runStatus = (await getCurrentRunStatus(
+            sessionId
+        )) as RunnningStatus;
+        if (!runStatus) return;
+        const runBatch = await getCurrentRunBatch(sessionId);
+        if (!runBatch) return;
 
-            const previousRunData = await getCurrentRunDataOfBatch(
+        const previousRunData = await getCurrentRunDataOfBatch(
+            sessionId,
+            runBatch
+        );
+
+        let runDataArray = previousRunData ? JSON.parse(previousRunData) : [];
+
+        let lastRunData = runDataArray.at(-1);
+        let lastTimestamp = lastRunData?.timestamp;
+
+        if (runDataArray.length === 0) {
+            const previous = await getCurrentRunDataOfBatch(
                 sessionId,
-                runBatch
+                (Number(runBatch) - 1).toString()
             );
-
-            let runDataArray = previousRunData
-                ? JSON.parse(previousRunData)
-                : [];
-
-            let lastRunData = runDataArray.at(-1);
-            let lastTimestamp = lastRunData?.timestamp;
-
-            const newRunData: RunData[] = [];
-
-            for (const location of data.locations) {
-                const currentTimestamp = location.timestamp;
-
-                let stepCount = 0;
-                try {
-                    const result = await Pedometer.getStepCountAsync(
-                        new Date(lastTimestamp),
-                        new Date(currentTimestamp)
-                    );
-                    stepCount = result.steps;
-                } catch (error) {
-                    // console.warn("걸음 수 가져오기 실패:", error);
-                }
-
-                newRunData.push({
-                    timestamp: currentTimestamp,
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude,
-                    altitude: location.coords.altitude,
-                    speed: location.coords.speed,
-                    steps: stepCount,
-                    runStatus: runStatus,
-                });
-
-                lastTimestamp = currentTimestamp;
-            }
-
-            console.log("[RUN] 러닝 데이터 수신", newRunData.at(-1));
-
-            runDataArray = [...runDataArray, ...newRunData];
-
-            await setCurrentRunDataToBatch(
-                sessionId,
-                runBatch,
-                JSON.stringify(runDataArray)
-            );
-
-            if (runDataArray.length >= batchSize) {
-                const newRunBatch = (Number(runBatch) + 1).toString();
-                await setCurrentRunBatch(sessionId, newRunBatch);
-            }
-
-            if (runType === "COURSE") {
-                const courseIndex = await getCurrentCourseIndex(sessionId);
-                console.log("[SESSION] 코스 관련 데이터 업데이트", courseIndex);
+            if (previous) {
+                lastRunData = JSON.parse(previous).at(-1);
+                lastTimestamp = lastRunData?.timestamp;
             }
         }
-    );
-    console.log("================================================");
-}
+
+        const newRunData: RunData[] = [];
+
+        for (const location of data.locations) {
+            const currentTimestamp = location.timestamp;
+
+            let stepCount = 0;
+            try {
+                const result = await Pedometer.getStepCountAsync(
+                    new Date(lastTimestamp),
+                    new Date(currentTimestamp)
+                );
+                stepCount = result.steps;
+            } catch (error) {
+                // console.warn("걸음 수 가져오기 실패:", error);
+            }
+
+            newRunData.push({
+                timestamp: currentTimestamp,
+                timeDiff:
+                    currentTimestamp - (lastTimestamp ?? currentTimestamp),
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                altitude: location.coords.altitude,
+                speed: location.coords.speed,
+                steps: stepCount,
+                runStatus: runStatus,
+            });
+
+            lastTimestamp = currentTimestamp;
+        }
+
+        console.log("[RUN] 러닝 데이터 수신", newRunData.at(-1));
+
+        runDataArray = [...runDataArray, ...newRunData];
+
+        await setCurrentRunDataToBatch(
+            sessionId,
+            runBatch,
+            JSON.stringify(runDataArray)
+        );
+
+        if (runDataArray.length >= batchSize) {
+            const newRunBatch = (Number(runBatch) + 1).toString();
+            await setCurrentRunBatch(sessionId, newRunBatch);
+        }
+
+        if (runType === "COURSE") {
+            const courseIndex = await getCurrentCourseIndex(sessionId);
+            console.log("[SESSION] 코스 관련 데이터 업데이트", courseIndex);
+        }
+    }
+);
 
 export default function useRunningSession(
     restore: boolean = false,
@@ -156,7 +165,7 @@ export default function useRunningSession(
         useState<RunnningStatus>("before_running");
     const runBatch = useRef<string>("0");
 
-    const [startTime, setStartTime] = useState<number | null>(null);
+    const startTimeRef = useRef<number | null>(null);
     const elapsedTime = useRef<number>(0);
     const pauseRef = useRef<number | null>(null);
     const intervalRef = useRef<number | null>(null);
@@ -191,6 +200,7 @@ export default function useRunningSession(
                 const newSessionId = uuidv4();
                 console.log("================================================");
                 console.log("[SESSION] 세션 생성", newSessionId);
+                await LiveActivities.endActivity();
                 await setCurrentSessionId(newSessionId);
                 await setCurrentRunStatus(newSessionId, runStatus);
                 await setCurrentRunBatch(newSessionId, "0");
@@ -202,37 +212,41 @@ export default function useRunningSession(
                     await setCurrentCourseIndex(newSessionId, 0);
                 }
                 setSessionId(newSessionId);
+                await LiveActivities.startActivity(
+                    new Date().toISOString(),
+                    newSessionId,
+                    type,
+                    "0'00\"",
+                    "0.0",
+                    "0.0"
+                );
                 console.log("[SESSION] 세션 생성 완료", newSessionId);
                 console.log("================================================");
             }
 
-            await setTaskManager(LOCATION_TASK);
-        })();
+            await (async () => {
+                const { status: status_fg } =
+                    await Location.requestForegroundPermissionsAsync();
 
-        (async () => {
-            const { status: status_fg } =
-                await Location.requestForegroundPermissionsAsync();
-            const { status: status_bg } =
-                await Location.requestBackgroundPermissionsAsync();
+                if (status_fg !== "granted") {
+                    Toast.show({
+                        type: "info",
+                        text1: "위치 권한이 필요합니다.",
+                        position: "bottom",
+                    });
+                    router.back();
+                }
 
-            if (status_fg !== "granted" || status_bg !== "granted") {
-                Toast.show({
-                    type: "info",
-                    text1: "위치 권한이 필요합니다.",
-                    position: "bottom",
+                await Location.startLocationUpdatesAsync(LOCATION_TASK, {
+                    accuracy: Location.Accuracy.BestForNavigation,
+                    deferredUpdatesInterval: 3000,
                 });
-                router.back();
-            }
 
-            await Location.startLocationUpdatesAsync(LOCATION_TASK, {
-                accuracy: Location.Accuracy.BestForNavigation,
-                deferredUpdatesInterval: 3000,
-            });
-
-            return () => {
-                Location.stopLocationUpdatesAsync(LOCATION_TASK);
-                TaskManager.unregisterTaskAsync(LOCATION_TASK);
-            };
+                return () => {
+                    Location.stopLocationUpdatesAsync(LOCATION_TASK);
+                    TaskManager.unregisterTaskAsync(LOCATION_TASK);
+                };
+            })();
         })();
     }, []);
 
@@ -242,6 +256,12 @@ export default function useRunningSession(
             if (!sessionId || !runBatch.current) return;
             const { data: batchData, batch: batchCount } =
                 await getRunDataFromBatch(sessionId, runBatch.current);
+
+            const tempRunData = [
+                ...runData.current.filter(
+                    (data) => data.runStatus === "start_running"
+                ),
+            ];
 
             let newRunData: RunData[] = [];
 
@@ -273,10 +293,13 @@ export default function useRunningSession(
                             bpm: 0,
                         };
                     } else {
-                        const recentPoints = runTelemetries.current
+                        const recentRunData = tempRunData.slice(
+                            -recentPointNumber
+                        );
+                        const recentTelemetries = runTelemetries.current
                             .filter((telemetry) => telemetry.isRunning)
                             .slice(-recentPointNumber);
-                        const recentPointsLength = recentPoints.length;
+                        const recentPointsLength = recentRunData.length;
                         const distance =
                             lastTelemetry.dist +
                             getDistance(
@@ -289,26 +312,36 @@ export default function useRunningSession(
                                     lng: data.longitude,
                                 }
                             );
-                        const pace = getPace(elapsedTime.current, distance);
+                        const elapsedTime =
+                            ((runTelemetries.current.at(-1)?.timeStamp ??
+                                data.timestamp) -
+                                (runTelemetries.current.at(0)?.timeStamp ??
+                                    data.timestamp)) /
+                            1000;
+                        const pace = getPace(elapsedTime, distance);
                         const cadence = getCadence(
                             data.steps ?? 0,
-                            elapsedTime.current
+                            elapsedTime
                         );
                         const bpm = 0;
                         const calories = getCalories({
                             distance,
-                            timeInSec: elapsedTime.current,
+                            timeInSec: elapsedTime,
                             weight: userInfo?.weight ?? 70,
                         });
                         const recentPointsPace =
                             recentPointsLength < recentPointNumber
                                 ? pace
                                 : getPace(
-                                      (data.timestamp -
-                                          (recentPoints.at(0)?.timeStamp ??
-                                              data.timestamp)) /
+                                      (data.timeDiff +
+                                          recentRunData.reduce(
+                                              (acc, curr) =>
+                                                  acc + curr.timeDiff,
+                                              0
+                                          )) /
                                           1000,
-                                      distance - (recentPoints.at(0)?.dist ?? 0)
+                                      distance -
+                                          (recentTelemetries.at(0)?.dist ?? 0)
                                   );
                         runTelemetries.current.push({
                             timeStamp: data.timestamp,
@@ -329,11 +362,12 @@ export default function useRunningSession(
                             recentPointsPace: recentPointsPace,
                             bpm: bpm,
                         };
+                        tempRunData.push(data);
                     }
                 } else {
                     if (!lastTelemetry) return;
                     runTelemetries.current.push({
-                        timeStamp: data.timestamp,
+                        timeStamp: lastTelemetry.timeStamp,
                         lat: data.latitude,
                         lng: data.longitude,
                         dist: lastTelemetry.dist,
@@ -395,10 +429,28 @@ export default function useRunningSession(
             });
 
             runBatch.current = batchCount;
+
+            if (LiveActivities.isActivityInProgress()) {
+                LiveActivities.updateActivity(
+                    new Date(startTimeRef.current ?? Date.now()).toISOString(),
+                    getFormattedPace(runUserDashboardData.current.averagePace),
+                    (runUserDashboardData.current.totalDistance / 1000)
+                        .toFixed(2)
+                        .toString(),
+                    runUserDashboardData.current.totalCalories
+                        .toFixed(0)
+                        .toString(),
+                    pauseRef.current
+                        ? new Date(pauseRef.current).toISOString()
+                        : undefined,
+                    undefined
+                );
+            }
         }, 1000);
 
         return () => {
             clearInterval(interval);
+            console.log("[SESSION] 러닝 데이터 처리 종료");
         };
     }, [recentPointNumber, runStatus, sessionId, userInfo?.weight]);
 
@@ -411,20 +463,20 @@ export default function useRunningSession(
                 const pauseDuration = Math.floor(
                     (now - pauseRef.current) / 1000
                 );
-                setStartTime((prev) =>
-                    prev ? prev + pauseDuration * 1000 : now
-                );
+                startTimeRef.current = startTimeRef.current
+                    ? startTimeRef.current + pauseDuration * 1000
+                    : now;
                 pauseRef.current = null;
             }
 
-            if (!startTime) {
-                setStartTime(now); // 처음 시작한 경우
+            if (!startTimeRef.current) {
+                startTimeRef.current = now; // 처음 시작한 경우
             }
 
             intervalRef.current = setInterval(() => {
-                if (startTime) {
+                if (startTimeRef.current) {
                     elapsedTime.current = Math.floor(
-                        (Date.now() - startTime) / 1000
+                        (Date.now() - startTimeRef.current) / 1000
                     );
                 }
             }, 1000);
@@ -436,7 +488,7 @@ export default function useRunningSession(
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
-    }, [runStatus, startTime]);
+    }, [runStatus]);
 
     return {
         runData: runData.current,

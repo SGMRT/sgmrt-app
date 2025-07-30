@@ -18,6 +18,7 @@ const config = {
             bundleIdentifier: "com.sgmrt.ghostrunner",
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false,
+                NSSupportsLiveActivities: true,
             },
             config: {
                 usesNonExemptEncryption: false,
@@ -26,21 +27,22 @@ const config = {
                 process.env.GOOGLE_SERVICES_INFO ||
                 "./GoogleService-Info.plist",
             usesAppleSignIn: true,
+            appleTeamId: "5J98U9WUGW",
+            entitlements: {
+                "com.apple.security.application-groups": [
+                    "group.com.sgmrt.ghostrunner",
+                ],
+            },
         },
         android: {
             package: "com.sgmrt.ghostrunner",
             adaptiveIcon: {
                 foregroundImage: "./assets/images/adaptive-icon.png",
-                backgroundColor: "#ffffff",
+                backgroundColor: "#e2ff00",
             },
             edgeToEdgeEnabled: true,
             googleServicesFile:
                 process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
-        },
-        web: {
-            bundler: "metro",
-            output: "static",
-            favicon: "./assets/images/favicon.png",
         },
         plugins: [
             "expo-router",
@@ -48,9 +50,8 @@ const config = {
                 "expo-splash-screen",
                 {
                     image: "./assets/images/splash-icon.png",
-                    imageWidth: 200,
                     resizeMode: "contain",
-                    backgroundColor: "#ffffff",
+                    backgroundColor: "#e2ff00",
                 },
             ],
             [
@@ -120,6 +121,7 @@ const config = {
                         "The app accesses your photos to let you share them with your friends.",
                 },
             ],
+            "@bacons/apple-targets",
         ],
         experiments: {
             typedRoutes: true,
