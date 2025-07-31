@@ -259,7 +259,9 @@ export default function useRunningSession(
 
             const tempRunData = [
                 ...runData.current.filter(
-                    (data) => data.runStatus === "start_running"
+                    (data) =>
+                        data.runStatus === "start_running" ||
+                        data.runStatus === "stop_running"
                 ),
             ];
 
@@ -271,7 +273,10 @@ export default function useRunningSession(
             newRunData.forEach((data) => {
                 if (data.runStatus === "before_running") return;
                 const lastTelemetry = runTelemetries.current.at(-1);
-                if (runStatus === "start_running") {
+                if (
+                    runStatus === "start_running" ||
+                    runStatus === "stop_running"
+                ) {
                     if (!lastTelemetry) {
                         runTelemetries.current.push({
                             timeStamp: data.timestamp,
@@ -320,7 +325,10 @@ export default function useRunningSession(
                             1000;
                         const pace = getPace(elapsedTime, distance);
                         const cadence = getCadence(
-                            data.steps ?? 0,
+                            tempRunData.reduce(
+                                (acc, curr) => acc + (curr.steps ?? 0),
+                                0
+                            ) + (data.steps ?? 0),
                             elapsedTime
                         );
                         const bpm = 0;
@@ -354,14 +362,16 @@ export default function useRunningSession(
                             bpm: bpm,
                             isRunning: true,
                         });
-                        runUserDashboardData.current = {
-                            totalDistance: distance,
-                            totalCalories: calories,
-                            averagePace: pace,
-                            averageCadence: cadence,
-                            recentPointsPace: recentPointsPace,
-                            bpm: bpm,
-                        };
+                        if (runStatus === "start_running") {
+                            runUserDashboardData.current = {
+                                totalDistance: distance,
+                                totalCalories: calories,
+                                averagePace: pace,
+                                averageCadence: cadence,
+                                recentPointsPace: recentPointsPace,
+                                bpm: bpm,
+                            };
+                        }
                         tempRunData.push(data);
                     }
                 } else {
@@ -392,7 +402,9 @@ export default function useRunningSession(
                     if (data.runStatus === "before_running") return;
                     if (segments.length === 0) {
                         segments.push({
-                            isRunning: data.runStatus === "start_running",
+                            isRunning:
+                                data.runStatus === "start_running" ||
+                                data.runStatus === "stop_running",
                             points: [
                                 {
                                     latitude: data.latitude,
@@ -403,7 +415,8 @@ export default function useRunningSession(
                     } else {
                         const lastSegment = segments.at(-1);
                         const currentDataIsRunning =
-                            data.runStatus === "start_running";
+                            data.runStatus === "start_running" ||
+                            data.runStatus === "stop_running";
                         if (!lastSegment) return;
 
                         if (lastSegment.isRunning === currentDataIsRunning) {
@@ -456,7 +469,7 @@ export default function useRunningSession(
 
     // 러닝 시간 처리
     useEffect(() => {
-        if (runStatus === "start_running") {
+        if (runStatus === "start_running" || runStatus === "stop_running") {
             // resume from pause
             const now = Date.now();
             if (pauseRef.current) {
@@ -474,7 +487,7 @@ export default function useRunningSession(
             }
 
             intervalRef.current = setInterval(() => {
-                if (startTimeRef.current) {
+                if (startTimeRef.current && runStatus === "start_running") {
                     elapsedTime.current = Math.floor(
                         (Date.now() - startTimeRef.current) / 1000
                     );

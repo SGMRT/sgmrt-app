@@ -51,7 +51,7 @@ const config = {
                 {
                     image: "./assets/images/splash-icon.png",
                     resizeMode: "contain",
-                    backgroundColor: "#e2ff00",
+                    backgroundColor: "#090A0A",
                 },
             ],
             [
