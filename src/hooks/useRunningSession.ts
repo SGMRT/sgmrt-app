@@ -3,7 +3,7 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { Pedometer } from "expo-sensors";
 import * as TaskManager from "expo-task-manager";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "react-native-get-random-values";
 import Toast from "react-native-toast-message";
 import { v4 as uuidv4 } from "uuid";
@@ -20,20 +20,15 @@ import {
 import { getDistance } from "../utils/mapUtils";
 import {
     getClosestStepCount,
-    getCurrentCourse,
-    getCurrentCourseIndex,
     getCurrentRunBatch,
     getCurrentRunDataOfBatch,
     getCurrentRunStatus,
-    getCurrentRunType,
     getCurrentSessionId,
     getOnlyNewData,
     getRunDataFromBatch,
     mergeRunData,
     pushStepCount,
     removeRunData,
-    setCurrentCourse,
-    setCurrentCourseIndex,
     setCurrentRunBatch,
     setCurrentRunDataToBatch,
     setCurrentRunStatus,
@@ -41,6 +36,7 @@ import {
     setCurrentSessionId,
 } from "../utils/runningUtils";
 import {
+    findClosestPointIndex,
     getCadence,
     getCalories,
     getFormattedPace,
@@ -57,11 +53,7 @@ TaskManager.defineTask(
     async ({ data }: { data: { locations: Location.LocationObject[] } }) => {
         const batchSize = 100;
         const sessionId = await getCurrentSessionId();
-        console.log("[SESSION] 태스크 매니저 설정", sessionId);
         if (!sessionId) return;
-
-        const course = await getCurrentCourse(sessionId);
-        const runType = await getCurrentRunType(sessionId);
 
         const runStatus = (await getCurrentRunStatus(
             sessionId
@@ -108,10 +100,6 @@ TaskManager.defineTask(
                 ? stepCount - (lastTotalStepCount ?? stepCount)
                 : 0;
 
-            console.log("stepCount", stepCount);
-            console.log("lastTotalStepCount", lastTotalStepCount);
-            console.log("steps", steps);
-
             newRunData.push({
                 timestamp: currentTimestamp,
                 timeDiff:
@@ -142,23 +130,28 @@ TaskManager.defineTask(
             const newRunBatch = (Number(runBatch) + 1).toString();
             await setCurrentRunBatch(sessionId, newRunBatch);
         }
-
-        if (runType === "COURSE") {
-            const courseIndex = await getCurrentCourseIndex(sessionId);
-            console.log("[SESSION] 코스 관련 데이터 업데이트", courseIndex);
-        }
     }
 );
 
-export default function useRunningSession(
-    restore: boolean = false,
-    course: Telemetry[] = [],
-    type: "SOLO" | "COURSE" = "SOLO",
-    recentPointNumber: number = 30
-) {
+interface RunningSessionProps {
+    restore?: boolean;
+    course?: Telemetry[];
+    type?: "SOLO" | "COURSE";
+    recentPointNumber?: number;
+    courseAcceptanceDistance?: number;
+}
+
+export default function useRunningSession({
+    restore = false,
+    course = [],
+    type = "SOLO",
+    recentPointNumber = 30,
+    courseAcceptanceDistance = 10,
+}: RunningSessionProps) {
     const { userInfo } = useAuthStore();
     const runData = useRef<RunData[]>([]);
     const [runSegments, setRunSegments] = useState<Segment[]>([]);
+    const tempRunSegment = useRef<Segment | null>(null);
     const runTelemetries = useRef<Telemetry[]>([]);
     const runUserDashboardData = useRef<UserDashBoardData>({
         totalDistance: 0,
@@ -170,6 +163,7 @@ export default function useRunningSession(
         totalElevationGain: 0,
         totalElevationLoss: 0,
     });
+    const runType = useRef<"SOLO" | "COURSE">(type);
 
     const [sessionId, setSessionId] = useState<string>("");
     const [runStatus, setRunStatus] =
@@ -181,19 +175,51 @@ export default function useRunningSession(
     const pauseRef = useRef<number | null>(null);
     const intervalRef = useRef<number | null>(null);
 
+    const lastStopUpdateInfo = useRef<{
+        timestamp: number;
+        before: RunnningStatus;
+    } | null>(null);
+
     const router = useRouter();
 
-    async function updateRunStatus(status: RunnningStatus) {
-        setRunStatus(status);
-        if (sessionId) {
-            await setCurrentRunStatus(sessionId, status);
-        } else {
-            const sessionId = await getCurrentSessionId();
+    const courseIndex = useRef<number>(0);
+
+    const updateRunType = useCallback(
+        async (type: "SOLO" | "COURSE") => {
+            runType.current = type;
+            if (sessionId) {
+                await setCurrentRunType(sessionId, type);
+            }
+        },
+        [sessionId]
+    );
+
+    const updateRunStatus = useCallback(
+        async (status: RunnningStatus) => {
+            if (
+                lastStopUpdateInfo.current?.before === "complete_course_running"
+            ) {
+                updateRunType("SOLO");
+            }
+
+            setRunStatus(status);
+
+            lastStopUpdateInfo.current = {
+                timestamp: Date.now(),
+                before: status,
+            };
+
             if (sessionId) {
                 await setCurrentRunStatus(sessionId, status);
+            } else {
+                const sessionId = await getCurrentSessionId();
+                if (sessionId) {
+                    await setCurrentRunStatus(sessionId, status);
+                }
             }
-        }
-    }
+        },
+        [sessionId, updateRunType]
+    );
 
     useEffect(() => {
         (async () => {
@@ -217,11 +243,6 @@ export default function useRunningSession(
                 await setCurrentRunBatch(newSessionId, "0");
                 await setCurrentRunType(newSessionId, type);
                 console.log("[SESSION] 러닝 유형", type);
-                if (course.length > 0) {
-                    console.log("[SESSION] 코스 러닝 설정");
-                    await setCurrentCourse(newSessionId, course);
-                    await setCurrentCourseIndex(newSessionId, 0);
-                }
                 setSessionId(newSessionId);
                 await LiveActivities.startActivity(
                     new Date().toISOString(),
@@ -229,7 +250,8 @@ export default function useRunningSession(
                     type,
                     "0'00\"",
                     "0.0",
-                    "0.0"
+                    "0.0",
+                    type === "COURSE" ? 0 : undefined
                 );
                 console.log("[SESSION] 세션 생성 완료", newSessionId);
                 console.log("================================================");
@@ -270,6 +292,7 @@ export default function useRunningSession(
                     Location.stopLocationUpdatesAsync(LOCATION_TASK);
                     TaskManager.unregisterTaskAsync(LOCATION_TASK);
                     stepCountSubscription.remove();
+                    LiveActivities.endActivity();
                 };
             })();
         })();
@@ -286,7 +309,8 @@ export default function useRunningSession(
                 ...runData.current.filter(
                     (data) =>
                         data.runStatus === "start_running" ||
-                        data.runStatus === "stop_running"
+                        data.runStatus === "stop_running" ||
+                        data.runStatus === "complete_course_running"
                 ),
             ];
 
@@ -296,11 +320,30 @@ export default function useRunningSession(
             newRunData = getOnlyNewData(batchData, runData.current);
 
             newRunData.forEach((data) => {
+                if (
+                    runStatus === "before_running" &&
+                    course.length > 0 &&
+                    runType.current === "COURSE"
+                ) {
+                    const startPoint = course[0];
+                    const distance = getDistance(
+                        { lat: startPoint.lat, lng: startPoint.lng },
+                        { lat: data.latitude, lng: data.longitude }
+                    );
+                    if (distance <= courseAcceptanceDistance) {
+                        updateRunStatus("ready_course_running");
+                    } else {
+                        console.log(distance);
+                        console.log("기준 미충족");
+                    }
+                }
+
                 if (data.runStatus === "before_running") return;
                 const lastTelemetry = runTelemetries.current.at(-1);
                 if (
                     runStatus === "start_running" ||
-                    runStatus === "stop_running"
+                    runStatus === "stop_running" ||
+                    runStatus === "complete_course_running"
                 ) {
                     if (!lastTelemetry) {
                         runTelemetries.current.push({
@@ -442,12 +485,56 @@ export default function useRunningSession(
                 }));
 
                 newRunData.forEach((data) => {
-                    if (data.runStatus === "before_running") return;
+                    if (
+                        tempRunSegment.current &&
+                        data.runStatus === "start_running"
+                    ) {
+                        console.log("탬프 세그먼트 추가");
+                        segments.push(tempRunSegment.current);
+                        tempRunSegment.current = null;
+                    }
+
+                    const lastSegment = segments.at(-1);
+                    const lastPoint = lastSegment?.points.at(-1);
+
+                    if (
+                        data.runStatus === "before_running" ||
+                        data.runStatus === "ready_course_running"
+                    ) {
+                        return;
+                    } else if (
+                        data.runStatus === "stop_running" ||
+                        data.runStatus === "complete_course_running"
+                    ) {
+                        if (tempRunSegment.current) {
+                            tempRunSegment.current.points.push({
+                                latitude: data.latitude,
+                                longitude: data.longitude,
+                            });
+                        } else {
+                            tempRunSegment.current = {
+                                isRunning: true,
+                                points: [
+                                    lastPoint && {
+                                        latitude: lastPoint.latitude,
+                                        longitude: lastPoint.longitude,
+                                    },
+                                    {
+                                        latitude: data.latitude,
+                                        longitude: data.longitude,
+                                    },
+                                ].filter(Boolean) as {
+                                    latitude: number;
+                                    longitude: number;
+                                }[],
+                            };
+                        }
+                        return;
+                    }
+
                     if (segments.length === 0) {
                         segments.push({
-                            isRunning:
-                                data.runStatus === "start_running" ||
-                                data.runStatus === "stop_running",
+                            isRunning: runStatus === "start_running",
                             points: [
                                 {
                                     latitude: data.latitude,
@@ -456,21 +543,24 @@ export default function useRunningSession(
                             ],
                         });
                     } else {
-                        const lastSegment = segments.at(-1);
-                        const currentDataIsRunning =
-                            data.runStatus === "start_running" ||
-                            data.runStatus === "stop_running";
-                        if (!lastSegment) return;
+                        if (!lastSegment || !lastPoint) return;
 
-                        if (lastSegment.isRunning === currentDataIsRunning) {
+                        if (
+                            lastSegment.isRunning ===
+                            (runStatus === "start_running")
+                        ) {
                             lastSegment.points.push({
                                 latitude: data.latitude,
                                 longitude: data.longitude,
                             });
                         } else {
                             segments.push({
-                                isRunning: currentDataIsRunning,
+                                isRunning: runStatus === "start_running",
                                 points: [
+                                    {
+                                        latitude: lastPoint.latitude,
+                                        longitude: lastPoint.longitude,
+                                    },
                                     {
                                         latitude: data.latitude,
                                         longitude: data.longitude,
@@ -486,6 +576,29 @@ export default function useRunningSession(
 
             runBatch.current = batchCount;
 
+            if (
+                course.length > 0 &&
+                runStatus === "start_running" &&
+                runType.current === "COURSE"
+            ) {
+                const lastTelemetry = runTelemetries.current.at(-1);
+                if (lastTelemetry) {
+                    const closestCourseIndex = findClosestPointIndex(
+                        { lat: lastTelemetry.lat, lng: lastTelemetry.lng },
+                        course,
+                        courseAcceptanceDistance
+                    );
+                    if (courseIndex.current + 2 >= course.length) {
+                        updateRunStatus("complete_course_running");
+                    }
+                    if (closestCourseIndex === -1) {
+                        updateRunStatus("stop_running");
+                    } else if (closestCourseIndex > courseIndex.current) {
+                        courseIndex.current = closestCourseIndex;
+                    }
+                }
+            }
+
             if (LiveActivities.isActivityInProgress()) {
                 LiveActivities.updateActivity(
                     new Date(startTimeRef.current ?? Date.now()).toISOString(),
@@ -499,7 +612,9 @@ export default function useRunningSession(
                     pauseRef.current
                         ? new Date(pauseRef.current).toISOString()
                         : undefined,
-                    undefined
+                    courseIndex.current
+                        ? (courseIndex.current + 1) / course.length
+                        : undefined
                 );
             }
         }, 1000);
@@ -508,11 +623,23 @@ export default function useRunningSession(
             clearInterval(interval);
             console.log("[SESSION] 러닝 데이터 처리 종료");
         };
-    }, [recentPointNumber, runStatus, sessionId, userInfo?.weight]);
+    }, [
+        recentPointNumber,
+        runStatus,
+        sessionId,
+        userInfo?.weight,
+        courseAcceptanceDistance,
+        updateRunStatus,
+        course,
+    ]);
 
     // 러닝 시간 처리
     useEffect(() => {
-        if (runStatus === "start_running" || runStatus === "stop_running") {
+        if (
+            runStatus === "start_running" ||
+            runStatus === "stop_running" ||
+            runStatus === "complete_course_running"
+        ) {
             // resume from pause
             const now = Date.now();
             if (pauseRef.current) {
@@ -546,14 +673,30 @@ export default function useRunningSession(
         };
     }, [runStatus]);
 
+    const userTelemetries = useMemo(() => {
+        if (
+            runStatus === "stop_running" ||
+            runStatus === "complete_course_running"
+        ) {
+            const stopInfo = lastStopUpdateInfo.current;
+            if (!stopInfo) return runTelemetries.current;
+            return runTelemetries.current.filter(
+                (telemetry) => telemetry.timeStamp <= stopInfo.timestamp
+            );
+        } else return runTelemetries.current;
+    }, [runStatus]);
+
     return {
+        currentRunType: runType.current,
         runData: runData.current,
         runSegments,
-        runTelemetries: runTelemetries.current,
+        runTelemetries: userTelemetries,
         sessionId,
         updateRunStatus,
+        updateRunType,
         runStatus,
         runTime: elapsedTime.current,
         runUserDashboardData: runUserDashboardData.current,
+        courseIndex: courseIndex.current,
     };
 }

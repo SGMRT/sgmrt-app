@@ -36,7 +36,7 @@ export default function Run() {
         runStatus,
         runTime,
         runUserDashboardData,
-    } = useRunningSession();
+    } = useRunningSession({});
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(

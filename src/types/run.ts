@@ -12,9 +12,11 @@ export interface RunData {
 }
 export type RunnningStatus =
     | "before_running"
+    | "ready_course_running"
     | "start_running"
     | "pause_running"
-    | "stop_running";
+    | "stop_running"
+    | "complete_course_running";
 
 export interface UserDashBoardData {
     totalDistance: number;

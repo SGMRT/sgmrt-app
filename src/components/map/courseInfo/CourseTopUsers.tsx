@@ -42,7 +42,7 @@ export default function CourseTopUsers({
         async function getMyRecord() {
             const record = await getCourseUserRank({
                 courseId,
-                userId: uuid ?? "",
+                memberUuid: uuid ?? "",
             });
             setMyRecord(record);
         }

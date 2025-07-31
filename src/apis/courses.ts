@@ -77,14 +77,14 @@ export async function getCourseTopRanking({
 
 export async function getCourseUserRank({
     courseId,
-    userId,
+    memberUuid,
 }: {
     courseId: number;
-    userId: string;
+    memberUuid: string;
 }): Promise<UserRankResponse> {
     try {
         const response = await server.get(`/courses/${courseId}/ranking`, {
-            params: { userId },
+            params: { memberUuid },
         });
         return response.data;
     } catch (error) {

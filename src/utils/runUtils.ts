@@ -9,6 +9,7 @@ import {
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
 import { UserDashBoardData } from "../types/run";
+import { Coordinate, getDistance } from "./mapUtils";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
     let isNegative = false;
@@ -245,7 +246,32 @@ function getDate(date: number): string {
         .join(".");
 }
 
+function checkPointSynced(
+    targetPosition: Coordinate,
+    currentPosition: Coordinate,
+    acceptanceDistance: number
+) {
+    const distance = getDistance(targetPosition, currentPosition);
+    return distance < acceptanceDistance;
+}
+
+function findClosestPointIndex(
+    currentPosition: Coordinate,
+    telemetries: Telemetry[],
+    acceptanceDistance: number
+) {
+    return telemetries.findIndex((telemetry) =>
+        checkPointSynced(
+            { lat: telemetry.lat, lng: telemetry.lng },
+            currentPosition,
+            acceptanceDistance
+        )
+    );
+}
+
 export {
+    checkPointSynced,
+    findClosestPointIndex,
     getCadence,
     getCalories,
     getDate,
