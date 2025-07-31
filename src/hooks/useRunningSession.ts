@@ -14,10 +14,12 @@ import {
     LOCATION_TASK,
     RunData,
     RunnningStatus,
+    StepCount,
     UserDashBoardData,
 } from "../types/run";
 import { getDistance } from "../utils/mapUtils";
 import {
+    getClosestStepCount,
     getCurrentCourse,
     getCurrentCourseIndex,
     getCurrentRunBatch,
@@ -28,6 +30,7 @@ import {
     getOnlyNewData,
     getRunDataFromBatch,
     mergeRunData,
+    pushStepCount,
     removeRunData,
     setCurrentCourse,
     setCurrentCourseIndex,
@@ -76,6 +79,7 @@ TaskManager.defineTask(
 
         let lastRunData = runDataArray.at(-1);
         let lastTimestamp = lastRunData?.timestamp;
+        let lastTotalStepCount = lastRunData?.totalSteps;
 
         if (runDataArray.length === 0) {
             const previous = await getCurrentRunDataOfBatch(
@@ -85,6 +89,7 @@ TaskManager.defineTask(
             if (previous) {
                 lastRunData = JSON.parse(previous).at(-1);
                 lastTimestamp = lastRunData?.timestamp;
+                lastTotalStepCount = lastRunData?.totalSteps;
             }
         }
 
@@ -92,17 +97,20 @@ TaskManager.defineTask(
 
         for (const location of data.locations) {
             const currentTimestamp = location.timestamp;
+            const stepCount = await getClosestStepCount(
+                sessionId,
+                currentTimestamp
+            );
 
-            let stepCount = 0;
-            try {
-                const result = await Pedometer.getStepCountAsync(
-                    new Date(lastTimestamp),
-                    new Date(currentTimestamp)
-                );
-                stepCount = result.steps;
-            } catch (error) {
-                // console.warn("걸음 수 가져오기 실패:", error);
-            }
+            let steps = 0;
+
+            steps = stepCount
+                ? stepCount - (lastTotalStepCount ?? stepCount)
+                : 0;
+
+            console.log("stepCount", stepCount);
+            console.log("lastTotalStepCount", lastTotalStepCount);
+            console.log("steps", steps);
 
             newRunData.push({
                 timestamp: currentTimestamp,
@@ -112,14 +120,15 @@ TaskManager.defineTask(
                 longitude: location.coords.longitude,
                 altitude: location.coords.altitude,
                 speed: location.coords.speed,
-                steps: stepCount,
+                totalSteps: stepCount ?? lastTotalStepCount ?? 0,
+                deltaSteps: steps,
                 runStatus: runStatus,
             });
 
             lastTimestamp = currentTimestamp;
         }
 
-        console.log("[RUN] 러닝 데이터 수신", newRunData.at(-1));
+        console.log("[RUN] 러닝 데이터 수신");
 
         runDataArray = [...runDataArray, ...newRunData];
 
@@ -200,7 +209,7 @@ export default function useRunningSession(
                 const newSessionId = uuidv4();
                 console.log("================================================");
                 console.log("[SESSION] 세션 생성", newSessionId);
-                await LiveActivities.endActivity();
+                LiveActivities.endActivity();
                 await setCurrentSessionId(newSessionId);
                 await setCurrentRunStatus(newSessionId, runStatus);
                 await setCurrentRunBatch(newSessionId, "0");
@@ -242,9 +251,23 @@ export default function useRunningSession(
                     deferredUpdatesInterval: 3000,
                 });
 
+                const stepCountSubscription = Pedometer.watchStepCount(
+                    async (result) => {
+                        const stepCount: StepCount = {
+                            totalSteps: result.steps,
+                            timestamp: Date.now(),
+                        };
+                        const sessionId = await getCurrentSessionId();
+                        if (sessionId) {
+                            await pushStepCount(sessionId, stepCount);
+                        }
+                    }
+                );
+
                 return () => {
                     Location.stopLocationUpdatesAsync(LOCATION_TASK);
                     TaskManager.unregisterTaskAsync(LOCATION_TASK);
+                    stepCountSubscription.remove();
                 };
             })();
         })();
@@ -326,9 +349,9 @@ export default function useRunningSession(
                         const pace = getPace(elapsedTime, distance);
                         const cadence = getCadence(
                             tempRunData.reduce(
-                                (acc, curr) => acc + (curr.steps ?? 0),
+                                (acc, curr) => acc + (curr.deltaSteps ?? 0),
                                 0
-                            ) + (data.steps ?? 0),
+                            ) + (data.deltaSteps ?? 0),
                             elapsedTime
                         );
                         const bpm = 0;

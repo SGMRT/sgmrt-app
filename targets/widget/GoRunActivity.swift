@@ -65,12 +65,12 @@ struct GoRunActivity: Widget {
           Image(.logoTint)
             .resizable()
             .frame(width: 20, height: 20)
-            .padding(EdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 0))
+            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
         }
         DynamicIslandExpandedRegion(.trailing) {
           Text(context.attributes.runType)
             .font(.system(size: 15, weight: .bold))
-            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 8))
+            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
         }
         DynamicIslandExpandedRegion(.bottom) {
           VStack{
@@ -117,6 +117,7 @@ struct GoRunActivity: Widget {
           .foregroundColor(Color(hex: "#E2FF00"))
           .monospacedDigit()
           .foregroundColor(.white)
+          .padding(.horizontal, 4)
       } minimal: {
         Image(.logoTint)
           .resizable()
