@@ -1,6 +1,7 @@
 export const LOCATION_TASK = "running-session";
 export interface RunData {
     timestamp: number;
+    timeDiff: number;
     latitude: number;
     longitude: number;
     altitude: number | null;
