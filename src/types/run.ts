@@ -23,6 +23,8 @@ export interface UserDashBoardData {
     averageCadence: number;
     recentPointsPace: number;
     bpm: number;
+    totalElevationGain: number;
+    totalElevationLoss: number;
 }
 
 export interface StepCount {

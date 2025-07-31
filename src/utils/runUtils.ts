@@ -8,7 +8,7 @@ import {
     Telemetry,
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
-import { UserDashBoardData } from "../hooks/useRunning";
+import { UserDashBoardData } from "../types/run";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
     let isNegative = false;
@@ -142,7 +142,6 @@ interface SaveRunningProps {
     userDashboardData: UserDashBoardData;
     runTime: number;
     isPublic: boolean;
-    totalStepCount: number;
     ghostRunningId?: number | null;
     courseId?: number;
 }
@@ -152,14 +151,13 @@ export async function saveRunning({
     userDashboardData,
     runTime,
     isPublic,
-    totalStepCount,
     ghostRunningId,
     courseId,
 }: SaveRunningProps) {
     if (
         !userDashboardData ||
         userDashboardData.totalDistance === 0 ||
-        userDashboardData.paceOfLastPoints === 0 ||
+        userDashboardData.averagePace === 0 ||
         telemetries.filter((telemetry) => telemetry.isRunning).at(-1)?.pace ===
             0
     ) {
@@ -189,10 +187,10 @@ export async function saveRunning({
         elevationGain: userDashboardData.totalElevationGain,
         elevationLoss: userDashboardData.totalElevationLoss,
         duration: runTime,
-        avgPace: getPace(runTime, userDashboardData.totalDistance),
+        avgPace: userDashboardData.averagePace,
         calories: userDashboardData.totalCalories,
         avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
-        avgCadence: getCadence(totalStepCount, runTime),
+        avgCadence: userDashboardData.averageCadence,
     };
 
     if (ghostRunningId) {

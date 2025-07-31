@@ -167,6 +167,8 @@ export default function useRunningSession(
         averageCadence: 0,
         recentPointsPace: 0,
         bpm: 0,
+        totalElevationGain: 0,
+        totalElevationLoss: 0,
     });
 
     const [sessionId, setSessionId] = useState<string>("");
@@ -319,6 +321,8 @@ export default function useRunningSession(
                             averageCadence: 0,
                             recentPointsPace: 0,
                             bpm: 0,
+                            totalElevationGain: 0,
+                            totalElevationLoss: 0,
                         };
                     } else {
                         const recentRunData = tempRunData.slice(
@@ -374,6 +378,10 @@ export default function useRunningSession(
                                       distance -
                                           (recentTelemetries.at(0)?.dist ?? 0)
                                   );
+                        const altitude = Math.round(data.altitude ?? 0);
+                        const lastAltitude = Math.round(lastTelemetry.alt ?? 0);
+                        const elevation = altitude - lastAltitude;
+
                         runTelemetries.current.push({
                             timeStamp: data.timestamp,
                             lat: data.latitude,
@@ -393,6 +401,18 @@ export default function useRunningSession(
                                 averageCadence: cadence,
                                 recentPointsPace: recentPointsPace,
                                 bpm: bpm,
+                                totalElevationGain:
+                                    elevation > 0
+                                        ? runUserDashboardData.current
+                                              .totalElevationGain + elevation
+                                        : runUserDashboardData.current
+                                              .totalElevationGain,
+                                totalElevationLoss:
+                                    elevation < 0
+                                        ? runUserDashboardData.current
+                                              .totalElevationLoss + elevation
+                                        : runUserDashboardData.current
+                                              .totalElevationLoss,
                             };
                         }
                         tempRunData.push(data);
@@ -529,6 +549,7 @@ export default function useRunningSession(
     return {
         runData: runData.current,
         runSegments,
+        runTelemetries: runTelemetries.current,
         sessionId,
         updateRunStatus,
         runStatus,
