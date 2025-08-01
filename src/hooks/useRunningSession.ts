@@ -599,7 +599,10 @@ export default function useRunningSession({
                 }
             }
 
-            if (LiveActivities.isActivityInProgress()) {
+            if (
+                LiveActivities.isActivityInProgress() &&
+                runStatus === "start_running"
+            ) {
                 LiveActivities.updateActivity(
                     new Date(startTimeRef.current ?? Date.now()).toISOString(),
                     getFormattedPace(runUserDashboardData.current.averagePace),
@@ -630,7 +633,7 @@ export default function useRunningSession({
         userInfo?.weight,
         courseAcceptanceDistance,
         updateRunStatus,
-        course,
+        course.length,
     ]);
 
     // 러닝 시간 처리
