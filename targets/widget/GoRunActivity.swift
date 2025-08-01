@@ -53,6 +53,7 @@ struct GoRunActivity: Widget {
               .progressViewStyle(.linear)
               .frame(height: 4)
               .tint(Color(hex: "#E2FF00"))
+              .padding(.all, 4)
           }
         }
       }

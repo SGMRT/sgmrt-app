@@ -25,7 +25,7 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BackHandler, Dimensions, StyleSheet, View } from "react-native";
+import { Alert, BackHandler, Dimensions, StyleSheet, View } from "react-native";
 import { ConfettiMethods, PIConfetti } from "react-native-fast-confetti";
 import Animated, {
     FadeIn,
@@ -74,21 +74,38 @@ export default function CourseRun() {
         Promise.all([
             getRunTelemetriesByCourseId(Number(courseId)),
             getRunTelemetries(Number(ghostRunningId)),
-        ]).then(([course, ghostRunning]) => {
-            setCourseName(course.name);
-            setCourseTelemetries(course.coordinates);
-            setCourseSegment(telemetriesToSegment(course.coordinates, 0)[1]);
-
-            if (ghostRunningId === "-1") {
-                setMode("COURSE");
-            } else {
-                setMode("GHOST");
-                ghostTelemetries.current = interpolateTelemetries(
-                    ghostRunning,
-                    250
+        ])
+            .then(([course, ghostRunning]) => {
+                setCourseName(course.name);
+                setCourseTelemetries(course.coordinates);
+                setCourseSegment(
+                    telemetriesToSegment(course.coordinates, 0)[1]
                 );
-            }
-        });
+
+                if (ghostRunningId === "-1") {
+                    setMode("COURSE");
+                } else {
+                    setMode("GHOST");
+                    ghostTelemetries.current = interpolateTelemetries(
+                        ghostRunning,
+                        250
+                    );
+                }
+            })
+            .catch(() => {
+                Alert.alert(
+                    "데이터 로딩 오류",
+                    "러닝 데이터를 불러오는데 실패했습니다",
+                    [
+                        {
+                            text: "확인",
+                            onPress: () => {
+                                router.back();
+                            },
+                        },
+                    ]
+                );
+            });
     }, [courseId, ghostRunningId]);
 
     const onCompleteRestart = async (runStatus: RunnningStatus) => {
