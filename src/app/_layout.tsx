@@ -43,15 +43,34 @@ function RootLayout() {
         // if (!userInfo?.username) {
         //     logout();
         // }
-        (async () => {
-            if (TaskManager.isTaskDefined(LOCATION_TASK)) {
-                await TaskManager.unregisterTaskAsync(LOCATION_TASK);
+        const stopTrackingAndLiveActivity = async () => {
+            try {
+                if (await TaskManager.isTaskRegisteredAsync(LOCATION_TASK)) {
+                    await TaskManager.unregisterTaskAsync(LOCATION_TASK);
+                }
+                if (
+                    await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)
+                ) {
+                    await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+                }
+
+                setTimeout(() => {
+                    try {
+                        const isActivityInProgress =
+                            LiveActivities.isActivityInProgress();
+                        if (isActivityInProgress) {
+                            LiveActivities.endActivity();
+                        }
+                    } catch (e) {
+                        console.warn("LiveActivities crash avoided:", e);
+                    }
+                }, 100);
+            } catch (e) {
+                console.error("Cleanup error:", e);
             }
-            if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)) {
-                await Location.stopLocationUpdatesAsync(LOCATION_TASK);
-            }
-        })();
-        LiveActivities.endActivity();
+        };
+
+        stopTrackingAndLiveActivity();
 
         if (isLoggedIn) {
             router.replace("/intro");
