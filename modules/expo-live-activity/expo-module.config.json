@@ -1,9 +1,7 @@
 {
     "platforms": ["apple"],
     "apple": {
-        "modules": ["ExpoLiveActivityModule"]
-    },
-    "android": {
-        "modules": ["expo.modules.liveactivity.ExpoLiveActivityModule"]
+        "modules": ["ExpoLiveActivityModule"],
+        "appDelegateSubscribers": ["AppTerminateListener"]
     }
 }

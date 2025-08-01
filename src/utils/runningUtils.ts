@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Telemetry } from "../apis/types/run";
-import { RunData, RunnningStatus } from "../types/run";
+import { RunData, RunnningStatus, StepCount } from "../types/run";
+import { findClosest } from "./interpolateTelemetries";
 
 export async function removeRunData(sessionId: string) {
     console.log("================================================");
@@ -144,4 +145,38 @@ export async function getCurrentCourseIndex(sessionId: string) {
 export function getOnlyNewData(target: RunData[], reference: RunData[]) {
     const referenceSet = new Set(reference.map((d) => d.timestamp));
     return target.filter((d) => !referenceSet.has(d.timestamp));
+}
+
+export async function getStepCount(sessionId: string) {
+    return await AsyncStorage.getItem(sessionId + "_stepCount");
+}
+
+export async function pushStepCount(sessionId: string, stepCount: StepCount) {
+    const stepCountData = await getStepCount(sessionId);
+    const stepCountList: StepCount[] = stepCountData
+        ? JSON.parse(stepCountData)
+        : [];
+    stepCountList.push(stepCount);
+    stepCountList.slice(-30);
+
+    return await AsyncStorage.setItem(
+        sessionId + "_stepCount",
+        JSON.stringify(stepCountList)
+    );
+}
+
+export async function getClosestStepCount(
+    sessionId: string,
+    timestamp: number
+) {
+    const stepCountData = await getStepCount(sessionId);
+    const stepCountList: StepCount[] = stepCountData
+        ? JSON.parse(stepCountData)
+        : [];
+
+    const closest = findClosest(stepCountList, timestamp);
+
+    if (!closest) return undefined;
+
+    return closest.totalSteps;
 }

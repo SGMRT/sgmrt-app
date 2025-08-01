@@ -6,14 +6,17 @@ export interface RunData {
     longitude: number;
     altitude: number | null;
     speed: number | null;
-    steps: number | null;
+    totalSteps: number | null;
+    deltaSteps: number | null;
     runStatus: RunnningStatus;
 }
 export type RunnningStatus =
     | "before_running"
+    | "ready_course_running"
     | "start_running"
     | "pause_running"
-    | "stop_running";
+    | "stop_running"
+    | "complete_course_running";
 
 export interface UserDashBoardData {
     totalDistance: number;
@@ -22,4 +25,11 @@ export interface UserDashBoardData {
     averageCadence: number;
     recentPointsPace: number;
     bpm: number;
+    totalElevationGain: number;
+    totalElevationLoss: number;
+}
+
+export interface StepCount {
+    totalSteps: number;
+    timestamp: number;
 }

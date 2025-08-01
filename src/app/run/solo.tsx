@@ -8,7 +8,11 @@ import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import useRunningSession from "@/src/hooks/useRunningSession";
 import colors from "@/src/theme/colors";
-import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import {
+    getFormattedPace,
+    getRunTime,
+    saveRunning,
+} from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -27,11 +31,12 @@ export default function Run() {
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const {
         runSegments,
+        runTelemetries,
         updateRunStatus,
         runStatus,
         runTime,
         runUserDashboardData,
-    } = useRunningSession();
+    } = useRunningSession({});
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -169,14 +174,13 @@ export default function Run() {
             ) : (
                 <SlideToDualAction
                     onSlideLeft={async () => {
-                        // const response = await saveRunning({
-                        //     telemetries,
-                        //     userDashboardData,
-                        //     runTime,
-                        //     isPublic: true,
-                        //     totalStepCount,
-                        // });
-                        // router.replace(`/result/${response.runningId}/-1/-1`);
+                        const response = await saveRunning({
+                            telemetries: runTelemetries,
+                            userDashboardData: runUserDashboardData,
+                            runTime,
+                            isPublic: true,
+                        });
+                        router.replace(`/result/${response.runningId}/-1/-1`);
                         console.log("saveRunning");
                     }}
                     onSlideRight={() => {

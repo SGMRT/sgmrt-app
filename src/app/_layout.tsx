@@ -1,3 +1,4 @@
+import LiveActivities from "@/modules/expo-live-activity";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -40,6 +41,7 @@ export default function RootLayout() {
             }
             await Location.stopLocationUpdatesAsync(LOCATION_TASK);
         })();
+        LiveActivities.endActivity();
 
         if (isLoggedIn) {
             router.replace("/intro");
