@@ -26,6 +26,6 @@ jobs:
       #   run: eas build --non-interactive --profile release --platform android
       
       - name: 🚀 Build iOS app
-        env:
-          EXPO_PUBLIC_KAKAO_APP_KEY: ${{ secrets.KAKAO_APP_KEY }}
-        run: eas build --non-interactive --profile production --platform ios
+        run: |
+          export EXPO_PUBLIC_KAKAO_APP_KEY=${{ secrets.KAKAO_APP_KEY }}
+          eas build --non-interactive --profile production --platform ios
