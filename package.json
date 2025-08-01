@@ -11,6 +11,7 @@
     "lint": "expo lint"
   },
   "dependencies": {
+    "@bacons/apple-targets": "^3.0.2",
     "@expo/vector-icons": "^14.1.0",
     "@gorhom/bottom-sheet": "^5",
     "@react-native-async-storage/async-storage": "2.1.2",
@@ -22,6 +23,7 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "@rnmapbox/maps": "^10.1.39",
+    "@sentry/react-native": "^6.19.0",
     "@shopify/flash-list": "1.7.6",
     "@shopify/react-native-skia": "v2.0.0-next.4",
     "@tanstack/react-query": "^5.81.5",
@@ -48,12 +50,14 @@
     "expo-status-bar": "~2.2.3",
     "expo-symbols": "~0.4.5",
     "expo-system-ui": "~5.0.8",
+    "expo-task-manager": "~13.1.6",
     "expo-web-browser": "~14.1.6",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.4",
     "react-native-fast-confetti": "^1.0.2",
     "react-native-gesture-handler": "~2.24.0",
+    "react-native-get-random-values": "~1.11.0",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
@@ -63,9 +67,7 @@
     "react-native-webview": "13.13.5",
     "uuid": "^11.1.0",
     "victory-native": "^41.17.4",
-    "zustand": "^5.0.5",
-    "expo-task-manager": "~13.1.6",
-    "react-native-get-random-values": "~1.11.0"
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -122,6 +122,14 @@ const config = {
                 },
             ],
             "@bacons/apple-targets",
+            [
+                "@sentry/react-native/expo",
+                {
+                    url: "https://sentry.io/",
+                    project: "react-native",
+                    organization: "sogogimaratang",
+                },
+            ],
         ],
         experiments: {
             typedRoutes: true,

@@ -1,6 +1,7 @@
 import LiveActivities from "@/modules/expo-live-activity";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
+import * as Sentry from "@sentry/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import * as Location from "expo-location";
@@ -17,7 +18,14 @@ SplashScreen.preventAutoHideAsync();
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 
-export default function RootLayout() {
+Sentry.init({
+    dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+    sendDefaultPii: true,
+    environment: process.env.NODE_ENV,
+    tracesSampleRate: 1.0,
+});
+
+function RootLayout() {
     const router = useRouter();
     const { isLoggedIn, logout, userInfo } = useAuthStore();
     const [loaded] = useFonts({
@@ -39,7 +47,9 @@ export default function RootLayout() {
             if (TaskManager.isTaskDefined(LOCATION_TASK)) {
                 await TaskManager.unregisterTaskAsync(LOCATION_TASK);
             }
-            await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+            if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)) {
+                await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+            }
         })();
         LiveActivities.endActivity();
 
@@ -76,3 +86,5 @@ export default function RootLayout() {
         </GestureHandlerRootView>
     );
 }
+
+export default Sentry.wrap(RootLayout);
