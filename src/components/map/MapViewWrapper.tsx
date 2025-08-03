@@ -27,6 +27,7 @@ interface MapViewWrapperProps {
     showPuck?: boolean;
     onRegionDidChange?: (event: any) => void;
     ref?: React.RefObject<MapView | null>;
+    cameraRef?: React.RefObject<Camera | null>;
 }
 
 export default function MapViewWrapper({
@@ -39,6 +40,7 @@ export default function MapViewWrapper({
     showPuck = true,
     onRegionDidChange,
     ref,
+    cameraRef,
 }: MapViewWrapperProps) {
     const [isFollowing, setIsFollowing] = useState(true);
     const [followUserMode, setFollowUserMode] = useState(
@@ -120,6 +122,7 @@ export default function MapViewWrapper({
                         center ? [center.longitude, center.latitude] : undefined
                     }
                     zoomLevel={zoom}
+                    ref={cameraRef}
                 />
                 {children}
                 <Viewport onStatusChanged={onStatusChanged} />

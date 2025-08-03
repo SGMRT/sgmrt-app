@@ -22,7 +22,7 @@ export default function CourseTitle({
                 <View style={styles.titleContainer}>
                     <Typography
                         variant="subhead3"
-                        color={isActive ? "white" : "gray20"}
+                        color={isActive ? "primary" : "gray20"}
                     >
                         {course.name}
                     </Typography>

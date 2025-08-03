@@ -6,14 +6,14 @@ import CourseTitle from "./CourseTitle";
 
 interface CourseMarkersProps {
     course: CourseResponse;
-    activeCourse: number;
+    activeCourseId: number;
     onClickCourse: (course: CourseResponse) => void;
     zoomLevel: number;
 }
 
 export default function CourseMarkers({
     course,
-    activeCourse,
+    activeCourseId,
     onClickCourse,
     zoomLevel,
 }: CourseMarkersProps) {
@@ -27,13 +27,13 @@ export default function CourseMarkers({
                 <CourseTitle
                     course={course}
                     onClickCourse={onClickCourse}
-                    isActive={activeCourse === course.id}
+                    isActive={activeCourseId === course.id}
                     zoomLevel={zoomLevel}
                 />
             </MarkerView>
             <CourseLayer
                 course={course}
-                isActive={activeCourse === course.id}
+                isActive={activeCourseId === course.id}
                 onClickCourse={onClickCourse}
             />
         </View>

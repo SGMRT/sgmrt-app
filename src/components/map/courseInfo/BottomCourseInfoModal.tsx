@@ -32,13 +32,13 @@ export default function BottomCourseInfoModal({
     const { data: ghostList } = useQuery<HistoryResponse[]>({
         queryKey: ["course-top-ranking", courseId],
         queryFn: () => getCourseTopRanking({ courseId: courseId, count: 3 }),
-        enabled: !!courseId,
+        enabled: courseId !== -1,
     });
 
     const { data: course } = useQuery<CourseDetailResponse>({
         queryKey: ["course", courseId],
         queryFn: () => getCourse(courseId),
-        enabled: !!courseId,
+        enabled: courseId !== -1,
     });
 
     const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);

@@ -43,7 +43,7 @@ export default function Stats() {
             />
             <View style={{ flexDirection: "row", marginTop: 10 }}>
                 <TabItem
-                    title="내 기록"
+                    title="개인 러닝"
                     onPress={() => setSelectedTab("SOLO")}
                     isSelected={selectedTab === "SOLO"}
                 />

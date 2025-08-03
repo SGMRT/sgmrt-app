@@ -6,10 +6,12 @@ export default function CoursesInfoList({
     courses,
     selectedCourse,
     setSelectedCourse,
+    onClickCourse,
 }: {
     courses: CourseResponse[];
     selectedCourse: CourseResponse | null;
     setSelectedCourse: (course: CourseResponse | null) => void;
+    onClickCourse?: (course: CourseResponse) => void;
 }) {
     return (
         <View style={styles.container}>
@@ -17,7 +19,14 @@ export default function CoursesInfoList({
                 <CourseInfoItem
                     key={course.id}
                     isSelected={selectedCourse?.id === course.id}
-                    onPress={() => setSelectedCourse(course)}
+                    onPress={() => {
+                        if (onClickCourse) {
+                            onClickCourse(course);
+                            setSelectedCourse(course);
+                        } else {
+                            setSelectedCourse(course);
+                        }
+                    }}
                     distance={course.distance / 1000}
                     duration={0}
                     averagePace={0}

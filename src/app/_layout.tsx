@@ -1,4 +1,3 @@
-import LiveActivities from "@/modules/expo-live-activity";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
@@ -53,18 +52,6 @@ function RootLayout() {
                 ) {
                     await Location.stopLocationUpdatesAsync(LOCATION_TASK);
                 }
-
-                setTimeout(() => {
-                    try {
-                        const isActivityInProgress =
-                            LiveActivities.isActivityInProgress();
-                        if (isActivityInProgress) {
-                            LiveActivities.endActivity();
-                        }
-                    } catch (e) {
-                        console.warn("LiveActivities crash avoided:", e);
-                    }
-                }, 100);
             } catch (e) {
                 console.error("Cleanup error:", e);
             }
@@ -87,7 +74,12 @@ function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
             <BottomSheetModalProvider>
                 <QueryClientProvider client={queryClient}>
-                    <Stack screenOptions={{ headerShown: false }}>
+                    <Stack
+                        screenOptions={{
+                            headerShown: false,
+                            contentStyle: { backgroundColor: "#090A0A" },
+                        }}
+                    >
                         <Stack.Screen name="index" />
                         <Stack.Screen name="intro" />
                         <Stack.Screen name="(auth)" />

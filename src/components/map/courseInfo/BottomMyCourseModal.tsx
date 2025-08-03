@@ -14,6 +14,7 @@ interface BottomMyCourseModalProps {
     canClose?: boolean;
     heightVal: SharedValue<number>;
     courses: CourseResponse[];
+    onClickCourse: (course: CourseResponse) => void;
 }
 
 export default function BottomMyCourseModal({
@@ -21,6 +22,7 @@ export default function BottomMyCourseModal({
     canClose = true,
     heightVal,
     courses,
+    onClickCourse,
 }: BottomMyCourseModalProps) {
     const [selectedCourse, setSelectedCourse] = useState<CourseResponse | null>(
         null
@@ -56,6 +58,7 @@ export default function BottomMyCourseModal({
                 courses={courses}
                 selectedCourse={selectedCourse}
                 setSelectedCourse={setSelectedCourse}
+                onClickCourse={onClickCourse}
             />
             <SlideToAction
                 label={"이 코스로 러닝 시작"}

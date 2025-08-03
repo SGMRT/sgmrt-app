@@ -3,7 +3,7 @@ import { CourseResponse } from "@/src/apis/types/course";
 import { useAuthStore } from "@/src/store/authState";
 import { getDistance } from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { MapView } from "@rnmapbox/maps";
+import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import { useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
@@ -21,21 +21,26 @@ interface HomeMapProps {
 }
 
 export default function HomeMap({ courseType }: HomeMapProps) {
-    const [activeCourse, setActiveCourse] = useState<number>(0);
+    const [activeCourse, setActiveCourse] = useState<CourseResponse | null>(
+        null
+    );
     const [zoomLevel, setZoomLevel] = useState(16);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const handlePresentModalPress = () => {
         bottomSheetRef.current?.present();
     };
+
     const onClickCourse = (course: CourseResponse) => {
-        setActiveCourse(course.id);
+        console.log("course: ", course);
+        setActiveCourse(course);
         handlePresentModalPress();
+        cameraRef.current?.moveTo([course.startLng, course.startLat - 0.0008]);
     };
 
     const [bounds, setBounds] = useState<Position[]>([]);
     const [center, setCenter] = useState<Position>([0, 0]);
     const [distance, setDistance] = useState(10);
-    const mapRef = useRef<MapView>(null);
+    const cameraRef = useRef<Camera>(null);
     const { uuid } = useAuthStore();
 
     const onZoomLevelChanged = (currentZoomLevel: number) => {
@@ -134,23 +139,35 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                 onZoomLevelChanged={onZoomLevelChanged}
                 controlPannelPosition={controlPannelPosition}
                 onRegionDidChange={onRegionDidChange}
-                ref={mapRef}
+                cameraRef={cameraRef}
             >
-                {courses?.map((course) => (
+                {/* active Course가 가장 먼저 표시되도록 정렬 */}
+                {courses
+                    ?.filter((course) => course.id !== activeCourse?.id)
+                    .map((course) => (
+                        <CourseMarkers
+                            key={course.id}
+                            course={course}
+                            activeCourseId={activeCourse?.id ?? -1}
+                            onClickCourse={onClickCourse}
+                            zoomLevel={zoomLevel}
+                        />
+                    ))}
+                {activeCourse && (
                     <CourseMarkers
-                        key={course.id}
-                        course={course}
-                        activeCourse={activeCourse}
+                        key={activeCourse.id}
+                        course={activeCourse}
+                        activeCourseId={activeCourse.id}
                         onClickCourse={onClickCourse}
                         zoomLevel={zoomLevel}
                     />
-                ))}
+                )}
             </MapViewWrapper>
             {courseType === "all" ? (
                 <BottomCourseInfoModal
                     bottomSheetRef={bottomSheetRef}
                     heightVal={heightVal}
-                    courseId={activeCourse}
+                    courseId={activeCourse?.id ?? -1}
                 />
             ) : (
                 courses &&
@@ -159,6 +176,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                         bottomSheetRef={bottomSheetRef}
                         heightVal={heightVal}
                         courses={courses ?? []}
+                        onClickCourse={onClickCourse}
                     />
                 )
             )}
