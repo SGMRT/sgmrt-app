@@ -2,6 +2,7 @@ import { useAuthStore } from "../store/authState";
 import { SignupAgreement } from "../types/signup";
 import server from "./instance";
 import {
+    GetUserInfoResponse,
     PatchUserInfoRequest,
     PatchUserSettingsRequest,
     SignInRequest,
@@ -105,7 +106,7 @@ export async function postTermsAgreement(termsAgreement: SignupAgreement) {
     }
 }
 
-export async function getUserInfo() {
+export async function getUserInfo(): Promise<GetUserInfoResponse> {
     try {
         const { uuid } = useAuthStore.getState();
         const response = await server.get(`members/${uuid}`);
@@ -137,7 +138,6 @@ export async function patchUserInfo(data: PatchUserInfoRequest) {
         });
         return response.data;
     } catch (error) {
-        console.error(error);
         throw error;
     }
 }

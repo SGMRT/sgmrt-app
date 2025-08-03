@@ -1,5 +1,5 @@
 import { AlertIcon } from "@/assets/svgs/svgs";
-import { getUserCourses, invalidateToken } from "@/src/apis";
+import { deleteUser, getUserCourses, invalidateToken } from "@/src/apis";
 import { GhostSortOption, UserCourseInfo } from "@/src/apis/types/course";
 import { CourseFilter } from "@/src/components/course/CourseFilter";
 import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
@@ -15,7 +15,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { SafeAreaView, View } from "react-native";
+import { Alert, SafeAreaView, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
@@ -113,14 +113,30 @@ export default function ProfileScreen() {
                             bottomSheetRef.current?.close();
                             if (modalType === "logout") {
                                 await invalidateToken();
-                                logout();
                                 Toast.show({
                                     type: "success",
                                     text1: "로그아웃 되었습니다.",
                                     position: "bottom",
                                 });
+                                logout();
                             } else {
-                                console.log("회원 탈퇴");
+                                Alert.alert(
+                                    "회원 탈퇴",
+                                    "정말로 탈퇴하시겠습니까?",
+                                    [
+                                        {
+                                            text: "취소",
+                                            style: "cancel",
+                                        },
+                                        {
+                                            text: "탈퇴",
+                                            onPress: async () => {
+                                                await deleteUser();
+                                                logout();
+                                            },
+                                        },
+                                    ]
+                                );
                             }
                         }}
                         color="red"

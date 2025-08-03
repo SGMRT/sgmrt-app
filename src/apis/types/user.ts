@@ -26,10 +26,22 @@ type PatchUserSettingsRequest = {
     vibrationEnabled?: boolean;
 };
 
+type GetUserInfoResponse = {
+    uuid: string;
+    nickname: string;
+    profilePictureUrl: string;
+    gender: "MALE" | "FEMALE";
+    weight: number | null;
+    height: number | null;
+    pushAlarmEnabled: boolean;
+    vibrationEnabled: boolean;
+};
+
 export type {
     PatchUserInfoRequest,
     PatchUserSettingsRequest,
     SignInRequest,
     SignResponse,
     SignUpRequest,
+    GetUserInfoResponse,
 };

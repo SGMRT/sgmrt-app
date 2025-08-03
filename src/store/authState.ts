@@ -33,6 +33,11 @@ export interface UserInfo {
     gender: "MALE" | "FEMALE" | "";
 }
 
+export interface UserSettings {
+    pushAlarmEnabled: boolean;
+    vibrationEnabled: boolean;
+}
+
 interface AuthState {
     accessToken: string | null;
     refreshToken: string | null;
@@ -40,11 +45,12 @@ interface AuthState {
     isLoggedIn: boolean;
 
     userInfo: UserInfo | null;
-
+    userSettings: UserSettings | null;
     login: (accessToken: string, refreshToken: string, uuid: string) => void;
     refresh: (accessToken: string, refreshToken: string) => void;
     logout: () => void;
     setUserInfo: (userInfo: UserInfo) => void;
+    setUserSettings: (userSettings: UserSettings) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -56,7 +62,7 @@ export const useAuthStore = create<AuthState>()(
                 uuid: null,
                 isLoggedIn: false,
                 userInfo: null,
-
+                userSettings: null,
                 login: (access, refresh, uuid) => {
                     set({
                         accessToken: access,
@@ -75,6 +81,10 @@ export const useAuthStore = create<AuthState>()(
 
                 setUserInfo: (userInfo: UserInfo) => {
                     set({ userInfo });
+                },
+
+                setUserSettings: (userSettings: UserSettings) => {
+                    set({ userSettings });
                 },
 
                 logout: () => {
