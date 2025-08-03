@@ -241,6 +241,9 @@ const StyledSwitch = ({
 };
 
 const Profile = ({ userInfo }: { userInfo: GetUserInfoResponse | null }) => {
+    const userProfileImageUrl =
+        userInfo?.profilePictureUrl?.split("?X-Amz-")[0] ??
+        "https://picsum.photos/200/300";
     return (
         <View
             style={{
@@ -251,9 +254,7 @@ const Profile = ({ userInfo }: { userInfo: GetUserInfoResponse | null }) => {
         >
             <Image
                 source={{
-                    uri:
-                        userInfo?.profilePictureUrl ??
-                        "https://picsum.photos/200/300",
+                    uri: userProfileImageUrl,
                 }}
                 style={{ width: 60, height: 60, borderRadius: 100 }}
             />

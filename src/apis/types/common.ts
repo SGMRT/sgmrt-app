@@ -5,4 +5,13 @@ interface GetPresignedUrlRequest {
     fileName: string;
 }
 
-export type { GetPresignedUrlRequest, PresignedUrlType };
+interface GetPresignedUrlResponse {
+    presignUrl: string;
+    objectKey: string;
+}
+
+export type {
+    GetPresignedUrlRequest,
+    GetPresignedUrlResponse,
+    PresignedUrlType,
+};
