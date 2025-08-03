@@ -52,9 +52,9 @@ export default function CourseInfoItem({
                     historyDate={getDate(startedAt ?? 0)}
                     courseName={courseName ?? ""}
                     courseUserCount={runnerCount ?? null}
-                    courseId={courseId ?? 0}
-                    runningId={runningId ?? 0}
-                    ghostRunningId={ghostRunningId ?? 0}
+                    courseId={courseId ?? -1}
+                    runningId={runningId ?? -1}
+                    ghostRunningId={ghostRunningId ?? -1}
                 />
                 <StatRow
                     style={{
@@ -115,6 +115,7 @@ const HistoryHeader = ({
                 {historyName}
             </Typography>
             <TouchableOpacity
+                disabled={runningId === -1}
                 onPress={() => {
                     router.push(
                         `/result/${runningId}/${courseId}/${ghostRunningId}`
@@ -148,11 +149,13 @@ const HistoryHeader = ({
                             </Typography>
                         </>
                     )}
-                    <ChevronIcon
-                        color={colors.gray[60]}
-                        width={16}
-                        height={16}
-                    />
+                    {runningId !== -1 && (
+                        <ChevronIcon
+                            color={colors.gray[60]}
+                            width={16}
+                            height={16}
+                        />
+                    )}
                 </View>
             </TouchableOpacity>
         </View>

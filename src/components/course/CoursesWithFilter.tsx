@@ -37,7 +37,7 @@ export const CoursesWithFilter = ({
             />
             <FlashList
                 data={data}
-                renderItem={({ item, index }) => (
+                renderItem={({ item }) => (
                     <CourseInfoItem
                         distance={item.distance}
                         duration={item.averageCompletionTime}
@@ -46,7 +46,7 @@ export const CoursesWithFilter = ({
                         runnerCount={item.uniqueRunnersCount}
                         courseName={item.name}
                         courseId={item.id}
-                        runningId={item.id}
+                        runningId={-1}
                         ghostRunningId={-1}
                         startedAt={item.createdAt}
                         historyName={item.name}

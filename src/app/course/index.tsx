@@ -4,8 +4,8 @@ import Header from "@/src/components/ui/Header";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import { Typography } from "@/src/components/ui/Typography";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useUserCourses } from "../(tabs)/(profile)/profile";
 
@@ -15,6 +15,15 @@ export default function CourseScreen() {
     );
     const { data, isLoading, isError, fetchNextPage, hasNextPage } =
         useUserCourses();
+
+    useEffect(() => {
+        if (selectedCourse !== null) return;
+        const firstCourse = data?.pages.flatMap((page) => page.content).at(0);
+        if (firstCourse) {
+            setSelectedCourse(firstCourse);
+        }
+    }, [data, selectedCourse]);
+
     const router = useRouter();
 
     if (isLoading) {
@@ -34,14 +43,32 @@ export default function CourseScreen() {
                 hasNextPage={hasNextPage}
                 fetchNextPage={fetchNextPage}
             />
-            <SlideToAction
-                label="이 코스로 러닝 시작"
-                onSlideSuccess={() => {
-                    router.push(`/run/${selectedCourse?.id}/-1`);
-                }}
-                color="green"
-                direction="left"
-            />
+            {data?.pages.flatMap((page) => page.content).length === 0 && (
+                <View
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <Typography color="gray40">
+                        등록된 코스 정보가 존재하지 않습니다.
+                    </Typography>
+                    <Typography color="gray40">
+                        러닝을 통해 코스를 등록해주세요.
+                    </Typography>
+                </View>
+            )}
+            {selectedCourse && (
+                <SlideToAction
+                    label="이 코스로 러닝 시작"
+                    onSlideSuccess={() => {
+                        router.push(`/run/${selectedCourse?.id}/-1`);
+                    }}
+                    color="green"
+                    direction="left"
+                />
+            )}
         </SafeAreaView>
     );
 }
