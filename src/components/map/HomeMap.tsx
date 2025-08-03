@@ -46,14 +46,6 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         }
     };
 
-    useEffect(() => {
-        Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.BestForNavigation,
-        }).then((location) => {
-            setCenter([location.coords.longitude, location.coords.latitude]);
-        });
-    }, []);
-
     const heightVal = useSharedValue(0);
     const deviceHeight = Dimensions.get("window").height;
     const { bottom } = useSafeAreaInsets();
@@ -109,11 +101,12 @@ export default function HomeMap({ courseType }: HomeMapProps) {
             if (!isCenterInsideBounds) {
                 setBounds(visibleBounds);
             }
+
+            refetch();
         }
     };
 
-    //
-    const { data: courses } = useQuery({
+    const { data: courses, refetch } = useQuery({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
             return getCourses({
@@ -125,6 +118,16 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         },
         enabled: !!center[0] && !!center[1] && !!distance,
     });
+
+    useEffect(() => {
+        Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.BestForNavigation,
+        }).then((location) => {
+            setCenter([location.coords.longitude, location.coords.latitude]);
+            refetch();
+        });
+    }, [refetch]);
+
     return (
         <>
             <MapViewWrapper
@@ -150,11 +153,14 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                     courseId={activeCourse}
                 />
             ) : (
-                <BottomMyCourseModal
-                    bottomSheetRef={bottomSheetRef}
-                    heightVal={heightVal}
-                    courses={courses ?? []}
-                />
+                courses &&
+                courses.length > 0 && (
+                    <BottomMyCourseModal
+                        bottomSheetRef={bottomSheetRef}
+                        heightVal={heightVal}
+                        courses={courses ?? []}
+                    />
+                )
             )}
         </>
     );

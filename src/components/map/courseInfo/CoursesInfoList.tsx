@@ -18,17 +18,17 @@ export default function CoursesInfoList({
                     key={course.id}
                     isSelected={selectedCourse?.id === course.id}
                     onPress={() => setSelectedCourse(course)}
-                    distance={course.distance}
+                    distance={course.distance / 1000}
                     duration={0}
                     averagePace={0}
                     cadence={0}
                     runnerCount={course.runnersCount}
-                    courseName={course.name}
+                    courseName={null}
                     courseId={course.id}
                     runningId={null}
                     ghostRunningId={null}
                     startedAt={null}
-                    historyName={null}
+                    historyName={course.name}
                 />
             ))}
         </View>

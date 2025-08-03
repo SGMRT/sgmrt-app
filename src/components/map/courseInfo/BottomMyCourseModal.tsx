@@ -29,7 +29,6 @@ export default function BottomMyCourseModal({
 
     useEffect(() => {
         bottomSheetRef.current?.present();
-        console.log("bottomSheetRef: ", bottomSheetRef.current);
     }, [bottomSheetRef]);
 
     useEffect(() => {
@@ -37,8 +36,6 @@ export default function BottomMyCourseModal({
             setSelectedCourse(courses[0]);
         }
     }, [courses]);
-
-    console.log(courses);
 
     return (
         <BottomModal
@@ -51,7 +48,6 @@ export default function BottomMyCourseModal({
                 titleColor="gray40"
                 marginHorizontal={true}
                 onPress={() => {
-                    console.log("press");
                     bottomSheetRef.current?.dismiss();
                     router.push("/course");
                 }}
@@ -64,8 +60,8 @@ export default function BottomMyCourseModal({
             <SlideToAction
                 label={"이 코스로 러닝 시작"}
                 onSlideSuccess={() => {
-                    console.log("slide success");
                     bottomSheetRef.current?.dismiss();
+                    router.push(`/run/${selectedCourse?.id}/-1`);
                 }}
                 color="green"
                 direction="left"
