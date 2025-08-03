@@ -39,7 +39,7 @@ export const CoursesWithFilter = ({
                 data={data}
                 renderItem={({ item }) => (
                     <CourseInfoItem
-                        distance={item.distance}
+                        distance={item.distance / 1000}
                         duration={item.averageCompletionTime}
                         averagePace={item.averageFinisherPace}
                         cadence={item.averageFinisherCadence}
