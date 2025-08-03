@@ -31,7 +31,6 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     };
 
     const onClickCourse = (course: CourseResponse) => {
-        console.log("course: ", course);
         setActiveCourse(course);
         handlePresentModalPress();
         cameraRef.current?.moveTo([course.startLng, course.startLat - 0.0008]);

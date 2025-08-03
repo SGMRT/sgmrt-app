@@ -1,4 +1,5 @@
 import { Compass, LocateMe } from "@/assets/svgs/svgs";
+import { useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import Animated from "react-native-reanimated";
 
@@ -13,17 +14,34 @@ export default function ControlPannel({
     onClickLocateMe,
     controlPannelPosition,
 }: ControlPannelProps) {
+    const [debouncedCompass, setDebouncedCompass] = useState(Date.now());
+    const [debouncedLocateMe, setDebouncedLocateMe] = useState(Date.now());
+
+    const debouncedOnClickCompass = useCallback(() => {
+        if (Date.now() - debouncedCompass > 2000) {
+            setDebouncedCompass(Date.now());
+            onClickCompass();
+        }
+    }, [debouncedCompass, onClickCompass]);
+
+    const debouncedOnClickLocateMe = useCallback(() => {
+        if (Date.now() - debouncedLocateMe > 2000) {
+            setDebouncedLocateMe(Date.now());
+            onClickLocateMe();
+        }
+    }, [debouncedLocateMe, onClickLocateMe]);
+
     return (
         <Animated.View style={[styles.container, controlPannelPosition]}>
             <TouchableOpacity
                 style={styles.buttonContainer}
-                onPress={onClickCompass}
+                onPress={debouncedOnClickCompass}
             >
                 <Compass />
             </TouchableOpacity>
             <TouchableOpacity
                 style={styles.buttonContainer}
-                onPress={onClickLocateMe}
+                onPress={debouncedOnClickLocateMe}
             >
                 <LocateMe />
             </TouchableOpacity>
