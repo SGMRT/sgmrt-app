@@ -1,3 +1,5 @@
+import LiveActivities from "@/modules/expo-live-activity";
+import * as Location from "expo-location";
 import Toast from "react-native-toast-message";
 import { postCourseRun, postRun } from "../apis";
 import {
@@ -8,7 +10,7 @@ import {
     Telemetry,
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
-import { UserDashBoardData } from "../types/run";
+import { LOCATION_TASK, UserDashBoardData } from "../types/run";
 import { Coordinate, getDistance } from "./mapUtils";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
@@ -169,6 +171,13 @@ export async function saveRunning({
             bottomOffset: 60,
         });
         return;
+    }
+
+    if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)) {
+        await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+    }
+    if (LiveActivities.isActivityInProgress()) {
+        LiveActivities.endActivity();
     }
 
     const truncatedTelemetries = getTelemetriesWithoutLastFalse(telemetries);
