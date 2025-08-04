@@ -19,6 +19,7 @@ import {
 } from "../types/run";
 import { getDistance } from "../utils/mapUtils";
 import {
+    clamp,
     getClosestStepCount,
     getCurrentRunBatch,
     getCurrentRunDataOfBatch,
@@ -425,12 +426,18 @@ export default function useRunningSession({
                         const lastAltitude = Math.round(lastTelemetry.alt ?? 0);
                         const elevation = altitude - lastAltitude;
 
+                        const clampedRecentPointsPace = clamp(
+                            recentPointsPace,
+                            0,
+                            900
+                        );
+
                         runTelemetries.current.push({
                             timeStamp: data.timestamp,
                             lat: data.latitude,
                             lng: data.longitude,
                             dist: distance,
-                            pace: recentPointsPace,
+                            pace: clampedRecentPointsPace,
                             alt: data.altitude ?? 0,
                             cadence: cadence,
                             bpm: bpm,
@@ -442,7 +449,7 @@ export default function useRunningSession({
                                 totalCalories: calories,
                                 averagePace: pace,
                                 averageCadence: cadence,
-                                recentPointsPace: recentPointsPace,
+                                recentPointsPace: clampedRecentPointsPace,
                                 bpm: bpm,
                                 totalElevationGain:
                                     elevation > 0

@@ -182,9 +182,16 @@ export async function saveRunning({
 
     const truncatedTelemetries = getTelemetriesWithoutLastFalse(telemetries);
 
-    while (truncatedTelemetries[0].pace === 0) {
-        truncatedTelemetries.shift();
-    }
+    const stablePace =
+        truncatedTelemetries.length > 30
+            ? truncatedTelemetries.at(29)!.pace
+            : truncatedTelemetries.at(-1)?.pace ?? 0;
+
+    truncatedTelemetries.forEach((telemetry, index) => {
+        if (index < 30) {
+            telemetry.pace = stablePace;
+        }
+    });
 
     const hasPaused = truncatedTelemetries.some(
         (telemetry) => !telemetry.isRunning
