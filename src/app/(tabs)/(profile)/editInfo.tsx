@@ -1,23 +1,78 @@
+import { getUserInfo, patchUserInfo } from "@/src/apis";
+import { PatchUserInfoRequest } from "@/src/apis/types/user";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import Header from "@/src/components/ui/Header";
 import InfoItem, { InfoFieldTitle } from "@/src/components/ui/InfoItem";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
-import { useAuthStore, UserInfo } from "@/src/store/authState";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { SafeAreaView, ScrollView, View } from "react-native";
+import { Alert, SafeAreaView, ScrollView, View } from "react-native";
 
 export default function EditInfo() {
-    const { userInfo: userInfoState, setUserInfo: setUserInfoState } =
-        useAuthStore();
-    const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+    const [userInfo, setUserInfo] = useState<PatchUserInfoRequest | null>(null);
+    const [originalUserInfo, setOriginalUserInfo] =
+        useState<PatchUserInfoRequest | null>(null);
+    const [updateUserInfo, setUpdateUserInfo] =
+        useState<PatchUserInfoRequest | null>(null);
 
     useEffect(() => {
-        setUserInfo(userInfoState);
-    }, [userInfoState]);
+        getUserInfo().then((res) => {
+            setUserInfo(res as PatchUserInfoRequest);
+            setOriginalUserInfo(res as PatchUserInfoRequest);
+        });
+    }, []);
 
     const onSubmit = () => {
-        setUserInfoState(userInfo!);
+        if (!updateUserInfo) return;
+        // originalUserInfo와 updateUserInfo를 비교하여 변경된 부분만 전송
+        const changedFields = Object.entries(updateUserInfo).filter(
+            ([key, value]) =>
+                value !== originalUserInfo?.[key as keyof PatchUserInfoRequest]
+        );
+        const changedFieldsObject = Object.fromEntries(changedFields);
+
+        if (Object.keys(changedFieldsObject).length === 0) {
+            Alert.alert("회원 정보 변경 실패", "변경된 정보가 없습니다.");
+            return;
+        }
+
+        patchUserInfo(changedFieldsObject)
+            .then(() => {
+                Alert.alert(
+                    "회원 정보 변경 완료",
+                    "회원 정보를 변경했습니다.",
+                    [
+                        {
+                            text: "확인",
+                            onPress: () => {
+                                router.back();
+                            },
+                        },
+                    ]
+                );
+            })
+            .catch((err) => {
+                Alert.alert("회원 정보 변경 실패", err.response.data.message, [
+                    {
+                        text: "확인",
+                    },
+                ]);
+            });
+    };
+
+    const handleUpdateUserInfo = (
+        key: keyof PatchUserInfoRequest,
+        value: string
+    ) => {
+        setUpdateUserInfo({
+            ...updateUserInfo!,
+            [key]: value,
+        } as PatchUserInfoRequest);
+        setUserInfo({
+            ...userInfo!,
+            [key]: value,
+        } as PatchUserInfoRequest);
     };
 
     return (
@@ -33,14 +88,11 @@ export default function EditInfo() {
                 {/* 닉네임 */}
                 <InfoItem
                     title="닉네임"
-                    placeholder={userInfo?.username ?? "닉네임"}
+                    placeholder={userInfo?.nickname ?? "닉네임"}
                     maxLength={10}
-                    value={userInfo?.username ?? ""}
+                    value={userInfo?.nickname ?? ""}
                     onChangeText={(text) => {
-                        setUserInfo({
-                            ...userInfo!,
-                            username: text,
-                        } as UserInfo);
+                        handleUpdateUserInfo("nickname", text);
                     }}
                     required
                 />
@@ -51,17 +103,7 @@ export default function EditInfo() {
                         <StyledButton
                             title="여성"
                             onPress={() => {
-                                if (userInfo?.gender === "FEMALE") {
-                                    setUserInfo({
-                                        ...userInfo!,
-                                        gender: "",
-                                    } as UserInfo);
-                                } else {
-                                    setUserInfo({
-                                        ...userInfo!,
-                                        gender: "FEMALE",
-                                    } as UserInfo);
-                                }
+                                handleUpdateUserInfo("gender", "FEMALE");
                             }}
                             style={{ paddingHorizontal: 12 }}
                             activeTextColor="primary"
@@ -70,17 +112,7 @@ export default function EditInfo() {
                         <StyledButton
                             title="남성"
                             onPress={() => {
-                                if (userInfo?.gender === "MALE") {
-                                    setUserInfo({
-                                        ...userInfo!,
-                                        gender: "",
-                                    } as UserInfo);
-                                } else {
-                                    setUserInfo({
-                                        ...userInfo!,
-                                        gender: "MALE",
-                                    } as UserInfo);
-                                }
+                                handleUpdateUserInfo("gender", "MALE");
                             }}
                             style={{ paddingHorizontal: 12 }}
                             activeTextColor="primary"
@@ -97,10 +129,7 @@ export default function EditInfo() {
                     unit="cm"
                     value={userInfo?.height?.toString() ?? ""}
                     onChangeText={(text) => {
-                        setUserInfo({
-                            ...userInfo!,
-                            height: Number(text),
-                        } as UserInfo);
+                        handleUpdateUserInfo("height", text);
                     }}
                 />
                 {/* 몸무게 */}
@@ -112,10 +141,7 @@ export default function EditInfo() {
                     unit="kg"
                     value={userInfo?.weight?.toString() ?? ""}
                     onChangeText={(text) => {
-                        setUserInfo({
-                            ...userInfo!,
-                            weight: Number(text),
-                        } as UserInfo);
+                        handleUpdateUserInfo("weight", text);
                     }}
                 />
                 <Typography

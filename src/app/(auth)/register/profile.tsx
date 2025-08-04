@@ -1,5 +1,5 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
-import { signUp } from "@/src/apis";
+import { getPresignedUrl, signUp, uploadToS3 } from "@/src/apis";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
@@ -29,19 +29,19 @@ import Toast from "react-native-toast-message";
 export default function Profile() {
     const {
         nickname,
-        profileImageUrl,
         gender,
         height,
         weight,
         setNickname,
-        setProfileImageUrl,
         setGender,
         setHeight,
         setWeight,
         getSignupData,
     } = useSignupStore();
 
-    const [image, setImage] = useState<string | null>(null);
+    const [image, setImage] = useState<ImageManipulator.ImageResult | null>(
+        null
+    );
     const { login, setUserInfo } = useAuthStore();
     const router = useRouter();
     const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -64,9 +64,9 @@ export default function Profile() {
             const manipulated = await ImageManipulator.manipulateAsync(
                 result.assets[0].uri,
                 [],
-                { format: ImageManipulator.SaveFormat.PNG }
+                { format: ImageManipulator.SaveFormat.JPEG }
             );
-            setImage(manipulated.uri);
+            setImage(manipulated);
         }
     };
 
@@ -92,6 +92,26 @@ export default function Profile() {
             router.dismissAll();
             router.replace("/login");
             return;
+        }
+        if (image) {
+            const imageUrl = await getPresignedUrl({
+                type: "MEMBER_PROFILE",
+                fileName: image.uri.split("/").at(-1) ?? "",
+            });
+            const uploadResult = await uploadToS3(
+                image.uri,
+                imageUrl.presignUrl
+            );
+
+            if (uploadResult) {
+                data.profileImageUrl = imageUrl.presignUrl.split("?X-Amz-")[0];
+            } else {
+                Toast.show({
+                    type: "info",
+                    text1: "회원가입 오류. 다시 시도해주세요.",
+                });
+                return;
+            }
         }
         signUp({
             ...data,
@@ -129,7 +149,9 @@ export default function Profile() {
                     {/* 프로필 이미지 */}
                     <View style={styles.profileContainer}>
                         <Image
-                            source={image ? { uri: image } : DefaultProfileIcon}
+                            source={
+                                image ? { uri: image.uri } : DefaultProfileIcon
+                            }
                             style={styles.profileImage}
                         />
                         <StyledButton

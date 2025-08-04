@@ -117,7 +117,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                 lat: center[1],
                 lng: center[0],
                 radiusM: distance * 1000,
-                ownerId: courseType === "my" ? uuid ?? "" : undefined,
+                ownerUuid: courseType === "my" ? uuid ?? "" : undefined,
             });
         },
         enabled: !!center[0] && !!center[1] && !!distance,

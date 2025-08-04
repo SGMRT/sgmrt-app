@@ -1,10 +1,13 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
-import { useAuthStore, UserInfo } from "@/src/store/authState";
+import { getUserInfo, patchUserSettings } from "@/src/apis";
+import { GetUserInfoResponse } from "@/src/apis/types/user";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Application from "expo-application";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
+    Alert,
     Image,
     ScrollView,
     Switch,
@@ -22,8 +25,50 @@ export const Info = ({
     setModalType: (type: "logout" | "withdraw") => void;
     modalRef: React.RefObject<BottomSheetModal | null>;
 }) => {
+    const [userInfo, setUserInfo] = useState<GetUserInfoResponse | null>(null);
     const router = useRouter();
-    const { userInfo } = useAuthStore();
+
+    useEffect(() => {
+        getUserInfo()
+            .then((res) => {
+                console.log(res);
+                setUserInfo(res);
+            })
+            .catch(() => {
+                Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
+                    {
+                        text: "확인",
+                        onPress: () => {
+                            router.replace("/intro");
+                        },
+                    },
+                ]);
+            });
+    }, []);
+
+    const handlePushAlarmChange = (value: boolean) => {
+        if (!userInfo) return;
+        setUserInfo({
+            ...userInfo,
+            pushAlarmEnabled: value ?? false,
+        });
+        patchUserSettings({
+            pushAlarmEnabled: value,
+            vibrationEnabled: userInfo.vibrationEnabled,
+        });
+    };
+
+    const handleVibrationChange = (value: boolean) => {
+        if (!userInfo) return;
+        setUserInfo({
+            ...userInfo,
+            vibrationEnabled: value ?? false,
+        });
+        patchUserSettings({
+            pushAlarmEnabled: userInfo.pushAlarmEnabled,
+            vibrationEnabled: value,
+        });
+    };
 
     return (
         <ScrollView
@@ -57,10 +102,8 @@ export const Info = ({
                     title="알림"
                     rightElement={
                         <StyledSwitch
-                            isSelected={true}
-                            onValueChange={() => {
-                                console.log("onValueChange");
-                            }}
+                            isSelected={userInfo?.pushAlarmEnabled ?? false}
+                            onValueChange={handlePushAlarmChange}
                         />
                     }
                 />
@@ -68,7 +111,7 @@ export const Info = ({
                     title="진동"
                     rightElement={
                         <StyledSwitch
-                            isSelected={true}
+                            isSelected={userInfo?.vibrationEnabled ?? false}
                             onValueChange={() => {}}
                         />
                     }
@@ -197,7 +240,10 @@ const StyledSwitch = ({
     );
 };
 
-const Profile = ({ userInfo }: { userInfo: UserInfo | null }) => {
+const Profile = ({ userInfo }: { userInfo: GetUserInfoResponse | null }) => {
+    const userProfileImageUrl =
+        userInfo?.profilePictureUrl?.split("?X-Amz-")[0] ??
+        "https://picsum.photos/200/300";
     return (
         <View
             style={{
@@ -208,13 +254,13 @@ const Profile = ({ userInfo }: { userInfo: UserInfo | null }) => {
         >
             <Image
                 source={{
-                    uri: "https://picsum.photos/200/300",
+                    uri: userProfileImageUrl,
                 }}
                 style={{ width: 60, height: 60, borderRadius: 100 }}
             />
             <View>
                 <Typography variant="headline" color="gray20">
-                    {userInfo?.username ?? "고스트러너"}
+                    {userInfo?.nickname ?? "고스트러너"}
                 </Typography>
                 <View
                     style={{
