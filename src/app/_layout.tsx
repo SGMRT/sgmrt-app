@@ -2,9 +2,11 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { setAudioModeAsync } from "expo-audio";
 import { useFonts } from "expo-font";
 import * as Location from "expo-location";
 import { SplashScreen, Stack, useRouter } from "expo-router";
+
 import * as TaskManager from "expo-task-manager";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -37,8 +39,6 @@ function RootLayout() {
     useEffect(() => {
         if (!loaded) return;
 
-        SplashScreen.hideAsync();
-
         // if (!userInfo?.username) {
         //     logout();
         // }
@@ -57,6 +57,19 @@ function RootLayout() {
             }
         };
 
+        const initAudioModule = async () => {
+            try {
+                await setAudioModeAsync({
+                    playsInSilentMode: true,
+                    interruptionMode: "duckOthers",
+                    shouldPlayInBackground: true,
+                });
+            } catch (e) {
+                console.error("Audio module init error:", e);
+            }
+        };
+
+        initAudioModule();
         stopTrackingAndLiveActivity();
 
         if (isLoggedIn) {
@@ -64,6 +77,8 @@ function RootLayout() {
         } else {
             router.replace("/(auth)/login");
         }
+
+        SplashScreen.hideAsync();
     }, [isLoggedIn, loaded, userInfo]);
 
     if (!loaded) {
