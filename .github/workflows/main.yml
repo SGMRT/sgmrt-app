@@ -33,7 +33,7 @@ jobs:
       - name: 🔐 Create GoogleService-Info.plist
         run: |
           set -e
-          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 -d > GoogleService-Info.plist
+          echo "${{ secrets.GOOGLE_SERVICES_INFO_BASE64 }}" | base64 -d > GoogleService-Info.plist
 
       - name: 🌿 Inject Runtime Environment Variables
         run: |
