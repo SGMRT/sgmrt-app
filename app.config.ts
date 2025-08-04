@@ -47,6 +47,12 @@ const config = {
             googleServicesFile:
                 process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
         },
+        updates: {
+            url: "https://u.expo.dev/2cb16511-b095-499b-b82f-be1d7afaeea4",
+        },
+        runtimeVersion: {
+            policy: "appVersion",
+        },
         plugins: [
             "expo-router",
             [
