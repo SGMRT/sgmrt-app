@@ -34,7 +34,11 @@ export default function CourseTitle({
                                 key={index}
                                 source={
                                     user.profileUrl
-                                        ? { uri: user.profileUrl }
+                                        ? {
+                                              uri: user.profileUrl.split(
+                                                  "?X-Amz-"
+                                              )[0],
+                                          }
                                         : DefaultProfileIcon
                                 }
                                 style={[

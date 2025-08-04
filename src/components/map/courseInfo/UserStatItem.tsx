@@ -56,7 +56,11 @@ export default memo(function UserStatItem({
                     </Typography>
                 )}
                 <Image
-                    source={avatar ? { uri: avatar } : DefaultProfileIcon}
+                    source={
+                        avatar
+                            ? { uri: avatar.split("?X-Amz-")[0] }
+                            : DefaultProfileIcon
+                    }
                     style={styles.avatar}
                 />
                 <View>

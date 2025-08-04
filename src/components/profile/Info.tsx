@@ -1,3 +1,4 @@
+import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { getUserInfo, patchUserSettings } from "@/src/apis";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
@@ -263,8 +264,7 @@ const StyledSwitch = ({
 
 const Profile = ({ userInfo }: { userInfo: GetUserInfoResponse | null }) => {
     const userProfileImageUrl =
-        userInfo?.profilePictureUrl?.split("?X-Amz-")[0] ??
-        "https://picsum.photos/200/300";
+        userInfo?.profilePictureUrl?.split("?X-Amz-")[0];
     return (
         <View
             style={{
@@ -274,9 +274,11 @@ const Profile = ({ userInfo }: { userInfo: GetUserInfoResponse | null }) => {
             }}
         >
             <Image
-                source={{
-                    uri: userProfileImageUrl,
-                }}
+                source={
+                    userProfileImageUrl
+                        ? { uri: userProfileImageUrl }
+                        : DefaultProfileIcon
+                }
                 style={{ width: 60, height: 60, borderRadius: 100 }}
             />
             <View>
