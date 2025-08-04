@@ -2,7 +2,15 @@ import { Logo, TouchText } from "@/assets/icons/icons";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { Barometer, Pedometer } from "expo-sensors";
-import { Alert, Image, Linking, Pressable, StyleSheet } from "react-native";
+import * as Speech from "expo-speech";
+import {
+    Alert,
+    Button,
+    Image,
+    Linking,
+    Pressable,
+    StyleSheet,
+} from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useBreathingAnimation } from "../animation/useBreathingAnimation";
@@ -48,6 +56,10 @@ export default function Index() {
         return false;
     }
 
+    Speech.getAvailableVoicesAsync().then((voices) => {
+        console.log(voices.filter((voice) => voice.language === "ko-KR"));
+    });
+
     return (
         <Pressable
             style={styles.container}
@@ -62,6 +74,15 @@ export default function Index() {
             <SafeAreaView style={styles.safeArea}>
                 <Image source={Logo} style={styles.logo} resizeMode="contain" />
                 <Compass />
+                <Button
+                    title="Press"
+                    onPress={() => {
+                        Speech.speak("사암. 이일. 여엉. 때앵", {
+                            language: "ko-KR",
+                            voice: "ko-KR-Wavenet-1",
+                        });
+                    }}
+                />
                 <Animated.Image
                     source={TouchText}
                     style={[breathingStyle, styles.breathing]}

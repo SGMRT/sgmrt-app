@@ -26,6 +26,7 @@ export const Info = ({
     modalRef: React.RefObject<BottomSheetModal | null>;
 }) => {
     const [userInfo, setUserInfo] = useState<GetUserInfoResponse | null>(null);
+    const [speechEnabled, setSpeechEnabled] = useState<boolean>(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -70,6 +71,10 @@ export const Info = ({
         });
     };
 
+    const handleSpeechChange = (value: boolean) => {
+        setSpeechEnabled(value);
+    };
+
     return (
         <ScrollView
             contentContainerStyle={{
@@ -112,7 +117,16 @@ export const Info = ({
                     rightElement={
                         <StyledSwitch
                             isSelected={userInfo?.vibrationEnabled ?? false}
-                            onValueChange={() => {}}
+                            onValueChange={handleVibrationChange}
+                        />
+                    }
+                />
+                <ProfileOptionItem
+                    title="음성 안내"
+                    rightElement={
+                        <StyledSwitch
+                            isSelected={speechEnabled}
+                            onValueChange={handleSpeechChange}
                         />
                     }
                 />
@@ -153,15 +167,22 @@ export const Info = ({
                     }}
                     rightElement={<ChevronIcon color={colors.gray[60]} />}
                 />
-                <ProfileOptionItem
-                    title="탈퇴하기"
-                    onPress={() => {
-                        setModalType("withdraw");
-                        modalRef.current?.present();
-                    }}
-                    rightElement={<ChevronIcon color={colors.gray[60]} />}
-                />
             </ProfileOptionSection>
+            <View />
+            <TouchableOpacity
+                onPress={() => {
+                    setModalType("withdraw");
+                    modalRef.current?.present();
+                }}
+            >
+                <Typography
+                    variant="caption1"
+                    color="gray80"
+                    style={{ textAlign: "center" }}
+                >
+                    탈퇴하기
+                </Typography>
+            </TouchableOpacity>
         </ScrollView>
     );
 };
