@@ -68,12 +68,11 @@ function getCalories({
 
     let met = 1;
 
-    if (speed < 6) met = 3.5;
-    else if (speed < 8) met = 6;
-    else if (speed < 10) met = 8.3;
-    else if (speed < 12) met = 9.8;
-    else if (speed < 14) met = 11.5;
-    else met = 13;
+    if (speed < 6.4) met = 4.5;
+    else if (speed < 8) met = 7;
+    else if (speed < 9.7) met = 9.0;
+    else if (speed < 11.3) met = 11.0;
+    else met = 13.5;
 
     return Math.round(met * weight * timeInHours);
 }

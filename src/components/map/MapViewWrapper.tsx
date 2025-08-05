@@ -113,7 +113,7 @@ export default function MapViewWrapper({
                 />
                 <Camera
                     minZoomLevel={12}
-                    maxZoomLevel={18}
+                    maxZoomLevel={16}
                     followZoomLevel={16}
                     animationDuration={0}
                     followUserLocation={controlEnabled ? isFollowing : false}

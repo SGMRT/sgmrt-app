@@ -33,7 +33,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
         handlePresentModalPress();
-        cameraRef.current?.moveTo([course.startLng, course.startLat - 0.0008]);
+        cameraRef.current?.moveTo([course.startLng, course.startLat - 0.0003]);
     };
 
     const [bounds, setBounds] = useState<Position[]>([]);
