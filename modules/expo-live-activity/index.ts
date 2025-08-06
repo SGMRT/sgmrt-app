@@ -4,25 +4,29 @@ export type ExpoLiveActivityModuleEvents = {
     onLiveActivityCancel: () => void;
 };
 
+export type RunType = "SOLO" | "GHOST" | "COURSE";
+export type MessageType = "INFO" | "WARNING" | "ERROR" | "SUCCESS";
 declare class ExpoLiveActivityModule extends NativeModule<ExpoLiveActivityModuleEvents> {
     areActivitiesEnabled(): boolean;
     isActivityInProgress(): boolean;
     startActivity(
-        startedAt: string,
+        runType: RunType,
         sessionId: string,
-        runType: string,
-        recentPace: string,
-        distance: string,
-        calories: string,
-        progress?: number
+        startedAt: string,
+        recentPace: number,
+        distanceMeters: number,
+        progress?: number,
+        message?: string,
+        messageType?: MessageType
     ): Promise<boolean>;
     updateActivity(
         startedAt: string,
-        recentPace: string,
-        distance: string,
-        calories: string,
+        recentPace: number,
+        distanceMeters: number,
         pausedAt?: string,
-        progress?: number
+        progress?: number,
+        message?: string,
+        messageType?: MessageType
     ): void;
     endActivity(): void;
 }

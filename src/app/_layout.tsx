@@ -28,7 +28,7 @@ Sentry.init({
 
 function RootLayout() {
     const router = useRouter();
-    const { isLoggedIn, logout, userInfo } = useAuthStore();
+    const { isLoggedIn, logout, uuid, userInfo } = useAuthStore();
     const [loaded] = useFonts({
         "SpoqaHanSansNeo-Regular": require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),
         "SpoqaHanSansNeo-Medium": require("@/assets/fonts/SpoqaHanSansNeo-Medium.ttf"),
@@ -73,6 +73,10 @@ function RootLayout() {
         stopTrackingAndLiveActivity();
 
         if (isLoggedIn) {
+            Sentry.setUser({
+                id: uuid!,
+                username: userInfo?.username!,
+            });
             router.replace("/intro");
         } else {
             router.replace("/(auth)/login");

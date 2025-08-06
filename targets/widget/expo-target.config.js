@@ -7,7 +7,10 @@ module.exports = (config) => ({
             config.ios.entitlements["com.apple.security.application-groups"],
     },
     images: {
-        logo: "../../assets/images/logo_white.png",
-        logoTint: "../../assets/images/logo_yellow.png",
+        logo: {
+            "1x": "../../assets/images/widget/logo_1x.png",
+            "2x": "../../assets/images/widget/logo_2x.png",
+            "3x": "../../assets/images/widget/logo_3x.png",
+        },
     },
 });
