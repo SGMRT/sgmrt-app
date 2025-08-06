@@ -13,117 +13,135 @@ import WidgetKit
 struct GoRunActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: GoRunAttributes.self) { context in
-      VStack {
-        HStack {
-          Image(.logoTint)
-            .resizable()
-            .frame(width: 20, height: 20)
-          Spacer()
-          Text(context.attributes.runType)
-            .font(.system(size: 15, weight: .bold))
+      HStack(alignment: .center){
+        // 페이스 인디케이터
+        VStack(alignment: .center){
+          PaceRingView(level: context.state.paceLevel(), pace: context.state.formattedPace())
         }
-        VStack{
-          HStack {
-            VStack(alignment: .center) {
-              Text(context.state.distance)
+        .padding(.vertical, 13.5)
+        Spacer(minLength: 20)
+        // 러닝 상태, 거리, 시간, 진행률
+        VStack(alignment: .center, spacing: 8){
+          // 러닝 상태 표시
+          Text(context.state.isRunning() ? "Running" : "Stop")
+            .font(.system(size: 16, weight: .regular))
+            .foregroundStyle(Color(hex: context.state.isRunning() ? "#E2FF00" : "#FF3358"))
+          // 러닝 정보 표시
+          HStack(spacing: 34){
+            VStack(alignment: .leading){
+              Text(context.state.formattedDistanceKm())
+                .font(.system(size: 28, weight: .bold))
                 .monospacedDigit()
-                .font(.system(size: 30, weight: .bold))
+                .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
               Text("킬로미터")
-                .font(.system(size: 12))
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(Color(hex: "#676767"))
             }
-            Spacer()
-            VStack(alignment: .center) {
-              Text(context.state.getFormattedElapsedTime())
+            VStack(alignment: .leading){
+              Text(context.state.formattedElapsedTime())
+                .font(.system(size: 28, weight: .bold))
                 .monospacedDigit()
-                .font(.system(size: 30, weight: .bold))
+                .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
               Text("시간")
-                .font(.system(size: 12))
-            }
-            Spacer()
-            VStack(alignment: .center) {
-              Text(context.state.recentPace)
-                .monospacedDigit()
-                .font(.system(size: 30, weight: .bold))
-              Text("페이스")
-                .font(.system(size: 12))
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(Color(hex: "#676767"))
             }
           }
-          if context.attributes.runType != "SOLO" {
-            ProgressView(value: context.state.progress)
-              .progressViewStyle(.linear)
-              .frame(height: 4)
-              .tint(Color(hex: "#E2FF00"))
-              .padding(.horizontal, 4)
-              .padding(.top, 12)
+          .padding(.bottom, context.attributes.runType == .solo ? 24 : 0)
+          // 프로그래스바 + 메세지
+          if context.attributes.runType != .solo {
+            VStack(spacing: 4) {
+              ProgressBarView(progress: context.state.progress ?? 0.0, isRunning: context.state.isRunning())
+              Text(context.state.message ?? "")
+                .font(.system(size: 12, weight: .regular))
+                .foregroundStyle(context.state.messageColor())
+            }
           }
+        }
+        Spacer(minLength: 8)
+        // 로고
+        VStack(alignment: .trailing){
+          Spacer()
+          Image(.logo)
+            .resizable()
+            .frame(width: 20, height: 18)
         }
       }
-      .padding(EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
-      .activityBackgroundTint(Color(hex:"#090A0A"))
+      .padding(EdgeInsets(top: 12, leading: 13, bottom: 12, trailing: 13))
+      .activityBackgroundTint(Color(hex:"#111111"))
       .activitySystemActionForegroundColor(Color(hex: "#E2FF00"))
     } dynamicIsland: { context in
       DynamicIsland {
-        DynamicIslandExpandedRegion(.leading) {
-          Image(.logoTint)
-            .resizable()
-            .frame(width: 20, height: 20)
-            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-        }
-        DynamicIslandExpandedRegion(.trailing) {
-          Text(context.attributes.runType)
-            .font(.system(size: 15, weight: .bold))
-            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-        }
         DynamicIslandExpandedRegion(.bottom) {
-          VStack{
-            HStack {
-              VStack(alignment: .center) {
-                Text(context.state.distance)
-                  .monospacedDigit()
-                  .font(.system(size: 30, weight: .bold))
-                Text("킬로미터")
-                  .font(.system(size: 12))
+          HStack(alignment: .center){
+            // 페이스 인디케이터
+            VStack(alignment: .center){
+              PaceRingView(level: context.state.paceLevel(), pace: context.state.formattedPace())
+            }
+            .padding(.bottom, 13.5)
+            Spacer(minLength: 20)
+            // 러닝 상태, 거리, 시간, 진행률
+            VStack(alignment: .center, spacing: 8){
+              // 러닝 상태 표시
+              Text(context.state.isRunning() ? "Running" : "Stop")
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(Color(hex: context.state.isRunning() ? "#E2FF00" : "#FF3358"))
+              // 러닝 정보 표시
+              HStack(spacing: 34){
+                VStack(alignment: .leading){
+                  Text(context.state.formattedDistanceKm())
+                    .font(.system(size: 28, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
+                  Text("킬로미터")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(Color(hex: "#676767"))
+                }
+                VStack(alignment: .leading){
+                  Text(context.state.formattedElapsedTime())
+                    .font(.system(size: 28, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
+                  Text("시간")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(Color(hex: "#676767"))
+                }
               }
-              Spacer()
-              VStack(alignment: .center) {
-                Text(context.state.getFormattedElapsedTime())
-                  .monospacedDigit()
-                  .font(.system(size: 30, weight: .bold))
-                Text("시간")
-                  .font(.system(size: 12))
-              }
-              Spacer()
-              VStack(alignment: .center) {
-                Text(context.state.recentPace)
-                  .monospacedDigit()
-                  .font(.system(size: 30, weight: .bold))
-                Text("페이스")
-                  .font(.system(size: 12))
+              .padding(.bottom, context.attributes.runType == .solo ? 24 : 0)
+              // 프로그래스바 + 메세지
+              if context.attributes.runType != .solo {
+                VStack(spacing: 4) {
+                  ProgressBarView(progress: context.state.progress ?? 0.0, isRunning: context.state.isRunning())
+                  Text(context.state.message ?? "")
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(context.state.messageColor())
+                }
               }
             }
-            if context.attributes.runType != "SOLO" {
-              ProgressView(value: context.state.progress)
-                .progressViewStyle(.linear)
-                .frame(height: 4)
-                .tint(Color(hex: "#E2FF00"))
+            Spacer(minLength: 8)
+            // 로고
+            VStack(alignment: .trailing){
+              Spacer()
+              Image(.logo)
+                .resizable()
+                .frame(width: 20, height: 18)
+                .padding(.bottom, 8)
             }
           }
+          .padding(.top, -16)
         }
       } compactLeading: {
-        Image(.logoTint)
+        Image(.logo)
           .resizable()
-          .frame(width: 20, height: 20)
+          .frame(width: 20, height: 18)
       } compactTrailing: {
-        Text(context.state.getFormattedElapsedTime())
-          .font(.system(size: 12, weight: .bold))
-          .foregroundColor(Color(hex: "#E2FF00"))
-          .monospacedDigit()
-          .foregroundColor(.white)
-          .padding(.horizontal, 4)
+        Text(context.state.formattedDistanceKm())
+          .font(.system(size: 12, weight: .black))
+          .foregroundColor(Color(hex: context.state.isRunning() ? "#E2FF00" : "#FF3358"))
       } minimal: {
-        Image(.logoTint)
+        Image(.logo)
           .resizable()
-          .frame(width: 20, height: 20)
+          .frame(width: 20, height: 18)
       }
       .keylineTint(Color.white)
     }

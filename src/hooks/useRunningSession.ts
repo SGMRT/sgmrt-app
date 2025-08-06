@@ -1,4 +1,4 @@
-import LiveActivities from "@/modules/expo-live-activity";
+import LiveActivities, { RunType } from "@/modules/expo-live-activity";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { Pedometer } from "expo-sensors";
@@ -40,7 +40,6 @@ import {
     findClosestPointIndex,
     getCadence,
     getCalories,
-    getFormattedPace,
     getPace,
 } from "../utils/runUtils";
 
@@ -55,6 +54,8 @@ TaskManager.defineTask(
         const batchSize = 100;
         const sessionId = await getCurrentSessionId();
         if (!sessionId) return;
+
+        console.log(data.locations);
 
         const runStatus = (await getCurrentRunStatus(
             sessionId
@@ -246,13 +247,14 @@ export default function useRunningSession({
                 console.log("[SESSION] 러닝 유형", type);
                 setSessionId(newSessionId);
                 await LiveActivities.startActivity(
-                    new Date().toISOString(),
+                    type as RunType,
                     newSessionId,
-                    type,
-                    "0'00\"",
-                    "0.0",
-                    "0.0",
-                    type === "COURSE" ? 0 : undefined
+                    new Date().toISOString(),
+                    0,
+                    0,
+                    type === "COURSE" ? 0 : undefined,
+                    undefined,
+                    undefined
                 );
                 console.log("[SESSION] 세션 생성 완료", newSessionId);
                 console.log("================================================");
@@ -612,19 +614,16 @@ export default function useRunningSession({
             ) {
                 LiveActivities.updateActivity(
                     new Date(startTimeRef.current ?? Date.now()).toISOString(),
-                    getFormattedPace(runUserDashboardData.current.averagePace),
-                    (runUserDashboardData.current.totalDistance / 1000)
-                        .toFixed(2)
-                        .toString(),
-                    runUserDashboardData.current.totalCalories
-                        .toFixed(0)
-                        .toString(),
+                    runUserDashboardData.current.recentPointsPace,
+                    runUserDashboardData.current.totalDistance,
                     pauseRef.current
                         ? new Date(pauseRef.current).toISOString()
                         : undefined,
                     courseIndex.current
                         ? (courseIndex.current + 1) / course.length
-                        : undefined
+                        : undefined,
+                    "예시 메세지 입니다.",
+                    "INFO"
                 );
             }
         }, 1000);
