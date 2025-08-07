@@ -10,7 +10,7 @@ public struct PaceRingView: View {
   public let level: PaceLevel
   public let pace: String
   public var lineWidth: CGFloat = 6
-  public var gapDegrees: Double = 12
+  public var gapDegrees: Double = 10
   public var runningColor: Color = Color(hex: "#E2FF00")
   public var stoppedColor: Color = Color(hex: "#FF3358")
   public var inactvieColor: Color = Color(hex: "#3F3F3F")
