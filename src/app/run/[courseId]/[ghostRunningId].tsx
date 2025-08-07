@@ -111,7 +111,11 @@ export default function CourseRun() {
     const onCompleteRestart = async (runStatus: RunnningStatus) => {
         if (isRestarting) {
             setIsRestarting(false);
-            if (runStatus === "stop_running" || runStatus === "pause_running") {
+            if (
+                runStatus === "stop_running" ||
+                runStatus === "pause_running" ||
+                runStatus === "complete_course_running"
+            ) {
                 Toast.show({
                     type: "success",
                     text1: "러닝을 이어서 진행합니다",

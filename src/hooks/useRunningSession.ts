@@ -43,10 +43,7 @@ import {
     getPace,
 } from "../utils/runUtils";
 
-if (TaskManager.isTaskDefined(LOCATION_TASK)) {
-    console.log("[SESSION] 기존 태스크 삭제");
-    TaskManager.unregisterTaskAsync(LOCATION_TASK);
-}
+// const locationKalmanFilter = new KalmanFilter3D();
 
 TaskManager.defineTask(
     LOCATION_TASK,
@@ -54,8 +51,6 @@ TaskManager.defineTask(
         const batchSize = 100;
         const sessionId = await getCurrentSessionId();
         if (!sessionId) return;
-
-        console.log(data.locations);
 
         const runStatus = (await getCurrentRunStatus(
             sessionId
@@ -70,6 +65,10 @@ TaskManager.defineTask(
         );
 
         let runDataArray = previousRunData ? JSON.parse(previousRunData) : [];
+
+        // if (runBatch === "0" && runDataArray.length === 0) {
+        //     locationKalmanFilter.reset();
+        // }
 
         let lastRunData = runDataArray.at(-1);
         let lastTimestamp = lastRunData?.timestamp;
@@ -90,6 +89,18 @@ TaskManager.defineTask(
         const newRunData: RunData[] = [];
 
         for (const location of data.locations) {
+            const speed = location.coords.speed ?? 0;
+
+            // const filteredLocation = locationKalmanFilter.process(
+            //     location.coords.latitude,
+            //     location.coords.longitude,
+            //     location.coords.altitude ?? 0,
+            //     location.coords.accuracy ?? 10,
+            //     location.coords.altitudeAccuracy ?? 30,
+            //     location.timestamp,
+            //     speed
+            // );
+
             const currentTimestamp = location.timestamp;
             const stepCount = await getClosestStepCount(
                 sessionId,
@@ -246,6 +257,12 @@ export default function useRunningSession({
                 await setCurrentRunType(newSessionId, type);
                 console.log("[SESSION] 러닝 유형", type);
                 setSessionId(newSessionId);
+
+                if (await TaskManager.isTaskRegisteredAsync(LOCATION_TASK)) {
+                    console.log("[SESSION] 기존 태스크 삭제");
+                    TaskManager.unregisterTaskAsync(LOCATION_TASK);
+                }
+
                 await LiveActivities.startActivity(
                     type as RunType,
                     newSessionId,
