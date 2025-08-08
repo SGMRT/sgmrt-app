@@ -12,6 +12,9 @@ export interface RunData {
     raw: {
         latitude: number;
         longitude: number;
+        accuracy: number;
+        altitude: number;
+        altitudeAccuracy: number;
     };
 }
 export type RunnningStatus =
@@ -35,5 +38,11 @@ export interface UserDashBoardData {
 
 export interface StepCount {
     totalSteps: number;
+    timestamp: number;
+}
+
+export interface Altitude {
+    pressure: number;
+    altitude: number;
     timestamp: number;
 }

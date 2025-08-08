@@ -1,7 +1,7 @@
 import LiveActivities, { RunType } from "@/modules/expo-live-activity";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { Pedometer } from "expo-sensors";
+import { Barometer, Pedometer } from "expo-sensors";
 import * as TaskManager from "expo-task-manager";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "react-native-get-random-values";
@@ -17,10 +17,12 @@ import {
     StepCount,
     UserDashBoardData,
 } from "../types/run";
-import { KalmanFilter3D } from "../utils/kalmanFilter";
+import { KalmanFilter2D } from "../utils/kalmanFilter";
 import { getDistance } from "../utils/mapUtils";
 import {
     clamp,
+    getBasePressure,
+    getClosestAltitude,
     getClosestStepCount,
     getCurrentRunBatch,
     getCurrentRunDataOfBatch,
@@ -29,8 +31,11 @@ import {
     getOnlyNewData,
     getRunDataFromBatch,
     mergeRunData,
+    pressureToAltitude,
+    pushAltitude,
     pushStepCount,
     removeRunData,
+    setBasePressure,
     setCurrentRunBatch,
     setCurrentRunDataToBatch,
     setCurrentRunStatus,
@@ -44,7 +49,8 @@ import {
     getPace,
 } from "../utils/runUtils";
 
-const locationKalmanFilter = new KalmanFilter3D();
+const locationKalmanFilter = new KalmanFilter2D();
+const NOT_SET_BASE_PRESSURE = -1000;
 
 TaskManager.defineTask(
     LOCATION_TASK,
@@ -67,13 +73,11 @@ TaskManager.defineTask(
 
         let runDataArray = previousRunData ? JSON.parse(previousRunData) : [];
 
-        // if (runBatch === "0" && runDataArray.length === 0) {
-        //     locationKalmanFilter.reset();
-        // }
+        if (runBatch === "0" && runDataArray.length === 0) {
+            locationKalmanFilter.reset();
+        }
 
         let lastRunData = runDataArray.at(-1);
-        let lastTimestamp = lastRunData?.timestamp;
-        let lastTotalStepCount = lastRunData?.totalSteps;
 
         if (runDataArray.length === 0) {
             const previous = await getCurrentRunDataOfBatch(
@@ -82,30 +86,57 @@ TaskManager.defineTask(
             );
             if (previous) {
                 lastRunData = JSON.parse(previous).at(-1);
-                lastTimestamp = lastRunData?.timestamp;
-                lastTotalStepCount = lastRunData?.totalSteps;
             }
         }
+
+        let lastTimestamp = lastRunData?.timestamp;
+        let lastTotalStepCount = lastRunData?.totalSteps;
+        let lastAltitude = lastRunData?.altitude;
 
         const newRunData: RunData[] = [];
 
         for (const location of data.locations) {
             const speed = location.coords.speed ?? 0;
 
-            const filteredLocation = locationKalmanFilter.process(
-                location.coords.latitude,
-                location.coords.longitude,
-                location.coords.altitude ?? 0,
-                location.coords.accuracy ?? 10,
-                location.coords.altitudeAccuracy ?? 30,
-                location.timestamp,
-                speed
-            );
-
             const currentTimestamp = location.timestamp;
             const stepCount = await getClosestStepCount(
                 sessionId,
                 currentTimestamp
+            );
+
+            const pressureAltitude = await getClosestAltitude(
+                sessionId,
+                currentTimestamp
+            );
+
+            if (!pressureAltitude) continue;
+
+            let baseBaroAlt = Number(
+                (await getBasePressure(sessionId)) ?? NOT_SET_BASE_PRESSURE
+            );
+
+            console.log("baseBaroAlt", baseBaroAlt);
+
+            if (baseBaroAlt === NOT_SET_BASE_PRESSURE) {
+                console.log("setBasePressure", pressureAltitude);
+                baseBaroAlt = pressureAltitude;
+                await setBasePressure(sessionId, baseBaroAlt);
+            }
+
+            const deltaAltitude = pressureAltitude - baseBaroAlt;
+
+            const altitude = lastAltitude
+                ? lastAltitude + deltaAltitude
+                : Number(location.coords.altitude?.toFixed(2) ?? 0);
+
+            console.log(altitude);
+
+            const filteredLocation = locationKalmanFilter.process(
+                location.coords.latitude,
+                location.coords.longitude,
+                location.coords.accuracy ?? 10,
+                location.timestamp,
+                speed
             );
 
             let steps = 0;
@@ -114,24 +145,31 @@ TaskManager.defineTask(
                 ? stepCount - (lastTotalStepCount ?? stepCount)
                 : 0;
 
+            const totalSteps = stepCount ?? lastTotalStepCount ?? 0;
+
             newRunData.push({
                 timestamp: currentTimestamp,
                 timeDiff:
                     currentTimestamp - (lastTimestamp ?? currentTimestamp),
                 latitude: filteredLocation.latitude,
                 longitude: filteredLocation.longitude,
-                altitude: filteredLocation.altitude,
+                altitude: altitude,
                 speed: speed,
-                totalSteps: stepCount ?? lastTotalStepCount ?? 0,
+                totalSteps: totalSteps,
                 deltaSteps: steps,
                 runStatus: runStatus,
                 raw: {
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
+                    accuracy: location.coords.accuracy ?? -1,
+                    altitude: location.coords.altitude ?? -1,
+                    altitudeAccuracy: location.coords.altitudeAccuracy ?? -1,
                 },
             });
 
             lastTimestamp = currentTimestamp;
+            lastTotalStepCount = totalSteps;
+            lastAltitude = altitude;
         }
 
         console.log("[RUN] 러닝 데이터 수신");
@@ -201,6 +239,12 @@ export default function useRunningSession({
     const router = useRouter();
 
     const courseIndex = useRef<number>(0);
+    const courseRef = useRef<Telemetry[]>(course);
+
+    // keep latest course without re-running heavy effects
+    useEffect(() => {
+        courseRef.current = course;
+    }, [course]);
 
     const updateRunType = useCallback(
         async (type: "SOLO" | "COURSE") => {
@@ -242,10 +286,12 @@ export default function useRunningSession({
     useEffect(() => {
         (async () => {
             const restoredSessionId = await getCurrentSessionId();
+            let sessionId = null;
 
             if (restoredSessionId) {
                 if (restore) {
                     // 복구
+                    sessionId = restoredSessionId;
                 } else {
                     await removeRunData(restoredSessionId);
                 }
@@ -253,11 +299,12 @@ export default function useRunningSession({
 
             if (!restore || !restoredSessionId) {
                 const newSessionId = uuidv4();
+                sessionId = newSessionId;
                 console.log("================================================");
                 console.log("[SESSION] 세션 생성", newSessionId);
                 LiveActivities.endActivity();
                 await setCurrentSessionId(newSessionId);
-                await setCurrentRunStatus(newSessionId, runStatus);
+                await setCurrentRunStatus(newSessionId, "before_running");
                 await setCurrentRunBatch(newSessionId, "0");
                 await setCurrentRunType(newSessionId, type);
                 console.log("[SESSION] 러닝 유형", type);
@@ -283,6 +330,11 @@ export default function useRunningSession({
             }
 
             await (async () => {
+                if (!sessionId) {
+                    console.log("[SESSION] 세션 아이디 없음");
+                    return;
+                }
+
                 const { status: status_fg } =
                     await Location.requestForegroundPermissionsAsync();
 
@@ -295,33 +347,46 @@ export default function useRunningSession({
                     router.back();
                 }
 
-                await Location.startLocationUpdatesAsync(LOCATION_TASK, {
-                    accuracy: Location.Accuracy.BestForNavigation,
-                    deferredUpdatesInterval: 3000,
-                });
-
                 const stepCountSubscription = Pedometer.watchStepCount(
                     async (result) => {
                         const stepCount: StepCount = {
                             totalSteps: result.steps,
                             timestamp: Date.now(),
                         };
-                        const sessionId = await getCurrentSessionId();
-                        if (sessionId) {
-                            await pushStepCount(sessionId, stepCount);
-                        }
+                        await pushStepCount(sessionId!, stepCount);
                     }
                 );
+
+                const relativeAltitudeSubscription = Barometer.addListener(
+                    async (result) => {
+                        const pressure = result.pressure ?? 0;
+                        const altitude = Number(
+                            pressureToAltitude(pressure).toFixed(2)
+                        );
+
+                        await pushAltitude(sessionId!, {
+                            pressure: pressure,
+                            altitude: altitude,
+                            timestamp: result.timestamp,
+                        });
+                    }
+                );
+
+                await Location.startLocationUpdatesAsync(LOCATION_TASK, {
+                    accuracy: Location.Accuracy.BestForNavigation,
+                    deferredUpdatesInterval: 3000,
+                });
 
                 return () => {
                     Location.stopLocationUpdatesAsync(LOCATION_TASK);
                     TaskManager.unregisterTaskAsync(LOCATION_TASK);
                     stepCountSubscription.remove();
+                    relativeAltitudeSubscription.remove();
                     LiveActivities.endActivity();
                 };
             })();
         })();
-    }, []);
+    }, [restore, type, router]);
 
     // 러닝 데이터 처리
     useEffect(() => {
@@ -347,10 +412,10 @@ export default function useRunningSession({
             newRunData.forEach((data) => {
                 if (
                     runStatus === "before_running" &&
-                    course.length > 0 &&
+                    courseRef.current.length > 0 &&
                     runType.current === "COURSE"
                 ) {
-                    const startPoint = course[0];
+                    const startPoint = courseRef.current[0];
                     const distance = getDistance(
                         { lat: startPoint.lat, lng: startPoint.lng },
                         { lat: data.latitude, lng: data.longitude }
@@ -446,14 +511,16 @@ export default function useRunningSession({
                                       distance -
                                           (recentTelemetries.at(0)?.dist ?? 0)
                                   );
-                        const altitude = Math.round(data.altitude ?? 0);
-                        const lastAltitude = Math.round(lastTelemetry.alt ?? 0);
+
+                        const altitude = data.altitude ?? 0;
+                        const lastAltitude = lastTelemetry.alt ?? 0;
+
                         const elevation = altitude - lastAltitude;
 
                         const clampedRecentPointsPace = clamp(
                             recentPointsPace,
                             0,
-                            900
+                            1800
                         );
 
                         runTelemetries.current.push({
@@ -462,7 +529,7 @@ export default function useRunningSession({
                             lng: data.longitude,
                             dist: distance,
                             pace: clampedRecentPointsPace,
-                            alt: data.altitude ?? 0,
+                            alt: altitude,
                             cadence: cadence,
                             bpm: bpm,
                             isRunning: true,
@@ -608,7 +675,7 @@ export default function useRunningSession({
             runBatch.current = batchCount;
 
             if (
-                course.length > 0 &&
+                courseRef.current.length > 0 &&
                 runStatus === "start_running" &&
                 runType.current === "COURSE"
             ) {
@@ -616,10 +683,10 @@ export default function useRunningSession({
                 if (lastTelemetry) {
                     const closestCourseIndex = findClosestPointIndex(
                         { lat: lastTelemetry.lat, lng: lastTelemetry.lng },
-                        course,
+                        courseRef.current,
                         courseAcceptanceDistance
                     );
-                    if (courseIndex.current + 2 >= course.length) {
+                    if (courseIndex.current + 2 >= courseRef.current.length) {
                         updateRunStatus("complete_course_running");
                     }
                     if (closestCourseIndex === -1) {
@@ -642,11 +709,13 @@ export default function useRunningSession({
                         ? new Date(pauseRef.current).toISOString()
                         : undefined,
                     courseIndex.current
-                        ? (courseIndex.current + 1) / course.length
+                        ? (courseIndex.current + 1) / courseRef.current.length
                         : undefined,
                     runStatus === "start_running" && runType.current !== "SOLO"
                         ? `진행도: ${Math.floor(
-                              ((courseIndex.current + 1) / course.length) * 100
+                              ((courseIndex.current + 1) /
+                                  courseRef.current.length) *
+                                  100
                           )}%`
                         : undefined,
                     runStatus !== "stop_running" ? "INFO" : "ERROR"
@@ -665,7 +734,6 @@ export default function useRunningSession({
         userInfo?.weight,
         courseAcceptanceDistance,
         updateRunStatus,
-        course.length,
     ]);
 
     // 러닝 시간 처리
