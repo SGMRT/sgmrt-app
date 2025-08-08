@@ -218,7 +218,7 @@ public class ExpoLiveActivityModule: Module {
       Function("updateActivity") { (startedAt: Date, recentPace: Double, distanceMeters: Double, pausedAt: Date?, progress: Double?, message: String?, messageType: String?) -> Void in
           if #available(iOS 16.2, *) {
             guard let messageType = MessageType(rawValue: messageType ?? "INFO") else { print("messageType is invalid"); return }
-              let contentState = GoRunAttributes.ContentState(startedAt: startedAt, recentPace: recentPace, distanceMeters: distanceMeters, progress: progress, message: message, messageType: messageType)
+              let contentState = GoRunAttributes.ContentState(startedAt: startedAt, pausedAt: pausedAt, recentPace: recentPace, distanceMeters: distanceMeters, progress: progress, message: message, messageType: messageType)
               
               Task {
                   for activity in Activity<GoRunAttributes>.activities {

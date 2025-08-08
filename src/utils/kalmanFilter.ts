@@ -28,9 +28,9 @@ export class KalmanFilter1D {
     private value = 0; // 현재 추정값
 
     private computeQ(speed: number): number {
-        if (speed < 0 || Number.isNaN(speed)) return 1;
+        if (speed < 1 || Number.isNaN(speed)) return 1;
 
-        return Math.pow(speed + 1, 1.2);
+        return Math.pow(speed, 1.5);
     }
 
     process(

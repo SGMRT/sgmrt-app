@@ -19,7 +19,10 @@ struct GoRunActivity: Widget {
           PaceRingView(level: context.state.paceLevel(), pace: context.state.formattedPace())
         }
         .padding(.vertical, 13.5)
-        Spacer(minLength: 20)
+        // 좌측 여백
+        Color.clear
+          .frame(maxWidth: .infinity)
+          .layoutPriority(5)
         // 러닝 상태, 거리, 시간, 진행률
         VStack(alignment: .center, spacing: 8){
           // 러닝 상태 표시
@@ -27,9 +30,10 @@ struct GoRunActivity: Widget {
             .font(.system(size: 16, weight: .regular))
             .foregroundStyle(Color(hex: context.state.isRunning() ? "#E2FF00" : "#FF3358"))
           // 러닝 정보 표시
-          HStack(spacing: 34){
+          HStack{
             VStack(alignment: .leading){
               Text(context.state.formattedDistanceKm())
+                .lineLimit(1)
                 .font(.system(size: 28, weight: .bold))
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
@@ -37,8 +41,10 @@ struct GoRunActivity: Widget {
                 .font(.system(size: 12, weight: .regular))
                 .foregroundStyle(Color(hex: "#676767"))
             }
+            Spacer()
             VStack(alignment: .leading){
               Text(context.state.formattedElapsedTime())
+                .lineLimit(1)
                 .font(.system(size: 28, weight: .bold))
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
@@ -58,7 +64,10 @@ struct GoRunActivity: Widget {
             }
           }
         }
-        Spacer(minLength: 8)
+        // 우측 여백
+        Color.clear
+          .frame(maxWidth: .infinity)
+          .layoutPriority(2)
         // 로고
         VStack(alignment: .trailing){
           Spacer()
@@ -90,6 +99,8 @@ struct GoRunActivity: Widget {
               HStack(spacing: 34){
                 VStack(alignment: .leading){
                   Text(context.state.formattedDistanceKm())
+                    .layoutPriority(10)
+                    .lineLimit(1)
                     .font(.system(size: 28, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
@@ -99,6 +110,8 @@ struct GoRunActivity: Widget {
                 }
                 VStack(alignment: .leading){
                   Text(context.state.formattedElapsedTime())
+                    .layoutPriority(10)
+                    .lineLimit(1)
                     .font(.system(size: 28, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
@@ -143,7 +156,7 @@ struct GoRunActivity: Widget {
           .resizable()
           .frame(width: 20, height: 18)
       }
-      .keylineTint(Color.white)
+      .keylineTint(Color(hex: "E2FF00"))
     }
   }
 }
