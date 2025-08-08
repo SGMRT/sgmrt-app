@@ -21,7 +21,7 @@ import { KalmanFilter2D } from "../utils/kalmanFilter";
 import { getDistance } from "../utils/mapUtils";
 import {
     clamp,
-    getBasePressure,
+    getBaseAltitude,
     getClosestAltitude,
     getClosestStepCount,
     getCurrentRunBatch,
@@ -35,7 +35,7 @@ import {
     pushAltitude,
     pushStepCount,
     removeRunData,
-    setBasePressure,
+    setBaseAltitude,
     setCurrentRunBatch,
     setCurrentRunDataToBatch,
     setCurrentRunStatus,
@@ -111,25 +111,30 @@ TaskManager.defineTask(
 
             if (!pressureAltitude) continue;
 
-            let baseBaroAlt = Number(
-                (await getBasePressure(sessionId)) ?? NOT_SET_BASE_PRESSURE
-            );
+            // json 파싱
+            const altitudeData = await getBaseAltitude(sessionId);
+            let basePressureAltitude;
+            let baseAltitude;
 
-            console.log("baseBaroAlt", baseBaroAlt);
-
-            if (baseBaroAlt === NOT_SET_BASE_PRESSURE) {
-                console.log("setBasePressure", pressureAltitude);
-                baseBaroAlt = pressureAltitude;
-                await setBasePressure(sessionId, baseBaroAlt);
+            if (altitudeData) {
+                const { pressure, altitude } = JSON.parse(altitudeData);
+                basePressureAltitude = pressure;
+                baseAltitude = altitude;
+            } else {
+                basePressureAltitude = pressureAltitude;
+                baseAltitude = location.coords.altitude ?? 0;
+                await setBaseAltitude(
+                    sessionId,
+                    pressureAltitude,
+                    location.coords.altitude ?? 0
+                );
             }
 
-            const deltaAltitude = pressureAltitude - baseBaroAlt;
+            const deltaAltitude = pressureAltitude - basePressureAltitude!;
 
-            const altitude = lastAltitude
-                ? lastAltitude + deltaAltitude
-                : Number(location.coords.altitude?.toFixed(2) ?? 0);
-
-            console.log(altitude);
+            const altitude = baseAltitude
+                ? baseAltitude + deltaAltitude
+                : location.coords.altitude ?? 0;
 
             const filteredLocation = locationKalmanFilter.process(
                 location.coords.latitude,
@@ -153,7 +158,7 @@ TaskManager.defineTask(
                     currentTimestamp - (lastTimestamp ?? currentTimestamp),
                 latitude: filteredLocation.latitude,
                 longitude: filteredLocation.longitude,
-                altitude: altitude,
+                altitude: Number(altitude.toFixed(2)),
                 speed: speed,
                 totalSteps: totalSteps,
                 deltaSteps: steps,

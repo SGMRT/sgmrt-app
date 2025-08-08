@@ -14,7 +14,7 @@ export async function removeRunData(sessionId: string) {
     }
     await AsyncStorage.removeItem(sessionId + "_status");
     await AsyncStorage.removeItem(sessionId + "_batch");
-    await AsyncStorage.removeItem(sessionId + "_basePressure");
+    await AsyncStorage.removeItem(sessionId + "_baseAltitude");
     await AsyncStorage.removeItem(sessionId + "_course");
     await AsyncStorage.removeItem(sessionId + "_type");
     await AsyncStorage.removeItem(sessionId + "_index");
@@ -231,13 +231,17 @@ export function pressureToAltitude(
     );
 }
 
-export function setBasePressure(sessionId: string, pressure: number) {
+export function setBaseAltitude(
+    sessionId: string,
+    pressure: number,
+    altitude: number
+) {
     return AsyncStorage.setItem(
-        sessionId + "_basePressure",
-        pressure.toString()
+        sessionId + "_baseAltitude",
+        JSON.stringify({ pressure, altitude })
     );
 }
 
-export function getBasePressure(sessionId: string) {
-    return AsyncStorage.getItem(sessionId + "_basePressure");
+export function getBaseAltitude(sessionId: string) {
+    return AsyncStorage.getItem(sessionId + "_baseAltitude");
 }
