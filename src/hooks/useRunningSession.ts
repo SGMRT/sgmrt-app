@@ -108,16 +108,23 @@ TaskManager.defineTask(
                 currentTimestamp
             );
 
-            const basePressure = Number(await getBasePressure(sessionId));
-
-            if (!basePressure) {
+            const baseBaroAlt = Number(await getBasePressure(sessionId));
+            if (!Number.isFinite(baseBaroAlt)) {
                 await setBasePressure(sessionId, pressureAltitude ?? 0);
             }
 
-            const relativeAltitude =
-                pressureAltitude && basePressure
-                    ? pressureAltitude - basePressure
+            const prevPressureAltitude =
+                lastTimestamp != null
+                    ? await getClosestAltitude(sessionId, lastTimestamp)
+                    : undefined;
+
+            const deltaAltitude =
+                pressureAltitude != null && prevPressureAltitude != null
+                    ? pressureAltitude - prevPressureAltitude
                     : 0;
+
+            const fusedAltitude =
+                (lastAltitude ?? location.coords.altitude ?? 0) + deltaAltitude;
 
             const filteredLocation = locationKalmanFilter.process(
                 location.coords.latitude,
@@ -141,9 +148,7 @@ TaskManager.defineTask(
                     currentTimestamp - (lastTimestamp ?? currentTimestamp),
                 latitude: filteredLocation.latitude,
                 longitude: filteredLocation.longitude,
-                altitude: lastAltitude
-                    ? lastAltitude + relativeAltitude
-                    : location.coords.altitude ?? 0,
+                altitude: fusedAltitude,
                 speed: speed,
                 totalSteps: totalSteps,
                 deltaSteps: steps,
@@ -159,6 +164,7 @@ TaskManager.defineTask(
 
             lastTimestamp = currentTimestamp;
             lastTotalStepCount = totalSteps;
+            lastAltitude = fusedAltitude;
         }
 
         console.log("[RUN] 러닝 데이터 수신");
@@ -228,6 +234,12 @@ export default function useRunningSession({
     const router = useRouter();
 
     const courseIndex = useRef<number>(0);
+    const courseRef = useRef<Telemetry[]>(course);
+
+    // keep latest course without re-running heavy effects
+    useEffect(() => {
+        courseRef.current = course;
+    }, [course]);
 
     const updateRunType = useCallback(
         async (type: "SOLO" | "COURSE") => {
@@ -369,7 +381,7 @@ export default function useRunningSession({
                 };
             })();
         })();
-    }, [restore, type]);
+    }, [restore, type, router]);
 
     // 러닝 데이터 처리
     useEffect(() => {
@@ -395,10 +407,10 @@ export default function useRunningSession({
             newRunData.forEach((data) => {
                 if (
                     runStatus === "before_running" &&
-                    course.length > 0 &&
+                    courseRef.current.length > 0 &&
                     runType.current === "COURSE"
                 ) {
-                    const startPoint = course[0];
+                    const startPoint = courseRef.current[0];
                     const distance = getDistance(
                         { lat: startPoint.lat, lng: startPoint.lng },
                         { lat: data.latitude, lng: data.longitude }
@@ -494,8 +506,10 @@ export default function useRunningSession({
                                       distance -
                                           (recentTelemetries.at(0)?.dist ?? 0)
                                   );
-                        const altitude = Math.round(data.altitude ?? 0);
-                        const lastAltitude = Math.round(lastTelemetry.alt ?? 0);
+
+                        const altitude = data.altitude ?? 0;
+                        const lastAltitude = lastTelemetry.alt ?? 0;
+
                         const elevation = altitude - lastAltitude;
 
                         const clampedRecentPointsPace = clamp(
@@ -510,7 +524,7 @@ export default function useRunningSession({
                             lng: data.longitude,
                             dist: distance,
                             pace: clampedRecentPointsPace,
-                            alt: data.altitude ?? 0,
+                            alt: altitude,
                             cadence: cadence,
                             bpm: bpm,
                             isRunning: true,
@@ -656,7 +670,7 @@ export default function useRunningSession({
             runBatch.current = batchCount;
 
             if (
-                course.length > 0 &&
+                courseRef.current.length > 0 &&
                 runStatus === "start_running" &&
                 runType.current === "COURSE"
             ) {
@@ -664,10 +678,10 @@ export default function useRunningSession({
                 if (lastTelemetry) {
                     const closestCourseIndex = findClosestPointIndex(
                         { lat: lastTelemetry.lat, lng: lastTelemetry.lng },
-                        course,
+                        courseRef.current,
                         courseAcceptanceDistance
                     );
-                    if (courseIndex.current + 2 >= course.length) {
+                    if (courseIndex.current + 2 >= courseRef.current.length) {
                         updateRunStatus("complete_course_running");
                     }
                     if (closestCourseIndex === -1) {
@@ -690,11 +704,13 @@ export default function useRunningSession({
                         ? new Date(pauseRef.current).toISOString()
                         : undefined,
                     courseIndex.current
-                        ? (courseIndex.current + 1) / course.length
+                        ? (courseIndex.current + 1) / courseRef.current.length
                         : undefined,
                     runStatus === "start_running" && runType.current !== "SOLO"
                         ? `진행도: ${Math.floor(
-                              ((courseIndex.current + 1) / course.length) * 100
+                              ((courseIndex.current + 1) /
+                                  courseRef.current.length) *
+                                  100
                           )}%`
                         : undefined,
                     runStatus !== "stop_running" ? "INFO" : "ERROR"
@@ -713,7 +729,6 @@ export default function useRunningSession({
         userInfo?.weight,
         courseAcceptanceDistance,
         updateRunStatus,
-        course.length,
     ]);
 
     // 러닝 시간 처리
