@@ -217,8 +217,10 @@ export function clamp(value: number, min: number, max: number) {
 }
 
 export function pressureToAltitude(
-    pressure: number,
-    seaLevelPressure = 1013.25
+    pressureHPa: number,
+    seaLevelPressureHPa = 1013.25
 ): number {
-    return 44330 * (1.0 - Math.pow(pressure / seaLevelPressure, 0.1903));
+    return (
+        44330.77 * (1.0 - Math.pow(pressureHPa / seaLevelPressureHPa, 0.190284))
+    );
 }

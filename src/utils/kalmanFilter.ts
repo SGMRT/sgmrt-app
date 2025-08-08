@@ -82,27 +82,22 @@ export class KalmanFilter1D {
 }
 
 /** 위도, 경도, 고도 칼만 필터 */
-export class KalmanFilter3D {
+export class KalmanFilter2D {
     private latitudeKalmanFilter = new KalmanFilter1D();
     private longitudeKalmanFilter = new KalmanFilter1D();
-    private altitudeKalmanFilter = new KalmanFilter1D();
 
     /**
      * GPS 좌표 필터링
      * @param latitude 위도
      * @param longitude 경도
-     * @param altitude 고도
      * @param locationAccuracy 위치 정확도
-     * @param altitudeAccuracy 고도 정확도
      * @param timestamp 시간
      * @param speed 속도
      */
     process(
         latitude: number,
         longitude: number,
-        altitude: number,
         locationAccuracy: number,
-        altitudeAccuracy: number,
         timestamp: number,
         speed: number
     ) {
@@ -117,19 +112,9 @@ export class KalmanFilter3D {
                 .toFixed(6)
         );
 
-        const filteredAltitude = Math.round(
-            this.altitudeKalmanFilter.process(
-                altitude,
-                altitudeAccuracy,
-                timestamp,
-                speed
-            )
-        );
-
         return {
             latitude: filteredLatitude,
             longitude: filteredLongitude,
-            altitude: filteredAltitude,
         };
     }
 
@@ -137,13 +122,11 @@ export class KalmanFilter3D {
         return {
             latitude: this.latitudeKalmanFilter.getEstimate(),
             longitude: this.longitudeKalmanFilter.getEstimate(),
-            altitude: this.altitudeKalmanFilter.getEstimate(),
         };
     }
 
     reset() {
         this.latitudeKalmanFilter.reset();
         this.longitudeKalmanFilter.reset();
-        this.altitudeKalmanFilter.reset();
     }
 }

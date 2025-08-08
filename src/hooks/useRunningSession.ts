@@ -17,7 +17,7 @@ import {
     StepCount,
     UserDashBoardData,
 } from "../types/run";
-import { KalmanFilter3D } from "../utils/kalmanFilter";
+import { KalmanFilter2D } from "../utils/kalmanFilter";
 import { getDistance } from "../utils/mapUtils";
 import {
     clamp,
@@ -47,7 +47,7 @@ import {
     getPace,
 } from "../utils/runUtils";
 
-const locationKalmanFilter = new KalmanFilter3D();
+const locationKalmanFilter = new KalmanFilter2D();
 
 TaskManager.defineTask(
     LOCATION_TASK,
@@ -100,7 +100,8 @@ TaskManager.defineTask(
                 sessionId,
                 currentTimestamp
             );
-            const altitude = await getClosestAltitude(
+
+            const pressureAltitude = await getClosestAltitude(
                 sessionId,
                 currentTimestamp
             );
@@ -108,9 +109,7 @@ TaskManager.defineTask(
             const filteredLocation = locationKalmanFilter.process(
                 location.coords.latitude,
                 location.coords.longitude,
-                altitude ?? 0,
                 location.coords.accuracy ?? 10,
-                location.coords.altitudeAccuracy ?? 30,
                 location.timestamp,
                 speed
             );
@@ -129,7 +128,7 @@ TaskManager.defineTask(
                     currentTimestamp - (lastTimestamp ?? currentTimestamp),
                 latitude: filteredLocation.latitude,
                 longitude: filteredLocation.longitude,
-                altitude: filteredLocation.altitude,
+                altitude: pressureAltitude ?? location.coords.altitude ?? 0,
                 speed: speed,
                 totalSteps: totalSteps,
                 deltaSteps: steps,
@@ -137,7 +136,6 @@ TaskManager.defineTask(
                 raw: {
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
-                    altitude: altitude ?? 0,
                 },
             });
 
@@ -271,7 +269,7 @@ export default function useRunningSession({
                 console.log("[SESSION] 세션 생성", newSessionId);
                 LiveActivities.endActivity();
                 await setCurrentSessionId(newSessionId);
-                await setCurrentRunStatus(newSessionId, runStatus);
+                await setCurrentRunStatus(newSessionId, "before_running");
                 await setCurrentRunBatch(newSessionId, "0");
                 await setCurrentRunType(newSessionId, type);
                 console.log("[SESSION] 러닝 유형", type);
@@ -314,11 +312,6 @@ export default function useRunningSession({
                     router.back();
                 }
 
-                await Location.startLocationUpdatesAsync(LOCATION_TASK, {
-                    accuracy: Location.Accuracy.BestForNavigation,
-                    deferredUpdatesInterval: 3000,
-                });
-
                 const stepCountSubscription = Pedometer.watchStepCount(
                     async (result) => {
                         const stepCount: StepCount = {
@@ -344,6 +337,11 @@ export default function useRunningSession({
                     }
                 );
 
+                await Location.startLocationUpdatesAsync(LOCATION_TASK, {
+                    accuracy: Location.Accuracy.BestForNavigation,
+                    deferredUpdatesInterval: 3000,
+                });
+
                 return () => {
                     Location.stopLocationUpdatesAsync(LOCATION_TASK);
                     TaskManager.unregisterTaskAsync(LOCATION_TASK);
@@ -353,7 +351,7 @@ export default function useRunningSession({
                 };
             })();
         })();
-    }, []);
+    }, [restore, type]);
 
     // 러닝 데이터 처리
     useEffect(() => {
