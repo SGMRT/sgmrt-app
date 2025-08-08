@@ -9,6 +9,10 @@ export interface RunData {
     totalSteps: number | null;
     deltaSteps: number | null;
     runStatus: RunnningStatus;
+    raw: {
+        latitude: number;
+        longitude: number;
+    };
 }
 export type RunnningStatus =
     | "before_running"
