@@ -14,6 +14,12 @@ export async function removeRunData(sessionId: string) {
     }
     await AsyncStorage.removeItem(sessionId + "_status");
     await AsyncStorage.removeItem(sessionId + "_batch");
+    await AsyncStorage.removeItem(sessionId + "_basePressure");
+    await AsyncStorage.removeItem(sessionId + "_course");
+    await AsyncStorage.removeItem(sessionId + "_type");
+    await AsyncStorage.removeItem(sessionId + "_index");
+    await AsyncStorage.removeItem(sessionId + "_stepCount");
+    await AsyncStorage.removeItem(sessionId + "_altitude");
     await AsyncStorage.removeItem("sessionId");
     console.log("[SESSION] 러닝 데이터 삭제 완료", sessionId);
     console.log("================================================");

@@ -50,6 +50,7 @@ import {
 } from "../utils/runUtils";
 
 const locationKalmanFilter = new KalmanFilter2D();
+const NOT_SET_BASE_PRESSURE = -1000;
 
 TaskManager.defineTask(
     LOCATION_TASK,
@@ -108,23 +109,27 @@ TaskManager.defineTask(
                 currentTimestamp
             );
 
-            const baseBaroAlt = Number(await getBasePressure(sessionId));
-            if (!Number.isFinite(baseBaroAlt)) {
-                await setBasePressure(sessionId, pressureAltitude ?? 0);
+            if (!pressureAltitude) continue;
+
+            let baseBaroAlt = Number(
+                (await getBasePressure(sessionId)) ?? NOT_SET_BASE_PRESSURE
+            );
+
+            console.log("baseBaroAlt", baseBaroAlt);
+
+            if (baseBaroAlt === NOT_SET_BASE_PRESSURE) {
+                console.log("setBasePressure", pressureAltitude);
+                baseBaroAlt = pressureAltitude;
+                await setBasePressure(sessionId, baseBaroAlt);
             }
 
-            const prevPressureAltitude =
-                lastTimestamp != null
-                    ? await getClosestAltitude(sessionId, lastTimestamp)
-                    : undefined;
+            const deltaAltitude = pressureAltitude - baseBaroAlt;
 
-            const deltaAltitude =
-                pressureAltitude != null && prevPressureAltitude != null
-                    ? pressureAltitude - prevPressureAltitude
-                    : 0;
+            const altitude = lastAltitude
+                ? lastAltitude + deltaAltitude
+                : Number(location.coords.altitude?.toFixed(2) ?? 0);
 
-            const fusedAltitude =
-                (lastAltitude ?? location.coords.altitude ?? 0) + deltaAltitude;
+            console.log(altitude);
 
             const filteredLocation = locationKalmanFilter.process(
                 location.coords.latitude,
@@ -148,7 +153,7 @@ TaskManager.defineTask(
                     currentTimestamp - (lastTimestamp ?? currentTimestamp),
                 latitude: filteredLocation.latitude,
                 longitude: filteredLocation.longitude,
-                altitude: fusedAltitude,
+                altitude: altitude,
                 speed: speed,
                 totalSteps: totalSteps,
                 deltaSteps: steps,
@@ -156,15 +161,15 @@ TaskManager.defineTask(
                 raw: {
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
-                    accuracy: location.coords.accuracy ?? 10,
-                    altitude: location.coords.altitude ?? 0,
-                    altitudeAccuracy: location.coords.altitudeAccuracy ?? 100,
+                    accuracy: location.coords.accuracy ?? -1,
+                    altitude: location.coords.altitude ?? -1,
+                    altitudeAccuracy: location.coords.altitudeAccuracy ?? -1,
                 },
             });
 
             lastTimestamp = currentTimestamp;
             lastTotalStepCount = totalSteps;
-            lastAltitude = fusedAltitude;
+            lastAltitude = altitude;
         }
 
         console.log("[RUN] 러닝 데이터 수신");
@@ -515,7 +520,7 @@ export default function useRunningSession({
                         const clampedRecentPointsPace = clamp(
                             recentPointsPace,
                             0,
-                            900
+                            1800
                         );
 
                         runTelemetries.current.push({
