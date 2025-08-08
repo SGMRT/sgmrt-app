@@ -12,6 +12,9 @@ export interface RunData {
     raw: {
         latitude: number;
         longitude: number;
+        accuracy: number;
+        altitude: number;
+        altitudeAccuracy: number;
     };
 }
 export type RunnningStatus =

@@ -224,3 +224,14 @@ export function pressureToAltitude(
         44330.77 * (1.0 - Math.pow(pressureHPa / seaLevelPressureHPa, 0.190284))
     );
 }
+
+export function setBasePressure(sessionId: string, pressure: number) {
+    return AsyncStorage.setItem(
+        sessionId + "_basePressure",
+        pressure.toString()
+    );
+}
+
+export function getBasePressure(sessionId: string) {
+    return AsyncStorage.getItem(sessionId + "_basePressure");
+}

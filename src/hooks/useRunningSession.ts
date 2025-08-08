@@ -21,6 +21,7 @@ import { KalmanFilter2D } from "../utils/kalmanFilter";
 import { getDistance } from "../utils/mapUtils";
 import {
     clamp,
+    getBasePressure,
     getClosestAltitude,
     getClosestStepCount,
     getCurrentRunBatch,
@@ -34,6 +35,7 @@ import {
     pushAltitude,
     pushStepCount,
     removeRunData,
+    setBasePressure,
     setCurrentRunBatch,
     setCurrentRunDataToBatch,
     setCurrentRunStatus,
@@ -75,8 +77,6 @@ TaskManager.defineTask(
         }
 
         let lastRunData = runDataArray.at(-1);
-        let lastTimestamp = lastRunData?.timestamp;
-        let lastTotalStepCount = lastRunData?.totalSteps;
 
         if (runDataArray.length === 0) {
             const previous = await getCurrentRunDataOfBatch(
@@ -85,10 +85,12 @@ TaskManager.defineTask(
             );
             if (previous) {
                 lastRunData = JSON.parse(previous).at(-1);
-                lastTimestamp = lastRunData?.timestamp;
-                lastTotalStepCount = lastRunData?.totalSteps;
             }
         }
+
+        let lastTimestamp = lastRunData?.timestamp;
+        let lastTotalStepCount = lastRunData?.totalSteps;
+        let lastAltitude = lastRunData?.altitude;
 
         const newRunData: RunData[] = [];
 
@@ -105,6 +107,17 @@ TaskManager.defineTask(
                 sessionId,
                 currentTimestamp
             );
+
+            const basePressure = Number(await getBasePressure(sessionId));
+
+            if (!basePressure) {
+                await setBasePressure(sessionId, pressureAltitude ?? 0);
+            }
+
+            const relativeAltitude =
+                pressureAltitude && basePressure
+                    ? pressureAltitude - basePressure
+                    : 0;
 
             const filteredLocation = locationKalmanFilter.process(
                 location.coords.latitude,
@@ -128,7 +141,9 @@ TaskManager.defineTask(
                     currentTimestamp - (lastTimestamp ?? currentTimestamp),
                 latitude: filteredLocation.latitude,
                 longitude: filteredLocation.longitude,
-                altitude: pressureAltitude ?? location.coords.altitude ?? 0,
+                altitude: lastAltitude
+                    ? lastAltitude + relativeAltitude
+                    : location.coords.altitude ?? 0,
                 speed: speed,
                 totalSteps: totalSteps,
                 deltaSteps: steps,
@@ -136,6 +151,9 @@ TaskManager.defineTask(
                 raw: {
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
+                    accuracy: location.coords.accuracy ?? 10,
+                    altitude: location.coords.altitude ?? 0,
+                    altitudeAccuracy: location.coords.altitudeAccuracy ?? 100,
                 },
             });
 
