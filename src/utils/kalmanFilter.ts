@@ -106,23 +106,24 @@ export class KalmanFilter3D {
         timestamp: number,
         speed: number
     ) {
-        const filteredLatitude = this.latitudeKalmanFilter.process(
-            latitude,
-            locationAccuracy,
-            timestamp,
-            speed
+        const filteredLatitude = Number(
+            this.latitudeKalmanFilter
+                .process(latitude, locationAccuracy, timestamp, speed)
+                .toFixed(6)
         );
-        const filteredLongitude = this.longitudeKalmanFilter.process(
-            longitude,
-            locationAccuracy,
-            timestamp,
-            speed
+        const filteredLongitude = Number(
+            this.longitudeKalmanFilter
+                .process(longitude, locationAccuracy, timestamp, speed)
+                .toFixed(6)
         );
-        const filteredAltitude = this.altitudeKalmanFilter.process(
-            altitude,
-            altitudeAccuracy,
-            timestamp,
-            speed
+
+        const filteredAltitude = Math.round(
+            this.altitudeKalmanFilter.process(
+                altitude,
+                altitudeAccuracy,
+                timestamp,
+                speed
+            )
         );
 
         return {

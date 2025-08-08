@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Telemetry } from "../apis/types/run";
-import { RunData, RunnningStatus, StepCount } from "../types/run";
+import { Altitude, RunData, RunnningStatus, StepCount } from "../types/run";
 import { findClosest } from "./interpolateTelemetries";
 
 export async function removeRunData(sessionId: string) {
@@ -165,6 +165,24 @@ export async function pushStepCount(sessionId: string, stepCount: StepCount) {
     );
 }
 
+export async function getAltitude(sessionId: string) {
+    return await AsyncStorage.getItem(sessionId + "_altitude");
+}
+
+export async function pushAltitude(sessionId: string, altitude: Altitude) {
+    const altitudeData = await getAltitude(sessionId);
+    const altitudeList: Altitude[] = altitudeData
+        ? JSON.parse(altitudeData)
+        : [];
+    altitudeList.push(altitude);
+    altitudeList.slice(-30);
+
+    return await AsyncStorage.setItem(
+        sessionId + "_altitude",
+        JSON.stringify(altitudeList)
+    );
+}
+
 export async function getClosestStepCount(
     sessionId: string,
     timestamp: number
@@ -181,6 +199,26 @@ export async function getClosestStepCount(
     return closest.totalSteps;
 }
 
+export async function getClosestAltitude(sessionId: string, timestamp: number) {
+    const altitudeData = await getAltitude(sessionId);
+    const altitudeList: Altitude[] = altitudeData
+        ? JSON.parse(altitudeData)
+        : [];
+
+    const closest = findClosest(altitudeList, timestamp);
+
+    if (!closest) return undefined;
+
+    return closest.altitude;
+}
+
 export function clamp(value: number, min: number, max: number) {
     return Math.max(min, Math.min(value, max));
+}
+
+export function pressureToAltitude(
+    pressure: number,
+    seaLevelPressure = 1013.25
+): number {
+    return 44330 * (1.0 - Math.pow(pressure / seaLevelPressure, 0.1903));
 }
