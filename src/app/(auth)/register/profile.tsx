@@ -9,10 +9,10 @@ import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
+import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { getAuth } from "@react-native-firebase/auth";
 import * as ImageManipulator from "expo-image-manipulator";
-import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
@@ -52,25 +52,10 @@ export default function Profile() {
     const [res, setRes] = useState<any>(null);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const confettiRef = useRef<ConfettiMethods | null>(null);
-    const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-            selectionLimit: 1,
-        });
-
-        console.log(result);
-
-        if (!result.canceled) {
-            const manipulated = await ImageManipulator.manipulateAsync(
-                result.assets[0].uri,
-                [],
-                { format: ImageManipulator.SaveFormat.JPEG }
-            );
-            setImage(manipulated);
+    const onPickImage = async () => {
+        const image = await pickImage();
+        if (image) {
+            setImage(image);
         }
     };
 
@@ -174,7 +159,7 @@ export default function Profile() {
                             />
                             <StyledButton
                                 title="프로필 이미지 등록"
-                                onPress={pickImage}
+                                onPress={onPickImage}
                                 style={{ width: 178 }}
                             />
                         </View>

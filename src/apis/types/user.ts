@@ -20,6 +20,7 @@ type PatchUserInfoRequest = {
     age?: number | null;
     height?: number | null;
     weight?: number | null;
+    profileImageUrl?: string | null;
 };
 
 type PatchUserSettingsRequest = {

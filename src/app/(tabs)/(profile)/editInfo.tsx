@@ -15,6 +15,7 @@ import {
     ScrollView,
     View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function EditInfo() {
     const [userInfo, setUserInfo] = useState<PatchUserInfoRequest | null>(null);
@@ -56,18 +57,12 @@ export default function EditInfo() {
 
         patchUserInfo(changedFieldsObject)
             .then(() => {
-                Alert.alert(
-                    "회원 정보 변경 완료",
-                    "회원 정보를 변경했습니다.",
-                    [
-                        {
-                            text: "확인",
-                            onPress: () => {
-                                router.back();
-                            },
-                        },
-                    ]
-                );
+                Toast.show({
+                    type: "success",
+                    text1: "회원 정보가 변경되었습니다.",
+                    position: "bottom",
+                });
+                router.back();
             })
             .catch((err) => {
                 Alert.alert("회원 정보 변경 실패", err.response.data.message, [

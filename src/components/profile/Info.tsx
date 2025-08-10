@@ -1,8 +1,15 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { ChevronIcon } from "@/assets/svgs/svgs";
-import { getUserInfo, patchUserSettings } from "@/src/apis";
+import {
+    getPresignedUrl,
+    getUserInfo,
+    patchUserInfo,
+    patchUserSettings,
+    uploadToS3,
+} from "@/src/apis";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
 import colors from "@/src/theme/colors";
+import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Application from "expo-application";
 import { useRouter } from "expo-router";
@@ -10,11 +17,13 @@ import { useEffect, useState } from "react";
 import {
     Alert,
     Image,
+    RefreshControl,
     ScrollView,
     Switch,
     TouchableOpacity,
     View,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { Divider } from "../ui/Divider";
 import { StyledButton } from "../ui/StyledButton";
 import { Typography, TypographyColor } from "../ui/Typography";
@@ -29,11 +38,16 @@ export const Info = ({
     const [userInfo, setUserInfo] = useState<GetUserInfoResponse | null>(null);
     const [speechEnabled, setSpeechEnabled] = useState<boolean>(false);
     const router = useRouter();
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
+        loadUserInfo();
+    }, []);
+
+    const loadUserInfo = async () => {
+        setRefreshing(true);
         getUserInfo()
             .then((res) => {
-                console.log(res);
                 setUserInfo(res);
             })
             .catch(() => {
@@ -46,7 +60,8 @@ export const Info = ({
                     },
                 ]);
             });
-    }, []);
+        setRefreshing(false);
+    };
 
     const handlePushAlarmChange = (value: boolean) => {
         if (!userInfo) return;
@@ -76,6 +91,31 @@ export const Info = ({
         setSpeechEnabled(value);
     };
 
+    const onPickImage = async () => {
+        await pickImage().then(async (image) => {
+            if (!image) return;
+            const imageUrl = await getPresignedUrl({
+                type: "MEMBER_PROFILE",
+                fileName: image.uri.split("/").at(-1) ?? "",
+            });
+            const uploadResult = await uploadToS3(
+                image.uri,
+                imageUrl.presignUrl
+            );
+            if (uploadResult) {
+                await patchUserInfo({
+                    profileImageUrl: imageUrl.presignUrl.split("?X-Amz-")[0],
+                }).then(() => {
+                    Toast.show({
+                        type: "success",
+                        text1: "프로필 이미지가 변경되었습니다",
+                        position: "bottom",
+                    });
+                });
+            }
+        });
+    };
+
     return (
         <ScrollView
             contentContainerStyle={{
@@ -83,6 +123,12 @@ export const Info = ({
                 marginTop: 20,
                 gap: 20,
             }}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={loadUserInfo}
+                />
+            }
         >
             {/* Profile */}
             <View style={{ gap: 15, marginTop: 10 }}>
@@ -90,7 +136,7 @@ export const Info = ({
                 <View style={{ flexDirection: "row", gap: 4 }}>
                     <StyledButton
                         title="프로필 이미지 변경"
-                        onPress={() => {}}
+                        onPress={onPickImage}
                         style={{ width: "50%" }}
                     />
                     <StyledButton
