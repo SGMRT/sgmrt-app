@@ -4,6 +4,7 @@ import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import Countdown from "@/src/components/ui/Countdown";
+import EmptyListView from "@/src/components/ui/EmptyListView";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
@@ -25,7 +26,14 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, BackHandler, Dimensions, StyleSheet, View } from "react-native";
+import {
+    Alert,
+    BackHandler,
+    Dimensions,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import { ConfettiMethods, PIConfetti } from "react-native-fast-confetti";
 import Animated, {
     FadeIn,
@@ -40,6 +48,7 @@ export default function CourseRun() {
     const router = useRouter();
     const { courseId, ghostRunningId } = useLocalSearchParams();
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
+    const [isFirst, setIsFirst] = useState<boolean>(true);
 
     const [mode, setMode] = useState<"COURSE" | "GHOST">("COURSE");
 
@@ -125,6 +134,7 @@ export default function CourseRun() {
                 });
             }
             await updateRunStatus("start_running");
+            setIsFirst(false);
         }
     };
 
@@ -417,17 +427,33 @@ export default function CourseRun() {
         }
     }, [runStatus, updateRunStatus, updateRunType]);
 
+    useEffect(() => {
+        if (isFirst && !isRestarting) {
+            Toast.show({
+                type: "info",
+                text1: "시작 지점으로 이동해 주세요",
+                position: "bottom",
+                bottomOffset: 60,
+                visibilityTime: 3000,
+            });
+        }
+    }, [isFirst, isRestarting]);
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             <TopBlurView>
                 <WeatherInfo />
-                {isRestarting ? (
-                    <Countdown
-                        count={3}
-                        color={colors.primary}
-                        size={60}
-                        onComplete={() => onCompleteRestart(runStatus)}
-                    />
+                {isFirst ? (
+                    isRestarting ? (
+                        <Countdown
+                            count={3}
+                            color={colors.primary}
+                            size={60}
+                            onComplete={() => onCompleteRestart(runStatus)}
+                        />
+                    ) : (
+                        <Text style={styles.timeTextRed}>3</Text>
+                    )
                 ) : (
                     <Animated.Text
                         style={[styles.timeText, { color: colors.white }]}
@@ -535,52 +561,71 @@ export default function CourseRun() {
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
-                        <StatsIndicator
-                            stats={[
-                                {
-                                    label: "거리",
-                                    value: (
-                                        runUserDashboardData.totalDistance /
-                                        1000
-                                    ).toFixed(2),
-                                    unit: "km",
-                                },
-                                {
-                                    label: "평균 페이스",
-                                    value: getFormattedPace(
-                                        runUserDashboardData.averagePace
-                                    ),
-                                    unit: "",
-                                },
-                                {
-                                    label: "최근 페이스",
-                                    value: getFormattedPace(
-                                        runUserDashboardData.recentPointsPace
-                                    ),
-                                    unit: "",
-                                },
-                                {
-                                    label: "케이던스",
-                                    value: runUserDashboardData.averageCadence,
-                                    unit: "spm",
-                                },
-                                {
-                                    label: "심박수",
-                                    value: runUserDashboardData.bpm,
-                                    unit: "",
-                                },
-                                {
-                                    label: "소모 칼로리",
-                                    value: runUserDashboardData.totalCalories,
-                                    unit: "kcal",
-                                },
-                            ]}
-                            ghost={
-                                mode === "GHOST" && currentRunType === "COURSE"
-                            }
-                            ghostTelemetry={ghostTelemetries.current[0]}
-                            color="gray20"
-                        />
+                        {isFirst ? (
+                            !isRestarting ? (
+                                <EmptyListView
+                                    description={`러닝 기록을 위해\n코스 시작 지점으로 이동해 주세요`}
+                                    iconColor={colors.red}
+                                    fontSize="headline"
+                                    fontColor="white"
+                                />
+                            ) : (
+                                <EmptyListView
+                                    description={`러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`}
+                                    iconColor={colors.red}
+                                    fontSize="headline"
+                                    fontColor="white"
+                                />
+                            )
+                        ) : (
+                            <StatsIndicator
+                                stats={[
+                                    {
+                                        label: "거리",
+                                        value: (
+                                            runUserDashboardData.totalDistance /
+                                            1000
+                                        ).toFixed(2),
+                                        unit: "km",
+                                    },
+                                    {
+                                        label: "평균 페이스",
+                                        value: getFormattedPace(
+                                            runUserDashboardData.averagePace
+                                        ),
+                                        unit: "",
+                                    },
+                                    {
+                                        label: "최근 페이스",
+                                        value: getFormattedPace(
+                                            runUserDashboardData.recentPointsPace
+                                        ),
+                                        unit: "",
+                                    },
+                                    {
+                                        label: "케이던스",
+                                        value: runUserDashboardData.averageCadence,
+                                        unit: "spm",
+                                    },
+                                    {
+                                        label: "심박수",
+                                        value: runUserDashboardData.bpm,
+                                        unit: "",
+                                    },
+                                    {
+                                        label: "소모 칼로리",
+                                        value: runUserDashboardData.totalCalories,
+                                        unit: "kcal",
+                                    },
+                                ]}
+                                ghost={
+                                    mode === "GHOST" &&
+                                    currentRunType === "COURSE"
+                                }
+                                ghostTelemetry={ghostTelemetries.current[0]}
+                                color="gray20"
+                            />
+                        )}
                     </View>
                 </BottomSheetView>
             </BottomSheet>
@@ -606,6 +651,13 @@ const styles = StyleSheet.create({
         fontFamily: "SpoqaHanSansNeo-Bold",
         fontSize: 60,
         color: "white",
+        lineHeight: 81.3,
+        textAlign: "center",
+    },
+    timeTextRed: {
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontSize: 60,
+        color: colors.red,
         lineHeight: 81.3,
         textAlign: "center",
     },

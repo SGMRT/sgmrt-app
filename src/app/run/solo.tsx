@@ -2,6 +2,7 @@ import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import Countdown from "@/src/components/ui/Countdown";
+import EmptyListView from "@/src/components/ui/EmptyListView";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
@@ -29,6 +30,8 @@ export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
+    const [isFirst, setIsFirst] = useState<boolean>(true);
+
     const {
         runSegments,
         runTelemetries,
@@ -53,6 +56,7 @@ export default function Run() {
         if (isRestarting) {
             setIsRestarting(false);
             await updateRunStatus("start_running");
+            setIsFirst(false);
         }
     };
 
@@ -116,56 +120,69 @@ export default function Run() {
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
-                        <StatsIndicator
-                            stats={[
-                                {
-                                    label: "거리",
-                                    value: (
-                                        runUserDashboardData.totalDistance /
-                                        1000
-                                    ).toFixed(2),
-                                    unit: "km",
-                                },
-                                {
-                                    label: "평균 페이스",
-                                    value: getFormattedPace(
-                                        runUserDashboardData.averagePace
-                                    ),
-                                    unit: "",
-                                },
-                                {
-                                    label: "최근 페이스",
-                                    value: getFormattedPace(
-                                        runUserDashboardData.recentPointsPace
-                                    ),
-                                    unit: "",
-                                },
-                                {
-                                    label: "케이던스",
-                                    value: runUserDashboardData.averageCadence,
-                                    unit: "spm",
-                                },
-                                {
-                                    label: "심박수",
-                                    value: runUserDashboardData.bpm,
-                                    unit: "",
-                                },
-                                {
-                                    label: "소모 칼로리",
-                                    value: runUserDashboardData.totalCalories,
-                                    unit: "kcal",
-                                },
-                            ]}
-                            color="gray20"
-                        />
+                        {isFirst ? (
+                            <EmptyListView
+                                description={`러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`}
+                                iconColor={colors.red}
+                                fontSize="headline"
+                                fontColor="white"
+                            />
+                        ) : (
+                            <StatsIndicator
+                                stats={[
+                                    {
+                                        label: "거리",
+                                        value: (
+                                            runUserDashboardData.totalDistance /
+                                            1000
+                                        ).toFixed(2),
+                                        unit: "km",
+                                    },
+                                    {
+                                        label: "평균 페이스",
+                                        value: getFormattedPace(
+                                            runUserDashboardData.averagePace
+                                        ),
+                                        unit: "",
+                                    },
+                                    {
+                                        label: "최근 페이스",
+                                        value: getFormattedPace(
+                                            runUserDashboardData.recentPointsPace
+                                        ),
+                                        unit: "",
+                                    },
+                                    {
+                                        label: "케이던스",
+                                        value: runUserDashboardData.averageCadence,
+                                        unit: "spm",
+                                    },
+                                    {
+                                        label: "심박수",
+                                        value: runUserDashboardData.bpm,
+                                        unit: "",
+                                    },
+                                    {
+                                        label: "소모 칼로리",
+                                        value: runUserDashboardData.totalCalories,
+                                        unit: "kcal",
+                                    },
+                                ]}
+                                color="gray20"
+                            />
+                        )}
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {runStatus === "start_running" ? (
+            {runStatus === "start_running" || runStatus === "before_running" ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={async () => {
-                        await updateRunStatus("pause_running");
+                        if (runStatus === "start_running") {
+                            await updateRunStatus("pause_running");
+                        } else {
+                            router.back();
+                        }
                     }}
                     color="red"
                     direction="right"
