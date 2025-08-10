@@ -73,7 +73,7 @@ export default function CourseRankScreen() {
                 }}
             >
                 <Typography
-                    variant="body1"
+                    variant="body2"
                     color="gray40"
                     style={styles.headerText}
                 >

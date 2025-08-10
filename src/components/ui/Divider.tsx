@@ -13,7 +13,7 @@ export const Divider = ({
 const styles = StyleSheet.create({
     vertical: {
         height: 10,
-        width: 2,
+        width: 1,
         borderRadius: 4,
         backgroundColor: "#3f3f3f",
     },

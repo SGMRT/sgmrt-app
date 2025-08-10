@@ -77,7 +77,7 @@ export default function CourseInfoItem({
                             unit: "spm",
                         },
                     ]}
-                    variant="body1"
+                    variant="body2"
                 />
             </View>
             <RadioButton
@@ -111,7 +111,7 @@ const HistoryHeader = ({
     const router = useRouter();
     return (
         <View style={styles.headerContainer}>
-            <Typography variant="body1" color="white">
+            <Typography variant="body2" color="white">
                 {historyName}
             </Typography>
             <TouchableOpacity

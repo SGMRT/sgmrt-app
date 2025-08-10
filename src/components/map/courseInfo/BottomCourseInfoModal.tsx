@@ -1,14 +1,15 @@
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
-import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import StyledChart from "../../chart/StyledChart";
 import { Divider } from "../../ui/Divider";
+import Section from "../../ui/Section";
 import SlideToAction from "../../ui/SlideToAction";
-import StatsIndicator from "../../ui/StatsIndicator";
+import StatRow from "../../ui/StatRow";
 import { Typography } from "../../ui/Typography";
 import CourseTopUsers from "./CourseTopUsers";
 
@@ -46,62 +47,59 @@ export default function BottomCourseInfoModal({
 
     const stats = [
         {
-            label: "전체 거리",
+            description: "전체 거리",
             value: ((course?.distance ?? 0) / 1000).toFixed(2),
             unit: "km",
         },
         {
-            label: "고도 상승",
+            description: "평균 고도",
+            value: "--",
+            unit: "m",
+        },
+        {
+            description: "상승",
             value: course?.elevationGain.toString() ?? "--",
             unit: "m",
         },
         {
-            label: "고도 하강",
+            description: "하강",
             value: course?.elevationLoss.toString() ?? "--",
             unit: "m",
-        },
-        {
-            label: "평균 시간",
-            value: getRunTime(course?.averageCompletionTime ?? 0, "MM:SS"),
-            unit: "",
-        },
-        {
-            label: "평균 페이스",
-            value: getFormattedPace(course?.averageFinisherPace ?? 0),
-            unit: "",
-        },
-        {
-            label: "평균 케이던스",
-            value: course?.averageFinisherCadence ?? "--",
-            unit: "spm",
         },
     ];
 
     const router = useRouter();
+
+    const dummyData = Array.from({ length: 12 }, (_, i) => ({
+        dist: i,
+        alt: Math.sin(i / 10) * 100,
+    }));
+
     return (
         <>
-            <View style={styles.tabContainer}>
-                <Pressable onPress={() => setTab("course")} style={styles.tab}>
-                    <Typography
-                        variant="subhead2"
-                        color={tab === "course" ? "white" : "gray60"}
-                    >
-                        코스 상세 정보
-                    </Typography>
-                </Pressable>
-                <Divider />
-                <Pressable onPress={() => setTab("ghost")} style={styles.tab}>
-                    <Typography
-                        variant="subhead2"
-                        color={tab === "ghost" ? "white" : "gray60"}
-                    >
-                        고스트 선택
-                    </Typography>
-                </Pressable>
-            </View>
+            <TabHeader tab={tab} setTab={setTab} />
             {tab === "course" && (
-                <View style={{ marginBottom: 30 }}>
-                    <StatsIndicator stats={stats} />
+                <View
+                    style={{
+                        marginBottom: 30,
+                        marginHorizontal: 16.5,
+                    }}
+                >
+                    <Section style={{ paddingVertical: 25, gap: 15 }}>
+                        <StatRow
+                            stats={stats}
+                            color="gray20"
+                            style={{
+                                justifyContent: "space-between",
+                            }}
+                        />
+                        <StyledChart
+                            label="고도"
+                            data={dummyData}
+                            xKey="dist"
+                            yKeys={["alt"]}
+                        />
+                    </Section>
                 </View>
             )}
             {tab === "ghost" && (
@@ -134,6 +132,36 @@ export default function BottomCourseInfoModal({
         </>
     );
 }
+
+const TabHeader = ({
+    tab,
+    setTab,
+}: {
+    tab: "course" | "ghost";
+    setTab: (tab: "course" | "ghost") => void;
+}) => {
+    return (
+        <View style={styles.tabContainer}>
+            <Pressable onPress={() => setTab("course")} style={styles.tab}>
+                <Typography
+                    variant="subhead2"
+                    color={tab === "course" ? "white" : "gray60"}
+                >
+                    코스 상세 정보
+                </Typography>
+            </Pressable>
+            <Divider />
+            <Pressable onPress={() => setTab("ghost")} style={styles.tab}>
+                <Typography
+                    variant="subhead2"
+                    color={tab === "ghost" ? "white" : "gray60"}
+                >
+                    고스트 선택
+                </Typography>
+            </Pressable>
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
     tabContainer: {

@@ -26,7 +26,7 @@ const AgreeItem = ({
                             color={isAgreed ? colors.primary : colors.gray[60]}
                         />
                     </TouchableOpacity>
-                    <Typography variant="body1" color="gray40">
+                    <Typography variant="body2" color="gray40">
                         {title}
                     </Typography>
                 </View>
@@ -41,7 +41,7 @@ const AgreeItem = ({
             </View>
             {/* {isOpen && (
                 <View>
-                    <Typography variant="body1" color="gray40">
+                    <Typography variant="body2" color="gray40">
                         {content}
                     </Typography>
                 </View>

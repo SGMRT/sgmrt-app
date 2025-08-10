@@ -25,7 +25,7 @@ export default function ExpendHeader({
                 marginHorizontal && { paddingHorizontal: 17 },
             ]}
         >
-            <Typography variant="body1" color={titleColor}>
+            <Typography variant="body2" color={titleColor}>
                 {title}
             </Typography>
             <View style={styles.ghostListContainerText}>
@@ -36,7 +36,7 @@ export default function ExpendHeader({
                                 onPress();
                             }}
                         >
-                            <Typography variant="body2" color="gray60">
+                            <Typography variant="body3" color="gray60">
                                 전체 보기
                             </Typography>
                         </Pressable>

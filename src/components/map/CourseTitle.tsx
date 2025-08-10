@@ -53,7 +53,7 @@ export default function CourseTitle({
                         ))}
                         {course.runnersCount - course.runners.length > 0 && (
                             <View style={styles.userCountContainer}>
-                                <Typography variant="body2" color="gray40">
+                                <Typography variant="body3" color="gray40">
                                     +{course.runnersCount}
                                 </Typography>
                             </View>

@@ -104,7 +104,7 @@ export default function StatsIndicator({
                               }}
                           >
                               <Typography
-                                  variant="body1"
+                                  variant="body2"
                                   color={"gray60"}
                                   style={{ width: 60, textAlign: "center" }}
                               >
@@ -137,7 +137,7 @@ export default function StatsIndicator({
                               }}
                           >
                               <Typography
-                                  variant="body1"
+                                  variant="body2"
                                   color={"gray60"}
                                   style={{ width: 60, textAlign: "center" }}
                               >
@@ -168,7 +168,7 @@ export default function StatsIndicator({
                               }}
                           >
                               <Typography
-                                  variant="body1"
+                                  variant="body2"
                                   color={"gray60"}
                                   style={{ width: 60, textAlign: "center" }}
                               >

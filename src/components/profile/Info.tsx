@@ -154,7 +154,7 @@ export const Info = ({
                 <ProfileOptionItem
                     title="버전 정보"
                     rightElement={
-                        <Typography variant="body1" color="primary">
+                        <Typography variant="body2" color="primary">
                             {`${Application.nativeApplicationVersion}`}
                         </Typography>
                     }
@@ -292,20 +292,20 @@ const Profile = ({ userInfo }: { userInfo: GetUserInfoResponse | null }) => {
                         alignItems: "center",
                     }}
                 >
-                    <Typography variant="body1" color="gray40">
+                    <Typography variant="body2" color="gray40">
                         {userInfo?.height
                             ? `${userInfo.height}cm`
                             : "키 비공개"}
                     </Typography>
 
                     <Divider />
-                    <Typography variant="body1" color="gray40">
+                    <Typography variant="body2" color="gray40">
                         {userInfo?.weight
                             ? `${userInfo.weight}kg`
                             : "몸무게 비공개"}
                     </Typography>
                     <Divider />
-                    <Typography variant="body1" color="gray40">
+                    <Typography variant="body2" color="gray40">
                         {userInfo?.gender === "MALE"
                             ? "남성"
                             : userInfo?.gender === "FEMALE"

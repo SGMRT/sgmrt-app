@@ -23,7 +23,7 @@ export const CourseFilter = ({
                         paddingBottom: 20,
                     }}
                 >
-                    <Typography variant="body2" color="white">
+                    <Typography variant="body3" color="white">
                         보기 방식
                     </Typography>
                 </View>

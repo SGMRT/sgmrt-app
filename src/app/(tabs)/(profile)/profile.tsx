@@ -96,7 +96,7 @@ export default function ProfileScreen() {
                                     ? "로그아웃 하시겠습니까?"
                                     : "회원 탈퇴하시겠습니까?"}
                             </Typography>
-                            <Typography variant="body2" color="gray40">
+                            <Typography variant="body3" color="gray40">
                                 {modalType === "logout"
                                     ? "간편 로그인을 통해 다시 로그인할 수 있습니다"
                                     : "활동 내역 및 저장된 정보는 삭제되며 복구할 수 없습니다"}

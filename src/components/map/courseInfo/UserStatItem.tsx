@@ -49,7 +49,7 @@ export default memo(function UserStatItem({
             <View style={styles.textContainer}>
                 {rank && (
                     <Typography
-                        variant="body1"
+                        variant="body2"
                         color={isGhostSelected ? "primary" : "gray60"}
                     >
                         {rank}
@@ -64,7 +64,7 @@ export default memo(function UserStatItem({
                     style={styles.avatar}
                 />
                 <View>
-                    <Typography variant="body1" color="gray60">
+                    <Typography variant="body2" color="gray60">
                         {name}
                     </Typography>
                     <View
@@ -75,21 +75,21 @@ export default memo(function UserStatItem({
                         }}
                     >
                         <Typography
-                            variant="body1"
+                            variant="body2"
                             color={isGhostSelected ? "gray40" : "gray60"}
                         >
                             {time}
                         </Typography>
                         <Divider />
                         <Typography
-                            variant="body1"
+                            variant="body2"
                             color={isGhostSelected ? "gray40" : "gray60"}
                         >
                             {pace}
                         </Typography>
                         <Divider />
                         <Typography
-                            variant="body1"
+                            variant="body2"
                             color={isGhostSelected ? "gray40" : "gray60"}
                         >
                             {cadence}

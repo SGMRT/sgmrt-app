@@ -161,8 +161,6 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         });
     }, [courses, activeCourse]);
 
-    if (!center) return null;
-
     return (
         <>
             <MapViewWrapper

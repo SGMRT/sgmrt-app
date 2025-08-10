@@ -329,6 +329,7 @@ export default function Result() {
                                 }
                             >
                                 <StyledChart
+                                    label="페이스"
                                     data={runData.telemetries}
                                     xKey="dist"
                                     yKeys={["pace"]}
@@ -365,6 +366,7 @@ export default function Result() {
                                 }
                             >
                                 <StyledChart
+                                    label="고도"
                                     data={runData.telemetries}
                                     xKey="dist"
                                     yKeys={["alt"]}
@@ -467,7 +469,7 @@ export default function Result() {
                             placeholder="코스명을 입력해주세요"
                             onChangeText={setCourseName}
                         />
-                        <Typography variant="body2" color="gray40">
+                        <Typography variant="body3" color="gray40">
                             코스를 한 번 등록하면 삭제 및 수정이 어렵습니다
                         </Typography>
                     </View>

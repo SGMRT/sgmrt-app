@@ -26,7 +26,7 @@ export default function CollapsibleSection({
                     alignItems: "center",
                 }}
             >
-                <Typography variant="body1" color="gray60">
+                <Typography variant="body2" color="gray60">
                     {title}
                 </Typography>
                 <Pressable onPress={() => setOpen(!open)}>

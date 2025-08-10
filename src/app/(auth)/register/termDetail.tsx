@@ -39,7 +39,7 @@ export default function TermDetail() {
                     paddingHorizontal: 15,
                 }}
             >
-                <Typography variant="body1" color="gray40">
+                <Typography variant="body2" color="gray40">
                     {title}
                 </Typography>
             </ScrollView>
