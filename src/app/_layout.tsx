@@ -77,7 +77,7 @@ function RootLayout() {
                 id: uuid!,
                 username: userInfo?.username!,
             });
-            router.replace("/(auth)/register");
+            router.replace("/intro");
         } else {
             router.replace("/(auth)/login");
         }

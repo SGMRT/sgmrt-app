@@ -17,6 +17,7 @@ type SignUpRequest = SignupState & {
 type PatchUserInfoRequest = {
     nickname?: string;
     gender?: "MALE" | "FEMALE";
+    age?: number | null;
     height?: number | null;
     weight?: number | null;
 };
@@ -38,10 +39,10 @@ type GetUserInfoResponse = {
 };
 
 export type {
+    GetUserInfoResponse,
     PatchUserInfoRequest,
     PatchUserSettingsRequest,
     SignInRequest,
     SignResponse,
     SignUpRequest,
-    GetUserInfoResponse,
 };

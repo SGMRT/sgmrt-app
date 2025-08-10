@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
         color: colors.gray[20],
         fontSize: 16,
         fontFamily: "SpoqaHanSansNeo-Regular",
+        flex: 1,
     },
     infoField: {
         flexDirection: "row",
