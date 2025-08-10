@@ -9,7 +9,7 @@ import { useAuthStore } from "@/src/store/authState";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { FlashList } from "@shopify/flash-list";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -95,6 +95,8 @@ export default function CourseRankScreen() {
     const [totalCount, setTotalCount] = useState<number>(0);
 
     const { uuid } = useAuthStore();
+
+    const router = useRouter();
 
     const { data, isFetchingNextPage, fetchNextPage, hasNextPage } =
         useInfiniteQuery({
@@ -251,7 +253,7 @@ export default function CourseRankScreen() {
             <SlideToAction
                 label="고스트와 러닝 시작"
                 onSlideSuccess={() => {
-                    console.log("slide success");
+                    router.push(`/run/${courseId}/${selectedGhostId}`);
                 }}
                 color="green"
                 direction="left"

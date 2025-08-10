@@ -77,7 +77,7 @@ function RootLayout() {
                 id: uuid!,
                 username: userInfo?.username!,
             });
-            router.replace("/course/rank/1");
+            router.replace("/intro");
         } else {
             router.replace("/(auth)/login");
         }
