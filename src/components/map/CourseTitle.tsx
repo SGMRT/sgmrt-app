@@ -31,7 +31,7 @@ export default function CourseTitle({
                     <View style={styles.topUsersContainer}>
                         {course.runners.map((user, index) => (
                             <View
-                                key={user.uuId}
+                                key={user.uuId + index.toString()}
                                 style={{ marginLeft: index === 0 ? 0 : -14 }}
                             >
                                 <Image

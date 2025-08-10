@@ -6,8 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { SharedValue } from "react-native-reanimated";
-import BottomModal from "../../ui/BottomModal";
 import { Divider } from "../../ui/Divider";
 import SlideToAction from "../../ui/SlideToAction";
 import StatsIndicator from "../../ui/StatsIndicator";
@@ -16,15 +14,11 @@ import CourseTopUsers from "./CourseTopUsers";
 
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
-    canClose?: boolean;
     courseId: number;
-    heightVal: SharedValue<number>;
 }
 
 export default function BottomCourseInfoModal({
     bottomSheetRef,
-    canClose = true,
-    heightVal,
     courseId,
 }: BottomCourseInfoModalProps) {
     const [tab, setTab] = useState<"course" | "ghost">("course");
@@ -85,11 +79,7 @@ export default function BottomCourseInfoModal({
 
     const router = useRouter();
     return (
-        <BottomModal
-            bottomSheetRef={bottomSheetRef}
-            canClose={canClose}
-            heightVal={heightVal}
-        >
+        <>
             <View style={styles.tabContainer}>
                 <Pressable onPress={() => setTab("course")} style={styles.tab}>
                     <Typography
@@ -141,7 +131,7 @@ export default function BottomCourseInfoModal({
                 color="green"
                 direction="left"
             />
-        </BottomModal>
+        </>
     );
 }
 

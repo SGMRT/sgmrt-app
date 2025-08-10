@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions } from "react-native";
 import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BottomModal from "../ui/BottomModal";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import BottomMyCourseModal from "./courseInfo/BottomMyCourseModal";
 import CourseMarkers from "./CourseMarkers";
@@ -143,6 +144,12 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         });
     }, []);
 
+    useEffect(() => {
+        if (courseType === "my") {
+            bottomSheetRef.current?.present();
+        }
+    }, [courseType]);
+
     const sortedCourses = useMemo(() => {
         if (!courses) return [];
         // activeCourse를 배열의 맨 뒤로 보내서 가장 마지막에 (즉, 가장 위에) 렌더링되도록 정렬
@@ -174,23 +181,20 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                     />
                 ))}
             </MapViewWrapper>
-            {courseType === "all" ? (
-                <BottomCourseInfoModal
-                    bottomSheetRef={bottomSheetRef}
-                    heightVal={heightVal}
-                    courseId={activeCourse?.id ?? -1}
-                />
-            ) : (
-                courses &&
-                courses.length > 0 && (
+            <BottomModal bottomSheetRef={bottomSheetRef} heightVal={heightVal}>
+                {courseType === "all" ? (
+                    <BottomCourseInfoModal
+                        bottomSheetRef={bottomSheetRef}
+                        courseId={activeCourse?.id ?? -1}
+                    />
+                ) : (
                     <BottomMyCourseModal
                         bottomSheetRef={bottomSheetRef}
-                        heightVal={heightVal}
                         courses={courses ?? []}
                         onClickCourse={onClickCourse}
                     />
-                )
-            )}
+                )}
+            </BottomModal>
         </>
     );
 }
