@@ -65,8 +65,7 @@ server.interceptors.response.use(
                             .getState()
                             .login(uuid, accessToken, refreshToken);
                         error.config.retryCount = error.config.retryCount + 1;
-                        error.config.withAuth = true;
-                        error.config.canRetry = false;
+                        error.config.withAuth = false;
                         error.config.headers = {
                             Authorization: `Bearer ${accessToken}`,
                         };
