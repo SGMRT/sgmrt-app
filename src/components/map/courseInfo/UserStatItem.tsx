@@ -17,6 +17,7 @@ interface UserStatItemProps {
     onPress?: (ghostId: string) => void;
     isMyRecord?: boolean;
     paddingHorizontal?: boolean;
+    paddingVertical?: boolean;
 }
 
 export default memo(function UserStatItem({
@@ -31,6 +32,7 @@ export default memo(function UserStatItem({
     isMyRecord,
     onPress,
     paddingHorizontal = true,
+    paddingVertical = true,
 }: UserStatItemProps) {
     return (
         <View
@@ -38,6 +40,9 @@ export default memo(function UserStatItem({
                 styles.container,
                 paddingHorizontal && {
                     paddingHorizontal: 17,
+                },
+                paddingVertical && {
+                    paddingVertical: 15,
                 },
                 {
                     backgroundColor: isGhostSelected
@@ -49,7 +54,7 @@ export default memo(function UserStatItem({
             <View style={styles.textContainer}>
                 {rank && (
                     <Typography
-                        variant="body2"
+                        variant="caption1"
                         color={isGhostSelected ? "primary" : "gray60"}
                     >
                         {rank}
@@ -64,7 +69,7 @@ export default memo(function UserStatItem({
                     style={styles.avatar}
                 />
                 <View>
-                    <Typography variant="body2" color="gray60">
+                    <Typography variant="subhead1" color="gray40">
                         {name}
                     </Typography>
                     <View
@@ -111,7 +116,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        paddingVertical: 15,
     },
     textContainer: {
         flexDirection: "row",

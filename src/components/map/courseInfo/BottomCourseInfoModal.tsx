@@ -1,5 +1,9 @@
+import { AlertIcon } from "@/assets/svgs/svgs";
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
+import { useAuthStore } from "@/src/store/authState";
+import colors from "@/src/theme/colors";
+import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -9,9 +13,9 @@ import StyledChart from "../../chart/StyledChart";
 import { Divider } from "../../ui/Divider";
 import Section from "../../ui/Section";
 import SlideToAction from "../../ui/SlideToAction";
-import StatRow from "../../ui/StatRow";
+import StatRow, { Stat } from "../../ui/StatRow";
 import { Typography } from "../../ui/Typography";
-import CourseTopUsers from "./CourseTopUsers";
+import UserStatItem from "./UserStatItem";
 
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
@@ -38,6 +42,8 @@ export default function BottomCourseInfoModal({
 
     const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
 
+    const { uuid } = useAuthStore();
+
     useEffect(() => {
         console.log("course: ", courseId);
         if (ghostList && ghostList.length > 0) {
@@ -45,7 +51,7 @@ export default function BottomCourseInfoModal({
         }
     }, [ghostList, courseId]);
 
-    const stats = [
+    const courseStats = [
         {
             description: "전체 거리",
             value: ((course?.distance ?? 0) / 1000).toFixed(2),
@@ -68,6 +74,29 @@ export default function BottomCourseInfoModal({
         },
     ];
 
+    const ghostStats = [
+        {
+            description: "시간",
+            value: getRunTime(course?.averageCompletionTime ?? 0, "HH:MM:SS"),
+            unit: "",
+        },
+        {
+            description: "케이던스",
+            value: course?.averageFinisherCadence ?? "--",
+            unit: "spm",
+        },
+        {
+            description: "칼로리",
+            value: "--",
+            unit: "kcal",
+        },
+        {
+            description: "페이스",
+            value: getFormattedPace(course?.averageFinisherPace ?? 0),
+            unit: "",
+        },
+    ];
+
     const router = useRouter();
 
     const dummyData = Array.from({ length: 12 }, (_, i) => ({
@@ -75,41 +104,25 @@ export default function BottomCourseInfoModal({
         alt: Math.sin(i / 10) * 100,
     }));
 
+    const onClickGhostRank = () => {
+        bottomSheetRef.current?.dismiss();
+        router.push(`/course/rank/${courseId}`);
+    };
+
     return (
         <>
             <TabHeader tab={tab} setTab={setTab} />
             {tab === "course" && (
-                <View
-                    style={{
-                        marginBottom: 30,
-                        marginHorizontal: 16.5,
-                    }}
-                >
-                    <Section style={{ paddingVertical: 25, gap: 15 }}>
-                        <StatRow
-                            stats={stats}
-                            color="gray20"
-                            style={{
-                                justifyContent: "space-between",
-                            }}
-                        />
-                        <StyledChart
-                            label="고도"
-                            data={dummyData}
-                            xKey="dist"
-                            yKeys={["alt"]}
-                        />
-                    </Section>
-                </View>
+                <CourseInfoSection stats={courseStats} dummyData={dummyData} />
             )}
             {tab === "ghost" && (
-                <CourseTopUsers
-                    userCount={0}
+                <GhostInfoSection
+                    stats={ghostStats}
+                    uuid={uuid}
                     ghostList={ghostList ?? []}
-                    selectedGhostId={selectedGhostId ?? 0}
+                    selectedGhostId={selectedGhostId ?? -1}
                     setSelectedGhostId={setSelectedGhostId}
-                    bottomSheetRef={bottomSheetRef}
-                    courseId={courseId}
+                    onPress={onClickGhostRank}
                 />
             )}
             <SlideToAction
@@ -132,6 +145,122 @@ export default function BottomCourseInfoModal({
         </>
     );
 }
+
+const GhostInfoSection = ({
+    stats,
+    uuid,
+    ghostList,
+    selectedGhostId,
+    setSelectedGhostId,
+    onPress,
+}: {
+    stats: Stat[];
+    uuid: string | null;
+    ghostList: HistoryResponse[];
+    selectedGhostId: number;
+    setSelectedGhostId: (ghostId: number) => void;
+    onPress: () => void;
+}) => {
+    if (ghostList.length === 0) {
+        return (
+            <Section
+                title="고스트 평균 정보"
+                style={{ marginBottom: 30, marginHorizontal: 16.5 }}
+            >
+                <View style={{ gap: 15, alignItems: "center" }}>
+                    <AlertIcon color={colors.gray[60]} />
+                    <Typography
+                        variant="body2"
+                        color="gray40"
+                        style={{ textAlign: "center" }}
+                    >
+                        등록된 고스트가 아직 없어요{"\n"}
+                        코스 러닝을 시작해 첫 고스트가 되어보세요!
+                    </Typography>
+                </View>
+            </Section>
+        );
+    }
+    return (
+        <View
+            style={{
+                gap: 20,
+                marginHorizontal: 16.5,
+                marginBottom: 30,
+            }}
+        >
+            <Section title="고스트 평균 정보">
+                <StatRow
+                    stats={stats}
+                    color="gray20"
+                    style={{
+                        justifyContent: "space-between",
+                    }}
+                />
+            </Section>
+            <Section
+                title="고스트 TOP3"
+                shortcutTitle="순위 전체"
+                onPress={() => {
+                    onPress();
+                }}
+            >
+                {ghostList.map((ghost, index) => (
+                    <UserStatItem
+                        key={ghost.runningId}
+                        rank={index + 1}
+                        name={ghost.runningName}
+                        avatar={ghost.runnerProfileUrl}
+                        time={getRunTime(ghost.duration, "MM:SS")}
+                        pace={getFormattedPace(ghost.averagePace)}
+                        cadence={ghost.cadence.toString() + " spm"}
+                        ghostId={ghost.runningId.toString()}
+                        isGhostSelected={selectedGhostId === ghost.runningId}
+                        onPress={() => {
+                            setSelectedGhostId(ghost.runningId);
+                        }}
+                        isMyRecord={ghost.runnerUuid === uuid}
+                        paddingHorizontal={false}
+                        paddingVertical={false}
+                    />
+                ))}
+            </Section>
+        </View>
+    );
+};
+
+const CourseInfoSection = ({
+    stats,
+    dummyData,
+}: {
+    stats: Stat[];
+    dummyData: any[];
+}) => {
+    return (
+        <Section
+            style={{
+                paddingVertical: 25,
+                gap: 15,
+                marginBottom: 30,
+                marginHorizontal: 16.5,
+            }}
+        >
+            <StatRow
+                stats={stats}
+                color="gray20"
+                style={{
+                    justifyContent: "space-between",
+                }}
+            />
+            <StyledChart
+                label="고도"
+                data={dummyData}
+                xKey="dist"
+                yKeys={["alt"]}
+            />
+        </Section>
+    );
+};
 
 const TabHeader = ({
     tab,

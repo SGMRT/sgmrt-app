@@ -11,6 +11,7 @@ import TabBar from "@/src/components/ui/TabBar";
 import { TabItem } from "@/src/components/ui/TabItem";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
+import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -89,7 +90,7 @@ export default function ProfileScreen() {
             >
                 <View style={{ gap: 30 }}>
                     <View style={{ gap: 15, alignItems: "center" }}>
-                        <AlertIcon />
+                        <AlertIcon color={colors.red} />
                         <View style={{ gap: 4, alignItems: "center" }}>
                             <Typography variant="headline" color="white">
                                 {modalType === "logout"
