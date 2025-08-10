@@ -1,8 +1,6 @@
-import { AlertIcon } from "@/assets/svgs/svgs";
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import { useAuthStore } from "@/src/store/authState";
-import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +9,7 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import StyledChart from "../../chart/StyledChart";
 import { Divider } from "../../ui/Divider";
+import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
 import SlideToAction from "../../ui/SlideToAction";
 import StatRow, { Stat } from "../../ui/StatRow";
@@ -167,17 +166,9 @@ const GhostInfoSection = ({
                 title="고스트 평균 정보"
                 style={{ marginBottom: 30, marginHorizontal: 16.5 }}
             >
-                <View style={{ gap: 15, alignItems: "center" }}>
-                    <AlertIcon color={colors.gray[60]} />
-                    <Typography
-                        variant="body2"
-                        color="gray40"
-                        style={{ textAlign: "center" }}
-                    >
-                        등록된 고스트가 아직 없어요{"\n"}
-                        코스 러닝을 시작해 첫 고스트가 되어보세요!
-                    </Typography>
-                </View>
+                <EmptyListView
+                    description={`등록된 고스트가 아직 없어요\n코스 러닝을 시작해 첫 고스트가 되어보세요!`}
+                />
             </Section>
         );
     }
@@ -203,6 +194,9 @@ const GhostInfoSection = ({
                 shortcutTitle="순위 전체"
                 onPress={() => {
                     onPress();
+                }}
+                style={{
+                    gap: 20,
                 }}
             >
                 {ghostList.map((ghost, index) => (

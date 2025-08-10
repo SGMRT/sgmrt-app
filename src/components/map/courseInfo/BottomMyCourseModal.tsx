@@ -2,6 +2,7 @@ import { CourseResponse } from "@/src/apis/types/course";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import { ScrollView } from "react-native";
 import ExpendHeader from "../../ui/ExpendHeader";
 import SlideToAction from "../../ui/SlideToAction";
 import CoursesInfoList from "./CoursesInfoList";
@@ -43,12 +44,15 @@ export default function BottomMyCourseModal({
                     router.push("/course");
                 }}
             />
-            <CoursesInfoList
-                courses={courses}
-                selectedCourse={selectedCourse}
-                setSelectedCourse={setSelectedCourse}
-                onClickCourse={onClickCourse}
-            />
+            <ScrollView>
+                <CoursesInfoList
+                    courses={courses}
+                    selectedCourse={selectedCourse}
+                    setSelectedCourse={setSelectedCourse}
+                    onClickCourse={onClickCourse}
+                />
+            </ScrollView>
+
             <SlideToAction
                 label={"이 코스로 러닝 시작"}
                 onSlideSuccess={() => {

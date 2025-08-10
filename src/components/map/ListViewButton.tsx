@@ -2,14 +2,9 @@ import { ListIcon } from "@/assets/svgs/svgs";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { Typography } from "../ui/Typography";
 
-export default function ListViewButton() {
+export default function ListViewButton({ onPress }: { onPress: () => void }) {
     return (
-        <TouchableOpacity
-            onPress={() => {
-                console.log("목록 보기 버튼");
-            }}
-            style={styles.container}
-        >
+        <TouchableOpacity onPress={onPress} style={styles.container}>
             <ListIcon />
             <Typography variant="subhead3" color="gray40">
                 목록 보기

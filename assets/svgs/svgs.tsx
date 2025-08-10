@@ -24,6 +24,8 @@ import AlertIcon from "./alert.svg";
 
 import ListIcon from "./list.svg";
 
+import FilterIcon from "./slider.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -33,6 +35,7 @@ export {
     Compass,
     EditIcon,
     ElipsisVerticalIcon,
+    FilterIcon,
     KakaoIcon,
     ListIcon,
     LocateMe,

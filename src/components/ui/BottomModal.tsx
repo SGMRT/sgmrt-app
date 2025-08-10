@@ -1,6 +1,6 @@
 import colors from "@/src/theme/colors";
 import { BottomSheetModal, BottomSheetView } from "@gorhom/bottom-sheet";
-import { StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { Dimensions, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -10,7 +10,7 @@ interface BottomModalProps {
     heightVal?: SharedValue<number>;
     children: React.ReactNode;
     handleStyle?: StyleProp<ViewStyle>;
-    snapPoints?: number[];
+    snapPoints?: string[];
     index?: number;
     bottomInset?: number;
     onDismiss?: () => void;
@@ -40,6 +40,7 @@ export default function BottomModal({
             snapPoints={snapPoints}
             index={index}
             onDismiss={onDismiss}
+            maxDynamicContentSize={Dimensions.get("window").height - 250}
         >
             <BottomSheetView>{children}</BottomSheetView>
         </BottomSheetModal>

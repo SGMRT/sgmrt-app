@@ -56,7 +56,6 @@ export const CoursesWithFilter = ({
                 )}
                 showsVerticalScrollIndicator={false}
                 extraData={selectedCourse?.id}
-                estimatedItemSize={83}
                 onEndReached={hasNextPage ? fetchNextPage : undefined}
                 onEndReachedThreshold={0.5}
             />

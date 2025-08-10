@@ -9,11 +9,15 @@ import { useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions } from "react-native";
-import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import {
+    SharedValue,
+    useAnimatedStyle,
+    useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import CourseListView from "../course/CourseListView";
 import BottomModal from "../ui/BottomModal";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
-import BottomMyCourseModal from "./courseInfo/BottomMyCourseModal";
 import CourseMarkers from "./CourseMarkers";
 import ListViewButton from "./ListViewButton";
 import MapViewWrapper from "./MapViewWrapper";
@@ -37,6 +41,8 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     const handlePresentModalPress = () => {
         bottomSheetRef.current?.present();
     };
+
+    const [showCourseList, setShowCourseList] = useState(false);
 
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
@@ -63,10 +69,10 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         }
     };
 
-    const heightVal = useSharedValue(0);
     const deviceHeight = Dimensions.get("window").height;
     const { bottom } = useSafeAreaInsets();
 
+    const heightVal = useSharedValue(0);
     const controlPannelPosition = useAnimatedStyle(() => {
         const baseHeight =
             deviceHeight - BOTTOM_BAR_HEIGHT - BOTTOM_NAV_HEIGHT - bottom;
@@ -146,10 +152,13 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     }, []);
 
     useEffect(() => {
-        if (courseType === "my") {
-            bottomSheetRef.current?.present();
-        }
+        setShowCourseList(false);
+        bottomSheetRef.current?.dismiss();
     }, [courseType]);
+
+    useEffect(() => {
+        setActiveCourse(null);
+    }, [courses]);
 
     const sortedCourses = useMemo(() => {
         if (!courses) return [];
@@ -160,6 +169,11 @@ export default function HomeMap({ courseType }: HomeMapProps) {
             return 0;
         });
     }, [courses, activeCourse]);
+
+    const onPressListViewButton = () => {
+        setShowCourseList(true);
+        bottomSheetRef.current?.present();
+    };
 
     return (
         <>
@@ -180,21 +194,51 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                     />
                 ))}
             </MapViewWrapper>
-            <ListViewButton />
-            <BottomModal bottomSheetRef={bottomSheetRef} heightVal={heightVal}>
-                {courseType === "all" ? (
-                    <BottomCourseInfoModal
-                        bottomSheetRef={bottomSheetRef}
-                        courseId={activeCourse?.id ?? -1}
-                    />
-                ) : (
-                    <BottomMyCourseModal
-                        bottomSheetRef={bottomSheetRef}
-                        courses={courses ?? []}
-                        onClickCourse={onClickCourse}
-                    />
-                )}
-            </BottomModal>
+            <ListViewButton onPress={onPressListViewButton} />
+            <HomeBottomModal
+                bottomSheetRef={bottomSheetRef}
+                heightVal={heightVal}
+                modalType={showCourseList ? "list" : courseType}
+                activeCourse={activeCourse}
+                courses={courses ?? []}
+                onClickCourse={onClickCourse}
+            />
         </>
     );
 }
+
+interface HomeBottomModalProps {
+    bottomSheetRef: React.RefObject<BottomSheetModal | null>;
+    heightVal: SharedValue<number>;
+    modalType: "all" | "my" | "list";
+    activeCourse: CourseResponse | null;
+    courses: CourseResponse[];
+    onClickCourse: (course: CourseResponse) => void;
+}
+
+const HomeBottomModal = ({
+    bottomSheetRef,
+    heightVal,
+    modalType,
+    activeCourse,
+    courses,
+    onClickCourse,
+}: HomeBottomModalProps) => {
+    return (
+        <BottomModal bottomSheetRef={bottomSheetRef} heightVal={heightVal}>
+            {modalType !== "list" ? (
+                <BottomCourseInfoModal
+                    bottomSheetRef={bottomSheetRef}
+                    courseId={activeCourse?.id ?? -1}
+                />
+            ) : (
+                <CourseListView
+                    bottomSheetRef={bottomSheetRef}
+                    courses={courses ?? []}
+                    selectedCourse={activeCourse}
+                    onClickCourse={onClickCourse}
+                />
+            )}
+        </BottomModal>
+    );
+};
