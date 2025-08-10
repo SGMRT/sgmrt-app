@@ -45,24 +45,39 @@ server.interceptors.response.use(
             error.config.retryCount < 3
         ) {
             if (error.config.retryCount === 0) {
-                const response = await server.post(
-                    `auth/reissue`,
-                    {},
-                    {
-                        headers: {
-                            Authorization: `Bearer ${
-                                useAuthStore.getState().refreshToken
-                            }`,
-                        },
-                        canRetry: false,
-                        withAuth: false,
-                    }
-                );
-                const { uuid, accessToken, refreshToken } = response.data;
-                useAuthStore.getState().login(uuid, accessToken, refreshToken);
+                return await server
+                    .post(
+                        `auth/reissue`,
+                        {},
+                        {
+                            headers: {
+                                Authorization: `Bearer ${
+                                    useAuthStore.getState().refreshToken
+                                }`,
+                            },
+                            canRetry: false,
+                            withAuth: false,
+                        }
+                    )
+                    .then((res) => {
+                        const { uuid, accessToken, refreshToken } = res.data;
+                        useAuthStore
+                            .getState()
+                            .login(uuid, accessToken, refreshToken);
+                        error.config.retryCount = error.config.retryCount + 1;
+                        error.config.withAuth = true;
+                        error.config.canRetry = false;
+                        error.config.headers = {
+                            Authorization: `Bearer ${accessToken}`,
+                        };
+                        return server.request(error.config);
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        useAuthStore.getState().logout();
+                        return Promise.reject(err);
+                    });
             }
-            error.config.retryCount = error.config.retryCount + 1;
-            return server.request(error.config);
         } else if (error.response.status === 401) {
             useAuthStore.getState().logout();
             return Promise.reject(error);
