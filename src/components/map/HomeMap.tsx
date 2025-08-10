@@ -15,6 +15,7 @@ import BottomModal from "../ui/BottomModal";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import BottomMyCourseModal from "./courseInfo/BottomMyCourseModal";
 import CourseMarkers from "./CourseMarkers";
+import ListViewButton from "./ListViewButton";
 import MapViewWrapper from "./MapViewWrapper";
 
 interface HomeMapProps {
@@ -181,6 +182,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                     />
                 ))}
             </MapViewWrapper>
+            <ListViewButton />
             <BottomModal bottomSheetRef={bottomSheetRef} heightVal={heightVal}>
                 {courseType === "all" ? (
                     <BottomCourseInfoModal

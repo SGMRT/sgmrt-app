@@ -22,6 +22,8 @@ import ElipsisVerticalIcon from "./elipsis.svg";
 
 import AlertIcon from "./alert.svg";
 
+import ListIcon from "./list.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -32,6 +34,7 @@ export {
     EditIcon,
     ElipsisVerticalIcon,
     KakaoIcon,
+    ListIcon,
     LocateMe,
     ShareIcon,
     ToastCheckIcon,
