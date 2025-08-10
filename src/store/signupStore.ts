@@ -17,6 +17,7 @@ const initialState: SignupState = {
     gender: "",
     height: null,
     weight: null,
+    age: null,
     agreement: initialAgreement,
 };
 
@@ -27,6 +28,7 @@ type SignupStore = SignupState & {
     setNickname: (nickname: string) => void;
     setProfileImageUrl: (url: string) => void;
     setGender: (gender: "MALE" | "FEMALE" | "") => void;
+    setAge: (age: number | null) => void;
     setHeight: (height: number | null) => void;
     setWeight: (weight: number | null) => void;
     toggleAgreement: (key: keyof SignupAgreement) => void;
@@ -41,14 +43,30 @@ export const useSignupStore = create<SignupStore>((set, get) => ({
     allAgreementFullfilled: false,
 
     getSignupData: () => {
-        const { nickname, profileImageUrl, gender, height, weight, agreement } =
-            get();
-        return { nickname, profileImageUrl, gender, height, weight, agreement };
+        const {
+            nickname,
+            profileImageUrl,
+            gender,
+            height,
+            weight,
+            age,
+            agreement,
+        } = get();
+        return {
+            nickname,
+            profileImageUrl,
+            gender,
+            height,
+            weight,
+            age,
+            agreement,
+        };
     },
 
     setNickname: (nickname) => set({ nickname }),
     setProfileImageUrl: (url) => set({ profileImageUrl: url }),
     setGender: (gender) => set({ gender }),
+    setAge: (age) => set({ age }),
     setHeight: (height) =>
         set({
             height: height === 0 ? null : height,

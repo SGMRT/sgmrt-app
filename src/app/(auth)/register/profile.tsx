@@ -17,6 +17,8 @@ import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
     Image,
+    KeyboardAvoidingView,
+    Platform,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -32,10 +34,12 @@ export default function Profile() {
         gender,
         height,
         weight,
+        age,
         setNickname,
         setGender,
         setHeight,
         setWeight,
+        setAge,
         getSignupData,
     } = useSignupStore();
 
@@ -72,13 +76,21 @@ export default function Profile() {
 
     // 특수문자 검사 regex
     const specialCharacterRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+    // 숫자만 입력 가능 regex
+    const numberOnlyRegex = /^[0-9]*$/;
 
     const isActive =
         nickname !== null &&
         gender !== null &&
         gender !== "" &&
+        age !== null &&
         nickname.length > 0 &&
-        !specialCharacterRegex.test(nickname);
+        numberOnlyRegex.test(age.toString()) &&
+        !specialCharacterRegex.test(nickname) &&
+        (height === null ||
+            (numberOnlyRegex.test(height.toString()) && height > 0)) &&
+        (weight === null ||
+            (numberOnlyRegex.test(weight.toString()) && weight > 0));
 
     const handleSubmit = async () => {
         const data = getSignupData();
@@ -127,118 +139,139 @@ export default function Profile() {
                 console.log(err);
                 Toast.show({
                     type: "info",
-                    text1: "가입에 실패했습니다.",
+                    text1: "회원가입 오류. 다시 시도해주세요.",
                 });
-                router.dismissAll();
-                router.replace("/login");
             });
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={{ flex: 1 }}>
-                <Header titleText="기본 정보 입력" />
-                <ScrollView
-                    style={styles.scrollView}
-                    contentContainerStyle={styles.scrollViewContentContainer}
-                >
-                    <Typography variant="headline" color="white">
-                        더 나은 러닝 경험을 위해{"\n"}
-                        회원 정보를 입력해 주세요
-                    </Typography>
-                    {/* 프로필 이미지 */}
-                    <View style={styles.profileContainer}>
-                        <Image
-                            source={
-                                image ? { uri: image.uri } : DefaultProfileIcon
-                            }
-                            style={styles.profileImage}
-                        />
-                        <StyledButton
-                            title="프로필 이미지 등록"
-                            onPress={pickImage}
-                            style={{ width: 178 }}
-                        />
-                    </View>
-                    <View style={{ gap: 20 }}>
-                        {/* 닉네임 */}
-                        <InfoItem
-                            title="닉네임"
-                            placeholder="특수문자 제외 최대 10자"
-                            maxLength={10}
-                            value={nickname}
-                            onChangeText={setNickname}
-                            required
-                        />
-                        {/* 성별 */}
-                        <View>
-                            <InfoFieldTitle title="성별" required />
-                            <View style={styles.genderButtonContainer}>
-                                <StyledButton
-                                    title="여성"
-                                    onPress={() => {
-                                        setGender("FEMALE");
-                                    }}
-                                    style={styles.genderButton}
-                                    active={gender === "FEMALE"}
-                                    activeTextColor="primary"
-                                />
-                                <StyledButton
-                                    title="남성"
-                                    onPress={() => {
-                                        setGender("MALE");
-                                    }}
-                                    style={styles.genderButton}
-                                    active={gender === "MALE"}
-                                    activeTextColor="primary"
-                                />
-                            </View>
+            <KeyboardAvoidingView
+                style={{ flex: 1 }}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+            >
+                <View style={{ flex: 1 }}>
+                    <Header titleText="기본 정보 입력" />
+                    <ScrollView
+                        style={styles.scrollView}
+                        contentContainerStyle={
+                            styles.scrollViewContentContainer
+                        }
+                    >
+                        <Typography variant="headline" color="white">
+                            더 나은 러닝 경험을 위해{"\n"}
+                            회원 정보를 입력해 주세요
+                        </Typography>
+                        {/* 프로필 이미지 */}
+                        <View style={styles.profileContainer}>
+                            <Image
+                                source={
+                                    image
+                                        ? { uri: image.uri }
+                                        : DefaultProfileIcon
+                                }
+                                style={styles.profileImage}
+                            />
+                            <StyledButton
+                                title="프로필 이미지 등록"
+                                onPress={pickImage}
+                                style={{ width: 178 }}
+                            />
                         </View>
-                        {/* 신장 */}
-                        <InfoItem
-                            title="신장"
-                            placeholder="소숫점 제외 입력 (예: 172)"
-                            keyboardType="numeric"
-                            maxLength={3}
-                            unit="cm"
-                            value={height?.toString()}
-                            onChangeText={(text) => {
-                                setHeight(Number(text));
-                            }}
-                        />
-                        {/* 몸무게 */}
-                        <View>
+                        <View style={{ gap: 20 }}>
+                            {/* 닉네임 */}
                             <InfoItem
-                                title="몸무게"
-                                placeholder="소숫점 제외 입력 (예: 60)"
+                                title="닉네임"
+                                placeholder="특수문자 제외 최대 10자"
+                                maxLength={10}
+                                value={nickname}
+                                onChangeText={setNickname}
+                                required
+                            />
+                            {/* 성별 */}
+                            <View>
+                                <InfoFieldTitle title="성별" required />
+                                <View style={styles.genderButtonContainer}>
+                                    <StyledButton
+                                        title="여성"
+                                        onPress={() => {
+                                            setGender("FEMALE");
+                                        }}
+                                        style={styles.genderButton}
+                                        active={gender === "FEMALE"}
+                                        activeTextColor="primary"
+                                    />
+                                    <StyledButton
+                                        title="남성"
+                                        onPress={() => {
+                                            setGender("MALE");
+                                        }}
+                                        style={styles.genderButton}
+                                        active={gender === "MALE"}
+                                        activeTextColor="primary"
+                                    />
+                                </View>
+                            </View>
+                            {/* 연령 */}
+                            <InfoItem
+                                title="연령"
+                                placeholder="숫자 입력 (예: 20)"
                                 keyboardType="numeric"
                                 maxLength={3}
-                                unit="kg"
-                                value={weight?.toString()}
+                                unit="세"
+                                value={age?.toString()}
                                 onChangeText={(text) => {
-                                    setWeight(Number(text));
+                                    setAge(Number(text));
+                                }}
+                                required
+                            />
+                            {/* 신장 */}
+                            <InfoItem
+                                title="신장"
+                                placeholder="소숫점 제외 입력 (예: 172)"
+                                keyboardType="numeric"
+                                maxLength={3}
+                                unit="cm"
+                                value={height?.toString()}
+                                onChangeText={(text) => {
+                                    setHeight(Number(text));
                                 }}
                             />
-                            <Typography
-                                variant="caption1"
-                                color="gray60"
-                                style={{ paddingTop: 10 }}
-                            >
-                                신체 스펙 입력시 더 정확한 데이터를 제공해 드릴
-                                수 있습니다
-                            </Typography>
+                            {/* 몸무게 */}
+                            <View>
+                                <InfoItem
+                                    title="몸무게"
+                                    placeholder="소숫점 제외 입력 (예: 60)"
+                                    keyboardType="numeric"
+                                    maxLength={3}
+                                    unit="kg"
+                                    value={weight?.toString()}
+                                    onChangeText={(text) => {
+                                        setWeight(Number(text));
+                                    }}
+                                />
+                                <Typography
+                                    variant="caption1"
+                                    color="gray60"
+                                    style={{ paddingTop: 10 }}
+                                >
+                                    신체 스펙 입력시 더 정확한 데이터를 제공해
+                                    드릴 수 있습니다
+                                </Typography>
+                            </View>
                         </View>
-                    </View>
-                </ScrollView>
-            </View>
-            <BottomAgreementButton
-                isActive={isActive}
-                canPress={isActive}
-                onPress={() => {
-                    handleSubmit();
-                }}
-                title="가입완료"
-            />
+                    </ScrollView>
+                </View>
+
+                <BottomAgreementButton
+                    isActive={isActive}
+                    canPress={isActive}
+                    onPress={() => {
+                        handleSubmit();
+                    }}
+                    title="가입완료"
+                />
+            </KeyboardAvoidingView>
 
             <Confetti
                 ref={confettiRef}
@@ -283,6 +316,7 @@ export default function Profile() {
                             height: height,
                             weight: weight,
                             gender: gender,
+                            age: age,
                         });
                         login(res.accessToken, res.refreshToken, res.uuid);
                     }}
@@ -305,6 +339,7 @@ const styles = StyleSheet.create({
     scrollViewContentContainer: {
         paddingHorizontal: 17,
         marginTop: 20,
+        paddingBottom: 30,
     },
     profileContainer: {
         marginTop: 28,

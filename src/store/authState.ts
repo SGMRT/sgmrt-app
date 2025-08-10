@@ -30,6 +30,7 @@ export interface UserInfo {
     username: string;
     height: number | null;
     weight: number | null;
+    age: number | null;
     gender: "MALE" | "FEMALE" | "";
 }
 

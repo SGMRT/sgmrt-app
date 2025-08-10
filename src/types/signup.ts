@@ -13,5 +13,6 @@ export interface SignupState {
     gender: "MALE" | "FEMALE" | "";
     height: number | null;
     weight: number | null;
+    age: number | null;
     agreement: SignupAgreement;
 }
