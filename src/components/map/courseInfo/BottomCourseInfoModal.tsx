@@ -162,14 +162,13 @@ const GhostInfoSection = ({
 }) => {
     if (ghostList.length === 0) {
         return (
-            <Section
-                title="고스트 평균 정보"
-                style={{ marginBottom: 30, marginHorizontal: 16.5 }}
-            >
-                <EmptyListView
-                    description={`등록된 고스트가 아직 없어요\n코스 러닝을 시작해 첫 고스트가 되어보세요!`}
-                />
-            </Section>
+            <View style={{ marginBottom: 30, marginHorizontal: 16.5 }}>
+                <Section title="고스트 평균 정보">
+                    <EmptyListView
+                        description={`등록된 고스트가 아직 없어요\n코스 러닝을 시작해 첫 고스트가 되어보세요!`}
+                    />
+                </Section>
+            </View>
         );
     }
     return (
@@ -231,28 +230,33 @@ const CourseInfoSection = ({
     dummyData: any[];
 }) => {
     return (
-        <Section
+        <View
             style={{
-                paddingVertical: 25,
-                gap: 15,
                 marginBottom: 30,
                 marginHorizontal: 16.5,
+                paddingVertical: 5,
             }}
         >
-            <StatRow
-                stats={stats}
-                color="gray20"
+            <Section
                 style={{
-                    justifyContent: "space-between",
+                    gap: 15,
                 }}
-            />
-            <StyledChart
-                label="고도"
-                data={dummyData}
-                xKey="dist"
-                yKeys={["alt"]}
-            />
-        </Section>
+            >
+                <StatRow
+                    stats={stats}
+                    color="gray20"
+                    style={{
+                        justifyContent: "space-between",
+                    }}
+                />
+                <StyledChart
+                    label="고도"
+                    data={dummyData}
+                    xKey="dist"
+                    yKeys={["alt"]}
+                />
+            </Section>
+        </View>
     );
 };
 

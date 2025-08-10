@@ -1,8 +1,11 @@
 import { ChevronIcon, UserIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
+import { getDistance } from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Dimensions, FlatList, TouchableOpacity, View } from "react-native";
 import { Divider } from "../ui/Divider";
 import EmptyListView from "../ui/EmptyListView";
@@ -17,6 +20,7 @@ interface CourseListViewProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     selectedCourse: CourseResponse | null;
     onClickCourse: (course: CourseResponse) => void;
+    onClickCourseInfo: (course: CourseResponse) => void;
 }
 
 const CourseListView = ({
@@ -24,38 +28,152 @@ const CourseListView = ({
     bottomSheetRef,
     selectedCourse,
     onClickCourse,
+    onClickCourseInfo,
 }: CourseListViewProps) => {
+    const [editMode, setEditMode] = useState(false);
+    const [filter, setFilter] = useState<"near" | "trend">("near");
+    const [sortedCourses, setSortedCourses] = useState<CourseResponse[]>([]);
     const router = useRouter();
+
+    useEffect(() => {
+        const sortCourses = async () => {
+            if (filter === "near") {
+                try {
+                    const { status } =
+                        await Location.requestForegroundPermissionsAsync();
+                    if (status !== "granted") {
+                        console.error(
+                            "Permission to access location was denied"
+                        );
+                        // 권한이 없으면 인기순으로 대체하거나 사용자에게 알림
+                        setSortedCourses(
+                            [...courses].sort(
+                                (a, b) => b.runnersCount - a.runnersCount
+                            )
+                        );
+                        return;
+                    }
+
+                    const userLocation =
+                        await Location.getCurrentPositionAsync();
+                    const newSorted = [...courses].sort((a, b) => {
+                        const distanceA = getDistance(
+                            {
+                                lat: userLocation.coords.latitude,
+                                lng: userLocation.coords.longitude,
+                            },
+                            { lat: a.startLat, lng: a.startLng }
+                        );
+                        const distanceB = getDistance(
+                            {
+                                lat: userLocation.coords.latitude,
+                                lng: userLocation.coords.longitude,
+                            },
+                            { lat: b.startLat, lng: b.startLng }
+                        );
+                        return distanceA - distanceB;
+                    });
+                    setSortedCourses(newSorted);
+                } catch (error) {
+                    console.error(
+                        "Failed to get location or sort courses:",
+                        error
+                    );
+                    // 에러 발생 시 기본 정렬 또는 다른 처리
+                    setSortedCourses(courses);
+                }
+            } else {
+                // filter === "trend"
+                const newSorted = [...courses].sort(
+                    (a, b) => b.runnersCount - a.runnersCount
+                );
+                setSortedCourses(newSorted);
+            }
+        };
+
+        sortCourses();
+    }, [filter, courses]);
+
+    const onPressFilter = () => {
+        setEditMode(true);
+    };
+
+    const onPressNear = () => {
+        setFilter("near");
+        setEditMode(false);
+    };
+
+    const onPressTrend = () => {
+        setFilter("trend");
+        setEditMode(false);
+    };
+
+    if (editMode) {
+        return (
+            <View style={{ gap: 10, marginHorizontal: 16.5 }}>
+                <TouchableOpacity onPress={onPressNear}>
+                    <Section style={{ alignItems: "center" }}>
+                        <Typography
+                            variant="headline"
+                            color={filter === "near" ? "primary" : "gray20"}
+                        >
+                            나와 가까운 코스
+                        </Typography>
+                    </Section>
+                </TouchableOpacity>
+
+                <Section style={{ alignItems: "center" }}>
+                    <TouchableOpacity onPress={onPressTrend}>
+                        <Typography
+                            variant="headline"
+                            color={filter === "trend" ? "primary" : "gray20"}
+                        >
+                            요즘 뜨는 코스
+                        </Typography>
+                    </TouchableOpacity>
+                </Section>
+            </View>
+        );
+    }
+
     return (
         <View>
-            <Section
-                title="나와 가까운 코스"
-                titleColor="white"
-                style={{
-                    marginHorizontal: 16.5,
-                    maxHeight: Dimensions.get("window").height - 500,
-                }}
-                titleRightChildren={<FilterButton onPress={() => {}} />}
-            >
-                <FlatList
-                    data={courses}
-                    ListEmptyComponent={
-                        <EmptyListView
-                            description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
-                        />
+            <View style={{ marginHorizontal: 16.5 }}>
+                <Section
+                    title={
+                        filter === "near"
+                            ? "나와 가까운 코스"
+                            : "요즘 뜨는 코스"
                     }
-                    renderItem={({ item, index }) => (
-                        <CourseItem
-                            course={item}
-                            index={index}
-                            maxLength={courses.length}
-                            isSelected={selectedCourse?.id === item.id}
-                            onClickCourse={onClickCourse}
-                        />
-                    )}
-                    showsVerticalScrollIndicator={false}
-                />
-            </Section>
+                    titleColor="white"
+                    style={{
+                        maxHeight: Dimensions.get("window").height - 500,
+                    }}
+                    titleRightChildren={
+                        <FilterButton onPress={onPressFilter} />
+                    }
+                >
+                    <FlatList
+                        data={sortedCourses}
+                        ListEmptyComponent={
+                            <EmptyListView
+                                description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
+                            />
+                        }
+                        renderItem={({ item, index }) => (
+                            <CourseItem
+                                course={item}
+                                index={index}
+                                maxLength={courses.length}
+                                isSelected={selectedCourse?.id === item.id}
+                                onClickCourse={onClickCourse}
+                                onClickCourseInfo={onClickCourseInfo}
+                            />
+                        )}
+                        showsVerticalScrollIndicator={false}
+                    />
+                </Section>
+            </View>
             <SlideToAction
                 label={
                     selectedCourse ? "이 코스로 러닝 시작" : "밀어서 러닝 시작"
@@ -81,12 +199,14 @@ const CourseItem = ({
     maxLength,
     isSelected,
     onClickCourse,
+    onClickCourseInfo,
 }: {
     course: CourseResponse;
     index: number;
     maxLength: number;
     isSelected: boolean;
     onClickCourse: (course: CourseResponse) => void;
+    onClickCourseInfo: (course: CourseResponse) => void;
 }) => {
     return (
         <View
@@ -184,7 +304,7 @@ const CourseItem = ({
                         gap: 4,
                     }}
                     onPress={() => {
-                        console.log("pressed");
+                        onClickCourseInfo(course);
                     }}
                 >
                     <View

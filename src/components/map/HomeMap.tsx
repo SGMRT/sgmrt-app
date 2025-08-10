@@ -36,6 +36,10 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     const [activeCourse, setActiveCourse] = useState<CourseResponse | null>(
         null
     );
+
+    const [myCourseList, setMyCourseList] = useState<CourseResponse[]>([]);
+    const [allCourseList, setAllCourseList] = useState<CourseResponse[]>([]);
+
     const [zoomLevel, setZoomLevel] = useState(16);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const handlePresentModalPress = () => {
@@ -132,7 +136,6 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     const { data: courses } = useQuery({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
-            console.log("dididid");
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
@@ -142,6 +145,28 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         },
         enabled: !!center && !!distance,
     });
+
+    useEffect(() => {
+        if (courseType === "my") {
+            setMyCourseList((prev) => {
+                const newCourses = [...prev, ...(courses ?? [])];
+                const map = new Map<number, CourseResponse>();
+                newCourses.forEach((course) => {
+                    map.set(course.id, course);
+                });
+                return Array.from(map.values());
+            });
+        } else {
+            setAllCourseList((prev) => {
+                const newCourses = [...prev, ...(courses ?? [])];
+                const map = new Map<number, CourseResponse>();
+                newCourses.forEach((course) => {
+                    map.set(course.id, course);
+                });
+                return Array.from(map.values());
+            });
+        }
+    }, [courses, courseType]);
 
     useEffect(() => {
         Location.getCurrentPositionAsync({
@@ -156,23 +181,32 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         bottomSheetRef.current?.dismiss();
     }, [courseType]);
 
-    useEffect(() => {
-        setActiveCourse(null);
-    }, [courses]);
-
     const sortedCourses = useMemo(() => {
-        if (!courses) return [];
-        // activeCourse를 배열의 맨 뒤로 보내서 가장 마지막에 (즉, 가장 위에) 렌더링되도록 정렬
-        return [...courses].sort((a, b) => {
-            if (a.id === activeCourse?.id) return 1;
-            if (b.id === activeCourse?.id) return -1;
-            return 0;
-        });
-    }, [courses, activeCourse]);
+        if (courseType === "my") {
+            if (!myCourseList) return [];
+            return [...myCourseList].sort((a, b) => {
+                if (a.id === activeCourse?.id) return 1;
+                if (b.id === activeCourse?.id) return -1;
+                return 0;
+            });
+        } else {
+            if (!allCourseList) return [];
+            return [...allCourseList].sort((a, b) => {
+                if (a.id === activeCourse?.id) return 1;
+                if (b.id === activeCourse?.id) return -1;
+                return 0;
+            });
+        }
+    }, [myCourseList, allCourseList, activeCourse, courseType]);
 
     const onPressListViewButton = () => {
         setShowCourseList(true);
         bottomSheetRef.current?.present();
+    };
+
+    const onClickCourseInfo = (course: CourseResponse) => {
+        setActiveCourse(course);
+        setShowCourseList(false);
     };
 
     return (
@@ -200,8 +234,9 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                 heightVal={heightVal}
                 modalType={showCourseList ? "list" : courseType}
                 activeCourse={activeCourse}
-                courses={courses ?? []}
+                courses={courseType === "my" ? myCourseList : allCourseList}
                 onClickCourse={onClickCourse}
+                onClickCourseInfo={onClickCourseInfo}
             />
         </>
     );
@@ -214,6 +249,7 @@ interface HomeBottomModalProps {
     activeCourse: CourseResponse | null;
     courses: CourseResponse[];
     onClickCourse: (course: CourseResponse) => void;
+    onClickCourseInfo: (course: CourseResponse) => void;
 }
 
 const HomeBottomModal = ({
@@ -223,6 +259,7 @@ const HomeBottomModal = ({
     activeCourse,
     courses,
     onClickCourse,
+    onClickCourseInfo,
 }: HomeBottomModalProps) => {
     return (
         <BottomModal bottomSheetRef={bottomSheetRef} heightVal={heightVal}>
@@ -237,6 +274,7 @@ const HomeBottomModal = ({
                     courses={courses ?? []}
                     selectedCourse={activeCourse}
                     onClickCourse={onClickCourse}
+                    onClickCourseInfo={onClickCourseInfo}
                 />
             )}
         </BottomModal>
