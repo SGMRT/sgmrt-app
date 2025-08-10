@@ -77,13 +77,13 @@ function RootLayout() {
                 id: uuid!,
                 username: userInfo?.username!,
             });
-            router.replace("/intro");
+            router.replace("/course/rank/1");
         } else {
             router.replace("/(auth)/login");
         }
 
         SplashScreen.hideAsync();
-    }, [isLoggedIn, loaded, userInfo]);
+    }, [isLoggedIn, loaded, userInfo, uuid, router]);
 
     if (!loaded) {
         return null;

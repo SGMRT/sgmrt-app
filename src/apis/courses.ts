@@ -3,6 +3,7 @@ import server from "./instance";
 import {
     CourseResponse,
     CoursesRequest,
+    HistoryResponse,
     Pageable,
     UserCourseInfo,
     UserRankResponse,
@@ -99,7 +100,15 @@ export async function getCourseGhosts({
 }: {
     courseId: number;
     pageable: Pageable;
-}) {
+}): Promise<{
+    content: HistoryResponse[];
+    page: {
+        size: number;
+        number: number;
+        totalElements: number;
+        totalPages: number;
+    };
+}> {
     try {
         const response = await server.get(`/courses/${courseId}/ghosts`, {
             params: { pageable },
