@@ -3,14 +3,15 @@ import { GhostSortOption, HistoryResponse } from "@/src/apis/types/course";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
+import ScrollButton from "@/src/components/ui/ScrollButton";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
-import { FlashList } from "@shopify/flash-list";
+import { FlashList, FlashListRef } from "@shopify/flash-list";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -91,6 +92,7 @@ export default function CourseRankScreen() {
     const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
     const size = 30;
     const sort: GhostSortOption = "runningRecord.duration,asc";
+    const flashListRef = useRef<FlashListRef<Row>>(null);
 
     const [totalCount, setTotalCount] = useState<number>(0);
 
@@ -147,11 +149,17 @@ export default function CourseRankScreen() {
         return buildRows([...flatGhosts], totalCount, size, 1);
     }, [flatGhosts, totalCount, size]);
 
+    const onScrollToTop = () => {
+        flashListRef.current?.scrollToIndex({ index: 0 });
+    };
+
     return (
         <SafeAreaView style={styles.container}>
             <Header titleText="소고기마라탕" />
+            <ScrollButton onPress={onScrollToTop} bottomInset={72} />
             <View style={{ flex: 1, marginHorizontal: 16.5, marginTop: 10 }}>
                 <FlashList
+                    ref={flashListRef}
                     data={rows}
                     keyExtractor={(item) => item.key}
                     renderItem={({ item }) => (
