@@ -1,8 +1,8 @@
 import { setTelemetryEnabled } from "@rnmapbox/maps";
 import { StyleSheet, View } from "react-native";
 
-import CourseFilter from "@/src/components/map/CourseFilter";
 import HomeMap from "@/src/components/map/HomeMap";
+import HomeTopBar from "@/src/components/map/HomeTopFilter";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
@@ -22,7 +22,7 @@ export default function Home() {
         <View style={styles.container}>
             <TopBlurView>
                 <WeatherInfo />
-                <CourseFilter type={type} setType={setType} />
+                <HomeTopBar type={type} setType={setType} />
             </TopBlurView>
             <HomeMap courseType={type} />
             <TabBar />

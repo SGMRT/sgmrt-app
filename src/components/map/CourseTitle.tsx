@@ -22,7 +22,7 @@ export default function CourseTitle({
                 <View style={styles.titleContainer}>
                     <Typography
                         variant="subhead3"
-                        color={isActive ? "primary" : "gray20"}
+                        color={isActive ? "primary" : "white"}
                     >
                         {course.name}
                     </Typography>
@@ -30,28 +30,30 @@ export default function CourseTitle({
                 {zoomLevel > 14.5 && (
                     <View style={styles.topUsersContainer}>
                         {course.runners.map((user, index) => (
-                            <Image
-                                key={index}
-                                source={
-                                    user.profileUrl
-                                        ? {
-                                              uri: user.profileUrl.split(
-                                                  "?X-Amz-"
-                                              )[0],
-                                          }
-                                        : DefaultProfileIcon
-                                }
-                                style={[
-                                    styles.topUserImage,
-                                    {
-                                        marginLeft: index === 0 ? 0 : -14,
-                                    },
-                                ]}
-                            />
+                            <View
+                                key={user.uuId + index.toString()}
+                                style={{ marginLeft: index === 0 ? 0 : -14 }}
+                            >
+                                <Image
+                                    source={
+                                        user.profileUrl
+                                            ? {
+                                                  uri: user.profileUrl.split(
+                                                      "?X-Amz-"
+                                                  )[0],
+                                              }
+                                            : DefaultProfileIcon
+                                    }
+                                    style={styles.topUserImage}
+                                />
+                                {!isActive && (
+                                    <View style={styles.grayscaleOverlay} />
+                                )}
+                            </View>
                         ))}
                         {course.runnersCount - course.runners.length > 0 && (
                             <View style={styles.userCountContainer}>
-                                <Typography variant="body2" color="gray40">
+                                <Typography variant="body3" color="gray40">
                                     +{course.runnersCount}
                                 </Typography>
                             </View>
@@ -85,6 +87,15 @@ const styles = StyleSheet.create({
         borderRadius: 100,
         backgroundColor: "white",
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
+    },
+    grayscaleOverlay: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        borderRadius: 24,
     },
     userCountContainer: {
         backgroundColor: "rgba(63, 63, 63, 0.8)",

@@ -10,6 +10,7 @@ export type TypographyVariant =
     | "subhead3"
     | "body1"
     | "body2"
+    | "body3"
     | "caption1";
 
 export type TypographyColor =
@@ -77,11 +78,17 @@ export const typographyStyles = StyleSheet.create({
     },
     body1: {
         fontFamily: "SpoqaHanSansNeo-Regular",
+        fontSize: 18,
+        lineHeight: 27,
+        letterSpacing: -0.6,
+    },
+    body2: {
+        fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 16,
         lineHeight: 24,
         letterSpacing: -0.6,
     },
-    body2: {
+    body3: {
         fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 14,
         lineHeight: 21,

@@ -91,8 +91,8 @@ function RootLayout() {
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <BottomSheetModalProvider>
-                <QueryClientProvider client={queryClient}>
+            <QueryClientProvider client={queryClient}>
+                <BottomSheetModalProvider>
                     <Stack
                         screenOptions={{
                             headerShown: false,
@@ -111,8 +111,8 @@ function RootLayout() {
                         />
                     </Stack>
                     <Toast config={toastConfig} />
-                </QueryClientProvider>
-            </BottomSheetModalProvider>
+                </BottomSheetModalProvider>
+            </QueryClientProvider>
         </GestureHandlerRootView>
     );
 }

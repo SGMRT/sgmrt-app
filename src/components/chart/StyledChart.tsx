@@ -1,17 +1,11 @@
 import colors from "@/src/theme/colors";
 import { useFont } from "@shopify/react-native-skia";
-import { useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
-import Animated, {
-    runOnJS,
-    SharedValue,
-    useAnimatedReaction,
-    useAnimatedStyle,
-} from "react-native-reanimated";
-import { CartesianChart, Line, useChartPressState } from "victory-native";
+import { StyleSheet, View } from "react-native";
+import { CartesianChart, Line } from "victory-native";
 import { Typography } from "../ui/Typography";
 
 interface StyledChartProps {
+    label: string;
     data: any[];
     xKey: string;
     yKeys: string[];
@@ -19,64 +13,65 @@ interface StyledChartProps {
     invertYAxis?: boolean;
 }
 
-interface ToolTipProps {
-    data: any[];
-    x: SharedValue<number>;
-    index: SharedValue<number>;
-}
+// interface ToolTipProps {
+//     data: any[];
+//     x: SharedValue<number>;
+//     index: SharedValue<number>;
+// }
 
-function ToolTip({ data, x, index }: ToolTipProps) {
-    const [time, setTime] = useState("");
-    const [tooltipWidth, setTooltipWidth] = useState(40);
-    // 34: padding, 10: margin
-    const maxX = Dimensions.get("window").width - 34 - tooltipWidth - 10;
+// function ToolTip({ data, x, index }: ToolTipProps) {
+//     const [time, setTime] = useState("");
+//     const [tooltipWidth, setTooltipWidth] = useState(40);
+//     // 34: padding, 10: margin
+//     const maxX = Dimensions.get("window").width - 34 - tooltipWidth - 10;
 
-    const animatedStyle = useAnimatedStyle(() => ({
-        transform: [{ translateX: Math.min(x.value, maxX) }],
-    }));
+//     const animatedStyle = useAnimatedStyle(() => ({
+//         transform: [{ translateX: Math.min(x.value, maxX) }],
+//     }));
 
-    useAnimatedReaction(
-        () => Math.round(index.value),
-        (i) => {
-            if (i < 0 || i >= data.length) return;
+//     useAnimatedReaction(
+//         () => Math.round(index.value),
+//         (i) => {
+//             if (i < 0 || i >= data.length) return;
 
-            const runTime = data[i].timeStamp / 1000;
-            const hours = Math.floor(runTime / 3600);
-            const minutes = Math.floor((runTime % 3600) / 60);
-            const seconds = Math.floor(runTime % 60);
+//             const runTime = data[i].timeStamp / 1000;
+//             const hours = Math.floor(runTime / 3600);
+//             const minutes = Math.floor((runTime % 3600) / 60);
+//             const seconds = Math.floor(runTime % 60);
 
-            const formatted =
-                hours > 0
-                    ? `${hours.toString().padStart(2, "0")}:${minutes
-                          .toString()
-                          .padStart(2, "0")}:${seconds
-                          .toString()
-                          .padStart(2, "0")}`
-                    : `${minutes.toString().padStart(2, "0")}:${seconds
-                          .toString()
-                          .padStart(2, "0")}`;
+//             const formatted =
+//                 hours > 0
+//                     ? `${hours.toString().padStart(2, "0")}:${minutes
+//                           .toString()
+//                           .padStart(2, "0")}:${seconds
+//                           .toString()
+//                           .padStart(2, "0")}`
+//                     : `${minutes.toString().padStart(2, "0")}:${seconds
+//                           .toString()
+//                           .padStart(2, "0")}`;
 
-            runOnJS(setTime)(formatted);
-        },
-        [index]
-    );
+//             runOnJS(setTime)(formatted);
+//         },
+//         [index]
+//     );
 
-    return (
-        <Animated.View
-            style={[styles.tooltip, animatedStyle]}
-            onLayout={(e) => {
-                const w = e.nativeEvent.layout.width;
-                setTooltipWidth(w);
-            }}
-        >
-            <Typography variant="caption1" color="gray20">
-                {time}
-            </Typography>
-        </Animated.View>
-    );
-}
+//     return (
+//         <Animated.View
+//             style={[styles.tooltip, animatedStyle]}
+//             onLayout={(e) => {
+//                 const w = e.nativeEvent.layout.width;
+//                 setTooltipWidth(w);
+//             }}
+//         >
+//             <Typography variant="caption1" color="gray20">
+//                 {time}
+//             </Typography>
+//         </Animated.View>
+//     );
+// }
 
 const StyledChart = ({
+    label,
     data,
     xKey,
     yKeys,
@@ -87,22 +82,18 @@ const StyledChart = ({
         require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),
         12
     );
-    const { state, isActive } = useChartPressState({
-        x: 0,
-        y: { [yKeys[0]]: 0 },
-    });
+    // const { state, isActive } = useChartPressState({
+    //     x: 0,
+    //     y: { [yKeys[0]]: 0 },
+    // });
 
     return (
         <View>
             {showToolTip && (
                 <View style={styles.tooltipContainer}>
-                    {isActive && (
-                        <ToolTip
-                            data={data}
-                            x={state.x.position}
-                            index={state.matchedIndex}
-                        />
-                    )}
+                    <Typography variant="body3" color="gray40">
+                        {label}
+                    </Typography>
                 </View>
             )}
             <View style={styles.container}>
@@ -149,9 +140,8 @@ const StyledChart = ({
                         lineColor: "transparent",
                         lineWidth: 0,
                     }}
-                    chartPressState={state}
                     domainPadding={{
-                        right: 10,
+                        right: 0,
                     }}
                     padding={{
                         top: 15,
@@ -173,11 +163,23 @@ const StyledChart = ({
 
 const styles = StyleSheet.create({
     container: {
-        height: 170,
-        width: Dimensions.get("window").width - 34,
+        height: 70,
+        backgroundColor: "#1B1B1B",
+        borderRadius: 8,
+        padding: 10,
     },
     tooltipContainer: {
-        height: 22,
+        height: 24,
+        alignItems: "center",
+        justifyContent: "flex-end",
+        alignSelf: "flex-start",
+        backgroundColor: colors.gray[80],
+        borderTopLeftRadius: 6,
+        borderTopRightRadius: 6,
+        borderBottomLeftRadius: 1,
+        borderBottomRightRadius: 1,
+        paddingHorizontal: 12,
+        marginLeft: 8.5,
     },
     tooltip: {
         position: "absolute",

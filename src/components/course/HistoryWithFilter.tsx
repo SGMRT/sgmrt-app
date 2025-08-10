@@ -29,7 +29,7 @@ export const HistoryWithFilter = ({
                 titleColor="gray40"
                 marginHorizontal={true}
                 rightChildren={
-                    <Typography variant="body1" color="gray60">
+                    <Typography variant="body2" color="gray60">
                         필터
                     </Typography>
                 }

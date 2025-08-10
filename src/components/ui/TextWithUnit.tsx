@@ -44,7 +44,7 @@ export default function TextWithUnit({
                 )}
             </View>
             {description && (
-                <Typography variant="body1" color="gray60">
+                <Typography variant="body2" color="gray60">
                     {description}
                 </Typography>
             )}

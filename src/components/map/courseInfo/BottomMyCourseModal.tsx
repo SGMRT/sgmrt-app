@@ -2,25 +2,18 @@ import { CourseResponse } from "@/src/apis/types/course";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { StyleSheet } from "react-native";
-import { SharedValue } from "react-native-reanimated";
-import BottomModal from "../../ui/BottomModal";
 import ExpendHeader from "../../ui/ExpendHeader";
 import SlideToAction from "../../ui/SlideToAction";
 import CoursesInfoList from "./CoursesInfoList";
 
 interface BottomMyCourseModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
-    canClose?: boolean;
-    heightVal: SharedValue<number>;
     courses: CourseResponse[];
     onClickCourse: (course: CourseResponse) => void;
 }
 
 export default function BottomMyCourseModal({
     bottomSheetRef,
-    canClose = true,
-    heightVal,
     courses,
     onClickCourse,
 }: BottomMyCourseModalProps) {
@@ -40,11 +33,7 @@ export default function BottomMyCourseModal({
     }, [courses]);
 
     return (
-        <BottomModal
-            bottomSheetRef={bottomSheetRef}
-            canClose={canClose}
-            heightVal={heightVal}
-        >
+        <>
             <ExpendHeader
                 title={"최신 공개 코스"}
                 titleColor="gray40"
@@ -69,8 +58,6 @@ export default function BottomMyCourseModal({
                 color="green"
                 direction="left"
             />
-        </BottomModal>
+        </>
     );
 }
-
-const styles = StyleSheet.create({});

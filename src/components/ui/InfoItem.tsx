@@ -94,7 +94,7 @@ const InfoField = ({
                 onChangeText={onChangeText}
             />
             {unit && (
-                <Typography variant="body1" color="gray60">
+                <Typography variant="body2" color="gray60">
                     {unit}
                 </Typography>
             )}

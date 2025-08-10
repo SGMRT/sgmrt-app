@@ -271,7 +271,7 @@ export default function Profile() {
                         반가워요 {nickname}님!{"\n"}
                         고스트러너 가입을 환영해요
                     </Typography>
-                    <Typography variant="body2" color="gray40">
+                    <Typography variant="body3" color="gray40">
                         내 정보는 마이페이지의 회원 정보에서 변경 가능합니다
                     </Typography>
                 </View>

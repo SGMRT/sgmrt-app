@@ -2,7 +2,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { Fragment } from "react/jsx-runtime";
 import { Divider } from "./Divider";
 import TextWithUnit from "./TextWithUnit";
-import { TypographyVariant } from "./Typography";
+import { TypographyColor, TypographyVariant } from "./Typography";
 
 export type Stat = {
     value: string | number;
@@ -12,11 +12,17 @@ export type Stat = {
 
 interface StatRowProps {
     stats: Stat[];
+    color?: TypographyColor;
     style?: StyleProp<ViewStyle>;
     variant?: TypographyVariant;
 }
 
-export default function StatRow({ stats, style, variant }: StatRowProps) {
+export default function StatRow({
+    stats,
+    style,
+    variant,
+    color = "gray40",
+}: StatRowProps) {
     return (
         <View style={[styles.container, style]}>
             {stats.map((stat, idx) => (
@@ -27,6 +33,7 @@ export default function StatRow({ stats, style, variant }: StatRowProps) {
                         align="flex-start"
                         description={stat.description}
                         variant={variant}
+                        color={color}
                     />
                     {idx < stats.length - 1 && <Divider />}
                 </Fragment>
