@@ -16,6 +16,7 @@ import { Typography } from "../ui/Typography";
 interface SlideToActionProps {
     label: string;
     onSlideSuccess: () => void;
+    onSlideFailure?: () => void;
     color: "red" | "green";
     direction: "left" | "right";
     disabled?: boolean;
@@ -24,6 +25,7 @@ interface SlideToActionProps {
 export default function SlideToAction({
     label,
     onSlideSuccess,
+    onSlideFailure,
     color,
     direction,
     disabled = false,
@@ -63,6 +65,9 @@ export default function SlideToAction({
             } else {
                 translateX.value = withTiming(0);
                 boxOpacity.value = withTiming(1);
+                if (onSlideFailure) {
+                    runOnJS(onSlideFailure)();
+                }
             }
         });
 

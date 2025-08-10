@@ -1,17 +1,6 @@
-import { Triangle } from "@/assets/icons/icons";
-import colors from "@/src/theme/colors";
-import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
-import { ColorValue, Image, LayoutChangeEvent, View } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-    interpolate,
-    runOnJS,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
-    withTiming,
-} from "react-native-reanimated";
+import { TouchableOpacity, View } from "react-native";
+import SlideToAction from "./SlideToAction";
 import { Typography } from "./Typography";
 
 interface SlideToDualActionProps {
@@ -31,185 +20,82 @@ export default function SlideToDualAction({
     disabled,
     color = "primary",
 }: SlideToDualActionProps) {
-    const trackWidth = useSharedValue(0);
-    const translateX = useSharedValue(0);
-    const boxOpacity = useSharedValue(1);
-    const isDragging = useSharedValue(false);
-    const direction = useSharedValue<"left" | "right" | null>(null);
-    const [gradientColors, setGradientColors] = useState<
-        readonly [ColorValue, ColorValue, ...ColorValue[]]
-    >(
-        color === "primary"
-            ? ["rgba(0, 0, 0, 0)", "#CFE900", "rgba(0, 0, 0, 0)"]
-            : ["rgba(0, 0, 0, 0)", "#FF3358", "rgba(0, 0, 0, 0)"]
-    );
+    const [pressed, setPressed] = useState<{
+        direction: "left" | "right";
+        pressed: boolean;
+    }>({
+        direction: "left",
+        pressed: false,
+    });
 
-    const AnimatedLinearGradient =
-        Animated.createAnimatedComponent(LinearGradient);
-
-    const onTrackLayout = (e: LayoutChangeEvent) => {
-        trackWidth.value = e.nativeEvent.layout.width;
+    // 버튼을 누르는 순간 상태 변경
+    const handlePressIn = (direction: "left" | "right") => {
+        setPressed({ direction, pressed: true });
     };
 
-    const panGesture = Gesture.Pan()
-        .onUpdate((e) => {
-            if (!isDragging.value) {
-                translateX.value = 0;
-                boxOpacity.value = 1;
-                direction.value = e.translationX > 0 ? "left" : "right";
-                if (Math.abs(e.translationX) > 20) {
-                    isDragging.value = true;
-                    direction.value = e.translationX > 0 ? "left" : "right";
-                    runOnJS(setGradientColors)(
-                        direction.value === "left"
-                            ? [
-                                  "rgba(0, 0, 0, 0)",
-                                  color === "primary" ? "#CFE900" : "#FF3358",
-                                  "rgba(0, 0, 0, 0)",
-                              ]
-                            : [
-                                  color === "primary" ? "#CFE900" : "#FF3358",
-                                  "rgba(0, 0, 0, 0)",
-                                  color === "primary" ? "#CFE900" : "#FF3358",
-                              ]
-                    );
-                }
-            } else {
-                translateX.value = Math.min(
-                    Math.max(
-                        direction.value === "left"
-                            ? e.translationX * 3
-                            : -e.translationX * 3,
-                        0
-                    ),
-                    trackWidth.value
-                );
-            }
-        })
-        .onEnd(() => {
-            if (translateX.value > trackWidth.value * 0.75) {
-                translateX.value = withSpring(trackWidth.value * 2);
-                boxOpacity.value = withTiming(0, { duration: 1000 });
-                runOnJS(
-                    direction.value === "left" ? onSlideRight : onSlideLeft
-                )();
-                isDragging.value = false;
-                runOnJS(setTimeout)(() => {
-                    translateX.value = withTiming(0);
-                    boxOpacity.value = withTiming(1);
-                }, 1200);
-            } else {
-                translateX.value = withTiming(0);
-                boxOpacity.value = withTiming(1);
-                isDragging.value = false;
-            }
-        });
+    // 버튼에서 손을 떼는 순간 상태 리셋
+    const handlePressOut = () => {
+        setPressed({ direction: "left", pressed: false }); // 방향은 상관없으므로 기본값으로 리셋
+    };
 
-    const gradientStyle = useAnimatedStyle(() => {
-        const width = interpolate(
-            translateX.value * 2,
-            [0, trackWidth.value * 2],
-            [0, trackWidth.value * 2]
+    // 슬라이드를 성공했을 때의 로직
+    const handleSlideSuccess = () => {
+        // 눌린 방향에 따라 적절한 함수 실행
+        if (pressed.direction === "left") {
+            onSlideLeft();
+        } else {
+            onSlideRight();
+        }
+        // 액션 실행 후 원래 상태로 복귀
+        handlePressOut();
+    };
+
+    // label 로직을 더 간결하게 수정했습니다.
+    const sliderLabel =
+        "밀어서 " + (pressed.direction === "left" ? leftLabel : rightLabel);
+
+    if (pressed.pressed) {
+        return (
+            <SlideToAction
+                label={sliderLabel}
+                onSlideSuccess={handleSlideSuccess}
+                onSlideFailure={handlePressOut}
+                color={color === "primary" ? "green" : "red"}
+                direction={pressed.direction}
+            />
         );
-
-        return {
-            width,
-        };
-    });
-
-    const slideDirectionStyle = useAnimatedStyle(() => {
-        return {
-            alignItems: direction.value === "left" ? "flex-start" : "flex-end",
-        };
-    });
+    }
 
     return (
-        <GestureDetector
-            gesture={disabled ? Gesture.Exclusive(Gesture.Tap()) : panGesture}
+        <View
+            style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                height: 56,
+                paddingHorizontal: 26.5,
+            }}
         >
-            <Animated.View
-                onLayout={onTrackLayout}
-                style={{
-                    position: "relative",
-                    height: 56,
-                    width: "100%",
-                }}
+            <TouchableOpacity
+                onPressIn={() => handlePressIn("left")}
+                onPressOut={handlePressOut}
+                disabled={disabled}
+                delayLongPress={10000}
             >
-                <View
-                    style={{
-                        position: "relative",
-                        height: 56,
-                        backgroundColor: "#111111",
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        marginHorizontal: 16,
-                    }}
-                >
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
-                        <Image
-                            source={Triangle}
-                            style={{
-                                tintColor: colors.primary,
-                                transform: [
-                                    {
-                                        rotate: "180deg",
-                                    },
-                                ],
-                            }}
-                        />
-                        <Typography variant="subhead1" color="primary">
-                            {leftLabel}
-                        </Typography>
-                    </View>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
-                        <Typography variant="subhead1" color="primary">
-                            {rightLabel}
-                        </Typography>
-                        <Image
-                            source={Triangle}
-                            style={{
-                                tintColor: colors.primary,
-                            }}
-                        />
-                    </View>
-                </View>
-                <Animated.View
-                    style={[
-                        {
-                            position: "absolute",
-                            height: 56,
-                            width: "100%",
-                            opacity: boxOpacity,
-                        },
-                        slideDirectionStyle,
-                    ]}
-                >
-                    <AnimatedLinearGradient
-                        start={{ x: 1, y: 0 }}
-                        end={{ x: -1, y: 0 }}
-                        colors={gradientColors}
-                        style={[
-                            {
-                                position: "absolute",
-                                height: "100%",
-                            },
-                            gradientStyle,
-                        ]}
-                    />
-                </Animated.View>
-            </Animated.View>
-        </GestureDetector>
+                <Typography variant="subhead2" color={color}>
+                    {leftLabel}
+                </Typography>
+            </TouchableOpacity>
+            <TouchableOpacity
+                onPressIn={() => handlePressIn("right")}
+                onPressOut={handlePressOut}
+                disabled={disabled}
+                delayLongPress={10000}
+            >
+                <Typography variant="subhead2" color={color}>
+                    {rightLabel}
+                </Typography>
+            </TouchableOpacity>
+        </View>
     );
 }
