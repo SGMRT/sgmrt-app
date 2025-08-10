@@ -58,7 +58,6 @@ export const HistoryWithFilter = ({
                 )}
                 showsVerticalScrollIndicator={false}
                 extraData={selectedCourse?.runningId}
-                estimatedItemSize={83}
                 onEndReached={hasNextPage ? fetchNextPage : undefined}
                 onEndReachedThreshold={0.5}
             />

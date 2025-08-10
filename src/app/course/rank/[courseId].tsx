@@ -97,7 +97,6 @@ export default function CourseRankScreen() {
                         isMyRecord={item.runnerUuid === uuid}
                     />
                 )}
-                estimatedItemSize={83}
                 showsVerticalScrollIndicator={false}
                 extraData={selectedGhostId}
             />

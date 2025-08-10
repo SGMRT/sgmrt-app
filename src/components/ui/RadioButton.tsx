@@ -5,12 +5,16 @@ interface RadioButtonProps {
     isSelected: boolean;
     showMyRecord?: boolean;
     onPress: () => void;
+    activeColor?: string;
+    inactiveColor?: string;
 }
 
 export default function RadioButton({
     isSelected,
     showMyRecord = false,
     onPress,
+    activeColor = colors.primary,
+    inactiveColor = colors.gray[60],
 }: RadioButtonProps) {
     return (
         <Pressable onPress={() => onPress()}>
@@ -20,12 +24,10 @@ export default function RadioButton({
                     {
                         backgroundColor: showMyRecord
                             ? isSelected
-                                ? colors.primary
-                                : colors.gray[60]
+                                ? activeColor
+                                : inactiveColor
                             : "transparent",
-                        borderColor: isSelected
-                            ? colors.primary
-                            : colors.gray[60],
+                        borderColor: isSelected ? activeColor : inactiveColor,
                         borderWidth: 1.5,
                     },
                 ]}

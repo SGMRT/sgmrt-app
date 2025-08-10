@@ -1,8 +1,6 @@
-import { AlertIcon } from "@/assets/svgs/svgs";
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import { useAuthStore } from "@/src/store/authState";
-import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +9,7 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import StyledChart from "../../chart/StyledChart";
 import { Divider } from "../../ui/Divider";
+import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
 import SlideToAction from "../../ui/SlideToAction";
 import StatRow, { Stat } from "../../ui/StatRow";
@@ -163,22 +162,13 @@ const GhostInfoSection = ({
 }) => {
     if (ghostList.length === 0) {
         return (
-            <Section
-                title="고스트 평균 정보"
-                style={{ marginBottom: 30, marginHorizontal: 16.5 }}
-            >
-                <View style={{ gap: 15, alignItems: "center" }}>
-                    <AlertIcon color={colors.gray[60]} />
-                    <Typography
-                        variant="body2"
-                        color="gray40"
-                        style={{ textAlign: "center" }}
-                    >
-                        등록된 고스트가 아직 없어요{"\n"}
-                        코스 러닝을 시작해 첫 고스트가 되어보세요!
-                    </Typography>
-                </View>
-            </Section>
+            <View style={{ marginBottom: 30, marginHorizontal: 16.5 }}>
+                <Section title="고스트 평균 정보">
+                    <EmptyListView
+                        description={`등록된 고스트가 아직 없어요\n코스 러닝을 시작해 첫 고스트가 되어보세요!`}
+                    />
+                </Section>
+            </View>
         );
     }
     return (
@@ -203,6 +193,9 @@ const GhostInfoSection = ({
                 shortcutTitle="순위 전체"
                 onPress={() => {
                     onPress();
+                }}
+                style={{
+                    gap: 20,
                 }}
             >
                 {ghostList.map((ghost, index) => (
@@ -237,28 +230,33 @@ const CourseInfoSection = ({
     dummyData: any[];
 }) => {
     return (
-        <Section
+        <View
             style={{
-                paddingVertical: 25,
-                gap: 15,
                 marginBottom: 30,
                 marginHorizontal: 16.5,
+                paddingVertical: 5,
             }}
         >
-            <StatRow
-                stats={stats}
-                color="gray20"
+            <Section
                 style={{
-                    justifyContent: "space-between",
+                    gap: 15,
                 }}
-            />
-            <StyledChart
-                label="고도"
-                data={dummyData}
-                xKey="dist"
-                yKeys={["alt"]}
-            />
-        </Section>
+            >
+                <StatRow
+                    stats={stats}
+                    color="gray20"
+                    style={{
+                        justifyContent: "space-between",
+                    }}
+                />
+                <StyledChart
+                    label="고도"
+                    data={dummyData}
+                    xKey="dist"
+                    yKeys={["alt"]}
+                />
+            </Section>
+        </View>
     );
 };
 

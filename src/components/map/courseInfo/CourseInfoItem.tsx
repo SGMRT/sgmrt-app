@@ -131,7 +131,7 @@ const HistoryHeader = ({
                             <>
                                 <Divider />
                                 <View style={styles.userCountContainer}>
-                                    <UserIcon />
+                                    <UserIcon color={"#676767"} />
                                     <Typography
                                         variant="caption1"
                                         color="gray60"

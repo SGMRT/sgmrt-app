@@ -8,12 +8,14 @@ import {
     ViewStyle,
 } from "react-native";
 import { Divider } from "./Divider";
-import { Typography } from "./Typography";
+import { Typography, TypographyColor } from "./Typography";
 
 interface SectionProps {
     children: React.ReactNode;
     style?: StyleProp<ViewStyle>;
     title?: string;
+    titleColor?: TypographyColor;
+    titleRightChildren?: React.ReactNode;
     shortcutTitle?: string;
     onPress?: () => void;
 }
@@ -22,17 +24,20 @@ export default function Section({
     children,
     style,
     title,
+    titleColor = "gray40",
+    titleRightChildren,
     shortcutTitle,
     onPress,
 }: SectionProps) {
     return (
-        <View style={[styles.container, style]}>
+        <View style={styles.container}>
             {title && (
                 <View style={styles.titleContainer}>
                     <View style={styles.title}>
-                        <Typography variant="subhead1" color="gray40">
+                        <Typography variant="subhead1" color={titleColor}>
                             {title}
                         </Typography>
+                        {titleRightChildren}
                         {shortcutTitle && (
                             <TouchableOpacity
                                 onPress={onPress}
@@ -48,7 +53,7 @@ export default function Section({
                     <Divider direction="horizontal" />
                 </View>
             )}
-            {children}
+            <View style={[style]}>{children}</View>
         </View>
     );
 }
