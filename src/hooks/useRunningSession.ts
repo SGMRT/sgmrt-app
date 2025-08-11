@@ -20,7 +20,6 @@ import {
 import { KalmanFilter2D } from "../utils/kalmanFilter";
 import { getDistance } from "../utils/mapUtils";
 import {
-    clamp,
     getBaseAltitude,
     getClosestAltitude,
     getClosestStepCount,
@@ -522,18 +521,12 @@ export default function useRunningSession({
 
                         const elevation = altitude - lastAltitude;
 
-                        const clampedRecentPointsPace = clamp(
-                            recentPointsPace,
-                            0,
-                            1800
-                        );
-
                         runTelemetries.current.push({
                             timeStamp: data.timestamp,
                             lat: data.latitude,
                             lng: data.longitude,
                             dist: distance,
-                            pace: clampedRecentPointsPace,
+                            pace: recentPointsPace,
                             alt: altitude,
                             cadence: cadence,
                             bpm: bpm,
@@ -545,7 +538,7 @@ export default function useRunningSession({
                                 totalCalories: calories,
                                 averagePace: pace,
                                 averageCadence: cadence,
-                                recentPointsPace: clampedRecentPointsPace,
+                                recentPointsPace: recentPointsPace,
                                 bpm: bpm,
                                 totalElevationGain:
                                     elevation > 0

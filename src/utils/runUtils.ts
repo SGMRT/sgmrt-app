@@ -45,7 +45,8 @@ function getPace(timeInSec: number, distanceInMeters: number): number {
 }
 
 function getFormattedPace(paceInSec: number): string {
-    if (paceInSec === 0) return "--";
+    if (paceInSec === 0) return "-'-''";
+    if (paceInSec > 1800) return "-'-''";
     const minutes = Math.floor(paceInSec / 60);
     const seconds = Math.floor(paceInSec % 60);
     return `${minutes}’${seconds.toString().padStart(2, "0")}”`;

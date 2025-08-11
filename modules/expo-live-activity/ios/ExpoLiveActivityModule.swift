@@ -138,7 +138,7 @@ public struct GoRunAttributes: ActivityAttributes, Sendable {
         }
 
         public func formattedPace() -> String {
-            guard recentPace > 0, recentPace < 9999 else { return "-’--”" }
+            guard recentPace > 0, recentPace < 1800 else { return "-’--”" }
             let minutes = Int(recentPace) / 60
             let seconds = Int(recentPace) % 60
             return String(format: "%d’%02d”", minutes, seconds)
