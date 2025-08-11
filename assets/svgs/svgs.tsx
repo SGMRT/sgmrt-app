@@ -26,10 +26,13 @@ import ListIcon from "./list.svg";
 
 import FilterIcon from "./slider.svg";
 
+import CalendarIcon from "./calendar.svg";
+
 export {
     AlertIcon,
     AppleIcon,
     BackIcon,
+    CalendarIcon,
     CheckIcon,
     ChevronIcon,
     Compass,

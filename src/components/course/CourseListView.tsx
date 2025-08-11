@@ -1,4 +1,3 @@
-import { ChevronIcon, UserIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getDistance } from "@/src/utils/mapUtils";
@@ -14,6 +13,7 @@ import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
 import SlideToAction from "../ui/SlideToAction";
 import { Typography } from "../ui/Typography";
+import { UserCount } from "../ui/UserCount";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
@@ -297,29 +297,12 @@ const CourseItem = ({
                     </View>
                 </View>
                 {/* 유저 수 */}
-                <TouchableOpacity
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 4,
-                    }}
+                <UserCount
+                    userCount={course.runnersCount}
                     onPress={() => {
                         onClickCourseInfo(course);
                     }}
-                >
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                        }}
-                    >
-                        <UserIcon color={colors.gray[40]} />
-                        <Typography variant="body3" color="gray40">
-                            {course.runnersCount}
-                        </Typography>
-                    </View>
-                    <ChevronIcon color={colors.gray[40]} />
-                </TouchableOpacity>
+                />
             </View>
         </View>
     );
