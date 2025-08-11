@@ -155,7 +155,14 @@ export const CoursesWithFilter = ({
                         key={item.label}
                         title={item.label}
                         titleColor="white"
-                        style={{ gap: 20 }}
+                        containerStyle={
+                            displayData.data.length - 1 !== index
+                                ? { marginBottom: 20 }
+                                : {}
+                        }
+                        style={{
+                            gap: 20,
+                        }}
                     >
                         {item.data.map((course) =>
                             selectedView === "list" ? (

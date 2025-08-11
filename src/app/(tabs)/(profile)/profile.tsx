@@ -40,17 +40,7 @@ export default function ProfileScreen() {
             >
                 {/* Header */}
                 <View>
-                    <Header
-                        titleText="마이페이지"
-                        hasBackButton={false}
-                        onDelete={
-                            selectedTab === "course" && selectedCourse
-                                ? () => {
-                                      setSelectedCourse(null);
-                                  }
-                                : undefined
-                        }
-                    />
+                    <Header titleText="마이페이지" hasBackButton={false} />
                     <View style={{ flexDirection: "row", marginTop: 10 }}>
                         <TabItem
                             title="내 정보"
