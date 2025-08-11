@@ -83,6 +83,8 @@ server.interceptors.response.use(
         Sentry.withScope((scope: Sentry.Scope) => {
             scope.setTags({
                 api: error.response?.config.url,
+                "api.request.headers": error.config?.headers,
+                "api.request.body": error.config?.data,
                 "api.request.method": error.config?.method?.toUpperCase(),
                 "api.response.status": (
                     error.response?.status || ""
