@@ -11,6 +11,7 @@ import BottomModal from "../ui/BottomModal";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
 import { ButtonWithIcon, FilterButton } from "../ui/FilterButton";
+import { GoRunCalendar } from "../ui/GoRunCalendar";
 import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
@@ -212,7 +213,12 @@ export const CoursesWithFilter = ({
                 onEndReachedThreshold={0.5}
             />
             <BottomModal bottomSheetRef={bottomSheetRef}>
-                {bottomSheetType === "date" && <></>}
+                {bottomSheetType === "date" && (
+                    <GoRunCalendar
+                        period={searchPeriod}
+                        setPeriod={setSearchPeriod}
+                    />
+                )}
                 {bottomSheetType === "filter" && (
                     <DualFilter
                         firstLabel="날짜별"

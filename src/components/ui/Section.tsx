@@ -12,6 +12,7 @@ import { Typography, TypographyColor } from "./Typography";
 
 interface SectionProps {
     children: React.ReactNode;
+    containerStyle?: StyleProp<ViewStyle>;
     style?: StyleProp<ViewStyle>;
     title?: string;
     titleColor?: TypographyColor;
@@ -22,6 +23,7 @@ interface SectionProps {
 
 export default function Section({
     children,
+    containerStyle,
     style,
     title,
     titleColor = "gray40",
@@ -30,7 +32,7 @@ export default function Section({
     onPress,
 }: SectionProps) {
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, containerStyle]}>
             {title && (
                 <View style={styles.titleContainer}>
                     <View style={styles.title}>
