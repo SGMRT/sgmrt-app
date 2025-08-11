@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import axios from "axios";
 import { useAuthStore } from "../store/authState";
 
@@ -70,17 +71,13 @@ server.interceptors.response.use(
                             Authorization: `Bearer ${accessToken}`,
                         };
                         return server.request(error.config);
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        useAuthStore.getState().logout();
-                        return Promise.reject(err);
                     });
             }
         } else if (error.response.status === 401) {
             useAuthStore.getState().logout();
             return Promise.reject(error);
         }
+        Sentry.captureException(error);
         return Promise.reject(error);
     }
 );
