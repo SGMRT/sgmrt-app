@@ -4,6 +4,7 @@ import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import BottomModal from "../ui/BottomModal";
@@ -14,6 +15,7 @@ import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
 import { UserCount } from "../ui/UserCount";
+import { CourseGalleryItem } from "./CourseListView";
 
 type CoursesWithFilterProps = {
     data: UserCourseInfo[];
@@ -61,6 +63,7 @@ export const CoursesWithFilter = ({
         "date" | "filter" | "view"
     >("date");
     const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const router = useRouter();
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
@@ -146,31 +149,62 @@ export const CoursesWithFilter = ({
             <FlashList
                 style={{ paddingHorizontal: 16.5 }}
                 data={displayData.data}
-                renderItem={({ item }) => (
+                renderItem={({ item, index }) => (
                     <Section
                         key={item.label}
                         title={item.label}
                         titleColor="white"
                         style={{ gap: 20 }}
                     >
-                        {item.data.map((item) => (
-                            <CourseItem
-                                key={item.id}
-                                courseName={item.name}
-                                courseUserCount={item.uniqueRunnersCount}
-                                courseId={item.id}
-                                runningId={-1}
-                                ghostRunningId={-1}
-                                distance={item.distance / 1000}
-                                duration={item.averageCompletionTime}
-                                averagePace={item.averageFinisherPace}
-                                cadence={item.averageFinisherCadence}
-                                onPress={() => {
-                                    setSelectedCourse(item);
-                                }}
-                                isSelected={item.id === selectedCourse?.id}
-                            />
-                        ))}
+                        {item.data.map((course) =>
+                            selectedView === "list" ? (
+                                <CourseItem
+                                    key={course.id}
+                                    courseName={course.name}
+                                    courseUserCount={course.uniqueRunnersCount}
+                                    courseId={course.id}
+                                    runningId={-1}
+                                    ghostRunningId={-1}
+                                    distance={course.distance / 1000}
+                                    duration={course.averageCompletionTime}
+                                    averagePace={course.averageFinisherPace}
+                                    cadence={course.averageFinisherCadence}
+                                    onPress={() => {
+                                        setSelectedCourse(course);
+                                    }}
+                                    onClickCourseInfo={() => {
+                                        router.push(
+                                            `/course/rank/${course.id}`
+                                        );
+                                    }}
+                                    isSelected={
+                                        course.id === selectedCourse?.id
+                                    }
+                                />
+                            ) : (
+                                <CourseGalleryItem
+                                    key={course.id}
+                                    courseName={course.name}
+                                    distance={course.distance / 1000}
+                                    elevation={0}
+                                    index={index}
+                                    userCount={course.uniqueRunnersCount}
+                                    maxLength={item.data.length}
+                                    isSelected={
+                                        course.id === selectedCourse?.id
+                                    }
+                                    onClickCourse={() => {
+                                        setSelectedCourse(course);
+                                    }}
+                                    onClickCourseInfo={() => {
+                                        console.log(course.id);
+                                        router.push(
+                                            `/course/rank/${course.id}`
+                                        );
+                                    }}
+                                />
+                            )
+                        )}
                     </Section>
                 )}
                 showsVerticalScrollIndicator={false}
@@ -224,6 +258,7 @@ type CourseItemProps = {
     ghostRunningId: number;
     // 이벤트 핸들러
     onPress: () => void;
+    onClickCourseInfo: () => void;
     // 선택 상태
     isSelected: boolean;
 };
@@ -238,6 +273,7 @@ const CourseItem = ({
     courseId,
     runningId,
     ghostRunningId,
+    onClickCourseInfo,
     onPress,
     isSelected,
 }: CourseItemProps) => {
@@ -266,7 +302,7 @@ const CourseItem = ({
                     <Divider />
                     <UserCount
                         userCount={courseUserCount}
-                        onPress={() => {}}
+                        onPress={onClickCourseInfo}
                         color={isSelected ? "gray20" : "gray40"}
                         iconColor={
                             isSelected ? colors.gray[20] : colors.gray[40]
