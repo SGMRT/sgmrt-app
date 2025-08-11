@@ -1,4 +1,3 @@
-import { ChevronIcon, UserIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getDistance } from "@/src/utils/mapUtils";
@@ -6,14 +5,16 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Dimensions, FlatList, TouchableOpacity, View } from "react-native";
+import { Dimensions, FlatList, View } from "react-native";
 import { Divider } from "../ui/Divider";
+import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterButton } from "../ui/FilterButton";
 import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
 import SlideToAction from "../ui/SlideToAction";
 import { Typography } from "../ui/Typography";
+import { UserCount } from "../ui/UserCount";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
@@ -110,29 +111,13 @@ const CourseListView = ({
 
     if (editMode) {
         return (
-            <View style={{ gap: 10, marginHorizontal: 16.5 }}>
-                <TouchableOpacity onPress={onPressNear}>
-                    <Section style={{ alignItems: "center" }}>
-                        <Typography
-                            variant="headline"
-                            color={filter === "near" ? "primary" : "gray20"}
-                        >
-                            나와 가까운 코스
-                        </Typography>
-                    </Section>
-                </TouchableOpacity>
-
-                <Section style={{ alignItems: "center" }}>
-                    <TouchableOpacity onPress={onPressTrend}>
-                        <Typography
-                            variant="headline"
-                            color={filter === "trend" ? "primary" : "gray20"}
-                        >
-                            요즘 뜨는 코스
-                        </Typography>
-                    </TouchableOpacity>
-                </Section>
-            </View>
+            <DualFilter
+                firstLabel="나와 가까운 코스"
+                secondLabel="요즘 뜨는 코스"
+                onPressFirst={onPressNear}
+                onPressSecond={onPressTrend}
+                selected={filter === "near" ? "first" : "second"}
+            />
         );
     }
 
@@ -161,13 +146,18 @@ const CourseListView = ({
                             />
                         }
                         renderItem={({ item, index }) => (
-                            <CourseItem
-                                course={item}
+                            <CourseGalleryItem
+                                courseName={item.name}
+                                distance={item.distance / 1000}
+                                elevation={item.elevationGain}
+                                userCount={item.runnersCount}
                                 index={index}
                                 maxLength={courses.length}
                                 isSelected={selectedCourse?.id === item.id}
-                                onClickCourse={onClickCourse}
-                                onClickCourseInfo={onClickCourseInfo}
+                                onClickCourse={() => onClickCourse(item)}
+                                onClickCourseInfo={() =>
+                                    onClickCourseInfo(item)
+                                }
                             />
                         )}
                         showsVerticalScrollIndicator={false}
@@ -193,20 +183,26 @@ const CourseListView = ({
     );
 };
 
-const CourseItem = ({
-    course,
+export const CourseGalleryItem = ({
+    courseName,
+    distance,
+    elevation,
+    userCount,
     index,
     maxLength,
     isSelected,
     onClickCourse,
     onClickCourseInfo,
 }: {
-    course: CourseResponse;
+    courseName: string;
+    distance: number;
+    elevation: number;
+    userCount: number;
     index: number;
     maxLength: number;
     isSelected: boolean;
-    onClickCourse: (course: CourseResponse) => void;
-    onClickCourseInfo: (course: CourseResponse) => void;
+    onClickCourse: () => void;
+    onClickCourseInfo: () => void;
 }) => {
     return (
         <View
@@ -251,12 +247,12 @@ const CourseItem = ({
                         variant="subhead1"
                         color={isSelected ? "primary" : "gray20"}
                     >
-                        {course.name}
+                        {courseName}
                     </Typography>
                     <RadioButton
                         isSelected={isSelected}
                         showMyRecord={false}
-                        onPress={() => onClickCourse(course)}
+                        onPress={onClickCourse}
                         inactiveColor={colors.gray[40]}
                     />
                 </View>
@@ -275,7 +271,7 @@ const CourseItem = ({
                         </Typography>
                         <Divider />
                         <Typography variant="body1" color="gray40">
-                            {(course.distance / 1000).toFixed(2)}
+                            {distance.toFixed(2)}
                             km
                         </Typography>
                     </View>
@@ -292,34 +288,12 @@ const CourseItem = ({
                         </Typography>
                         <Divider />
                         <Typography variant="body1" color="gray40">
-                            {course.elevationGain}m
+                            {elevation}m
                         </Typography>
                     </View>
                 </View>
                 {/* 유저 수 */}
-                <TouchableOpacity
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 4,
-                    }}
-                    onPress={() => {
-                        onClickCourseInfo(course);
-                    }}
-                >
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                        }}
-                    >
-                        <UserIcon color={colors.gray[40]} />
-                        <Typography variant="body3" color="gray40">
-                            {course.runnersCount}
-                        </Typography>
-                    </View>
-                    <ChevronIcon color={colors.gray[40]} />
-                </TouchableOpacity>
+                <UserCount userCount={userCount} onPress={onClickCourseInfo} />
             </View>
         </View>
     );

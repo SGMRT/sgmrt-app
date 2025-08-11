@@ -1,15 +1,61 @@
 import { FilterIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import { Typography } from "./Typography";
+import {
+    StyleProp,
+    StyleSheet,
+    TouchableOpacity,
+    ViewStyle,
+} from "react-native";
+import { Typography, TypographyColor, TypographyVariant } from "./Typography";
 
-export const FilterButton = ({ onPress }: { onPress: () => void }) => {
+interface FilterButtonProps {
+    onPress: () => void;
+    variant?: TypographyVariant;
+    color?: TypographyColor;
+    style?: StyleProp<ViewStyle>;
+}
+
+export const FilterButton = ({
+    onPress,
+    variant = "caption1",
+    color = "gray40",
+    style,
+}: FilterButtonProps) => {
     return (
-        <TouchableOpacity onPress={onPress} style={styles.container}>
+        <ButtonWithIcon
+            icon={<FilterIcon />}
+            title="필터"
+            onPress={onPress}
+            variant={variant}
+            color={color}
+            style={style}
+        />
+    );
+};
+
+interface ButtonWithIconProps {
+    icon?: React.ReactNode;
+    title: string;
+    onPress: () => void;
+    variant?: TypographyVariant;
+    color?: TypographyColor;
+    style?: StyleProp<ViewStyle>;
+}
+
+export const ButtonWithIcon = ({
+    icon,
+    title,
+    onPress,
+    variant = "caption1",
+    color = "gray40",
+    style,
+}: ButtonWithIconProps) => {
+    return (
+        <TouchableOpacity onPress={onPress} style={[styles.container, style]}>
             <>
-                <FilterIcon />
-                <Typography variant="caption1" color="gray40">
-                    필터
+                {icon ? icon : null}
+                <Typography variant={variant} color={color}>
+                    {title}
                 </Typography>
             </>
         </TouchableOpacity>

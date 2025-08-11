@@ -1,7 +1,6 @@
 import { AlertIcon } from "@/assets/svgs/svgs";
 import { deleteUser, getUserCourses, invalidateToken } from "@/src/apis";
 import { GhostSortOption, UserCourseInfo } from "@/src/apis/types/course";
-import { CourseFilter } from "@/src/components/course/CourseFilter";
 import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
 import { Info } from "@/src/components/profile/Info";
 import BottomModal from "@/src/components/ui/BottomModal";
@@ -41,17 +40,7 @@ export default function ProfileScreen() {
             >
                 {/* Header */}
                 <View>
-                    <Header
-                        titleText="마이페이지"
-                        hasBackButton={false}
-                        onDelete={
-                            selectedTab === "course" && selectedCourse
-                                ? () => {
-                                      setSelectedCourse(null);
-                                  }
-                                : undefined
-                        }
-                    />
+                    <Header titleText="마이페이지" hasBackButton={false} />
                     <View style={{ flexDirection: "row", marginTop: 10 }}>
                         <TabItem
                             title="내 정보"
@@ -166,10 +155,6 @@ const Course = ({
     selectedCourse: UserCourseInfo | null;
     setSelectedCourse: (course: UserCourseInfo | null) => void;
 }) => {
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
-    const [selectedFilter, setSelectedFilter] = useState<
-        "day" | "week" | "month" | "year"
-    >("month");
     const { data, isLoading, isError, fetchNextPage, hasNextPage } =
         useUserCourses();
 
@@ -185,14 +170,8 @@ const Course = ({
                 data={data?.pages.flatMap((page) => page.content) ?? []}
                 selectedCourse={selectedCourse}
                 setSelectedCourse={setSelectedCourse}
-                onClickFilter={() => bottomSheetRef.current?.present()}
                 hasNextPage={hasNextPage}
                 fetchNextPage={fetchNextPage}
-            />
-            <CourseFilter
-                bottomSheetRef={bottomSheetRef}
-                setSelectedFilter={setSelectedFilter}
-                selectedFilter={selectedFilter}
             />
         </View>
     );
