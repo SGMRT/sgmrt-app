@@ -28,6 +28,8 @@ import FilterIcon from "./slider.svg";
 
 import CalendarIcon from "./calendar.svg";
 
+import ScrollTopIcon from "./scroll.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -47,4 +49,5 @@ export {
     ToastInfoIcon,
     TrashIcon,
     UserIcon,
+    ScrollTopIcon,
 };

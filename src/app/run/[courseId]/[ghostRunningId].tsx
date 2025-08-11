@@ -101,7 +101,7 @@ export default function CourseRun() {
                     );
                 }
             })
-            .catch(() => {
+            .catch((error) => {
                 Alert.alert(
                     "데이터 로딩 오류",
                     "러닝 데이터를 불러오는데 실패했습니다",
