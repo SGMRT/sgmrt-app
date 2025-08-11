@@ -9,6 +9,7 @@ interface HeaderProps {
     titleComponent?: React.ReactNode;
     hasBackButton?: boolean;
     onDelete?: () => void;
+    deleteColor?: string;
 }
 
 export default memo(function Header({
@@ -16,6 +17,7 @@ export default memo(function Header({
     titleComponent,
     hasBackButton = true,
     onDelete,
+    deleteColor = "gray40",
 }: HeaderProps) {
     const router = useRouter();
     return (
@@ -40,7 +42,7 @@ export default memo(function Header({
                 {!onDelete && <View style={{ width: 20, height: 20 }} />}
                 {onDelete && (
                     <Pressable onPress={onDelete}>
-                        <TrashIcon />
+                        <TrashIcon color={deleteColor} />
                     </Pressable>
                 )}
             </View>
