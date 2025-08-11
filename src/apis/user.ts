@@ -128,8 +128,12 @@ export async function deleteUser() {
     }
 }
 
+function camelToSnakeCase(str: string) {
+    return str.replace(/([A-Z])/g, "_$1").toUpperCase();
+}
+
 export async function patchUserInfo(data: PatchUserInfoRequest) {
-    const updateAttrs = Object.keys(data).map((key) => key.toUpperCase());
+    const updateAttrs = Object.keys(data).map((key) => camelToSnakeCase(key));
     try {
         const { uuid } = useAuthStore.getState();
         const response = await server.patch(`members/${uuid}`, {
