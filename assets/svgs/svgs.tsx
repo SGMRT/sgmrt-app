@@ -26,6 +26,8 @@ import ListIcon from "./list.svg";
 
 import FilterIcon from "./slider.svg";
 
+import ScrollTopIcon from "./scroll.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -44,4 +46,5 @@ export {
     ToastInfoIcon,
     TrashIcon,
     UserIcon,
+    ScrollTopIcon,
 };

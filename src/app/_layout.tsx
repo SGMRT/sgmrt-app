@@ -73,17 +73,20 @@ function RootLayout() {
         stopTrackingAndLiveActivity();
 
         if (isLoggedIn) {
-            Sentry.setUser({
-                id: uuid!,
-                username: userInfo?.username!,
-            });
             router.replace("/intro");
         } else {
             router.replace("/(auth)/login");
         }
 
         SplashScreen.hideAsync();
-    }, [isLoggedIn, loaded, userInfo]);
+    }, [isLoggedIn, loaded, userInfo, router]);
+
+    useEffect(() => {
+        Sentry.setUser({
+            id: uuid!,
+            username: userInfo?.username!,
+        });
+    }, [uuid, userInfo]);
 
     if (!loaded) {
         return null;
