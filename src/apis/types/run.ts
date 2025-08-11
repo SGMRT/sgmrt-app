@@ -90,4 +90,5 @@ export type RunResponse = {
         id: number | null;
         name: string | null;
     };
+    ghostRunningId: number | null;
 };

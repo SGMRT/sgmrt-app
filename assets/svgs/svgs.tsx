@@ -30,6 +30,8 @@ import CalendarIcon from "./calendar.svg";
 
 import ScrollTopIcon from "./scroll.svg";
 
+import GhostIcon from "./g.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -41,13 +43,14 @@ export {
     EditIcon,
     ElipsisVerticalIcon,
     FilterIcon,
+    GhostIcon,
     KakaoIcon,
     ListIcon,
     LocateMe,
+    ScrollTopIcon,
     ShareIcon,
     ToastCheckIcon,
     ToastInfoIcon,
     TrashIcon,
     UserIcon,
-    ScrollTopIcon,
 };

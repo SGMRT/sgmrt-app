@@ -1,16 +1,17 @@
-import { CalendarIcon } from "@/assets/svgs/svgs";
 import { UserCourseInfo } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
+import { formatDate } from "@/src/utils/formatDate";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import BottomModal from "../ui/BottomModal";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
-import { ButtonWithIcon, FilterButton } from "../ui/FilterButton";
+import EmptyListView from "../ui/EmptyListView";
+import { FilterBar } from "../ui/FilterBar";
 import { GoRunCalendar } from "../ui/GoRunCalendar";
 import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
@@ -150,6 +151,13 @@ export const CoursesWithFilter = ({
             <FlashList
                 style={{ paddingHorizontal: 16.5 }}
                 data={displayData.data}
+                ListEmptyComponent={
+                    <Section>
+                        <EmptyListView
+                            description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
+                        />
+                    </Section>
+                }
                 renderItem={({ item, index }) => (
                     <Section
                         key={item.label}
@@ -367,72 +375,3 @@ const CourseItem = ({
         </View>
     );
 };
-
-interface FilterBarProps {
-    searchPeriod: {
-        startDate: Date;
-        endDate: Date;
-    };
-    setSearchPeriod: (period: { startDate: Date; endDate: Date }) => void;
-    onClickFilter: (type: "date" | "filter" | "view") => void;
-}
-
-const FilterBar = ({
-    searchPeriod,
-    setSearchPeriod,
-    onClickFilter,
-}: FilterBarProps) => {
-    return (
-        <View style={styles.filterBar}>
-            <ButtonWithIcon
-                icon={<CalendarIcon />}
-                // 25.06.21 형식으로 되도록
-                title={`${formatDate(searchPeriod.startDate)} ~${formatDate(
-                    searchPeriod.endDate
-                )}`}
-                onPress={() => onClickFilter("date")}
-                variant="body2"
-                color="gray20"
-                style={styles.pv5}
-            />
-            <FilterButton
-                onPress={() => onClickFilter("filter")}
-                variant="body2"
-                color="gray20"
-                style={styles.pv5}
-            />
-            <ButtonWithIcon
-                title="보기 방식"
-                onPress={() => onClickFilter("view")}
-                variant="body2"
-                color="gray20"
-                style={styles.pv5}
-            />
-        </View>
-    );
-};
-
-const formatDate = (date: Date) => {
-    return date
-        .toLocaleDateString("ko-KR", {
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-        })
-        .slice(0, 10)
-        .split(".")
-        .map((item) => item.trim())
-        .join(".");
-};
-
-const styles = StyleSheet.create({
-    filterBar: {
-        flexDirection: "row",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 6,
-    },
-    pv5: {
-        paddingVertical: 5,
-    },
-});
