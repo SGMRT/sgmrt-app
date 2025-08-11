@@ -5,8 +5,9 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Dimensions, FlatList, TouchableOpacity, View } from "react-native";
+import { Dimensions, FlatList, View } from "react-native";
 import { Divider } from "../ui/Divider";
+import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterButton } from "../ui/FilterButton";
 import RadioButton from "../ui/RadioButton";
@@ -110,29 +111,13 @@ const CourseListView = ({
 
     if (editMode) {
         return (
-            <View style={{ gap: 10, marginHorizontal: 16.5 }}>
-                <TouchableOpacity onPress={onPressNear}>
-                    <Section style={{ alignItems: "center" }}>
-                        <Typography
-                            variant="headline"
-                            color={filter === "near" ? "primary" : "gray20"}
-                        >
-                            나와 가까운 코스
-                        </Typography>
-                    </Section>
-                </TouchableOpacity>
-
-                <Section style={{ alignItems: "center" }}>
-                    <TouchableOpacity onPress={onPressTrend}>
-                        <Typography
-                            variant="headline"
-                            color={filter === "trend" ? "primary" : "gray20"}
-                        >
-                            요즘 뜨는 코스
-                        </Typography>
-                    </TouchableOpacity>
-                </Section>
-            </View>
+            <DualFilter
+                firstLabel="나와 가까운 코스"
+                secondLabel="요즘 뜨는 코스"
+                onPressFirst={onPressNear}
+                onPressSecond={onPressTrend}
+                selected={filter === "near" ? "first" : "second"}
+            />
         );
     }
 

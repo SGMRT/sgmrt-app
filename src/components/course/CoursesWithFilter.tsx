@@ -2,9 +2,13 @@ import { CalendarIcon } from "@/assets/svgs/svgs";
 import { UserCourseInfo } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
-import { useEffect, useMemo, useState } from "react";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { FlashList } from "@shopify/flash-list";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import BottomModal from "../ui/BottomModal";
 import { Divider } from "../ui/Divider";
+import { DualFilter } from "../ui/DualFilter";
 import { ButtonWithIcon, FilterButton } from "../ui/FilterButton";
 import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
@@ -39,11 +43,13 @@ export const CoursesWithFilter = ({
     const [selectedFilter, setSelectedFilter] = useState<"date" | "course">(
         "date"
     );
+    const [selectedView, setSelectedView] = useState<"list" | "gallery">(
+        "list"
+    );
     const [displayData, setDisplayData] = useState<FilteredData>({
         type: "date",
         data: [],
     });
-
     const [searchPeriod, setSearchPeriod] = useState<{
         startDate: Date;
         endDate: Date;
@@ -51,6 +57,10 @@ export const CoursesWithFilter = ({
         startDate: new Date(new Date().setDate(new Date().getDate() - 7)),
         endDate: new Date(),
     });
+    const [bottomSheetType, setBottomSheetType] = useState<
+        "date" | "filter" | "view"
+    >("date");
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
@@ -63,29 +73,44 @@ export const CoursesWithFilter = ({
     }, [data, searchPeriod]);
 
     const dateGroups: FilteredData = useMemo(() => {
-        const groups: DataGroup[] = [];
+        const groups = new Map<string, UserCourseInfo[]>();
 
         filteredData.forEach((item) => {
             const date = formatDate(new Date(item.createdAt));
-            if (!groups.find((group) => group.label === date)) {
-                groups.push({ label: date, data: [] });
+            // Map에 해당 날짜의 그룹이 있는지 확인
+            if (!groups.has(date)) {
+                groups.set(date, []); // 없으면 새로운 배열과 함께 추가
             }
-            groups.find((group) => group.label === date)?.data.push(item);
+            groups.get(date)?.push(item); // 해당 그룹에 아이템 추가
         });
-        return { type: "date", data: groups };
+
+        // Map을 FlashList가 사용할 데이터 형태로 변환
+        const data = Array.from(groups.entries()).map(([label, data]) => ({
+            label,
+            data,
+        }));
+
+        return { type: "date", data };
     }, [filteredData]);
 
     const courseGroups: FilteredData = useMemo(() => {
-        const groups: DataGroup[] = [];
+        const groups = new Map<string, UserCourseInfo[]>();
 
         filteredData.forEach((item) => {
             const course = item.name;
-            if (!groups.find((group) => group.label === course)) {
-                groups.push({ label: course, data: [] });
+            if (!groups.has(course)) {
+                groups.set(course, []);
             }
-            groups.find((group) => group.label === course)?.data.push(item);
+            groups.get(course)?.push(item);
         });
-        return { type: "course", data: groups };
+
+        // Map을 FlashList가 사용할 데이터 형태로 변환
+        const data = Array.from(groups.entries()).map(([label, data]) => ({
+            label,
+            data,
+        }));
+
+        return { type: "course", data };
     }, [filteredData]);
 
     useEffect(() => {
@@ -96,21 +121,39 @@ export const CoursesWithFilter = ({
         }
     }, [selectedFilter, dateGroups, courseGroups]);
 
+    const onPressFilterItem = (type: "date" | "filter" | "view") => {
+        setBottomSheetType(type);
+        bottomSheetRef.current?.present();
+    };
+
+    const onPressFilterType = (type: "date" | "course") => {
+        setSelectedFilter(type);
+        bottomSheetRef.current?.close();
+    };
+
+    const onPressViewType = (type: "list" | "gallery") => {
+        setSelectedView(type);
+        bottomSheetRef.current?.close();
+    };
+
     return (
         <View style={{ flex: 1, gap: 20 }}>
             <FilterBar
                 searchPeriod={searchPeriod}
                 setSearchPeriod={setSearchPeriod}
+                onClickFilter={onPressFilterItem}
             />
-            <View style={{ paddingHorizontal: 16.5 }}>
-                {displayData.data.map((group) => (
+            <FlashList
+                style={{ paddingHorizontal: 16.5 }}
+                data={displayData.data}
+                renderItem={({ item }) => (
                     <Section
-                        key={group.label}
-                        title={group.label}
+                        key={item.label}
+                        title={item.label}
                         titleColor="white"
                         style={{ gap: 20 }}
                     >
-                        {group.data.map((item) => (
+                        {item.data.map((item) => (
                             <CourseItem
                                 key={item.id}
                                 courseName={item.name}
@@ -122,13 +165,47 @@ export const CoursesWithFilter = ({
                                 duration={item.averageCompletionTime}
                                 averagePace={item.averageFinisherPace}
                                 cadence={item.averageFinisherCadence}
-                                onPress={() => {}}
+                                onPress={() => {
+                                    setSelectedCourse(item);
+                                }}
                                 isSelected={item.id === selectedCourse?.id}
                             />
                         ))}
                     </Section>
-                ))}
-            </View>
+                )}
+                showsVerticalScrollIndicator={false}
+                onEndReached={hasNextPage ? fetchNextPage : undefined}
+                onEndReachedThreshold={0.5}
+            />
+            <BottomModal bottomSheetRef={bottomSheetRef}>
+                {bottomSheetType === "date" && <></>}
+                {bottomSheetType === "filter" && (
+                    <DualFilter
+                        firstLabel="날짜별"
+                        secondLabel="코스별"
+                        onPressFirst={() => {
+                            onPressFilterType("date");
+                        }}
+                        onPressSecond={() => {
+                            onPressFilterType("course");
+                        }}
+                        selected={
+                            selectedFilter === "date" ? "first" : "second"
+                        }
+                        style={{ marginBottom: 30 }}
+                    />
+                )}
+                {bottomSheetType === "view" && (
+                    <DualFilter
+                        firstLabel="목록"
+                        secondLabel="갤러리"
+                        onPressFirst={() => onPressViewType("list")}
+                        onPressSecond={() => onPressViewType("gallery")}
+                        selected={selectedView === "list" ? "first" : "second"}
+                        style={{ marginBottom: 30 }}
+                    />
+                )}
+            </BottomModal>
         </View>
     );
 };
@@ -248,9 +325,14 @@ interface FilterBarProps {
         endDate: Date;
     };
     setSearchPeriod: (period: { startDate: Date; endDate: Date }) => void;
+    onClickFilter: (type: "date" | "filter" | "view") => void;
 }
 
-const FilterBar = ({ searchPeriod, setSearchPeriod }: FilterBarProps) => {
+const FilterBar = ({
+    searchPeriod,
+    setSearchPeriod,
+    onClickFilter,
+}: FilterBarProps) => {
     return (
         <View style={styles.filterBar}>
             <ButtonWithIcon
@@ -259,20 +341,20 @@ const FilterBar = ({ searchPeriod, setSearchPeriod }: FilterBarProps) => {
                 title={`${formatDate(searchPeriod.startDate)} ~${formatDate(
                     searchPeriod.endDate
                 )}`}
-                onPress={() => {}}
+                onPress={() => onClickFilter("date")}
                 variant="body2"
                 color="gray20"
                 style={styles.pv5}
             />
             <FilterButton
-                onPress={() => {}}
+                onPress={() => onClickFilter("filter")}
                 variant="body2"
                 color="gray20"
                 style={styles.pv5}
             />
             <ButtonWithIcon
                 title="보기 방식"
-                onPress={() => {}}
+                onPress={() => onClickFilter("view")}
                 variant="body2"
                 color="gray20"
                 style={styles.pv5}
