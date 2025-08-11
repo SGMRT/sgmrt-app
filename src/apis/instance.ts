@@ -77,7 +77,24 @@ server.interceptors.response.use(
             useAuthStore.getState().logout();
             return Promise.reject(error);
         }
-        Sentry.captureException(error);
+
+        console.log(error.response.data);
+
+        Sentry.withScope((scope: Sentry.Scope) => {
+            scope.setTags({
+                api: error.response?.config.url,
+                "api.request.method": error.config?.method?.toUpperCase(),
+                "api.response.status": (
+                    error.response?.status || ""
+                ).toString(),
+                "api.response.data": error.response?.data,
+            });
+            error.message = error.response?.data.message;
+            Sentry.captureException(error, {
+                fingerprint: [error.response?.data.message],
+            });
+        });
+
         return Promise.reject(error);
     }
 );
