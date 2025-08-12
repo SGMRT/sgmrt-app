@@ -5,7 +5,11 @@ export default function CourseLayout() {
         <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen
-                name="rank/[courseId]"
+                name="[courseId]/rank"
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name="[courseId]/detail"
                 options={{ headerShown: false }}
             />
         </Stack>

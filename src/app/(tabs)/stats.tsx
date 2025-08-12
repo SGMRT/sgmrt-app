@@ -28,6 +28,14 @@ export default function Stats() {
         null
     );
 
+    const handleCourseSelect = (course: RunResponse) => {
+        if (selectedTab === "SOLO") {
+            setSelectedCourse(course);
+        } else {
+            setSelectedGhost(course);
+        }
+    };
+
     const handleHistoryClickWithDelete = (history: RunResponse) => {
         if (isDeleteMode) {
             setSelectedDeleteItems((prev) => {
@@ -39,7 +47,7 @@ export default function Stats() {
                 return [...prev, history];
             });
         } else {
-            setSelectedCourse(history);
+            handleCourseSelect(history);
         }
     };
 
@@ -111,7 +119,9 @@ export default function Stats() {
                 <UserHistory
                     mode={selectedTab}
                     isDeleteMode={isDeleteMode}
-                    selectedItem={selectedCourse}
+                    selectedItem={
+                        selectedTab === "SOLO" ? selectedCourse : selectedGhost
+                    }
                     selectedDeleteItem={selectedDeleteItems}
                     onClickItem={handleHistoryClickWithDelete}
                     shouldRefresh={shouldRefresh}
@@ -122,12 +132,9 @@ export default function Stats() {
                 label={
                     isDeleteMode
                         ? "선택한 기록들 삭제 하기"
-                        : selectedTab === "SOLO"
-                        ? selectedCourse?.courseInfo.id
-                            ? "이 코스로 러닝 시작"
-                            : "밀어서 러닝 시작"
-                        : selectedGhost?.ghostRunningId
-                        ? "고스트와 러닝 시작"
+                        : (selectedTab === "SOLO" && selectedCourse) ||
+                          (selectedTab === "GHOST" && selectedGhost)
+                        ? "이 코스로 러닝 시작"
                         : "밀어서 러닝 시작"
                 }
                 onSlideSuccess={() => {
@@ -135,24 +142,19 @@ export default function Stats() {
                         onDeleteItems();
                         return;
                     }
-                    if (selectedTab === "SOLO") {
-                        if (selectedCourse?.courseInfo.id) {
-                            router.push(
-                                `/run/${selectedCourse!.courseInfo.id}/-1`
-                            );
-                        } else {
-                            router.push("/run/solo");
-                        }
+
+                    if (
+                        selectedTab === "SOLO" &&
+                        selectedCourse?.courseInfo.id
+                    ) {
+                        router.push(`/run/${selectedCourse!.courseInfo.id}/-1`);
+                    } else if (
+                        selectedTab === "GHOST" &&
+                        selectedGhost?.courseInfo.id
+                    ) {
+                        router.push(`/run/${selectedGhost!.courseInfo.id}/-1`);
                     } else {
-                        if (selectedGhost?.ghostRunningId) {
-                            router.push(
-                                `/run/${selectedGhost!.courseInfo.id}/${
-                                    selectedGhost!.ghostRunningId
-                                }`
-                            );
-                        } else {
-                            router.push("/run/solo");
-                        }
+                        router.push("/run/solo");
                     }
                 }}
                 color="green"

@@ -1,4 +1,9 @@
-import { LockIcon, ShareIcon, UnlockIcon } from "@/assets/svgs/svgs";
+import {
+    ChevronIcon,
+    LockIcon,
+    ShareIcon,
+    UnlockIcon,
+} from "@/assets/svgs/svgs";
 import {
     getCourse,
     getCourseTopRanking,
@@ -12,7 +17,7 @@ import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
-import ResultCorseMap from "@/src/components/result/ResultCorseMap";
+import ResultCourseMap from "@/src/components/result/ResultCourseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
@@ -23,17 +28,22 @@ import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
+import colors from "@/src/theme/colors";
 import { calculateCenter } from "@/src/utils/mapUtils";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
-} from "react-native-safe-area-context";
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
+} from "react-native";
+import { useSharedValue } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 export default function Result() {
@@ -63,7 +73,6 @@ export default function Result() {
     };
 
     const [courseName, setCourseName] = useState("");
-    const { bottom } = useSafeAreaInsets();
 
     const router = useRouter();
 
@@ -98,6 +107,9 @@ export default function Result() {
     });
 
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
+
+    const isChartActive = useSharedValue(false);
+    const chartPointIndex = useSharedValue(0);
 
     const center = useMemo(
         () =>
@@ -337,14 +349,47 @@ export default function Result() {
                         </View>
 
                         {/* 코스 지도 파트 */}
-                        <ResultCorseMap
-                            center={center}
-                            telemetries={runData.telemetries ?? []}
-                        />
+                        <View
+                            style={{
+                                borderRadius: 20,
+                                alignItems: "center",
+                                backgroundColor: "#171717",
+                            }}
+                        >
+                            <ResultCourseMap
+                                center={center}
+                                telemetries={runData.telemetries ?? []}
+                                isChartActive={isChartActive}
+                                chartPointIndex={chartPointIndex}
+                            />
+                            {courseId !== "-1" && course?.name && (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        router.push(
+                                            `/course/${courseId}/detail`
+                                        );
+                                    }}
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        marginVertical: 12,
+                                    }}
+                                >
+                                    <Typography variant="body2" color="gray40">
+                                        {course?.name} 코스
+                                    </Typography>
+                                    <ChevronIcon color={colors.gray[40]} />
+                                </TouchableOpacity>
+                            )}
+                        </View>
 
                         {/* 내 페이스 및 코스 정보 파트 */}
                         <Section
-                            title="내 페이스"
+                            title={
+                                displayMode === "pace"
+                                    ? "내 페이스"
+                                    : "내 코스 정보"
+                            }
                             titleColor="white"
                             titleRightChildren={
                                 <StyledButton
@@ -377,7 +422,14 @@ export default function Result() {
                                 yKeys={
                                     displayMode === "pace" ? ["pace"] : ["alt"]
                                 }
-                                invertYAxis={true}
+                                invertYAxis={
+                                    displayMode === "pace" ? true : false
+                                }
+                                showToolTip={true}
+                                onPointChange={(payload) => {
+                                    isChartActive.value = payload.isActive;
+                                    chartPointIndex.value = payload.index;
+                                }}
                                 expandable
                             />
                         </Section>

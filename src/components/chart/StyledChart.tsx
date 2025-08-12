@@ -1,14 +1,17 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
-import { useFont } from "@shopify/react-native-skia";
+import { Circle, useFont } from "@shopify/react-native-skia";
 import { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import Animated, {
+    SharedValue,
+    runOnJS,
     useAnimatedStyle,
+    useDerivedValue,
     useSharedValue,
     withTiming,
 } from "react-native-reanimated";
-import { CartesianChart, Line } from "victory-native";
+import { CartesianChart, Line, useChartPressState } from "victory-native";
 import { Typography } from "../ui/Typography";
 
 interface StyledChartProps {
@@ -16,85 +19,35 @@ interface StyledChartProps {
     data: any[];
     xKey: string;
     yKeys: string[];
+    showLabel?: boolean;
     showToolTip?: boolean;
     invertYAxis?: boolean;
     expandable?: boolean;
+    onPointChange?: (payload: {
+        index: number;
+        xValue: number;
+        yValue: number;
+        isActive: boolean;
+        xPos: number;
+        yPos: number;
+    }) => void;
 }
-
-// interface ToolTipProps {
-//     data: any[];
-//     x: SharedValue<number>;
-//     index: SharedValue<number>;
-// }
-
-// function ToolTip({ data, x, index }: ToolTipProps) {
-//     const [time, setTime] = useState("");
-//     const [tooltipWidth, setTooltipWidth] = useState(40);
-//     // 34: padding, 10: margin
-//     const maxX = Dimensions.get("window").width - 34 - tooltipWidth - 10;
-
-//     const animatedStyle = useAnimatedStyle(() => ({
-//         transform: [{ translateX: Math.min(x.value, maxX) }],
-//     }));
-
-//     useAnimatedReaction(
-//         () => Math.round(index.value),
-//         (i) => {
-//             if (i < 0 || i >= data.length) return;
-
-//             const runTime = data[i].timeStamp / 1000;
-//             const hours = Math.floor(runTime / 3600);
-//             const minutes = Math.floor((runTime % 3600) / 60);
-//             const seconds = Math.floor(runTime % 60);
-
-//             const formatted =
-//                 hours > 0
-//                     ? `${hours.toString().padStart(2, "0")}:${minutes
-//                           .toString()
-//                           .padStart(2, "0")}:${seconds
-//                           .toString()
-//                           .padStart(2, "0")}`
-//                     : `${minutes.toString().padStart(2, "0")}:${seconds
-//                           .toString()
-//                           .padStart(2, "0")}`;
-
-//             runOnJS(setTime)(formatted);
-//         },
-//         [index]
-//     );
-
-//     return (
-//         <Animated.View
-//             style={[styles.tooltip, animatedStyle]}
-//             onLayout={(e) => {
-//                 const w = e.nativeEvent.layout.width;
-//                 setTooltipWidth(w);
-//             }}
-//         >
-//             <Typography variant="caption1" color="gray20">
-//                 {time}
-//             </Typography>
-//         </Animated.View>
-//     );
-// }
 
 const StyledChart = ({
     label,
     data,
     xKey,
     yKeys,
-    showToolTip = true,
+    showLabel = true,
+    showToolTip = false,
     invertYAxis = false,
     expandable = false,
+    onPointChange,
 }: StyledChartProps) => {
     const font = useFont(
         require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),
         12
     );
-    // const { state, isActive } = useChartPressState({
-    //     x: 0,
-    //     y: { [yKeys[0]]: 0 },
-    // });
 
     const chartHeight = useSharedValue(70);
     const [isExpanded, setIsExpanded] = useState(false);
@@ -111,9 +64,29 @@ const StyledChart = ({
         };
     });
 
+    const { state, isActive } = useChartPressState({
+        x: 0,
+        y: { [yKeys[0]]: 0 },
+    });
+
+    const primaryYKey = yKeys[0];
+
+    useDerivedValue(() => {
+        if (!onPointChange) return;
+        const payload = {
+            index: state.matchedIndex.value,
+            xValue: (state.x.value as SharedValue<number>).value,
+            yValue: state.y[primaryYKey].value.value,
+            isActive: state.isActive.value,
+            xPos: state.x.position.value,
+            yPos: state.y[primaryYKey].position.value,
+        };
+        runOnJS(onPointChange)(payload);
+    });
+
     return (
         <View>
-            {showToolTip && (
+            {showLabel && (
                 <View style={styles.tooltipContainer}>
                     <Typography variant="body3" color="gray40">
                         {label}
@@ -123,6 +96,7 @@ const StyledChart = ({
             <View style={styles.container}>
                 <Animated.View style={animatedChartContainerStyle}>
                     <CartesianChart
+                        chartPressState={showToolTip ? state : undefined}
                         data={data}
                         xKey={xKey}
                         yKeys={yKeys}
@@ -134,12 +108,12 @@ const StyledChart = ({
                                               (max, item) =>
                                                   Math.max(max, item[yKeys[0]]),
                                               -Infinity
-                                          ),
+                                          ) * 1.05,
                                           data.reduce(
                                               (min, item) =>
                                                   Math.min(min, item[yKeys[0]]),
                                               Infinity
-                                          ),
+                                          ) * 0.95,
                                       ]
                                     : undefined,
                         }}
@@ -173,12 +147,24 @@ const StyledChart = ({
                         }}
                     >
                         {({ points }) => (
-                            <Line
-                                points={points[yKeys[0]]}
-                                strokeWidth={1}
-                                color={colors.primary}
-                                curveType="basis"
-                            />
+                            <>
+                                <Line
+                                    points={points[yKeys[0]]}
+                                    strokeWidth={1}
+                                    color={
+                                        isActive
+                                            ? colors.gray[20]
+                                            : colors.primary
+                                    }
+                                    curveType="basis"
+                                />
+                                {isActive && (
+                                    <ToolTip
+                                        x={state.x.position}
+                                        y={state.y[yKeys[0]].position}
+                                    />
+                                )}
+                            </>
                         )}
                     </CartesianChart>
                 </Animated.View>
@@ -201,6 +187,10 @@ const StyledChart = ({
         </View>
     );
 };
+
+function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }) {
+    return <Circle cx={x} cy={y} r={4} color={colors.primary} />;
+}
 
 const styles = StyleSheet.create({
     container: {
