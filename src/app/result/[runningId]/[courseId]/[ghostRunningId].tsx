@@ -3,25 +3,20 @@ import {
     getCourseTopRanking,
     getRun,
     getRunComperison,
-    patchCourseName,
     patchRunName,
 } from "@/src/apis";
 import { HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
-import CourseTopUsers from "@/src/components/map/courseInfo/CourseTopUsers";
-import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
-import CollapsibleSection from "@/src/components/ui/CollapsibleSection";
-import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
-import SlideToAction from "@/src/components/ui/SlideToAction";
-import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
+import Section from "@/src/components/ui/Section";
 import StatRow from "@/src/components/ui/StatRow";
+import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
 import { calculateCenter } from "@/src/utils/mapUtils";
-import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import { getDate, getFormattedPace } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -31,7 +26,6 @@ import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
@@ -118,6 +112,7 @@ export default function Result() {
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
                     >
+                        {/* 제목 파트 */}
                         <View style={styles.titleContainer}>
                             <View style={styles.titleInputContainer}>
                                 <NameInput
@@ -131,323 +126,63 @@ export default function Result() {
                                         );
                                     }}
                                 />
-                                {/* {courseId !== "-1" && (
-                                    <>
-                                        <Divider direction="vertical" />
-                                        <CourseNameContainer
-                                            courseName={
-                                                runData?.courseInfo.name ??
-                                                ghostData?.courseInfo.name ??
-                                                "무명의 코스"
-                                            }
-                                            onPress={() => {
-                                                router.push(
-                                                    `/course/rank/${courseId}`
-                                                );
-                                            }}
-                                        />
-                                    </>
-                                )} */}
                             </View>
-                            <ShareIcon style={{ marginLeft: 8, flex: 1 }} />
+                            <ShareIcon style={styles.shareButton} />
                         </View>
+
+                        {/* 코스 지도 파트 */}
                         <ResultCorseMap
                             center={center}
                             telemetries={runData.telemetries ?? []}
                         />
-                        <View
-                            style={{
-                                paddingHorizontal: 17,
-                            }}
+
+                        {/* 내 페이스 및 코스 정보 파트 */}
+                        <Section
+                            title="내 페이스"
+                            titleColor="white"
+                            titleRightChildren={
+                                <StyledButton
+                                    title="페이스 수정"
+                                    onPress={handlePresentModalPress}
+                                    style={{ paddingHorizontal: 12 }}
+                                />
+                            }
+                            style={{ gap: 15 }}
                         >
                             <StatRow
-                                style={{
-                                    paddingVertical: 20,
-                                    justifyContent: "space-between",
-                                }}
+                                color="gray20"
+                                style={{ gap: 20 }}
                                 stats={[
                                     {
-                                        value: runData.recordInfo.distance.toFixed(
-                                            2
+                                        description: "평균",
+                                        value: getFormattedPace(
+                                            runData.recordInfo.averagePace
                                         ),
-                                        unit: "km",
-                                        description: "전체 거리",
                                     },
                                     {
-                                        value: getRunTime(
-                                            runData.recordInfo.duration,
-                                            "MM:SS"
+                                        description: "순간 최고",
+                                        value: getFormattedPace(
+                                            runData.recordInfo.lowestPace
                                         ),
-                                        unit: "",
-                                        description: "시간",
                                     },
                                     {
-                                        value: runData.recordInfo.cadence.toString(),
-                                        unit: "spm",
-                                        description: "케이던스",
-                                    },
-                                    {
-                                        value: runData.recordInfo.calories.toString(),
-                                        unit: "kcal",
-                                        description: "칼로리",
+                                        description: "순간 최저",
+                                        value: getFormattedPace(
+                                            runData.recordInfo.highestPace
+                                        ),
                                     },
                                 ]}
                             />
-                            {ghostData && (
-                                <>
-                                    <Divider direction="horizontal" />
-                                    <CollapsibleSection
-                                        title="기록 비교"
-                                        defaultOpen={true}
-                                        alwaysVisibleChildren={
-                                            <StatRow
-                                                style={{
-                                                    gap: 20,
-                                                }}
-                                                stats={[
-                                                    {
-                                                        value: (ghostData?.comparisonInfo.distance).toFixed(
-                                                            2
-                                                        ),
-                                                        unit: "km",
-                                                        description: "거리",
-                                                    },
-                                                    {
-                                                        value: getRunTime(
-                                                            ghostData
-                                                                ?.comparisonInfo
-                                                                .duration,
-                                                            "MM:SS"
-                                                        ),
-                                                        unit: "",
-                                                        description: "시간",
-                                                    },
-                                                    {
-                                                        value: ghostData?.comparisonInfo.cadence.toString(),
-                                                        unit: "spm",
-                                                        description: "케이던스",
-                                                    },
-                                                    {
-                                                        value: getFormattedPace(
-                                                            ghostData
-                                                                ?.comparisonInfo
-                                                                .pace
-                                                        ),
-                                                        unit: "",
-                                                        description: "페이스",
-                                                    },
-                                                ]}
-                                            />
-                                        }
-                                    >
-                                        <UserStatItem
-                                            name={ghostData.myRunInfo.nickname}
-                                            avatar={
-                                                ghostData.myRunInfo.profileUrl
-                                            }
-                                            time={getRunTime(
-                                                ghostData.myRunInfo.recordInfo
-                                                    .duration,
-                                                "MM:SS"
-                                            )}
-                                            cadence={ghostData.myRunInfo.recordInfo.cadence.toString()}
-                                            isGhostSelected={true}
-                                            pace={getFormattedPace(
-                                                ghostData.myRunInfo.recordInfo
-                                                    .averagePace
-                                            )}
-                                            paddingHorizontal={false}
-                                            isMyRecord={true}
-                                        />
-                                        <UserStatItem
-                                            name={
-                                                ghostData.ghostRunInfo.nickname
-                                            }
-                                            avatar={
-                                                ghostData.ghostRunInfo
-                                                    .profileUrl
-                                            }
-                                            time={getRunTime(
-                                                ghostData.ghostRunInfo
-                                                    .recordInfo.duration,
-                                                "MM:SS"
-                                            )}
-                                            cadence={ghostData.ghostRunInfo.recordInfo.cadence.toString()}
-                                            isGhostSelected={false}
-                                            pace={getFormattedPace(
-                                                ghostData.ghostRunInfo
-                                                    .recordInfo.averagePace
-                                            )}
-                                            paddingHorizontal={false}
-                                            isMyRecord={false}
-                                        />
-                                    </CollapsibleSection>
-                                </>
-                            )}
-                            <Divider direction="horizontal" />
-                            <CollapsibleSection
-                                title="페이스"
-                                defaultOpen={true}
-                                alwaysVisibleChildren={
-                                    <StatRow
-                                        style={{
-                                            gap: 20,
-                                        }}
-                                        stats={[
-                                            {
-                                                value: getFormattedPace(
-                                                    runData.recordInfo
-                                                        .averagePace
-                                                ),
-                                                unit: "",
-                                                description: "평균",
-                                            },
-                                            {
-                                                value: getFormattedPace(
-                                                    runData.recordInfo
-                                                        .lowestPace
-                                                ),
-                                                unit: "",
-                                                description: "최고",
-                                            },
-                                            {
-                                                value: getFormattedPace(
-                                                    runData.recordInfo
-                                                        .highestPace
-                                                ),
-                                                unit: "",
-                                                description: "최저",
-                                            },
-                                        ]}
-                                    />
-                                }
-                            >
-                                <StyledChart
-                                    label="페이스"
-                                    data={runData.telemetries}
-                                    xKey="dist"
-                                    yKeys={["pace"]}
-                                    invertYAxis={true}
-                                />
-                            </CollapsibleSection>
-                            <Divider direction="horizontal" />
-                            <CollapsibleSection
-                                title="고도"
-                                defaultOpen={true}
-                                alwaysVisibleChildren={
-                                    <StatRow
-                                        style={{
-                                            gap: 20,
-                                        }}
-                                        stats={[
-                                            {
-                                                value: runData.recordInfo.totalElevation.toString(),
-                                                unit: "m",
-                                                description: "평균",
-                                            },
-                                            {
-                                                value: runData.recordInfo.elevationGain.toString(),
-                                                unit: "m",
-                                                description: "상승",
-                                            },
-                                            {
-                                                value: runData.recordInfo.elevationLoss.toString(),
-                                                unit: "m",
-                                                description: "하강",
-                                            },
-                                        ]}
-                                    />
-                                }
-                            >
-                                <StyledChart
-                                    label="고도"
-                                    data={runData.telemetries}
-                                    xKey="dist"
-                                    yKeys={["alt"]}
-                                />
-                            </CollapsibleSection>
-                            <Divider direction="horizontal" />
-                            {courseId !== "-1" && (
-                                <>
-                                    <View style={{ height: 15 }} />
-                                    <CourseTopUsers
-                                        ghostList={ghostList ?? []}
-                                        userCount={
-                                            runData.courseInfo.runnersCount ?? 0
-                                        }
-                                        setSelectedGhostId={() => {}}
-                                        selectedGhostId={Number(runningId)}
-                                        bottomSheetRef={bottomSheetRef}
-                                        courseId={Number(courseId)}
-                                        marginHorizontal={false}
-                                        titleColor="gray60"
-                                    />
-                                </>
-                            )}
-                        </View>
+                            <StyledChart
+                                label="페이스"
+                                data={runData.telemetries}
+                                xKey="dist"
+                                yKeys={["pace"]}
+                                invertYAxis={true}
+                                expandable
+                            />
+                        </Section>
                     </ScrollView>
-                    {courseId === "-1" ? (
-                        <SlideToDualAction
-                            onSlideLeft={() => {
-                                router.replace("/");
-                            }}
-                            onSlideRight={async () => {
-                                if (isCourseModalOpen) {
-                                    if (runData.courseInfo === null) {
-                                        console.log("NO COURSE");
-                                        Toast.show({
-                                            type: "info",
-                                            text1: "코스 정보를 찾을 수 없습니다",
-                                            position: "bottom",
-                                        });
-                                        router.replace("/");
-                                        return;
-                                    }
-                                    await patchCourseName(
-                                        runData.courseInfo.id,
-                                        courseName,
-                                        true
-                                    )
-                                        .then(() => {
-                                            Toast.show({
-                                                type: "success",
-                                                text1: "코스가 등록 되었습니다",
-                                                position: "bottom",
-                                            });
-                                        })
-                                        .catch((error) => {
-                                            Toast.show({
-                                                type: "info",
-                                                text1: "코스 등록에 실패했습니다",
-                                                position: "bottom",
-                                            });
-                                        })
-                                        .finally(() => {
-                                            router.replace({
-                                                pathname:
-                                                    "/(tabs)/(profile)/profile",
-                                                params: {
-                                                    tab: "course",
-                                                },
-                                            });
-                                        });
-                                } else {
-                                    handlePresentModalPress();
-                                }
-                            }}
-                            leftLabel="메인으로"
-                            rightLabel="코스 등록"
-                        />
-                    ) : (
-                        <SlideToAction
-                            onSlideSuccess={() => {
-                                router.replace("/");
-                            }}
-                            label="메인으로"
-                            color="green"
-                            direction="left"
-                        />
-                    )}
                 </SafeAreaView>
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}
@@ -478,13 +213,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#111111",
     },
-    header: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingHorizontal: 17,
-        height: 50,
-    },
     titleInputContainer: {
         flexDirection: "row",
         gap: 4,
@@ -495,13 +223,14 @@ const styles = StyleSheet.create({
     },
     content: {
         backgroundColor: "#111111",
+        marginHorizontal: 16.5,
+        marginTop: 20,
+        gap: 20,
     },
     titleContainer: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        paddingHorizontal: 17,
-        paddingVertical: 20,
     },
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",
@@ -519,5 +248,9 @@ const styles = StyleSheet.create({
     handle: {
         paddingTop: 10,
         paddingBottom: 0,
+    },
+    shareButton: {
+        marginLeft: 8,
+        flex: 1,
     },
 });
