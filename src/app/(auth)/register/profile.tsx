@@ -17,6 +17,7 @@ import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
     Image,
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
@@ -58,6 +59,7 @@ export default function Profile() {
             setImage(image);
         }
     };
+    const [isRegistering, setIsRegistering] = useState(false);
 
     // 특수문자 검사 regex
     const specialCharacterRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
@@ -78,6 +80,9 @@ export default function Profile() {
             (numberOnlyRegex.test(weight.toString()) && weight > 0));
 
     const handleSubmit = async () => {
+        if (isRegistering) return;
+        setIsRegistering(true);
+        Keyboard.dismiss();
         const data = getSignupData();
         data.agreement.agreedAt = new Date().toISOString();
         const idToken = await getAuth().currentUser?.getIdToken();
@@ -129,6 +134,9 @@ export default function Profile() {
                     text1: "회원가입 오류. 다시 시도해주세요.",
                     position: "bottom",
                 });
+            })
+            .finally(() => {
+                setIsRegistering(false);
             });
     };
 
@@ -276,7 +284,7 @@ export default function Profile() {
                 autoplay={false}
             />
 
-            <BottomModal bottomSheetRef={bottomSheetRef}>
+            <BottomModal bottomSheetRef={bottomSheetRef} canClose={false}>
                 <View
                     style={{
                         alignItems: "center",
