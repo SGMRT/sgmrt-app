@@ -27,7 +27,7 @@ export default function Home() {
             <HomeMap courseType={type} />
             <TabBar />
             <SlideToAction
-                label="밀어서 러닝시작"
+                label="밀어서 러닝 시작"
                 onSlideSuccess={() => {
                     router.push("/run/solo");
                 }}
