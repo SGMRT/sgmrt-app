@@ -177,7 +177,7 @@ export const CoursesWithFilter = ({
                                 <CourseItem
                                     key={course.id}
                                     courseName={course.name}
-                                    courseUserCount={course.uniqueRunnersCount}
+                                    courseUserCount={course.totalRunsCount}
                                     courseId={course.id}
                                     runningId={-1}
                                     ghostRunningId={-1}
@@ -204,7 +204,7 @@ export const CoursesWithFilter = ({
                                     distance={course.distance / 1000}
                                     elevation={0}
                                     index={index}
-                                    userCount={course.uniqueRunnersCount}
+                                    userCount={course.totalRunsCount}
                                     maxLength={item.data.length}
                                     isSelected={
                                         course.id === selectedCourse?.id

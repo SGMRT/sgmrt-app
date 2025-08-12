@@ -70,7 +70,7 @@ const config = {
                 "expo-location",
                 {
                     locationAlwaysAndWhenInUsePermission:
-                        "Allow $(PRODUCT_NAME) to use your location.",
+                        "러닝 경로를 추적하고 지도에 표시하기 위해 위치 권한이 필요합니다.",
                     isIosBackgroundLocationEnabled: true,
                     isAndroidBackgroundLocationEnabled: true,
                 },
@@ -87,7 +87,7 @@ const config = {
                 "expo-sensors",
                 {
                     motionPermission:
-                        "Allow $(PRODUCT_NAME) to access your device motion",
+                        "정확한 고도 측정과 활동 추적을 위해 모션 권한이 필요합니다.",
                 },
             ],
             [
@@ -95,7 +95,7 @@ const config = {
                 {
                     configureAndroidBackup: true,
                     faceIdPermission:
-                        "Allow $(PRODUCT_NAME) to access your Face ID",
+                        "사용자의 민감한 정보를 안전하게 저장하고 활용하기 위해 보안 권한이 필요합니다.",
                 },
             ],
             "@react-native-firebase/app",
@@ -130,7 +130,7 @@ const config = {
                 "expo-image-picker",
                 {
                     photosPermission:
-                        "The app accesses your photos to let you share them with your friends.",
+                        "프로필 사진을 설정하거나 공유하기 위해 사진첩 접근 권한이 필요합니다.",
                 },
             ],
             "@bacons/apple-targets",
