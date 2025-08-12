@@ -16,6 +16,7 @@ import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
+import ScrollButton from "@/src/components/ui/ScrollButton";
 import Section from "@/src/components/ui/Section";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
@@ -51,6 +52,7 @@ export default function Result() {
     }, [courseId, ghostRunningId]);
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const handlePresentModalPress = () => {
         bottomSheetRef.current?.present();
@@ -296,6 +298,7 @@ export default function Result() {
                         }
                     />
                     <ScrollView
+                        ref={scrollViewRef}
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
                     >
@@ -468,6 +471,15 @@ export default function Result() {
                     </ScrollView>
                     {DisplaySlideToAction}
                 </SafeAreaView>
+                <ScrollButton
+                    onPress={() => {
+                        scrollViewRef.current?.scrollTo({
+                            y: 0,
+                            animated: true,
+                        });
+                    }}
+                    bottomInset={66}
+                />
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}
                     canClose={true}
