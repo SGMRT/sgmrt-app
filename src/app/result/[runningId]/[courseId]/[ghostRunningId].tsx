@@ -3,12 +3,15 @@ import {
     getCourse,
     getCourseTopRanking,
     getRun,
+    getRunComperison,
     patchCourseName,
     patchRunName,
+    RunComperisonResponse,
 } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
+import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
@@ -85,6 +88,13 @@ export default function Result() {
         enabled: courseId !== "-1",
     });
 
+    const { data: comperison } = useQuery<RunComperisonResponse>({
+        queryKey: ["match-result", runningId],
+        queryFn: () =>
+            getRunComperison(Number(runningId), Number(ghostRunningId)),
+        enabled: runningMode === "GHOST" && !!runningId && !!ghostRunningId,
+    });
+
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
 
     const center = useMemo(
@@ -139,6 +149,34 @@ export default function Result() {
             },
         ];
     }, [runData]);
+
+    const comparisonStats = useMemo(() => {
+        return [
+            {
+                description: "거리",
+                value: (comperison?.comparisonInfo.distance ?? 0).toFixed(2),
+                unit: "km",
+            },
+            {
+                description: "시간",
+                value: getRunTime(
+                    comperison?.comparisonInfo.duration ?? 0,
+                    "HH:MM:SS"
+                ),
+                unit: "",
+            },
+            {
+                description: "케이던스",
+                value: comperison?.comparisonInfo.cadence ?? 0,
+                unit: "spm",
+            },
+            {
+                description: "페이스",
+                value: getFormattedPace(comperison?.comparisonInfo.pace ?? 0),
+                unit: "",
+            },
+        ];
+    }, [comperison]);
 
     const courseAverageStats = useMemo(() => {
         return [
@@ -349,6 +387,70 @@ export default function Result() {
                         </Section>
 
                         {/* 고스트 러닝 기록 비교  (고스트 러닝) */}
+                        {runningMode === "GHOST" && (
+                            <Section
+                                title="기록 비교"
+                                titleColor="white"
+                                style={{ gap: 20 }}
+                            >
+                                <StatRow
+                                    color="gray20"
+                                    style={{ justifyContent: "space-between" }}
+                                    stats={comparisonStats}
+                                />
+                                <UserStatItem
+                                    rank={"-"}
+                                    name={
+                                        comperison?.ghostRunInfo.nickname ?? ""
+                                    }
+                                    avatar={
+                                        comperison?.ghostRunInfo.profileUrl ??
+                                        ""
+                                    }
+                                    time={getRunTime(
+                                        comperison?.ghostRunInfo.recordInfo
+                                            .duration ?? 0,
+                                        "MM:SS"
+                                    )}
+                                    pace={getFormattedPace(
+                                        comperison?.ghostRunInfo.recordInfo
+                                            .averagePace ?? 0
+                                    )}
+                                    cadence={
+                                        comperison?.ghostRunInfo.recordInfo
+                                            .cadence ?? 0
+                                    }
+                                    isMyRecord={false}
+                                    isGhostSelected={false}
+                                    paddingHorizontal={false}
+                                    paddingVertical={false}
+                                />
+                                <UserStatItem
+                                    rank={"-"}
+                                    name={comperison?.myRunInfo.nickname ?? ""}
+                                    avatar={
+                                        comperison?.myRunInfo.profileUrl ?? ""
+                                    }
+                                    time={getRunTime(
+                                        comperison?.myRunInfo.recordInfo
+                                            .duration ?? 0,
+                                        "MM:SS"
+                                    )}
+                                    pace={getFormattedPace(
+                                        comperison?.myRunInfo.recordInfo
+                                            .averagePace ?? 0
+                                    )}
+                                    cadence={
+                                        comperison?.myRunInfo.recordInfo
+                                            .cadence ?? 0
+                                    }
+                                    isMyRecord={true}
+                                    isGhostSelected={true}
+                                    paddingHorizontal={false}
+                                    paddingVertical={false}
+                                />
+                            </Section>
+                        )}
 
                         {/* 코스 관련 정보 (!솔로 러닝)*/}
                         {runningMode !== "SOLO" && (

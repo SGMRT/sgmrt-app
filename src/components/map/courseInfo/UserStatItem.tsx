@@ -44,11 +44,6 @@ export default memo(function UserStatItem({
                 paddingVertical && {
                     paddingVertical: 15,
                 },
-                {
-                    backgroundColor: isGhostSelected
-                        ? "#171717"
-                        : "transparent",
-                },
             ]}
         >
             <View style={styles.textContainer}>
@@ -69,7 +64,10 @@ export default memo(function UserStatItem({
                     style={styles.avatar}
                 />
                 <View>
-                    <Typography variant="subhead1" color="gray40">
+                    <Typography
+                        variant="subhead1"
+                        color={isGhostSelected ? "primary" : "gray40"}
+                    >
                         {name}
                     </Typography>
                     <View
@@ -97,7 +95,7 @@ export default memo(function UserStatItem({
                             variant="body2"
                             color={isGhostSelected ? "gray40" : "gray60"}
                         >
-                            {cadence}
+                            {cadence + " spm"}
                         </Typography>
                     </View>
                 </View>

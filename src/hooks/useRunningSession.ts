@@ -90,7 +90,6 @@ TaskManager.defineTask(
 
         let lastTimestamp = lastRunData?.timestamp;
         let lastTotalStepCount = lastRunData?.totalSteps;
-        let lastAltitude = lastRunData?.altitude;
 
         const newRunData: RunData[] = [];
 
@@ -108,32 +107,37 @@ TaskManager.defineTask(
                 currentTimestamp
             );
 
-            if (!pressureAltitude) continue;
+            let altitude = null;
 
-            // json 파싱
-            const altitudeData = await getBaseAltitude(sessionId);
-            let basePressureAltitude;
-            let baseAltitude;
+            if (pressureAltitude) {
+                // json 파싱
+                const altitudeData = await getBaseAltitude(sessionId);
 
-            if (altitudeData) {
-                const { pressure, altitude } = JSON.parse(altitudeData);
-                basePressureAltitude = pressure;
-                baseAltitude = altitude;
+                let basePressureAltitude;
+                let baseAltitude;
+
+                if (altitudeData) {
+                    const { pressure, altitude } = JSON.parse(altitudeData);
+                    basePressureAltitude = pressure;
+                    baseAltitude = altitude;
+                } else {
+                    basePressureAltitude = pressureAltitude;
+                    baseAltitude = location.coords.altitude ?? 0;
+                    await setBaseAltitude(
+                        sessionId,
+                        pressureAltitude,
+                        location.coords.altitude ?? 0
+                    );
+                }
+
+                const deltaAltitude = pressureAltitude - basePressureAltitude!;
+
+                altitude = baseAltitude
+                    ? baseAltitude + deltaAltitude
+                    : location.coords.altitude ?? 0;
             } else {
-                basePressureAltitude = pressureAltitude;
-                baseAltitude = location.coords.altitude ?? 0;
-                await setBaseAltitude(
-                    sessionId,
-                    pressureAltitude,
-                    location.coords.altitude ?? 0
-                );
+                altitude = location.coords.altitude ?? 0;
             }
-
-            const deltaAltitude = pressureAltitude - basePressureAltitude!;
-
-            const altitude = baseAltitude
-                ? baseAltitude + deltaAltitude
-                : location.coords.altitude ?? 0;
 
             const filteredLocation = locationKalmanFilter.process(
                 location.coords.latitude,
@@ -173,7 +177,6 @@ TaskManager.defineTask(
 
             lastTimestamp = currentTimestamp;
             lastTotalStepCount = totalSteps;
-            lastAltitude = altitude;
         }
 
         console.log("[RUN] 러닝 데이터 수신");

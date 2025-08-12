@@ -82,16 +82,25 @@ server.interceptors.response.use(
 
         Sentry.withScope((scope: Sentry.Scope) => {
             scope.setTags({
-                api: error.response?.config.url,
-                "api.request.headers": error.config?.headers,
-                "api.request.body": error.config?.data,
+                api: error.config?.url,
+                "api.request.headers.Authorization":
+                    error.config?.headers.Authorization || "",
                 "api.request.method": error.config?.method?.toUpperCase(),
+                "api.request.url": error.config?.url,
+                "api.request.params": error.config?.params,
                 "api.response.status": (
                     error.response?.status || ""
                 ).toString(),
-                "api.response.data": error.response?.data,
+                "api.response.data.code": error.response?.data.code,
+                "api.response.data.message": error.response?.data.message,
+                "api.response.data.fieldErrorInfos":
+                    error.response?.data.fieldErrorInfos,
             });
-            error.message = error.response?.data.message;
+            error.message =
+                "[" +
+                error.response?.data.code +
+                "] " +
+                error.response?.data.message;
             Sentry.captureException(error, {
                 fingerprint: [error.response?.data.message],
             });
