@@ -9,6 +9,7 @@ import {
     SignResponse,
     SignUpRequest,
 } from "./types/user";
+import { getUpdateAttrs } from "./utils";
 
 export async function signIn(data: SignInRequest): Promise<SignResponse> {
     console.log("signIn", data);
@@ -128,12 +129,8 @@ export async function deleteUser() {
     }
 }
 
-function camelToSnakeCase(str: string) {
-    return str.replace(/([A-Z])/g, "_$1").toUpperCase();
-}
-
 export async function patchUserInfo(data: PatchUserInfoRequest) {
-    const updateAttrs = Object.keys(data).map((key) => camelToSnakeCase(key));
+    const updateAttrs = getUpdateAttrs(data);
     try {
         const { uuid } = useAuthStore.getState();
         const response = await server.patch(`members/${uuid}`, {

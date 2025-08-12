@@ -40,6 +40,8 @@ export default function ResultCorseMap({
 
 const styles = StyleSheet.create({
     mapContainer: {
-        height: 356,
+        height: 260,
+        borderRadius: 20,
+        overflow: "hidden",
     },
 });

@@ -1,6 +1,13 @@
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { useFont } from "@shopify/react-native-skia";
-import { StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
+import Animated, {
+    useAnimatedStyle,
+    useSharedValue,
+    withTiming,
+} from "react-native-reanimated";
 import { CartesianChart, Line } from "victory-native";
 import { Typography } from "../ui/Typography";
 
@@ -11,6 +18,7 @@ interface StyledChartProps {
     yKeys: string[];
     showToolTip?: boolean;
     invertYAxis?: boolean;
+    expandable?: boolean;
 }
 
 // interface ToolTipProps {
@@ -77,6 +85,7 @@ const StyledChart = ({
     yKeys,
     showToolTip = true,
     invertYAxis = false,
+    expandable = false,
 }: StyledChartProps) => {
     const font = useFont(
         require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),
@@ -86,6 +95,21 @@ const StyledChart = ({
     //     x: 0,
     //     y: { [yKeys[0]]: 0 },
     // });
+
+    const chartHeight = useSharedValue(70);
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const handleExpand = () => {
+        const targetHeight = !isExpanded ? 120 : 70;
+        chartHeight.value = withTiming(targetHeight, { duration: 300 });
+        setIsExpanded(!isExpanded);
+    };
+
+    const animatedChartContainerStyle = useAnimatedStyle(() => {
+        return {
+            height: chartHeight.value,
+        };
+    });
 
     return (
         <View>
@@ -97,65 +121,82 @@ const StyledChart = ({
                 </View>
             )}
             <View style={styles.container}>
-                <CartesianChart
-                    data={data}
-                    xKey={xKey}
-                    yKeys={yKeys}
-                    domain={{
-                        y:
-                            invertYAxis && data.length > 0
-                                ? [
-                                      data.reduce(
-                                          (max, item) =>
-                                              Math.max(max, item[yKeys[0]]),
-                                          -Infinity
-                                      ),
-                                      data.reduce(
-                                          (min, item) =>
-                                              Math.min(min, item[yKeys[0]]),
-                                          Infinity
-                                      ),
-                                  ]
-                                : undefined,
-                    }}
-                    xAxis={{
-                        font: font,
-                        formatXLabel: (label) => {
-                            return `${label / 1000}`;
-                        },
-                        axisSide: "top",
-                        labelColor: colors.gray[60],
-                        enableRescaling: true,
-                        lineWidth: 0.5,
-                        lineColor: "#2e2e2e",
-                        labelOffset: 10,
-                    }}
-                    yAxis={[
-                        {
-                            lineWidth: 0,
+                <Animated.View style={animatedChartContainerStyle}>
+                    <CartesianChart
+                        data={data}
+                        xKey={xKey}
+                        yKeys={yKeys}
+                        domain={{
+                            y:
+                                invertYAxis && data.length > 0
+                                    ? [
+                                          data.reduce(
+                                              (max, item) =>
+                                                  Math.max(max, item[yKeys[0]]),
+                                              -Infinity
+                                          ),
+                                          data.reduce(
+                                              (min, item) =>
+                                                  Math.min(min, item[yKeys[0]]),
+                                              Infinity
+                                          ),
+                                      ]
+                                    : undefined,
+                        }}
+                        xAxis={{
+                            font: font,
+                            formatXLabel: (label) => {
+                                return `${label / 1000}`;
+                            },
+                            axisSide: "top",
+                            labelColor: colors.gray[60],
+                            enableRescaling: true,
+                            lineWidth: 0.5,
+                            lineColor: "#2e2e2e",
+                            labelOffset: 10,
+                        }}
+                        yAxis={[
+                            {
+                                lineWidth: 0,
+                                lineColor: "transparent",
+                            },
+                        ]}
+                        frame={{
                             lineColor: "transparent",
-                        },
-                    ]}
-                    frame={{
-                        lineColor: "transparent",
-                        lineWidth: 0,
-                    }}
-                    domainPadding={{
-                        right: 0,
-                    }}
-                    padding={{
-                        top: 15,
-                    }}
-                >
-                    {({ points }) => (
-                        <Line
-                            points={points[yKeys[0]]}
-                            strokeWidth={1}
-                            color={colors.primary}
-                            curveType="basis"
-                        />
-                    )}
-                </CartesianChart>
+                            lineWidth: 0,
+                        }}
+                        domainPadding={{
+                            right: 0,
+                        }}
+                        padding={{
+                            top: 15,
+                        }}
+                    >
+                        {({ points }) => (
+                            <Line
+                                points={points[yKeys[0]]}
+                                strokeWidth={1}
+                                color={colors.primary}
+                                curveType="basis"
+                            />
+                        )}
+                    </CartesianChart>
+                </Animated.View>
+                {expandable && (
+                    <TouchableOpacity
+                        style={[
+                            styles.chevronContainer,
+                            {
+                                transform: [
+                                    { rotate: isExpanded ? "-90deg" : "90deg" },
+                                ],
+                            },
+                        ]}
+                        onPress={handleExpand}
+                    >
+                        <ChevronIcon color={colors.gray[80]} />
+                    </TouchableOpacity>
+                )}
             </View>
         </View>
     );
@@ -163,10 +204,15 @@ const StyledChart = ({
 
 const styles = StyleSheet.create({
     container: {
-        height: 70,
         backgroundColor: "#1B1B1B",
         borderRadius: 8,
         padding: 10,
+        gap: 10,
+    },
+    chevronContainer: {
+        width: 20,
+        height: 20,
+        alignSelf: "center",
     },
     tooltipContainer: {
         height: 24,

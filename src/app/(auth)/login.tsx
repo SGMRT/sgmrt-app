@@ -36,6 +36,7 @@ export default function Login() {
                             Toast.show({
                                 type: "info",
                                 text1: "카카오 로그인 실패",
+                                position: "bottom",
                             });
                             return;
                         }
@@ -65,6 +66,7 @@ export default function Login() {
                                     Toast.show({
                                         type: "info",
                                         text1: "로그인에 실패했습니다.",
+                                        position: "bottom",
                                     });
                                     return;
                                 } else {
@@ -94,6 +96,7 @@ export default function Login() {
                             Toast.show({
                                 type: "info",
                                 text1: "애플 로그인 실패",
+                                position: "bottom",
                             });
                             return;
                         }
@@ -126,6 +129,7 @@ export default function Login() {
                                     Toast.show({
                                         type: "info",
                                         text1: "로그인에 실패했습니다.",
+                                        position: "bottom",
                                     });
                                     return;
                                 } else {

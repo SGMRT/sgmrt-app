@@ -8,6 +8,7 @@ import {
     UserCourseInfo,
     UserRankResponse,
 } from "./types/course";
+import { getUpdateAttrs } from "./utils";
 
 export async function deleteCourse(courseId: number) {
     try {
@@ -24,10 +25,15 @@ export async function patchCourseName(
     name: string,
     isPublic: boolean
 ) {
+    const updateAttrs = getUpdateAttrs({
+        name,
+        isPublic,
+    });
     try {
         const response = await server.patch(`courses/${courseId}`, {
             name,
             isPublic,
+            updateAttrs,
         });
         return response.data;
     } catch (error) {

@@ -37,8 +37,8 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         null
     );
 
-    const [myCourseList, setMyCourseList] = useState<CourseResponse[]>([]);
-    const [allCourseList, setAllCourseList] = useState<CourseResponse[]>([]);
+    // const [myCourseList, setMyCourseList] = useState<CourseResponse[]>([]);
+    // const [allCourseList, setAllCourseList] = useState<CourseResponse[]>([]);
 
     const [zoomLevel, setZoomLevel] = useState(16);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -146,27 +146,27 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         enabled: !!center && !!distance,
     });
 
-    useEffect(() => {
-        if (courseType === "my") {
-            setMyCourseList((prev) => {
-                const newCourses = [...prev, ...(courses ?? [])];
-                const map = new Map<number, CourseResponse>();
-                newCourses.forEach((course) => {
-                    map.set(course.id, course);
-                });
-                return Array.from(map.values());
-            });
-        } else {
-            setAllCourseList((prev) => {
-                const newCourses = [...prev, ...(courses ?? [])];
-                const map = new Map<number, CourseResponse>();
-                newCourses.forEach((course) => {
-                    map.set(course.id, course);
-                });
-                return Array.from(map.values());
-            });
-        }
-    }, [courses, courseType]);
+    // useEffect(() => {
+    //     if (courseType === "my") {
+    //         setMyCourseList((prev) => {
+    //             const newCourses = [...prev, ...(courses ?? [])];
+    //             const map = new Map<number, CourseResponse>();
+    //             newCourses.forEach((course) => {
+    //                 map.set(course.id, course);
+    //             });
+    //             return Array.from(map.values());
+    //         });
+    //     } else {
+    //         setAllCourseList((prev) => {
+    //             const newCourses = [...prev, ...(courses ?? [])];
+    //             const map = new Map<number, CourseResponse>();
+    //             newCourses.forEach((course) => {
+    //                 map.set(course.id, course);
+    //             });
+    //             return Array.from(map.values());
+    //         });
+    //     }
+    // }, [courses, courseType]);
 
     useEffect(() => {
         Location.getCurrentPositionAsync({
@@ -183,21 +183,21 @@ export default function HomeMap({ courseType }: HomeMapProps) {
 
     const sortedCourses = useMemo(() => {
         if (courseType === "my") {
-            if (!myCourseList) return [];
-            return [...myCourseList].sort((a, b) => {
+            if (!courses) return [];
+            return [...courses].sort((a, b) => {
                 if (a.id === activeCourse?.id) return 1;
                 if (b.id === activeCourse?.id) return -1;
                 return 0;
             });
         } else {
-            if (!allCourseList) return [];
-            return [...allCourseList].sort((a, b) => {
+            if (!courses) return [];
+            return [...courses].sort((a, b) => {
                 if (a.id === activeCourse?.id) return 1;
                 if (b.id === activeCourse?.id) return -1;
                 return 0;
             });
         }
-    }, [myCourseList, allCourseList, activeCourse, courseType]);
+    }, [courses, activeCourse, courseType]);
 
     const onPressListViewButton = () => {
         setShowCourseList(true);
@@ -234,7 +234,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                 heightVal={heightVal}
                 modalType={showCourseList ? "list" : courseType}
                 activeCourse={activeCourse}
-                courses={courseType === "my" ? myCourseList : allCourseList}
+                courses={courses ?? []}
                 onClickCourse={onClickCourse}
                 onClickCourseInfo={onClickCourseInfo}
             />
