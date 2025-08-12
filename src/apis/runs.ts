@@ -1,3 +1,4 @@
+import { Coordinate } from "../utils/mapUtils";
 import server from "./instance";
 import {
     BaseRunning,
@@ -129,7 +130,10 @@ export async function toggleRunPublicStatus(runningId: number) {
     }
 }
 
-export async function getRunTelemetriesByCourseId(courseId: number) {
+export async function getRunTelemetriesByCourseId(courseId: number): Promise<{
+    name: string;
+    coordinates: Coordinate[];
+}> {
     try {
         const response = await server.get(
             `courses/${courseId}/first-telemetry`

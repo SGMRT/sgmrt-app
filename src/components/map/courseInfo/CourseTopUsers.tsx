@@ -63,7 +63,7 @@ export default function CourseTopUsers({
                 marginHorizontal={marginHorizontal}
                 onPress={() => {
                     bottomSheetRef.current?.dismiss();
-                    router.push(`/course/rank/${courseId}`);
+                    router.push(`/course/${courseId}/rank`);
                 }}
             />
             {ghostList && ghostList.length > 0 && (
