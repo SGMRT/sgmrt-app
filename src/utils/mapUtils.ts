@@ -58,6 +58,8 @@ const convertTelemetriesToCourse = (
         distance: 0,
         elevationGain: 0,
         elevationLoss: 0,
+        runners: [{ uuId: "", profileUrl: "" }],
+        runnersCount: 0,
     };
 };
 
@@ -76,7 +78,7 @@ const calculateZoomLevelFromSize = (
 
     const zoomLevel = Math.log2((metersPerPixelAtZoom0 * screenWidth) / meters);
 
-    return zoomLevel - 2;
+    return zoomLevel - 2.5;
 };
 
 export {

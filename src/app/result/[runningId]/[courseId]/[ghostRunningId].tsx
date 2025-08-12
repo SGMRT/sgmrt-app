@@ -1,6 +1,5 @@
 import { ShareIcon } from "@/assets/svgs/svgs";
 import {
-    deleteRun,
     getCourseTopRanking,
     getRun,
     getRunComperison,
@@ -11,7 +10,6 @@ import { HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import CourseTopUsers from "@/src/components/map/courseInfo/CourseTopUsers";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
-import CourseNameContainer from "@/src/components/result/CourseNameContainer";
 import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import CollapsibleSection from "@/src/components/ui/CollapsibleSection";
@@ -105,27 +103,23 @@ export default function Result() {
                 <SafeAreaView style={styles.container}>
                     <Header
                         titleText={getDate(runData.startedAt)}
-                        onDelete={() => {
-                            deleteRun(Number(runningId)).then(() => {
-                                router.replace("/");
-                            });
-                        }}
+                        // onDelete={() => {
+                        //     deleteRun(Number(runningId)).then(() => {
+                        //         router.replace("/");
+                        //         Toast.show({
+                        //             type: "success",
+                        //             text1: "기록이 삭제되었습니다",
+                        //             position: "bottom",
+                        //         });
+                        //     });
+                        // }}
                     />
                     <ScrollView
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
                     >
                         <View style={styles.titleContainer}>
-                            <View
-                                style={{
-                                    flexDirection: "row",
-                                    gap: 4,
-                                    alignItems: "center",
-                                    justifyContent: "flex-start",
-                                    flex: 1,
-                                    maxWidth: "50%",
-                                }}
-                            >
+                            <View style={styles.titleInputContainer}>
                                 <NameInput
                                     defaultValue={runData.runningName}
                                     placeholder="제목을 입력해주세요"
@@ -137,7 +131,7 @@ export default function Result() {
                                         );
                                     }}
                                 />
-                                {courseId !== "-1" && (
+                                {/* {courseId !== "-1" && (
                                     <>
                                         <Divider direction="vertical" />
                                         <CourseNameContainer
@@ -153,7 +147,7 @@ export default function Result() {
                                             }}
                                         />
                                     </>
-                                )}
+                                )} */}
                             </View>
                             <ShareIcon style={{ marginLeft: 8, flex: 1 }} />
                         </View>
@@ -491,8 +485,16 @@ const styles = StyleSheet.create({
         paddingHorizontal: 17,
         height: 50,
     },
+    titleInputContainer: {
+        flexDirection: "row",
+        gap: 4,
+        alignItems: "center",
+        justifyContent: "flex-start",
+        flex: 1,
+        maxWidth: "50%",
+    },
     content: {
-        backgroundColor: "#171717",
+        backgroundColor: "#111111",
     },
     titleContainer: {
         flexDirection: "row",
