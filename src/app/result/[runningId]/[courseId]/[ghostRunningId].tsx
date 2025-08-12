@@ -1,27 +1,29 @@
 import { ShareIcon } from "@/assets/svgs/svgs";
-import {
-    getCourseTopRanking,
-    getRun,
-    getRunComperison,
-    patchRunName,
-} from "@/src/apis";
-import { HistoryResponse } from "@/src/apis/types/course";
+import { getRun, patchRunName } from "@/src/apis";
 import StyledChart from "@/src/components/chart/StyledChart";
 import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
 import Section from "@/src/components/ui/Section";
+import SlideToAction from "@/src/components/ui/SlideToAction";
+import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
 import { calculateCenter } from "@/src/utils/mapUtils";
-import { getDate, getFormattedPace } from "@/src/utils/runUtils";
+import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import {
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    View,
+} from "react-native";
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -29,13 +31,22 @@ import {
 
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
-    const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+    const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
+
     const handlePresentModalPress = () => {
         bottomSheetRef.current?.present();
-        setIsCourseModalOpen(true);
     };
+
+    const changeDisplayMode = () => {
+        setDisplayMode((prev) => (prev === "pace" ? "course" : "pace"));
+    };
+
+    const [courseName, setCourseName] = useState("");
+    const { bottom } = useSafeAreaInsets();
+
+    const router = useRouter();
 
     const {
         data: runData,
@@ -47,28 +58,7 @@ export default function Result() {
         enabled: !!runningId,
     });
 
-    const {
-        data: ghostData,
-        isLoading: ghostIsLoading,
-        isError: ghostIsError,
-    } = useQuery({
-        queryKey: ["comparison", runningId, ghostRunningId],
-        queryFn: () =>
-            getRunComperison(Number(runningId), Number(ghostRunningId)),
-        enabled: !!ghostRunningId && ghostRunningId !== "-1",
-    });
-
-    const { data: ghostList } = useQuery<HistoryResponse[]>({
-        queryKey: ["course-top-ranking", courseId],
-        queryFn: () =>
-            getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
-        enabled: !!courseId && courseId !== "-1",
-    });
-
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
-    const [courseName, setCourseName] = useState("");
-
-    const router = useRouter();
 
     const center = useMemo(
         () =>
@@ -81,13 +71,106 @@ export default function Result() {
         [runData?.telemetries]
     );
 
-    const { bottom } = useSafeAreaInsets();
+    const paceStats = useMemo(() => {
+        return [
+            {
+                description: "평균",
+                value: getFormattedPace(runData?.recordInfo.averagePace ?? 0),
+            },
+            {
+                description: "순간 최고",
+                value: getFormattedPace(runData?.recordInfo.lowestPace ?? 0),
+            },
+            {
+                description: "순간 최저",
+                value: getFormattedPace(runData?.recordInfo.highestPace ?? 0),
+            },
+        ];
+    }, [runData]);
 
-    if (isLoading || ghostIsLoading) {
+    const courseStats = useMemo(() => {
+        return [
+            {
+                description: "전체 거리",
+                value: (runData?.recordInfo.distance ?? 0).toFixed(2),
+                unit: "km",
+            },
+            {
+                description: "고도",
+                value: runData?.recordInfo.totalElevation ?? 0,
+                unit: "m",
+            },
+            {
+                description: "상승",
+                value: runData?.recordInfo.elevationGain ?? 0,
+                unit: "m",
+            },
+            {
+                description: "하강",
+                value: runData?.recordInfo.elevationLoss ?? 0,
+                unit: "m",
+            },
+        ];
+    }, [runData]);
+
+    const runningStats = useMemo(() => {
+        return [
+            {
+                description: "시간",
+                value: getRunTime(
+                    runData?.recordInfo.duration ?? 0,
+                    "HH:MM:SS"
+                ),
+            },
+            {
+                description: "케이던스",
+                value: runData?.recordInfo.cadence ?? 0,
+                unit: "spm",
+            },
+            {
+                description: "칼로리",
+                value: runData?.recordInfo.calories ?? 0,
+                unit: "kcal",
+            },
+        ];
+    }, [runData]);
+
+    const DisplaySlideToAction = useMemo(() => {
+        if (courseId === "-1" && ghostRunningId === "-1") {
+            const canMakeCourse = !runData?.telemetries.some(
+                (telemetry) => !telemetry.isRunning
+            );
+            if (canMakeCourse) {
+                return (
+                    <SlideToDualAction
+                        leftLabel="메인으로"
+                        rightLabel="코스 등록"
+                        onSlideLeft={() => {
+                            router.replace("/");
+                        }}
+                        onSlideRight={handlePresentModalPress}
+                        color="primary"
+                    />
+                );
+            }
+        }
+        return (
+            <SlideToAction
+                label="메인으로"
+                onSlideSuccess={() => {
+                    router.replace("/");
+                }}
+                color="green"
+                direction="left"
+            />
+        );
+    }, [courseId, ghostRunningId, runData?.telemetries, router]);
+
+    if (isLoading) {
         return <></>;
     }
 
-    if (isError || ghostIsError) {
+    if (isError) {
         router.replace("/");
     }
 
@@ -95,19 +178,7 @@ export default function Result() {
         runData && (
             <>
                 <SafeAreaView style={styles.container}>
-                    <Header
-                        titleText={getDate(runData.startedAt)}
-                        // onDelete={() => {
-                        //     deleteRun(Number(runningId)).then(() => {
-                        //         router.replace("/");
-                        //         Toast.show({
-                        //             type: "success",
-                        //             text1: "기록이 삭제되었습니다",
-                        //             position: "bottom",
-                        //         });
-                        //     });
-                        // }}
-                    />
+                    <Header titleText={getDate(runData.startedAt)} />
                     <ScrollView
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
@@ -142,8 +213,12 @@ export default function Result() {
                             titleColor="white"
                             titleRightChildren={
                                 <StyledButton
-                                    title="페이스 수정"
-                                    onPress={handlePresentModalPress}
+                                    title={
+                                        displayMode === "pace"
+                                            ? "코스 정보"
+                                            : "내 페이스"
+                                    }
+                                    onPress={changeDisplayMode}
                                     style={{ paddingHorizontal: 12 }}
                                 />
                             }
@@ -152,56 +227,60 @@ export default function Result() {
                             <StatRow
                                 color="gray20"
                                 style={{ gap: 20 }}
-                                stats={[
-                                    {
-                                        description: "평균",
-                                        value: getFormattedPace(
-                                            runData.recordInfo.averagePace
-                                        ),
-                                    },
-                                    {
-                                        description: "순간 최고",
-                                        value: getFormattedPace(
-                                            runData.recordInfo.lowestPace
-                                        ),
-                                    },
-                                    {
-                                        description: "순간 최저",
-                                        value: getFormattedPace(
-                                            runData.recordInfo.highestPace
-                                        ),
-                                    },
-                                ]}
+                                stats={
+                                    displayMode === "pace"
+                                        ? paceStats
+                                        : courseStats
+                                }
                             />
                             <StyledChart
-                                label="페이스"
+                                label={
+                                    displayMode === "pace" ? "페이스" : "고도"
+                                }
                                 data={runData.telemetries}
                                 xKey="dist"
-                                yKeys={["pace"]}
+                                yKeys={
+                                    displayMode === "pace" ? ["pace"] : ["alt"]
+                                }
                                 invertYAxis={true}
                                 expandable
                             />
                         </Section>
+                        <Section title="내 러닝 정보">
+                            <StatRow
+                                color="gray20"
+                                style={{ gap: 20 }}
+                                stats={runningStats}
+                            />
+                        </Section>
                     </ScrollView>
+                    {DisplaySlideToAction}
                 </SafeAreaView>
+
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}
-                    bottomInset={bottom + 56}
                     canClose={true}
                     handleStyle={styles.handle}
-                    onDismiss={() => {
-                        setIsCourseModalOpen(false);
-                    }}
                 >
-                    <View style={styles.bottomSheetContent}>
-                        <NameInput
-                            placeholder="코스명을 입력해주세요"
-                            onChangeText={setCourseName}
-                        />
-                        <Typography variant="body3" color="gray40">
-                            코스를 한 번 등록하면 삭제 및 수정이 어렵습니다
-                        </Typography>
-                    </View>
+                    <KeyboardAvoidingView
+                        behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    >
+                        <View style={styles.bottomSheetContent}>
+                            <NameInput
+                                placeholder="코스명을 입력해주세요"
+                                onChangeText={setCourseName}
+                            />
+                            <Typography variant="body3" color="gray40">
+                                코스를 한 번 등록하면 삭제 및 수정이 어렵습니다
+                            </Typography>
+                        </View>
+                    </KeyboardAvoidingView>
+                    <SlideToAction
+                        label="등록하기"
+                        onSlideSuccess={() => {}}
+                        color="green"
+                        direction="left"
+                    />
                 </BottomModal>
             </>
         )
