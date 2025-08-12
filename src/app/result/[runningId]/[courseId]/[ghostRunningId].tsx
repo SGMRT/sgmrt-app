@@ -1,5 +1,5 @@
 import { ShareIcon } from "@/assets/svgs/svgs";
-import { getRun, patchRunName } from "@/src/apis";
+import { getRun, patchCourseName, patchRunName } from "@/src/apis";
 import StyledChart from "@/src/components/chart/StyledChart";
 import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
@@ -17,17 +17,12 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    View,
-} from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
@@ -256,28 +251,43 @@ export default function Result() {
                     </ScrollView>
                     {DisplaySlideToAction}
                 </SafeAreaView>
-
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}
                     canClose={true}
                     handleStyle={styles.handle}
                 >
-                    <KeyboardAvoidingView
-                        behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    >
-                        <View style={styles.bottomSheetContent}>
-                            <NameInput
-                                placeholder="코스명을 입력해주세요"
-                                onChangeText={setCourseName}
-                            />
-                            <Typography variant="body3" color="gray40">
-                                코스를 한 번 등록하면 삭제 및 수정이 어렵습니다
-                            </Typography>
-                        </View>
-                    </KeyboardAvoidingView>
+                    <View style={styles.bottomSheetContent}>
+                        <NameInput
+                            placeholder="코스명을 입력해주세요"
+                            onChangeText={setCourseName}
+                            bottomSheet
+                        />
+                        <Typography variant="body3" color="gray40">
+                            코스를 한 번 등록하면 삭제 및 수정이 어렵습니다
+                        </Typography>
+                    </View>
+
                     <SlideToAction
                         label="등록하기"
-                        onSlideSuccess={() => {}}
+                        onSlideSuccess={() => {
+                            patchCourseName(
+                                runData?.courseInfo.id ?? 0,
+                                courseName,
+                                true
+                            ).then(() => {
+                                router.replace({
+                                    pathname: "/(tabs)/(profile)/profile",
+                                    params: {
+                                        tab: "course",
+                                    },
+                                });
+                                Toast.show({
+                                    type: "success",
+                                    text1: "코스가 등록되었습니다",
+                                    position: "bottom",
+                                });
+                            });
+                        }}
                         color="green"
                         direction="left"
                     />

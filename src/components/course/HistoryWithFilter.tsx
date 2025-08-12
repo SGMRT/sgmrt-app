@@ -181,7 +181,7 @@ export const HistoryWithFilter = ({
                 }
                 renderItem={({ item, index }) => (
                     <Section
-                        key={item.label}
+                        key={item.label + index}
                         title={item.label}
                         titleColor="white"
                         containerStyle={

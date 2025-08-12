@@ -85,6 +85,7 @@ export default function Profile() {
             Toast.show({
                 type: "info",
                 text1: "로그인에 실패했습니다.",
+                position: "bottom",
             });
             router.dismissAll();
             router.replace("/login");
@@ -106,6 +107,7 @@ export default function Profile() {
                 Toast.show({
                     type: "info",
                     text1: "회원가입 오류. 다시 시도해주세요.",
+                    position: "bottom",
                 });
                 return;
             }
@@ -125,6 +127,7 @@ export default function Profile() {
                 Toast.show({
                     type: "info",
                     text1: "회원가입 오류. 다시 시도해주세요.",
+                    position: "bottom",
                 });
             });
     };

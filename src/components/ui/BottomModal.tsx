@@ -41,6 +41,7 @@ export default function BottomModal({
             index={index}
             onDismiss={onDismiss}
             maxDynamicContentSize={Dimensions.get("window").height - 250}
+            keyboardBehavior="interactive"
         >
             <BottomSheetView>{children}</BottomSheetView>
         </BottomSheetModal>
