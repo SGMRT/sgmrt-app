@@ -17,7 +17,7 @@ import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
-import ResultCorseMap from "@/src/components/result/ResultCorseMap";
+import ResultCourseMap from "@/src/components/result/ResultCourseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
@@ -42,6 +42,7 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
@@ -106,6 +107,9 @@ export default function Result() {
     });
 
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
+
+    const isChartActive = useSharedValue(false);
+    const chartPointIndex = useSharedValue(0);
 
     const center = useMemo(
         () =>
@@ -352,9 +356,11 @@ export default function Result() {
                                 backgroundColor: "#171717",
                             }}
                         >
-                            <ResultCorseMap
+                            <ResultCourseMap
                                 center={center}
                                 telemetries={runData.telemetries ?? []}
+                                isChartActive={isChartActive}
+                                chartPointIndex={chartPointIndex}
                             />
                             {courseId !== "-1" && course?.name && (
                                 <TouchableOpacity
@@ -379,7 +385,11 @@ export default function Result() {
 
                         {/* 내 페이스 및 코스 정보 파트 */}
                         <Section
-                            title="내 페이스"
+                            title={
+                                displayMode === "pace"
+                                    ? "내 페이스"
+                                    : "내 코스 정보"
+                            }
                             titleColor="white"
                             titleRightChildren={
                                 <StyledButton
@@ -412,7 +422,14 @@ export default function Result() {
                                 yKeys={
                                     displayMode === "pace" ? ["pace"] : ["alt"]
                                 }
-                                invertYAxis={true}
+                                invertYAxis={
+                                    displayMode === "pace" ? true : false
+                                }
+                                showToolTip={true}
+                                onPointChange={(payload) => {
+                                    isChartActive.value = payload.isActive;
+                                    chartPointIndex.value = payload.index;
+                                }}
                                 expandable
                             />
                         </Section>

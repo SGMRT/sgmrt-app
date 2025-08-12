@@ -6,7 +6,7 @@ import {
 } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
-import ResultCorseMap from "@/src/components/result/ResultCorseMap";
+import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
