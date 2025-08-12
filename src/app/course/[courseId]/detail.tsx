@@ -17,6 +17,7 @@ import { Typography } from "@/src/components/ui/Typography";
 import { UserCount } from "@/src/components/ui/UserCount";
 import colors from "@/src/theme/colors";
 import { calculateCenter, Coordinate } from "@/src/utils/mapUtils";
+import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useRef } from "react";
@@ -85,6 +86,34 @@ export default function Result() {
                 description: "하강",
                 value: course?.elevationLoss ?? 0,
                 unit: "m",
+            },
+        ];
+    }, [course]);
+
+    const ghostAverageStats = useMemo(() => {
+        return [
+            {
+                description: "시간",
+                value: getRunTime(
+                    course?.averageCompletionTime ?? 0,
+                    "HH:MM:SS"
+                ),
+                unit: "",
+            },
+            {
+                description: "케이던스",
+                value: course?.averageFinisherCadence ?? "--",
+                unit: "spm",
+            },
+            {
+                description: "칼로리",
+                value: "--",
+                unit: "kcal",
+            },
+            {
+                description: "페이스",
+                value: getFormattedPace(course?.averageFinisherPace ?? 0),
+                unit: "",
             },
         ];
     }, [course]);
@@ -163,7 +192,7 @@ export default function Result() {
 
                     {/* 내 페이스 및 코스 정보 파트 */}
                     <Section
-                        title="내 페이스"
+                        title="코스 정보"
                         titleColor="white"
                         style={{ gap: 15 }}
                     >
@@ -186,7 +215,7 @@ export default function Result() {
                     </Section>
 
                     <GhostInfoSection
-                        stats={courseAverageStats}
+                        stats={ghostAverageStats}
                         uuid={null}
                         ghostList={ghostList ?? []}
                         selectedGhostId={0}
