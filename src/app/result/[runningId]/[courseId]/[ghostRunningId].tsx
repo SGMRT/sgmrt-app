@@ -1,6 +1,14 @@
-import { ShareIcon } from "@/assets/svgs/svgs";
-import { getRun, patchCourseName, patchRunName } from "@/src/apis";
+import { LockIcon, ShareIcon, UnlockIcon } from "@/assets/svgs/svgs";
+import {
+    getCourse,
+    getCourseTopRanking,
+    getRun,
+    patchCourseName,
+    patchRunName,
+} from "@/src/apis";
+import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
+import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import ResultCorseMap from "@/src/components/result/ResultCorseMap";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
@@ -17,7 +25,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -27,6 +35,17 @@ import Toast from "react-native-toast-message";
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
+    const [isLocked, setIsLocked] = useState(true);
+
+    const runningMode = useMemo(() => {
+        if (courseId === "-1") {
+            return "SOLO";
+        } else if (ghostRunningId === "-1") {
+            return "COURSE";
+        } else {
+            return "GHOST";
+        }
+    }, [courseId, ghostRunningId]);
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
 
@@ -51,6 +70,19 @@ export default function Result() {
         queryKey: ["result", runningId],
         queryFn: () => getRun(Number(runningId)),
         enabled: !!runningId,
+    });
+
+    const { data: ghostList } = useQuery<HistoryResponse[]>({
+        queryKey: ["course-top-ranking", courseId],
+        queryFn: () =>
+            getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
+        enabled: courseId !== "-1",
+    });
+
+    const { data: course } = useQuery<CourseDetailResponse>({
+        queryKey: ["course", courseId],
+        queryFn: () => getCourse(Number(courseId)),
+        enabled: courseId !== "-1",
     });
 
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
@@ -107,6 +139,34 @@ export default function Result() {
             },
         ];
     }, [runData]);
+
+    const courseAverageStats = useMemo(() => {
+        return [
+            {
+                description: "시간",
+                value: getRunTime(
+                    course?.averageCompletionTime ?? 0,
+                    "HH:MM:SS"
+                ),
+                unit: "",
+            },
+            {
+                description: "케이던스",
+                value: course?.averageFinisherCadence ?? "--",
+                unit: "spm",
+            },
+            {
+                description: "칼로리",
+                value: "--",
+                unit: "kcal",
+            },
+            {
+                description: "페이스",
+                value: getFormattedPace(course?.averageFinisherPace ?? 0),
+                unit: "",
+            },
+        ];
+    }, [course]);
 
     const runningStats = useMemo(() => {
         return [
@@ -173,7 +233,30 @@ export default function Result() {
         runData && (
             <>
                 <SafeAreaView style={styles.container}>
-                    <Header titleText={getDate(runData.startedAt)} />
+                    <Header
+                        titleText={getDate(runData.startedAt)}
+                        rightComponent={
+                            runningMode !== "SOLO" && (
+                                <Pressable
+                                    onPress={() => {
+                                        Toast.show({
+                                            type: "info",
+                                            text1: "해당 기능은 준비 중입니다",
+                                            position: "bottom",
+                                        });
+                                        setIsLocked(!isLocked);
+                                        // patchRunIsPublic(Number(runningId));
+                                    }}
+                                >
+                                    {isLocked ? (
+                                        <LockIcon width={20} height={20} />
+                                    ) : (
+                                        <UnlockIcon width={20} height={20} />
+                                    )}
+                                </Pressable>
+                            )
+                        }
+                    />
                     <ScrollView
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
@@ -189,11 +272,27 @@ export default function Result() {
                                         await patchRunName(
                                             Number(runningId),
                                             recordTitle
-                                        );
+                                        ).then(() => {
+                                            Toast.show({
+                                                type: "success",
+                                                text1: "제목이 변경되었습니다",
+                                                position: "bottom",
+                                            });
+                                        });
                                     }}
                                 />
                             </View>
-                            <ShareIcon style={styles.shareButton} />
+                            <Pressable
+                                onPress={() => {
+                                    Toast.show({
+                                        type: "info",
+                                        text1: "해당 기능은 준비 중입니다",
+                                        position: "bottom",
+                                    });
+                                }}
+                            >
+                                <ShareIcon style={styles.shareButton} />
+                            </Pressable>
                         </View>
 
                         {/* 코스 지도 파트 */}
@@ -241,13 +340,29 @@ export default function Result() {
                                 expandable
                             />
                         </Section>
-                        <Section title="내 러닝 정보">
+                        <Section title="내 러닝 정보" titleColor="white">
                             <StatRow
                                 color="gray20"
                                 style={{ gap: 20 }}
                                 stats={runningStats}
                             />
                         </Section>
+
+                        {/* 고스트 러닝 기록 비교  (고스트 러닝) */}
+
+                        {/* 코스 관련 정보 (!솔로 러닝)*/}
+                        {runningMode !== "SOLO" && (
+                            <GhostInfoSection
+                                stats={courseAverageStats}
+                                uuid={null}
+                                ghostList={ghostList ?? []}
+                                selectedGhostId={0}
+                                setSelectedGhostId={() => {}}
+                                onPress={() => {}}
+                                hasMargin={false}
+                                color="white"
+                            />
+                        )}
                     </ScrollView>
                     {DisplaySlideToAction}
                 </SafeAreaView>

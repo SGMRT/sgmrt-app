@@ -28,7 +28,6 @@ export default function NameInput({
                     placeholder={placeholder}
                     defaultValue={defaultValue}
                     placeholderTextColor={colors.gray[60]}
-                    autoFocus={true}
                     autoCapitalize="none"
                     autoCorrect={false}
                     style={[
@@ -48,7 +47,6 @@ export default function NameInput({
                     placeholder={placeholder}
                     defaultValue={defaultValue}
                     placeholderTextColor={colors.gray[60]}
-                    autoFocus={true}
                     autoCapitalize="none"
                     autoCorrect={false}
                     style={[

@@ -32,6 +32,9 @@ import ScrollTopIcon from "./scroll.svg";
 
 import GhostIcon from "./g.svg";
 
+import LockIcon from "./lock_close.svg";
+import UnlockIcon from "./lock_open.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -47,10 +50,12 @@ export {
     KakaoIcon,
     ListIcon,
     LocateMe,
+    LockIcon,
     ScrollTopIcon,
     ShareIcon,
     ToastCheckIcon,
     ToastInfoIcon,
     TrashIcon,
+    UnlockIcon,
     UserIcon,
 };

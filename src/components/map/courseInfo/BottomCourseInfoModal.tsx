@@ -13,7 +13,7 @@ import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
 import SlideToAction from "../../ui/SlideToAction";
 import StatRow, { Stat } from "../../ui/StatRow";
-import { Typography } from "../../ui/Typography";
+import { Typography, TypographyColor } from "../../ui/Typography";
 import UserStatItem from "./UserStatItem";
 
 interface BottomCourseInfoModalProps {
@@ -145,13 +145,15 @@ export default function BottomCourseInfoModal({
     );
 }
 
-const GhostInfoSection = ({
+export const GhostInfoSection = ({
     stats,
     uuid,
     ghostList,
     selectedGhostId,
     setSelectedGhostId,
     onPress,
+    hasMargin = true,
+    color = "gray40",
 }: {
     stats: Stat[];
     uuid: string | null;
@@ -159,11 +161,18 @@ const GhostInfoSection = ({
     selectedGhostId: number;
     setSelectedGhostId: (ghostId: number) => void;
     onPress: () => void;
+    hasMargin?: boolean;
+    color?: TypographyColor;
 }) => {
     if (ghostList.length === 0) {
         return (
-            <View style={{ marginBottom: 30, marginHorizontal: 16.5 }}>
-                <Section title="고스트 평균 정보">
+            <View
+                style={{
+                    marginBottom: hasMargin ? 30 : 0,
+                    marginHorizontal: hasMargin ? 16.5 : 0,
+                }}
+            >
+                <Section title="고스트 평균 정보" titleColor={color}>
                     <EmptyListView
                         description={`등록된 고스트가 아직 없어요\n코스 러닝을 시작해 첫 고스트가 되어보세요!`}
                     />
@@ -175,11 +184,11 @@ const GhostInfoSection = ({
         <View
             style={{
                 gap: 20,
-                marginHorizontal: 16.5,
-                marginBottom: 30,
+                marginHorizontal: hasMargin ? 16.5 : 0,
+                marginBottom: hasMargin ? 30 : 0,
             }}
         >
-            <Section title="고스트 평균 정보">
+            <Section title="고스트 평균 정보" titleColor={color}>
                 <StatRow
                     stats={stats}
                     color="gray20"
@@ -191,6 +200,7 @@ const GhostInfoSection = ({
             <Section
                 title="고스트 TOP3"
                 shortcutTitle="순위 전체"
+                titleColor={color}
                 onPress={() => {
                     onPress();
                 }}

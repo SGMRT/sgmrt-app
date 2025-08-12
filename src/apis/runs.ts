@@ -45,6 +45,16 @@ export async function patchRunName(runningId: number, name: string) {
     }
 }
 
+export async function patchRunIsPublic(runningId: number) {
+    try {
+        const response = await server.patch(`runs/${runningId}/isPublic`);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
 export async function getRun(runningId: number): Promise<SoloRunGetResponse> {
     try {
         const response = await server.get(`runs/${runningId}`);
