@@ -10,7 +10,7 @@ import {
     Telemetry,
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
-import { LOCATION_TASK, UserDashBoardData } from "../types/run";
+import { LOCATION_TASK, RawRunData, UserDashBoardData } from "../types/run";
 import { Coordinate, getDistance } from "./mapUtils";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
@@ -142,6 +142,7 @@ function getTelemetriesWithoutLastFalse(telemetries: Telemetry[]): Telemetry[] {
 
 interface SaveRunningProps {
     telemetries: Telemetry[];
+    rawData: RawRunData[];
     userDashboardData: UserDashBoardData;
     runTime: number;
     isPublic: boolean;
@@ -151,6 +152,7 @@ interface SaveRunningProps {
 
 export async function saveRunning({
     telemetries,
+    rawData,
     userDashboardData,
     runTime,
     isPublic,
@@ -210,18 +212,28 @@ export async function saveRunning({
         avgCadence: userDashboardData.averageCadence,
     };
 
+    const runFormData = new FormData();
+
+    runFormData.append("rawTelemetry", JSON.stringify(rawData));
+    runFormData.append(
+        "interpolatedTelemetry",
+        JSON.stringify(truncatedTelemetries)
+    );
+    runFormData.append("screenShotImage", "");
+
     if (ghostRunningId) {
         const request: CourseGhostRunning = {
             runningName: getRunName(startTime ?? 0),
             startedAt: startTime ?? 0,
             hasPaused,
             isPublic: hasPaused ? false : isPublic,
-            telemetries: truncatedTelemetries,
             mode: "GHOST",
             ghostRunningId,
             record,
         };
-        const response = await postCourseRun(request, courseId!);
+        runFormData.append("req", JSON.stringify(request));
+
+        const response = await postRun(runFormData);
         return response;
     } else if (courseId) {
         const request: CourseSoloRunning = {
@@ -229,12 +241,13 @@ export async function saveRunning({
             startedAt: startTime ?? 0,
             hasPaused,
             isPublic: hasPaused ? false : isPublic,
-            telemetries: truncatedTelemetries,
             mode: "SOLO",
             ghostRunningId: null,
             record,
         };
-        const response = await postCourseRun(request, courseId);
+        runFormData.append("req", JSON.stringify(request));
+
+        const response = await postCourseRun(runFormData, courseId);
         return response;
     } else {
         const request: BaseRunning = {
@@ -242,10 +255,11 @@ export async function saveRunning({
             startedAt: startTime ?? 0,
             hasPaused,
             isPublic: hasPaused ? false : isPublic,
-            telemetries: truncatedTelemetries,
             record,
         };
-        const response = await postRun(request);
+        runFormData.append("req", JSON.stringify(request));
+
+        const response = await postRun(runFormData);
         return response;
     }
 }

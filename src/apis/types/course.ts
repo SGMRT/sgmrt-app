@@ -2,6 +2,7 @@ export interface CoursesRequest {
     lat: number;
     lng: number;
     radiusM?: number;
+    sort?: "DISTANCE" | "POPULARITY";
     ownerUuid?: string;
     minDistance?: number;
     maxDistance?: number;
@@ -14,7 +15,8 @@ export interface CourseResponse {
     name: string;
     startLat: number;
     startLng: number;
-    pathData: PathData[];
+    routeUrl: string;
+    thumbnailUrl: string;
     distance: number;
     elevationGain: number;
     elevationLoss: number;
@@ -30,13 +32,20 @@ export interface CourseResponse {
 export interface CourseDetailResponse {
     id: number;
     name: string;
+    telemetryUrl: string;
     distance: number;
     elevationGain: number;
     elevationLoss: number;
     averageCompletionTime: number;
     averageFinisherPace: number;
     averageFinisherCadence: number;
+    averageCaloriesBurned: number;
     lowestFinisherPace: number;
+    uniqueRunnersCount: number;
+    totalRunsCount: number;
+    myLowestPace: number;
+    myAveragePace: number;
+    myHighestPace: number;
 }
 
 export interface PathData {
@@ -72,13 +81,12 @@ export interface UserCourseInfo {
     id: number;
     name: string;
     createdAt: number;
-    uniqueRunnersCount: number;
     totalRunsCount: number;
     distance: number;
     averageCompletionTime: number;
     averageFinisherPace: number;
     averageFinisherCadence: number;
-    isPublic: true;
+    isPublic: boolean;
 }
 
 export type Pageable = {

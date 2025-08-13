@@ -7,6 +7,7 @@ declare module "axios" {
         canRetry?: boolean;
         retryCount?: number;
         withAuth?: boolean;
+        formData?: boolean;
     }
 }
 
@@ -32,6 +33,9 @@ server.interceptors.request.use((config) => {
     const { accessToken } = useAuthStore.getState();
     if (accessToken && config.withAuth) {
         config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    if (config.formData === true) {
+        config.headers["Content-Type"] = undefined;
     }
     return config;
 });

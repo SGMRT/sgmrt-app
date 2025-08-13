@@ -12,6 +12,7 @@ import { Segment } from "../components/map/RunningLine";
 import { useAuthStore } from "../store/authState";
 import {
     LOCATION_TASK,
+    RawRunData,
     RunData,
     RunnningStatus,
     StepCount,
@@ -248,6 +249,8 @@ export default function useRunningSession({
     const courseIndex = useRef<number>(0);
     const courseRef = useRef<Telemetry[]>(course);
 
+    const rawRunData = useRef<RawRunData[]>([]);
+
     // keep latest course without re-running heavy effects
     useEffect(() => {
         courseRef.current = course;
@@ -415,6 +418,18 @@ export default function useRunningSession({
 
             const mergedData = mergeRunData(runData.current, batchData);
             newRunData = getOnlyNewData(batchData, runData.current);
+
+            rawRunData.current.push(
+                ...newRunData.map((data) => ({
+                    timestamp: data.timestamp,
+                    latitude: data.raw.latitude,
+                    longitude: data.raw.longitude,
+                    altitude: data.raw.altitude ?? -1,
+                    speed: data.speed ?? -1,
+                    accuracy: data.raw.accuracy ?? -1,
+                    altitudeAccuracy: data.raw.altitudeAccuracy ?? -1,
+                }))
+            );
 
             newRunData.forEach((data) => {
                 if (
@@ -804,5 +819,6 @@ export default function useRunningSession({
         runTime: elapsedTime.current,
         runUserDashboardData: runUserDashboardData.current,
         courseIndex: courseIndex.current,
+        rawRunData: rawRunData.current,
     };
 }

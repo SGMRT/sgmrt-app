@@ -1,6 +1,7 @@
 import { useAuthStore } from "../store/authState";
 import server from "./instance";
 import {
+    CourseDetailResponse,
     CourseResponse,
     CoursesRequest,
     HistoryResponse,
@@ -46,15 +47,20 @@ export async function getCourses(
     request: CoursesRequest
 ): Promise<CourseResponse[]> {
     try {
-        const response = await server.get("/courses", { params: request });
-        return response.data;
+        const response = await server.get("/courses", {
+            params: request,
+        });
+        const responseData = response.data as CourseResponse[];
+        return responseData.filter((course) => course.routeUrl !== null);
     } catch (error) {
         console.error(error);
         throw error;
     }
 }
 
-export async function getCourse(courseId: number) {
+export async function getCourse(
+    courseId: number
+): Promise<CourseDetailResponse> {
     try {
         const response = await server.get(`/courses/${courseId}`);
         return response.data;
@@ -70,7 +76,7 @@ export async function getCourseTopRanking({
 }: {
     courseId: number;
     count: number;
-}) {
+}): Promise<UserRankResponse[]> {
     try {
         const response = await server.get(`/courses/${courseId}/top-ranking`, {
             params: { count },

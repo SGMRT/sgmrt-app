@@ -39,6 +39,7 @@ export default function Run() {
         runStatus,
         runTime,
         runUserDashboardData,
+        rawRunData,
     } = useRunningSession({});
 
     useEffect(() => {
@@ -193,6 +194,7 @@ export default function Run() {
                     onSlideLeft={async () => {
                         const response = await saveRunning({
                             telemetries: runTelemetries,
+                            rawData: rawRunData,
                             userDashboardData: runUserDashboardData,
                             runTime,
                             isPublic: true,

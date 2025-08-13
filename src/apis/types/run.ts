@@ -4,7 +4,6 @@ export interface BaseRunning {
     record: RunRecord;
     hasPaused: boolean;
     isPublic: boolean;
-    telemetries: Telemetry[];
 }
 
 export interface CourseSoloRunning extends BaseRunning {
@@ -18,6 +17,13 @@ export interface CourseGhostRunning extends BaseRunning {
 }
 
 export type Running = BaseRunning | CourseSoloRunning | CourseGhostRunning;
+
+export interface PostRunRequest {
+    req: Running;
+    rawTelemetry: string;
+    interpolatedTelemetry: string;
+    screenShotImage: string;
+}
 
 export interface SoloRunGetResponse {
     startedAt: number;
