@@ -15,6 +15,7 @@ const server = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    timeout: 30000,
     canRetry: true,
 });
 

@@ -24,7 +24,7 @@ interface ResultCourseMapProps {
     isActive?: boolean;
     isChartActive?: SharedValue<boolean>;
     chartPointIndex?: SharedValue<number>;
-    yKey?: string;
+    yKey?: "pace" | "alt";
 }
 
 export default function ResultCourseMap({
@@ -33,7 +33,7 @@ export default function ResultCourseMap({
     isActive = true,
     isChartActive,
     chartPointIndex,
-    yKey,
+    yKey = "pace",
 }: ResultCourseMapProps) {
     const [active, setActive] = useState(false);
     const [index, setIndex] = useState<number>(0);
@@ -83,13 +83,12 @@ export default function ResultCourseMap({
                                 </Typography>
                                 <Divider color={colors.gray[40]} />
                                 <Typography variant="caption1" color="gray20">
-                                    {yKey
-                                        ? telemetries[index][
-                                              yKey as keyof Telemetry
-                                          ]
-                                        : getFormattedPace(
+                                    {yKey === "pace"
+                                        ? getFormattedPace(
                                               telemetries[index].pace
-                                          )}
+                                          )
+                                        : Math.round(telemetries[index].alt) +
+                                          "m"}
                                 </Typography>
                             </View>
                         </MarkerView>

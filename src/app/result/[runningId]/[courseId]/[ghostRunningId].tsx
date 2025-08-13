@@ -361,6 +361,7 @@ export default function Result() {
                                 telemetries={runData.telemetries ?? []}
                                 isChartActive={isChartActive}
                                 chartPointIndex={chartPointIndex}
+                                yKey={displayMode === "pace" ? "pace" : "alt"}
                             />
                             {courseId !== "-1" && course?.name && (
                                 <TouchableOpacity
