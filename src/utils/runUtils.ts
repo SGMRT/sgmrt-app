@@ -213,35 +213,33 @@ export async function saveRunning({
         avgCadence: userDashboardData.averageCadence,
     };
 
-    const rawTelemetryFileUri = FileSystem.cacheDirectory + "rawTelemetry.json";
+    const rawTelemetryFileUri =
+        FileSystem.cacheDirectory + "rawTelemetry.jsonl";
     const interpolatedTelemetryFileUri =
-        FileSystem.cacheDirectory + "interpolatedTelemetry.json";
+        FileSystem.cacheDirectory + "interpolatedTelemetry.jsonl";
 
     try {
-        // 서버는 각 라인이 하나의 JSON 객체인 NDJSON을 기대함
-        const rawNdjson = rawData
-            .map((item) => JSON.stringify(item))
-            .join("\n");
-        const interpolatedNdjson = truncatedTelemetries
+        const rawJsonl = rawData.map((item) => JSON.stringify(item)).join("\n");
+        const interpolatedJsonl = truncatedTelemetries
             .map((item) => JSON.stringify(item))
             .join("\n");
 
-        await FileSystem.writeAsStringAsync(rawTelemetryFileUri, rawNdjson);
+        await FileSystem.writeAsStringAsync(rawTelemetryFileUri, rawJsonl);
         await FileSystem.writeAsStringAsync(
             interpolatedTelemetryFileUri,
-            interpolatedNdjson
+            interpolatedJsonl
         );
 
         const formData = new FormData();
 
         formData.append("rawTelemetry", {
             uri: rawTelemetryFileUri,
-            name: "rawTelemetry.json",
+            name: "rawTelemetry.jsonl",
             type: "application/json",
         } as any);
         formData.append("interpolatedTelemetry", {
             uri: interpolatedTelemetryFileUri,
-            name: "interpolatedTelemetry.json",
+            name: "interpolatedTelemetry.jsonl",
             type: "application/json",
         } as any);
 
