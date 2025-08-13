@@ -192,15 +192,26 @@ export default function Run() {
             ) : (
                 <SlideToDualAction
                     onSlideLeft={async () => {
-                        const response = await saveRunning({
+                        await saveRunning({
                             telemetries: runTelemetries,
                             rawData: rawRunData,
                             userDashboardData: runUserDashboardData,
                             runTime,
                             isPublic: true,
-                        });
-                        router.replace(`/result/${response.runningId}/-1/-1`);
-                        console.log("saveRunning");
+                        })
+                            .then((response) => {
+                                router.replace(
+                                    `/result/${response.runningId}/-1/-1`
+                                );
+                            })
+                            .catch(() => {
+                                Toast.show({
+                                    type: "info",
+                                    text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
+                                    position: "bottom",
+                                    bottomOffset: 60,
+                                });
+                            });
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);

@@ -1,4 +1,5 @@
 import LiveActivities from "@/modules/expo-live-activity";
+import * as FileSystem from "expo-file-system";
 import * as Location from "expo-location";
 import Toast from "react-native-toast-message";
 import { postCourseRun, postRun } from "../apis";
@@ -212,55 +213,111 @@ export async function saveRunning({
         avgCadence: userDashboardData.averageCadence,
     };
 
-    const runFormData = new FormData();
+    const rawTelemetryFileUri = FileSystem.cacheDirectory + "rawTelemetry.json";
+    const interpolatedTelemetryFileUri =
+        FileSystem.cacheDirectory + "interpolatedTelemetry.json";
 
-    runFormData.append("rawTelemetry", JSON.stringify(rawData));
-    runFormData.append(
-        "interpolatedTelemetry",
-        JSON.stringify(truncatedTelemetries)
-    );
-    runFormData.append("screenShotImage", "");
+    try {
+        // 서버는 각 라인이 하나의 JSON 객체인 NDJSON을 기대함
+        const rawNdjson = rawData
+            .map((item) => JSON.stringify(item))
+            .join("\n");
+        const interpolatedNdjson = truncatedTelemetries
+            .map((item) => JSON.stringify(item))
+            .join("\n");
 
-    if (ghostRunningId) {
-        const request: CourseGhostRunning = {
-            runningName: getRunName(startTime ?? 0),
-            startedAt: startTime ?? 0,
-            hasPaused,
-            isPublic: hasPaused ? false : isPublic,
-            mode: "GHOST",
-            ghostRunningId,
-            record,
-        };
-        runFormData.append("req", JSON.stringify(request));
+        await FileSystem.writeAsStringAsync(rawTelemetryFileUri, rawNdjson);
+        await FileSystem.writeAsStringAsync(
+            interpolatedTelemetryFileUri,
+            interpolatedNdjson
+        );
 
-        const response = await postRun(runFormData);
-        return response;
-    } else if (courseId) {
-        const request: CourseSoloRunning = {
-            runningName: getRunName(startTime ?? 0),
-            startedAt: startTime ?? 0,
-            hasPaused,
-            isPublic: hasPaused ? false : isPublic,
-            mode: "SOLO",
-            ghostRunningId: null,
-            record,
-        };
-        runFormData.append("req", JSON.stringify(request));
+        const formData = new FormData();
 
-        const response = await postCourseRun(runFormData, courseId);
-        return response;
-    } else {
-        const request: BaseRunning = {
-            runningName: getRunName(startTime ?? 0),
-            startedAt: startTime ?? 0,
-            hasPaused,
-            isPublic: hasPaused ? false : isPublic,
-            record,
-        };
-        runFormData.append("req", JSON.stringify(request));
+        formData.append("rawTelemetry", {
+            uri: rawTelemetryFileUri,
+            name: "rawTelemetry.json",
+            type: "application/json",
+        } as any);
+        formData.append("interpolatedTelemetry", {
+            uri: interpolatedTelemetryFileUri,
+            name: "interpolatedTelemetry.json",
+            type: "application/json",
+        } as any);
 
-        const response = await postRun(runFormData);
-        return response;
+        if (ghostRunningId) {
+            const request: CourseGhostRunning = {
+                runningName: getRunName(startTime ?? 0),
+                startedAt: startTime ?? 0,
+                hasPaused,
+                isPublic: hasPaused ? false : isPublic,
+                mode: "GHOST",
+                ghostRunningId,
+                record,
+            };
+
+            const reqFileUri = FileSystem.cacheDirectory + "req.json";
+            await FileSystem.writeAsStringAsync(
+                reqFileUri,
+                JSON.stringify(request)
+            );
+            formData.append("req", {
+                uri: reqFileUri,
+                name: "req.json",
+                type: "application/json",
+            } as any);
+
+            const response = await postCourseRun(formData, courseId!);
+            return response;
+        } else if (courseId) {
+            const request: CourseSoloRunning = {
+                runningName: getRunName(startTime ?? 0),
+                startedAt: startTime ?? 0,
+                hasPaused,
+                isPublic: hasPaused ? false : isPublic,
+                mode: "SOLO",
+                ghostRunningId: null,
+                record,
+            };
+
+            const reqFileUri = FileSystem.cacheDirectory + "req.json";
+            await FileSystem.writeAsStringAsync(
+                reqFileUri,
+                JSON.stringify(request)
+            );
+            formData.append("req", {
+                uri: reqFileUri,
+                name: "req.json",
+                type: "application/json",
+            } as any);
+
+            const response = await postCourseRun(formData, courseId);
+            return response;
+        } else {
+            const request: BaseRunning = {
+                runningName: getRunName(startTime ?? 0),
+                startedAt: startTime ?? 0,
+                hasPaused,
+                isPublic: hasPaused ? false : isPublic,
+                record,
+            };
+
+            const reqFileUri = FileSystem.cacheDirectory + "req.json";
+            await FileSystem.writeAsStringAsync(
+                reqFileUri,
+                JSON.stringify(request)
+            );
+            formData.append("req", {
+                uri: reqFileUri,
+                name: "req.json",
+                type: "application/json",
+            } as any);
+
+            const response = await postRun(formData);
+            return response;
+        }
+    } catch (error) {
+        console.error(error);
     }
 }
 

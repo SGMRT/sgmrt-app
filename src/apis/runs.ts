@@ -10,9 +10,7 @@ import {
 
 export async function postRun(data: FormData) {
     try {
-        const response = await server.post(`runs`, data, {
-            formData: true,
-        });
+        const response = await server.post(`runs`, data, {});
         return response.data;
     } catch (error) {
         console.error(error);
@@ -22,9 +20,7 @@ export async function postRun(data: FormData) {
 
 export async function postCourseRun(data: FormData, courseId: number) {
     try {
-        const response = await server.post(`runs/courses/${courseId}`, data, {
-            formData: true,
-        });
+        const response = await server.post(`runs/courses/${courseId}`, data);
         return response.data;
     } catch (error) {
         console.error(error);

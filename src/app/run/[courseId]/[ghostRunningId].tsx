@@ -327,6 +327,7 @@ export default function CourseRun() {
                         onSlideLeft={async () => {
                             const response = await saveRunning({
                                 telemetries: runTelemetries,
+                                rawData: rawRunData,
                                 userDashboardData: runUserDashboardData,
                                 runTime,
                                 isPublic: true,
@@ -349,6 +350,7 @@ export default function CourseRun() {
                         onSlideLeft={async () => {
                             const response = await saveRunning({
                                 telemetries: runTelemetries,
+                                rawData: rawRunData,
                                 userDashboardData: runUserDashboardData,
                                 runTime,
                                 isPublic: true,
@@ -367,6 +369,7 @@ export default function CourseRun() {
                         onSlideRight={async () => {
                             await saveRunning({
                                 telemetries: runTelemetries,
+                                rawData: rawRunData,
                                 userDashboardData: runUserDashboardData,
                                 runTime,
                                 isPublic: true,
