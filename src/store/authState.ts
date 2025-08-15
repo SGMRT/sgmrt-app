@@ -37,6 +37,7 @@ export interface UserInfo {
 export interface UserSettings {
     pushAlarmEnabled: boolean;
     vibrationEnabled: boolean;
+    voiceGuidanceEnabled: boolean;
 }
 
 interface AuthState {

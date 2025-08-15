@@ -122,8 +122,6 @@ export default function Result() {
         [runData?.telemetries]
     );
 
-    console.log(runData?.telemetries);
-
     const paceStats = useMemo(() => {
         return [
             {

@@ -50,10 +50,10 @@ export async function getCourses(
             params: request,
         });
         const responseData = response.data as CourseResponse[];
+        console.log(responseData);
         const filteredResponseData = responseData.filter(
             (course) => course.routeUrl !== null
         );
-        console.log(filteredResponseData);
         return filteredResponseData;
     } catch (error) {
         console.error(error);
