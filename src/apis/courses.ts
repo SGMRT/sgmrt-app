@@ -7,7 +7,6 @@ import {
     HistoryResponse,
     Pageable,
     UserCourseInfo,
-    UserRankResponse,
 } from "./types/course";
 import { getUpdateAttrs } from "./utils";
 
@@ -51,7 +50,11 @@ export async function getCourses(
             params: request,
         });
         const responseData = response.data as CourseResponse[];
-        return responseData.filter((course) => course.routeUrl !== null);
+        const filteredResponseData = responseData.filter(
+            (course) => course.routeUrl !== null
+        );
+        console.log(filteredResponseData);
+        return filteredResponseData;
     } catch (error) {
         console.error(error);
         throw error;
@@ -76,7 +79,7 @@ export async function getCourseTopRanking({
 }: {
     courseId: number;
     count: number;
-}): Promise<UserRankResponse[]> {
+}): Promise<HistoryResponse[]> {
     try {
         const response = await server.get(`/courses/${courseId}/top-ranking`, {
             params: { count },
@@ -94,7 +97,7 @@ export async function getCourseUserRank({
 }: {
     courseId: number;
     memberUuid: string;
-}): Promise<UserRankResponse> {
+}): Promise<HistoryResponse> {
     try {
         const response = await server.get(`/courses/${courseId}/ranking`, {
             params: { memberUuid },

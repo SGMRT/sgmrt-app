@@ -1,5 +1,4 @@
 import { useLocationInfoStore } from "@/src/store/locationInfo";
-import { getDistance } from "@/src/utils/mapUtils";
 import axios from "axios";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useState } from "react";
@@ -25,8 +24,7 @@ export default function WeatherInfo() {
             if (
                 lastUpdated &&
                 coords &&
-                new Date(lastUpdated).getTime() + 1000 * 60 * 60 > Date.now() &&
-                getDistance(coords, { lng: longitude, lat: latitude }) < 5000
+                new Date(lastUpdated).getTime() + 1000 * 60 * 60 > Date.now()
             ) {
                 setIsLoading(false);
                 return;
@@ -41,6 +39,8 @@ export default function WeatherInfo() {
                     `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.EXPO_PUBLIC_OWM_TOKEN}`
                 ),
             ]);
+
+            console.log("WeatherInfo", address, temperature);
 
             setLocationInfo(
                 { lng: longitude, lat: latitude },

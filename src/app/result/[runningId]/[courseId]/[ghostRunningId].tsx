@@ -122,6 +122,8 @@ export default function Result() {
         [runData?.telemetries]
     );
 
+    console.log(runData?.telemetries);
+
     const paceStats = useMemo(() => {
         return [
             {
@@ -148,7 +150,7 @@ export default function Result() {
             },
             {
                 description: "고도",
-                value: runData?.recordInfo.totalElevation ?? 0,
+                value: runData?.recordInfo.elevationAverage ?? 0,
                 unit: "m",
             },
             {

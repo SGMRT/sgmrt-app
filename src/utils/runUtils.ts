@@ -213,6 +213,8 @@ export async function saveRunning({
         avgCadence: userDashboardData.averageCadence,
     };
 
+    console.log(truncatedTelemetries);
+
     const rawTelemetryFileUri =
         FileSystem.cacheDirectory + "rawTelemetry.jsonl";
     const interpolatedTelemetryFileUri =

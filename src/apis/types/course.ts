@@ -54,6 +54,7 @@ export interface PathData {
 }
 
 export interface HistoryResponse {
+    rank?: number;
     runnerUuid: string;
     runnerProfileUrl: string;
     runnerNickname: string;
@@ -67,15 +68,15 @@ export interface HistoryResponse {
     startedAt: string;
 }
 
-export interface UserRankResponse {
-    rank: number;
-    runningId: number;
-    runningName: string;
-    duration: number;
-    bpm: number;
-    averagePace: number;
-    runnerProfileUrl: string;
-}
+// export interface UserRankResponse {
+//     rank: number;
+//     runningId: number;
+//     runningName: string;
+//     duration: number;
+//     bpm: number;
+//     averagePace: number;
+//     runnerProfileUrl: string;
+// }
 
 export interface UserCourseInfo {
     id: number;

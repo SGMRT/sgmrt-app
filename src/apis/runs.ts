@@ -1,4 +1,5 @@
 import { Coordinate } from "../utils/mapUtils";
+import { getDataFromS3, parseJsonl } from "./common";
 import server from "./instance";
 import {
     RecordInfo,
@@ -53,7 +54,18 @@ export async function patchRunIsPublic(runningId: number) {
 export async function getRun(runningId: number): Promise<SoloRunGetResponse> {
     try {
         const response = await server.get(`runs/${runningId}`);
-        return response.data;
+        const telemetryUrl: string | undefined = response.data?.telemetryUrl;
+
+        let telemetries: Telemetry[] = [];
+        if (telemetryUrl) {
+            const text = await getDataFromS3(telemetryUrl);
+            if (text) {
+                const parsed = await parseJsonl(text);
+                telemetries = (parsed as unknown as Telemetry[]) ?? [];
+            }
+        }
+
+        return { ...response.data, telemetries } as SoloRunGetResponse;
     } catch (error) {
         console.error(error);
         throw error;
