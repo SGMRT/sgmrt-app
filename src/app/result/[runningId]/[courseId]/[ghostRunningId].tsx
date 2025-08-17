@@ -386,7 +386,9 @@ export default function Result() {
                                     console.log("uri: ", uri);
                                     Share.open({
                                         title: runData.runningName,
-                                        message: getDate(runData.startedAt),
+                                        message: getDate(
+                                            runData.startedAt
+                                        ).trim(),
                                         filename:
                                             "ghostrunner_" + runningId + ".jpg",
                                         url: uri ?? "",
