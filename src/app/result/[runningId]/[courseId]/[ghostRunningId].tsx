@@ -316,7 +316,7 @@ export default function Result() {
             console.log("captureMap error: ", error);
             return null;
         }
-    }, [runningId]);
+    }, [runData?.runningName]);
 
     if (isLoading) {
         return <></>;
