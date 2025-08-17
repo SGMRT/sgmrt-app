@@ -92,6 +92,7 @@ export default function MapViewWrapper({
                     onZoomLevelChanged?.(event.properties.zoom);
                 }}
                 scrollEnabled={controlEnabled}
+                zoomEnabled={controlEnabled}
                 onRegionDidChange={(event) => {
                     onRegionDidChange?.(event);
                 }}

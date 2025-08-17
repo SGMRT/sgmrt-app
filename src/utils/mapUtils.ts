@@ -65,7 +65,8 @@ const convertTelemetriesToCourse = (
 
 const calculateZoomLevelFromSize = (
     sizeInDegrees: number,
-    centerLat: number
+    centerLat: number,
+    width?: number
 ) => {
     // 위도에 따라 조정된 meters per degree (경도 기준)
     const meters =
@@ -74,7 +75,7 @@ const calculateZoomLevelFromSize = (
     // Mapbox 기준 zoom 0에서 1px당 거리
     const metersPerPixelAtZoom0 = 156543.03392;
 
-    const screenWidth = Dimensions.get("window").width;
+    const screenWidth = width ?? Dimensions.get("window").width;
 
     const zoomLevel = Math.log2((metersPerPixelAtZoom0 * screenWidth) / meters);
 

@@ -200,9 +200,17 @@ export default function Run() {
                             isPublic: true,
                         })
                             .then((response) => {
-                                router.replace(
-                                    `/result/${response.runningId}/-1/-1`
-                                );
+                                router.replace({
+                                    pathname:
+                                        "/result/[runningId]/[courseId]/[ghostRunningId]",
+                                    params: {
+                                        runningId:
+                                            response.runningId.toString(),
+                                        courseId: "-1",
+                                        ghostRunningId: "-1",
+                                        first: "true",
+                                    },
+                                });
                             })
                             .catch(() => {
                                 Toast.show({

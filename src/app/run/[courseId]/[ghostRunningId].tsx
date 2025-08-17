@@ -308,9 +308,16 @@ export default function CourseRun() {
                                 runTime,
                                 isPublic: true,
                             });
-                            router.replace(
-                                `/result/${response.runningId}/-1/-1`
-                            );
+                            router.replace({
+                                pathname:
+                                    "/result/[runningId]/[courseId]/[ghostRunningId]",
+                                params: {
+                                    runningId: response.runningId.toString(),
+                                    courseId: "-1",
+                                    ghostRunningId: "-1",
+                                    first: "true",
+                                },
+                            });
                         }}
                         onSlideRight={async () => {
                             await updateRunType("SOLO");
@@ -332,9 +339,16 @@ export default function CourseRun() {
                                 runTime,
                                 isPublic: true,
                             });
-                            router.replace(
-                                `/result/${response.runningId}/-1/-1`
-                            );
+                            router.replace({
+                                pathname:
+                                    "/result/[runningId]/[courseId]/[ghostRunningId]",
+                                params: {
+                                    runningId: response.runningId.toString(),
+                                    courseId: "-1",
+                                    ghostRunningId: "-1",
+                                    first: "true",
+                                },
+                            });
                         }}
                         onSlideRight={async () => {
                             setIsRestarting(true);
@@ -360,11 +374,18 @@ export default function CourseRun() {
                                         ? Number(ghostRunningId)
                                         : undefined,
                             });
-                            router.replace(
-                                `/result/${
-                                    response.runningId ?? response
-                                }/${courseId}/${ghostRunningId}`
-                            );
+                            router.replace({
+                                pathname:
+                                    "/result/[runningId]/[courseId]/[ghostRunningId]",
+                                params: {
+                                    runningId: response.runningId
+                                        ? response.runningId.toString()
+                                        : response.toString(),
+                                    courseId: courseId.toString(),
+                                    ghostRunningId: ghostRunningId.toString(),
+                                    first: "true",
+                                },
+                            });
                         }}
                         onSlideRight={async () => {
                             await saveRunning({
@@ -387,7 +408,15 @@ export default function CourseRun() {
                 );
             }
         },
-        [courseId, ghostRunningId, isRestarting, updateRunStatus, updateRunType]
+        [
+            courseId,
+            ghostRunningId,
+            isRestarting,
+            updateRunStatus,
+            updateRunType,
+            router,
+            rawRunData,
+        ]
     );
 
     useEffect(() => {

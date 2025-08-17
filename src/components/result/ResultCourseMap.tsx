@@ -1,13 +1,14 @@
 import { Telemetry } from "@/src/apis/types/run";
 import colors from "@/src/theme/colors";
 import {
+    calculateCenter,
     calculateZoomLevelFromSize,
     convertTelemetriesToCourse,
 } from "@/src/utils/mapUtils";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { MarkerView } from "@rnmapbox/maps";
-import { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { useMemo, useRef, useState } from "react";
+import { Dimensions, InteractionManager, StyleSheet, View } from "react-native";
 import { SharedValue, runOnJS, useDerivedValue } from "react-native-reanimated";
 import CourseLayer from "../map/CourseLayer";
 import MapViewWrapper from "../map/MapViewWrapper";
@@ -15,28 +16,45 @@ import { Divider } from "../ui/Divider";
 import { Typography } from "../ui/Typography";
 
 interface ResultCourseMapProps {
-    center: {
-        latitude: number;
-        longitude: number;
-        size: number;
-    };
     telemetries: Telemetry[];
     isActive?: boolean;
     isChartActive?: SharedValue<boolean>;
     chartPointIndex?: SharedValue<number>;
     yKey?: "pace" | "alt";
+    onReady?: () => void;
+    logoPosition?: any;
+    borderRadius?: number;
+    width?: number;
+    height?: number;
 }
 
 export default function ResultCourseMap({
-    center,
     telemetries,
     isActive = true,
     isChartActive,
     chartPointIndex,
     yKey = "pace",
+    onReady,
+    logoPosition = { bottom: 10, left: 10 },
+    borderRadius = 20,
+    width = Dimensions.get("window").width - 34,
+    height = 260,
 }: ResultCourseMapProps) {
     const [active, setActive] = useState(false);
     const [index, setIndex] = useState<number>(0);
+
+    const readyRef = useRef<boolean>(false);
+
+    const handleFullyRendered = () => {
+        InteractionManager.runAfterInteractions(() => {
+            if (!readyRef.current) {
+                readyRef.current = true;
+                if (onReady) {
+                    onReady();
+                }
+            }
+        });
+    };
 
     useDerivedValue(() => {
         runOnJS(setActive)(isChartActive?.value ?? false);
@@ -52,15 +70,32 @@ export default function ResultCourseMap({
         return [t.lng, t.lat] as [number, number];
     }, [active, index, telemetries]);
 
+    const center = useMemo(
+        () =>
+            calculateCenter(
+                telemetries.map((telemetry) => ({
+                    lat: telemetry.lat,
+                    lng: telemetry.lng,
+                }))
+            ),
+        [telemetries]
+    );
+
     return (
-        <View style={styles.mapContainer}>
+        <View style={[styles.mapContainer, { borderRadius, width, height }]}>
             <MapViewWrapper
                 controlEnabled={false}
                 showPuck={false}
                 center={center}
-                zoom={calculateZoomLevelFromSize(center.size, center.latitude)}
-                logoEnabled={false}
+                zoom={calculateZoomLevelFromSize(
+                    center.size,
+                    center.latitude,
+                    width
+                )}
+                logoEnabled={true}
+                logoPosition={logoPosition}
                 attributionEnabled={false}
+                onRegionDidChange={handleFullyRendered}
             >
                 <CourseLayer
                     course={convertTelemetriesToCourse(telemetries ?? [])}
@@ -104,6 +139,13 @@ export default function ResultCourseMap({
                     </>
                 )}
             </MapViewWrapper>
+            <Typography
+                variant="caption1"
+                color="gray40"
+                style={styles.attribution}
+            >
+                © Mapbox, © OpenStreetMap
+            </Typography>
         </View>
     );
 }
@@ -111,7 +153,6 @@ export default function ResultCourseMap({
 const styles = StyleSheet.create({
     mapContainer: {
         height: 260,
-        borderRadius: 20,
         overflow: "hidden",
         width: "100%",
     },
@@ -135,5 +176,10 @@ const styles = StyleSheet.create({
         borderRadius: 7,
         backgroundColor: colors.primary,
         borderColor: "#FFFFFF",
+    },
+    attribution: {
+        position: "absolute",
+        bottom: 10,
+        right: 10,
     },
 });

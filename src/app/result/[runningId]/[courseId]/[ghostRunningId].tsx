@@ -1,5 +1,6 @@
 import {
     ChevronIcon,
+    GhostIcon,
     LockIcon,
     ShareIcon,
     UnlockIcon,
@@ -29,12 +30,12 @@ import StatRow from "@/src/components/ui/StatRow";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
-import { calculateCenter } from "@/src/utils/mapUtils";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
+import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
     Pressable,
     ScrollView,
@@ -44,12 +45,18 @@ import {
 } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Share from "react-native-share";
 import Toast from "react-native-toast-message";
+import ViewShot from "react-native-view-shot";
 
 export default function Result() {
-    const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
+    const { runningId, courseId, ghostRunningId, first } =
+        useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
     const [isLocked, setIsLocked] = useState(true);
+    const viewShotRef = useRef<ViewShot>(null);
+
+    console.log("first: ", first);
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -110,17 +117,6 @@ export default function Result() {
 
     const isChartActive = useSharedValue(false);
     const chartPointIndex = useSharedValue(0);
-
-    const center = useMemo(
-        () =>
-            calculateCenter(
-                runData?.telemetries?.map((telemetry) => ({
-                    lat: telemetry.lat,
-                    lng: telemetry.lng,
-                })) ?? []
-            ),
-        [runData?.telemetries]
-    );
 
     const paceStats = useMemo(() => {
         return [
@@ -242,6 +238,27 @@ export default function Result() {
         ];
     }, [runData]);
 
+    const captureStats = useMemo(() => {
+        return [
+            {
+                description: "거리",
+                value: (runData?.recordInfo.distance ?? 0).toFixed(2),
+                unit: "km",
+            },
+            {
+                description: "시간",
+                value: getRunTime(
+                    runData?.recordInfo.duration ?? 0,
+                    "HH:MM:SS"
+                ),
+            },
+            {
+                description: "페이스",
+                value: getFormattedPace(runData?.recordInfo.averagePace ?? 0),
+            },
+        ];
+    }, [runData]);
+
     const DisplaySlideToAction = useMemo(() => {
         if (courseId === "-1" && ghostRunningId === "-1") {
             const canMakeCourse =
@@ -272,7 +289,34 @@ export default function Result() {
                 direction="left"
             />
         );
-    }, [courseId, ghostRunningId, runData?.telemetries, router]);
+    }, [
+        courseId,
+        ghostRunningId,
+        runData?.telemetries,
+        router,
+        runData?.courseInfo?.isPublic,
+    ]);
+
+    const captureMap = useCallback(async () => {
+        try {
+            const uri = await viewShotRef.current?.capture?.().then((uri) => {
+                return "file://" + uri;
+            });
+
+            const filename = runData?.runningName + ".jpg";
+            const targetPath = `${FileSystem.cacheDirectory}/${filename}`;
+
+            await FileSystem.copyAsync({
+                from: uri ?? "",
+                to: targetPath,
+            });
+
+            return targetPath;
+        } catch (error) {
+            console.log("captureMap error: ", error);
+            return null;
+        }
+    }, [runningId]);
 
     if (isLoading) {
         return <></>;
@@ -337,12 +381,22 @@ export default function Result() {
                                 />
                             </View>
                             <Pressable
-                                onPress={() => {
-                                    Toast.show({
-                                        type: "info",
-                                        text1: "해당 기능은 준비 중입니다",
-                                        position: "bottom",
-                                    });
+                                onPress={async () => {
+                                    const uri = await captureMap();
+                                    console.log("uri: ", uri);
+                                    Share.open({
+                                        title: runData.runningName,
+                                        message: getDate(runData.startedAt),
+                                        filename:
+                                            "ghostrunner_" + runningId + ".jpg",
+                                        url: uri ?? "",
+                                    })
+                                        .then((res) => {
+                                            console.log(res);
+                                        })
+                                        .catch((err) => {
+                                            err && console.log(err);
+                                        });
                                 }}
                             >
                                 <ShareIcon style={styles.shareButton} />
@@ -355,10 +409,10 @@ export default function Result() {
                                 borderRadius: 20,
                                 alignItems: "center",
                                 backgroundColor: "#171717",
+                                width: "100%",
                             }}
                         >
                             <ResultCourseMap
-                                center={center}
                                 telemetries={runData.telemetries ?? []}
                                 isChartActive={isChartActive}
                                 chartPointIndex={chartPointIndex}
@@ -575,6 +629,57 @@ export default function Result() {
                         direction="left"
                     />
                 </BottomModal>
+                <ViewShot
+                    ref={viewShotRef}
+                    options={{
+                        fileName: runData?.runningName,
+                        format: "jpg",
+                        quality: 0.9,
+                    }}
+                    style={{
+                        position: "absolute",
+                        top: 100,
+                        left: 100,
+                        zIndex: -1,
+                    }}
+                >
+                    <ResultCourseMap
+                        telemetries={runData.telemetries ?? []}
+                        isChartActive={isChartActive}
+                        chartPointIndex={chartPointIndex}
+                        yKey={displayMode === "pace" ? "pace" : "alt"}
+                        onReady={async () => {
+                            if (first) {
+                                const uri = await captureMap();
+                                console.log("첫 러닝 캡쳐: ", uri);
+                            }
+                        }}
+                        borderRadius={0}
+                        width={360}
+                        height={360}
+                    />
+                    <GhostIcon
+                        width={20}
+                        height={20}
+                        style={{
+                            position: "absolute",
+                            top: 15,
+                            left: 10,
+                        }}
+                    />
+                    <StatRow
+                        stats={captureStats}
+                        style={{
+                            position: "absolute",
+                            top: 10,
+                            right: 10,
+                            gap: 10,
+                        }}
+                        variant="subhead2"
+                        color="gray20"
+                        descriptionColor="gray40"
+                    />
+                </ViewShot>
             </>
         )
     );

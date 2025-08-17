@@ -13,9 +13,11 @@ interface TextWithUnitProps {
     description?: string;
     align?: FlexAlignType;
     color?: TypographyColor;
+    unitColor?: TypographyColor;
     variant?: TypographyVariant;
     unitVariant?: TypographyVariant;
     style?: StyleProp<ViewStyle>;
+    descriptionColor?: TypographyColor;
 }
 
 export default function TextWithUnit({
@@ -27,6 +29,7 @@ export default function TextWithUnit({
     variant = "subhead1",
     unitVariant,
     style,
+    descriptionColor = "gray40",
 }: TextWithUnitProps) {
     return (
         <View style={[styles.container, style, { alignItems: align }]}>
@@ -44,7 +47,7 @@ export default function TextWithUnit({
                 )}
             </View>
             {description && (
-                <Typography variant="body2" color="gray60">
+                <Typography variant="body2" color={descriptionColor}>
                     {description}
                 </Typography>
             )}

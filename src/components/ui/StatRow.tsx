@@ -13,8 +13,10 @@ export type Stat = {
 interface StatRowProps {
     stats: Stat[];
     color?: TypographyColor;
+    unitColor?: TypographyColor;
     style?: StyleProp<ViewStyle>;
     variant?: TypographyVariant;
+    descriptionColor?: TypographyColor;
 }
 
 export default function StatRow({
@@ -22,6 +24,7 @@ export default function StatRow({
     style,
     variant,
     color = "gray40",
+    descriptionColor = "gray40",
 }: StatRowProps) {
     return (
         <View style={[styles.container, style]}>
@@ -34,6 +37,7 @@ export default function StatRow({
                         description={stat.description}
                         variant={variant}
                         color={color}
+                        descriptionColor={descriptionColor}
                     />
                     {idx < stats.length - 1 && <Divider />}
                 </Fragment>
