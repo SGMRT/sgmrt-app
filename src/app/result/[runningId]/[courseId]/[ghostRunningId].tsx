@@ -244,9 +244,10 @@ export default function Result() {
 
     const DisplaySlideToAction = useMemo(() => {
         if (courseId === "-1" && ghostRunningId === "-1") {
-            const canMakeCourse = !runData?.telemetries.some(
-                (telemetry) => !telemetry.isRunning
-            );
+            const canMakeCourse =
+                !runData?.telemetries.some(
+                    (telemetry) => !telemetry.isRunning
+                ) && !runData?.courseInfo?.isPublic;
             if (canMakeCourse) {
                 return (
                     <SlideToDualAction
@@ -553,7 +554,7 @@ export default function Result() {
                         label="등록하기"
                         onSlideSuccess={() => {
                             patchCourseName(
-                                runData?.courseInfo.id ?? 0,
+                                runData?.courseInfo.id,
                                 courseName,
                                 true
                             ).then(() => {

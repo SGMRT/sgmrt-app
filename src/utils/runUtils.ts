@@ -186,12 +186,12 @@ export async function saveRunning({
     const truncatedTelemetries = getTelemetriesWithoutLastFalse(telemetries);
 
     const stablePace =
-        truncatedTelemetries.length > 30
-            ? truncatedTelemetries.at(29)!.pace
+        truncatedTelemetries.length > 10
+            ? truncatedTelemetries.at(10)!.pace
             : truncatedTelemetries.at(-1)?.pace ?? 0;
 
     truncatedTelemetries.forEach((telemetry, index) => {
-        if (index < 30) {
+        if (index < 10) {
             telemetry.pace = stablePace;
         }
     });
@@ -213,6 +213,7 @@ export async function saveRunning({
         avgCadence: userDashboardData.averageCadence,
     };
 
+    console.log("결과 텔레메트리");
     console.log(truncatedTelemetries);
 
     const rawTelemetryFileUri =

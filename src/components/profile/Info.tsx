@@ -179,7 +179,7 @@ export const Info = ({
                     title="음성 안내"
                     rightElement={
                         <StyledSwitch
-                            isSelected={speechEnabled}
+                            isSelected={userInfo?.voiceGuidanceEnabled ?? false}
                             onValueChange={handleSpeechChange}
                         />
                     }

@@ -59,6 +59,8 @@ export default function ResultCourseMap({
                 showPuck={false}
                 center={center}
                 zoom={calculateZoomLevelFromSize(center.size, center.latitude)}
+                logoEnabled={false}
+                attributionEnabled={false}
             >
                 <CourseLayer
                     course={convertTelemetriesToCourse(telemetries ?? [])}

@@ -22,6 +22,9 @@ const config = {
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false,
                 NSSupportsLiveActivities: true,
+                NSAppTransportSecurity: {
+                    NSAllowsArbitraryLoads: true,
+                },
             },
             config: {
                 usesNonExemptEncryption: false,

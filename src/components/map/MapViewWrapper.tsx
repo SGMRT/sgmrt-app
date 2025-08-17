@@ -28,6 +28,10 @@ interface MapViewWrapperProps {
     onRegionDidChange?: (event: any) => void;
     ref?: React.RefObject<MapView | null>;
     cameraRef?: React.RefObject<Camera | null>;
+    logoEnabled?: boolean;
+    logoPosition?: any;
+    attributionEnabled?: boolean;
+    attributionPosition?: any;
 }
 
 export default function MapViewWrapper({
@@ -41,6 +45,10 @@ export default function MapViewWrapper({
     onRegionDidChange,
     ref,
     cameraRef,
+    logoEnabled = true,
+    logoPosition = { top: 10, left: 10 },
+    attributionEnabled = true,
+    attributionPosition = { top: -15, right: 0 },
 }: MapViewWrapperProps) {
     const [isFollowing, setIsFollowing] = useState(true);
     const [followUserMode, setFollowUserMode] = useState(
@@ -75,9 +83,10 @@ export default function MapViewWrapper({
                 ref={ref}
                 style={{ flex: 1 }}
                 scaleBarEnabled={false}
-                logoEnabled={false}
-                attributionPosition={{ bottom: 20, left: 20 }}
-                attributionEnabled={false}
+                logoEnabled={logoEnabled}
+                logoPosition={logoPosition}
+                attributionPosition={attributionPosition}
+                attributionEnabled={attributionEnabled}
                 styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
                 onCameraChanged={(event) => {
                     onZoomLevelChanged?.(event.properties.zoom);
