@@ -1,4 +1,5 @@
 import { useAuthStore } from "../store/authState";
+import { getDataFromS3, parseJsonl } from "./common";
 import server from "./instance";
 import {
     CourseDetailResponse,
@@ -8,6 +9,7 @@ import {
     Pageable,
     UserCourseInfo,
 } from "./types/course";
+import { Telemetry } from "./types/run";
 import { getUpdateAttrs } from "./utils";
 
 export async function deleteCourse(courseId: number) {
@@ -59,7 +61,6 @@ export async function getCourses(
         const filteredResponseData = responseData.filter(
             (course) => course.routeUrl !== null
         );
-
         console.log("filteredResponseData: ", filteredResponseData);
         return filteredResponseData;
     } catch (error) {
@@ -73,7 +74,18 @@ export async function getCourse(
 ): Promise<CourseDetailResponse> {
     try {
         const response = await server.get(`/courses/${courseId}`);
-        return response.data;
+        const telemetryUrl: string | undefined = response.data?.telemetryUrl;
+
+        let telemetries: Telemetry[] = [];
+        if (telemetryUrl) {
+            const text = await getDataFromS3(telemetryUrl);
+            if (text) {
+                const parsed = await parseJsonl(text);
+                telemetries = (parsed as unknown as Telemetry[]) ?? [];
+            }
+        }
+
+        return { ...response.data, telemetries };
     } catch (error) {
         console.error(error);
         throw error;
@@ -91,7 +103,6 @@ export async function getCourseTopRanking({
         const response = await server.get(`/courses/${courseId}/top-ranking`, {
             params: { count },
         });
-        console.log("response: ", response.data);
         return response.data;
     } catch (error) {
         console.error(error);

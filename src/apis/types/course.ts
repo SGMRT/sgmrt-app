@@ -1,3 +1,5 @@
+import { Telemetry } from "./run";
+
 export interface CoursesRequest {
     lat: number;
     lng: number;
@@ -33,9 +35,12 @@ export interface CourseDetailResponse {
     id: number;
     name: string;
     telemetryUrl: string;
+    telemetries: Telemetry[];
     distance: number;
+    elevationAverage: number;
     elevationGain: number;
     elevationLoss: number;
+    createdAt: number;
     averageCompletionTime: number;
     averageFinisherPace: number;
     averageFinisherCadence: number;
