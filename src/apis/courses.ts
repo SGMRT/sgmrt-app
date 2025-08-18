@@ -84,6 +84,7 @@ export async function getCourseTopRanking({
         const response = await server.get(`/courses/${courseId}/top-ranking`, {
             params: { count },
         });
+        console.log("response: ", response.data);
         return response.data;
     } catch (error) {
         console.error(error);

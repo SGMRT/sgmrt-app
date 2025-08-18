@@ -81,6 +81,8 @@ export default function ResultCourseMap({
         [telemetries]
     );
 
+    if (telemetries.length === 0) return null;
+
     return (
         <View style={[styles.mapContainer, { borderRadius, width, height }]}>
             <MapViewWrapper

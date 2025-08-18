@@ -11,6 +11,7 @@ import {
     getRun,
     getRunComperison,
     patchCourseName,
+    patchRunIsPublic,
     patchRunName,
     RunComperisonResponse,
 } from "@/src/apis";
@@ -35,7 +36,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Pressable,
     ScrollView,
@@ -53,10 +54,8 @@ export default function Result() {
     const { runningId, courseId, ghostRunningId, first } =
         useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
-    const [isLocked, setIsLocked] = useState(true);
+    const [isLocked, setIsLocked] = useState(false);
     const viewShotRef = useRef<ViewShot>(null);
-
-    console.log("first: ", first);
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -85,6 +84,7 @@ export default function Result() {
 
     const {
         data: runData,
+        refetch,
         isLoading,
         isError,
     } = useQuery({
@@ -205,7 +205,7 @@ export default function Result() {
             },
             {
                 description: "칼로리",
-                value: "--",
+                value: course?.averageCaloriesBurned ?? "--",
                 unit: "kcal",
             },
             {
@@ -318,6 +318,10 @@ export default function Result() {
         }
     }, [runData?.runningName]);
 
+    useEffect(() => {
+        setIsLocked(!runData?.isPublic);
+    }, [runData?.isPublic]);
+
     if (isLoading) {
         return <></>;
     }
@@ -333,16 +337,14 @@ export default function Result() {
                     <Header
                         titleText={getDate(runData.startedAt)}
                         rightComponent={
-                            runningMode !== "SOLO" && (
+                            courseId !== "-1" && (
                                 <Pressable
                                     onPress={() => {
-                                        Toast.show({
-                                            type: "info",
-                                            text1: "해당 기능은 준비 중입니다",
-                                            position: "bottom",
+                                        patchRunIsPublic(
+                                            Number(runningId)
+                                        ).then(() => {
+                                            refetch();
                                         });
-                                        setIsLocked(!isLocked);
-                                        // patchRunIsPublic(Number(runningId));
                                     }}
                                 >
                                     {isLocked ? (
@@ -383,7 +385,6 @@ export default function Result() {
                             <Pressable
                                 onPress={async () => {
                                     const uri = await captureMap();
-                                    console.log("uri: ", uri);
                                     Share.open({
                                         title: runData.runningName,
                                         message: getDate(
@@ -571,9 +572,11 @@ export default function Result() {
                                 stats={courseAverageStats}
                                 uuid={null}
                                 ghostList={ghostList ?? []}
-                                selectedGhostId={0}
+                                selectedGhostId={-1}
                                 setSelectedGhostId={() => {}}
-                                onPress={() => {}}
+                                onPress={() => {
+                                    router.push(`/course/${courseId}/rank`);
+                                }}
                                 hasMargin={false}
                                 color="white"
                             />

@@ -24,11 +24,13 @@ export default function WeatherInfo() {
             if (
                 lastUpdated &&
                 coords &&
-                new Date(lastUpdated).getTime() + 1000 * 60 * 60 > Date.now()
+                new Date(lastUpdated).getTime() + 3000 * 60 * 60 > Date.now()
             ) {
                 setIsLoading(false);
                 return;
             }
+
+            console.log("기상 정보 요청");
 
             const [address, temperature] = await Promise.all([
                 Location.reverseGeocodeAsync({
@@ -39,8 +41,6 @@ export default function WeatherInfo() {
                     `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.EXPO_PUBLIC_OWM_TOKEN}`
                 ),
             ]);
-
-            console.log("WeatherInfo", address, temperature);
 
             setLocationInfo(
                 { lng: longitude, lat: latitude },
