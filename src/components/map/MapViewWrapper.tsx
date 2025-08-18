@@ -46,9 +46,9 @@ export default function MapViewWrapper({
     ref,
     cameraRef,
     logoEnabled = true,
-    logoPosition = { top: 10, left: 10 },
+    logoPosition = { bottom: 10, left: 10 },
     attributionEnabled = true,
-    attributionPosition = { top: -15, right: 0 },
+    attributionPosition = { bottom: 8, right: 0 },
 }: MapViewWrapperProps) {
     const [isFollowing, setIsFollowing] = useState(true);
     const [followUserMode, setFollowUserMode] = useState(

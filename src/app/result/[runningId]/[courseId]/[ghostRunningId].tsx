@@ -342,6 +342,11 @@ export default function Result() {
                                         patchRunIsPublic(
                                             Number(runningId)
                                         ).then(() => {
+                                            Toast.show({
+                                                type: "success",
+                                                text1: "공개 상태가 변경되었습니다",
+                                                position: "bottom",
+                                            });
                                             refetch();
                                         });
                                     }}
