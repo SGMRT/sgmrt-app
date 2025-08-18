@@ -50,10 +50,17 @@ export async function getCourses(
             params: request,
         });
         const responseData = response.data as CourseResponse[];
-        console.log(responseData);
+        responseData.map((course) => {
+            console.log("course: ", course.name);
+            if (course.name === "0818데모코스") {
+                console.log(course);
+            }
+        });
         const filteredResponseData = responseData.filter(
             (course) => course.routeUrl !== null
         );
+
+        console.log("filteredResponseData: ", filteredResponseData);
         return filteredResponseData;
     } catch (error) {
         console.error(error);

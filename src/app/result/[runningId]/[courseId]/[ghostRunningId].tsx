@@ -1,6 +1,5 @@
 import {
     ChevronIcon,
-    GhostIcon,
     LockIcon,
     ShareIcon,
     UnlockIcon,
@@ -20,6 +19,7 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
+import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
@@ -48,14 +48,13 @@ import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Share from "react-native-share";
 import Toast from "react-native-toast-message";
-import ViewShot from "react-native-view-shot";
 
 export default function Result() {
     const { runningId, courseId, ghostRunningId, first } =
         useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
     const [isLocked, setIsLocked] = useState(false);
-    const viewShotRef = useRef<ViewShot>(null);
+    const runShotRef = useRef<RunShareShotHandle>(null);
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -299,8 +298,8 @@ export default function Result() {
 
     const captureMap = useCallback(async () => {
         try {
-            const uri = await viewShotRef.current?.capture?.().then((uri) => {
-                return "file://" + uri;
+            const uri = await runShotRef.current?.capture?.().then((uri) => {
+                return uri;
             });
 
             const filename = runData?.runningName + ".jpg";
@@ -634,57 +633,20 @@ export default function Result() {
                         direction="left"
                     />
                 </BottomModal>
-                <ViewShot
-                    ref={viewShotRef}
-                    options={{
-                        fileName: runData?.runningName,
-                        format: "jpg",
-                        quality: 0.9,
+                <RunShot
+                    ref={runShotRef}
+                    fileName={runData?.runningName + ".jpg"}
+                    telemetries={runData.telemetries ?? []}
+                    isChartActive={isChartActive}
+                    chartPointIndex={chartPointIndex}
+                    yKey={displayMode === "pace" ? "pace" : "alt"}
+                    stats={captureStats}
+                    onMapReady={async () => {
+                        if (!first) return;
+                        const uri = await captureMap();
+                        console.log("uri: ", uri);
                     }}
-                    style={{
-                        position: "absolute",
-                        top: 100,
-                        left: 100,
-                        zIndex: -1,
-                    }}
-                >
-                    <ResultCourseMap
-                        telemetries={runData.telemetries ?? []}
-                        isChartActive={isChartActive}
-                        chartPointIndex={chartPointIndex}
-                        yKey={displayMode === "pace" ? "pace" : "alt"}
-                        onReady={async () => {
-                            if (first) {
-                                const uri = await captureMap();
-                                console.log("첫 러닝 캡쳐: ", uri);
-                            }
-                        }}
-                        borderRadius={0}
-                        width={360}
-                        height={360}
-                    />
-                    <GhostIcon
-                        width={20}
-                        height={20}
-                        style={{
-                            position: "absolute",
-                            top: 15,
-                            left: 10,
-                        }}
-                    />
-                    <StatRow
-                        stats={captureStats}
-                        style={{
-                            position: "absolute",
-                            top: 10,
-                            right: 10,
-                            gap: 10,
-                        }}
-                        variant="subhead2"
-                        color="gray20"
-                        descriptionColor="gray40"
-                    />
-                </ViewShot>
+                />
             </>
         )
     );
