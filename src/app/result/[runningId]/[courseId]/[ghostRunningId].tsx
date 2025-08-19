@@ -50,8 +50,7 @@ import Share from "react-native-share";
 import Toast from "react-native-toast-message";
 
 export default function Result() {
-    const { runningId, courseId, ghostRunningId, first } =
-        useLocalSearchParams();
+    const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
     const [isLocked, setIsLocked] = useState(false);
     const runShotRef = useRef<RunShareShotHandle>(null);
@@ -646,11 +645,6 @@ export default function Result() {
                     chartPointIndex={chartPointIndex}
                     yKey={displayMode === "pace" ? "pace" : "alt"}
                     stats={captureStats}
-                    onMapReady={async () => {
-                        if (!first) return;
-                        const uri = await captureMap();
-                        console.log("uri: ", uri);
-                    }}
                 />
             </>
         )

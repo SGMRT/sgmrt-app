@@ -17,7 +17,7 @@ import {
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { BackHandler, StyleSheet, View } from "react-native";
+import { ActivityIndicator, BackHandler, StyleSheet, View } from "react-native";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
@@ -31,6 +31,7 @@ export default function Run() {
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const [isFirst, setIsFirst] = useState<boolean>(true);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const {
         runSegments,
@@ -192,6 +193,8 @@ export default function Run() {
             ) : (
                 <SlideToDualAction
                     onSlideLeft={async () => {
+                        if (isSaving) return;
+                        setIsSaving(true);
                         await saveRunning({
                             telemetries: runTelemetries,
                             rawData: rawRunData,
@@ -219,6 +222,9 @@ export default function Run() {
                                     position: "bottom",
                                     bottomOffset: 60,
                                 });
+                            })
+                            .finally(() => {
+                                setIsSaving(false);
                             });
                     }}
                     onSlideRight={() => {
@@ -229,11 +235,22 @@ export default function Run() {
                     disabled={isRestarting}
                 />
             )}
+            {isSaving && (
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                </View>
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
     container: {
         flex: 1,
         backgroundColor: "#111111",

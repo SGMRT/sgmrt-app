@@ -29,6 +29,7 @@ export interface CourseResponse {
         }
     ];
     runnersCount: number;
+    telemetries: Telemetry[];
 }
 
 export interface CourseDetailResponse {

@@ -10,7 +10,7 @@ import {
     UserCourseInfo,
 } from "./types/course";
 import { Telemetry } from "./types/run";
-import { getUpdateAttrs } from "./utils";
+import { attachTelemetries, getUpdateAttrs } from "./utils";
 
 export async function deleteCourse(courseId: number) {
     try {
@@ -52,17 +52,10 @@ export async function getCourses(
             params: request,
         });
         const responseData = response.data as CourseResponse[];
-        responseData.map((course) => {
-            console.log("course: ", course.name);
-            if (course.name === "0818데모코스") {
-                console.log(course);
-            }
-        });
         const filteredResponseData = responseData.filter(
             (course) => course.routeUrl !== null
         );
-        console.log("filteredResponseData: ", filteredResponseData);
-        return filteredResponseData;
+        return await attachTelemetries(filteredResponseData);
     } catch (error) {
         console.error(error);
         throw error;
