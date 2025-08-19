@@ -1,7 +1,24 @@
 import colors from "@/src/theme/colors";
+import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
-export default function LoadingLayer() {
+interface LoadingLayerProps {
+    limitDelay?: number;
+    onDelayed?: () => void;
+}
+
+export default function LoadingLayer({
+    limitDelay,
+    onDelayed,
+}: LoadingLayerProps) {
+    useEffect(() => {
+        if (limitDelay) {
+            setTimeout(() => {
+                console.log("[Delayed] LoadingLayer");
+                onDelayed?.();
+            }, limitDelay);
+        }
+    }, [limitDelay, onDelayed]);
     return (
         <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />

@@ -1,6 +1,4 @@
-import LiveActivities from "@/modules/expo-live-activity";
 import * as FileSystem from "expo-file-system";
-import * as Location from "expo-location";
 import Toast from "react-native-toast-message";
 import { postCourseRun, postRun } from "../apis";
 import {
@@ -11,7 +9,7 @@ import {
     Telemetry,
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
-import { LOCATION_TASK, RawRunData, UserDashBoardData } from "../types/run";
+import { RawRunData, UserDashBoardData } from "../types/run";
 import { Coordinate, getDistance } from "./mapUtils";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
@@ -180,13 +178,6 @@ export async function saveRunning({
         return;
     }
 
-    if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)) {
-        await Location.stopLocationUpdatesAsync(LOCATION_TASK);
-    }
-    if (LiveActivities.isActivityInProgress()) {
-        LiveActivities.endActivity();
-    }
-
     const stablePace =
         telemetries.length > 10
             ? telemetries.at(10)!.pace
@@ -273,7 +264,10 @@ export async function saveRunning({
             } as any);
 
             const response = await postCourseRun(formData, courseId!);
-            return response;
+            return {
+                runningId: response,
+                courseId: courseId,
+            };
         } else if (courseId) {
             const request: CourseSoloRunning = {
                 runningName: getRunName(startTime ?? 0),
@@ -297,7 +291,10 @@ export async function saveRunning({
             } as any);
 
             const response = await postCourseRun(formData, courseId);
-            return response;
+            return {
+                runningId: response,
+                courseId: courseId,
+            };
         } else {
             const request: BaseRunning = {
                 runningName: getRunName(startTime ?? 0),

@@ -151,7 +151,19 @@ export default function Run() {
         <View style={[styles.container, { paddingBottom: bottom }]}>
             {isSaving && (
                 <>
-                    <LoadingLayer />
+                    <LoadingLayer
+                        limitDelay={3000}
+                        onDelayed={() => {
+                            runShotRef.current
+                                ?.capture()
+                                .then((uri) => {
+                                    setRunShotUri(uri);
+                                })
+                                .catch((e) => {
+                                    setRunShotUri("");
+                                });
+                        }}
+                    />
                     {savingTelemetries.length > 0 && (
                         <RunShot
                             ref={runShotRef}
@@ -289,7 +301,7 @@ export default function Run() {
                         const truncated =
                             getTelemetriesWithoutLastFalse(runTelemetries);
                         setSavingTelemetries(truncated);
-                        setRunShotUri(null); // 이전 URI 초기화
+                        setRunShotUri(null);
                         setIsSaving(true);
                     }}
                     onSlideRight={() => {

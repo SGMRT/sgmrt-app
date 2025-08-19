@@ -1,4 +1,3 @@
-import { Coordinate } from "../utils/mapUtils";
 import { getDataFromS3, parseJsonl } from "./common";
 import server from "./instance";
 import {
@@ -51,7 +50,10 @@ export async function patchRunIsPublic(runningId: number) {
     }
 }
 
-export async function getRun(runningId: number): Promise<SoloRunGetResponse> {
+export async function getRun(
+    runningId: number
+): Promise<SoloRunGetResponse | null> {
+    if (runningId === -1) return null;
     try {
         const response = await server.get(`runs/${runningId}`);
         const telemetryUrl: string | undefined = response.data?.telemetryUrl;
@@ -72,20 +74,6 @@ export async function getRun(runningId: number): Promise<SoloRunGetResponse> {
     }
 }
 
-export async function getRunTelemetries(
-    runningId: number
-): Promise<Telemetry[]> {
-    if (runningId === -1) {
-        return [];
-    }
-    try {
-        const response = await server.get(`runs/${runningId}/telemetries`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
 type RunInfo = {
     nickname: string;
     profileUrl: string;
@@ -129,21 +117,6 @@ export async function getRunComperison(
 export async function toggleRunPublicStatus(runningId: number) {
     try {
         const response = await server.patch(`runs/${runningId}/public`);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
-
-export async function getRunTelemetriesByCourseId(courseId: number): Promise<{
-    name: string;
-    coordinates: Coordinate[];
-}> {
-    try {
-        const response = await server.get(
-            `courses/${courseId}/first-telemetry`
-        );
         return response.data;
     } catch (error) {
         console.error(error);
