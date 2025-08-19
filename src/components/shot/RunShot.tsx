@@ -1,5 +1,6 @@
 // components/share/RunShareShot.tsx
 import { GhostIcon } from "@/assets/svgs/svgs";
+import { Telemetry } from "@/src/apis/types/run";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
 import StatRow from "@/src/components/ui/StatRow";
 import { forwardRef, useImperativeHandle, useRef } from "react";
@@ -8,7 +9,7 @@ import ViewShot from "react-native-view-shot";
 
 type RunShareShotProps = {
     fileName?: string;
-    telemetries: any[]; // 타입 맞춰서 교체
+    telemetries: Telemetry[]; // 타입 맞춰서 교체
     isChartActive: any; // Reanimated SharedValue
     chartPointIndex: any; // Reanimated SharedValue
     yKey: "pace" | "alt";

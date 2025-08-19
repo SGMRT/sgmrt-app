@@ -1,3 +1,4 @@
+import { DefaultLogo } from "@/assets/icons/icons";
 import { ChevronIcon, GhostIcon } from "@/assets/svgs/svgs";
 import { RunResponse } from "@/src/apis/types/run";
 import colors from "@/src/theme/colors";
@@ -7,7 +8,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import BottomModal from "../ui/BottomModal";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
@@ -220,7 +221,7 @@ export const HistoryWithFilter = ({
                                 <RunHistoryGalleryItem
                                     key={history.runningId}
                                     mode={mode}
-                                    imageUrl={"https://picsum.photos/200/300"}
+                                    imageUrl={history.screenShotUrl ?? ""}
                                     name={history.name}
                                     courseName={
                                         history.courseInfo?.name ?? null
@@ -333,53 +334,18 @@ const RunHistoryGalleryItem = ({
     startedAt,
 }: RunHistoryGalleryItemProps) => {
     return (
-        <View
-            style={{
-                flexDirection: "row",
-                gap: 20,
-                alignItems: "center",
-            }}
-        >
-            <View
-                style={{
-                    backgroundColor: "gray",
-                    width: 120,
-                    height: 120,
-                    borderRadius: 10,
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
-                <Typography variant="headline" color="white">
-                    준비 중
-                </Typography>
+        <View style={styles.container}>
+            <View style={styles.imageContainer}>
+                <Image
+                    source={imageUrl ? { uri: imageUrl } : DefaultLogo}
+                    style={styles.image}
+                />
             </View>
-            <View style={{ gap: 5, flex: 1 }}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                    }}
-                >
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 6,
-                        }}
-                    >
+            <View style={styles.contentContainer}>
+                <View style={styles.contentHeader}>
+                    <View style={styles.nameContainer}>
                         {mode === "GHOST" && (
-                            <View
-                                style={{
-                                    width: 22,
-                                    height: 22,
-                                    borderRadius: 6,
-                                    backgroundColor: "rgba(226, 255, 0, 0.2)",
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
-                            >
+                            <View style={styles.iconContainer}>
                                 <GhostIcon
                                     width={12}
                                     height={12}
@@ -404,13 +370,7 @@ const RunHistoryGalleryItem = ({
                     />
                 </View>
                 <View>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
+                    <View style={styles.content}>
                         <Typography
                             variant="body1"
                             color={isSelected ? "gray20" : "gray40"}
@@ -425,13 +385,7 @@ const RunHistoryGalleryItem = ({
                             {getRunTime(duration, "HH:MM:SS")}
                         </Typography>
                     </View>
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
+                    <View style={styles.content}>
                         <Typography
                             variant="body1"
                             color={isSelected ? "gray20" : "gray40"}
@@ -448,7 +402,7 @@ const RunHistoryGalleryItem = ({
                     </View>
                     <TouchableOpacity
                         onPress={onShowHistory}
-                        style={{ flexDirection: "row", alignItems: "center" }}
+                        style={styles.dateContainer}
                     >
                         <Typography
                             variant="body3"
@@ -496,32 +450,11 @@ const RunHistoryItem = ({
     isSelected,
 }: RunHistoryItemProps) => {
     return (
-        <View
-            style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-            }}
-        >
+        <View style={styles.itemContainer}>
             <View style={{ gap: 2 }}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 6,
-                    }}
-                >
+                <View style={styles.nameContainer}>
                     {mode === "GHOST" && (
-                        <View
-                            style={{
-                                width: 22,
-                                height: 22,
-                                borderRadius: 6,
-                                backgroundColor: "rgba(226, 255, 0, 0.2)",
-                                justifyContent: "center",
-                                alignItems: "center",
-                            }}
-                        >
+                        <View style={styles.iconContainer}>
                             <GhostIcon
                                 width={12}
                                 height={12}
@@ -537,19 +470,10 @@ const RunHistoryItem = ({
                     </Typography>
                     <TouchableOpacity
                         onPress={onShowHistory}
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                        }}
+                        style={styles.dateContainer}
                     >
                         {courseName && (
-                            <View
-                                style={{
-                                    flexDirection: "row",
-                                    gap: 6,
-                                    alignItems: "center",
-                                }}
-                            >
+                            <View style={styles.nameContainer}>
                                 <Divider />
                                 <Typography
                                     variant="caption1"
@@ -568,13 +492,7 @@ const RunHistoryItem = ({
                         />
                     </TouchableOpacity>
                 </View>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 10,
-                    }}
-                >
+                <View style={styles.content}>
                     <Typography
                         variant="body2"
                         color={isSelected ? "gray20" : "gray40"}
@@ -614,3 +532,59 @@ const RunHistoryItem = ({
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    itemContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    container: {
+        flexDirection: "row",
+        gap: 20,
+        alignItems: "center",
+    },
+    imageContainer: {
+        backgroundColor: colors.gray[80],
+        width: 120,
+        height: 120,
+        borderRadius: 10,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    image: {
+        width: 120,
+        height: 120,
+        borderRadius: 10,
+    },
+    contentContainer: {
+        gap: 5,
+        flex: 1,
+    },
+    contentHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+    nameContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+    },
+    iconContainer: {
+        width: 22,
+        height: 22,
+        borderRadius: 6,
+        backgroundColor: "rgba(226, 255, 0, 0.2)",
+        justifyContent: "center",
+    },
+    content: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    dateContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+});

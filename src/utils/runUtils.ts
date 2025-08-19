@@ -133,7 +133,9 @@ function telemetriesToSegment(
     ];
 }
 
-function getTelemetriesWithoutLastFalse(telemetries: Telemetry[]): Telemetry[] {
+export function getTelemetriesWithoutLastFalse(
+    telemetries: Telemetry[]
+): Telemetry[] {
     const lastTrueIndex = telemetries.findLastIndex(
         (telemetry) => telemetry.isRunning
     );
@@ -145,6 +147,7 @@ interface SaveRunningProps {
     telemetries: Telemetry[];
     rawData: RawRunData[];
     userDashboardData: UserDashBoardData;
+    runShotUri: string | null;
     runTime: number;
     isPublic: boolean;
     ghostRunningId?: number | null;
@@ -155,6 +158,7 @@ export async function saveRunning({
     telemetries,
     rawData,
     userDashboardData,
+    runShotUri,
     runTime,
     isPublic,
     ghostRunningId,
@@ -183,24 +187,20 @@ export async function saveRunning({
         LiveActivities.endActivity();
     }
 
-    const truncatedTelemetries = getTelemetriesWithoutLastFalse(telemetries);
-
     const stablePace =
-        truncatedTelemetries.length > 10
-            ? truncatedTelemetries.at(10)!.pace
-            : truncatedTelemetries.at(-1)?.pace ?? 0;
+        telemetries.length > 10
+            ? telemetries.at(10)!.pace
+            : telemetries.at(-1)?.pace ?? 0;
 
-    truncatedTelemetries.forEach((telemetry, index) => {
+    telemetries.forEach((telemetry, index) => {
         if (index < 10) {
             telemetry.pace = stablePace;
         }
     });
 
-    const hasPaused = truncatedTelemetries.some(
-        (telemetry) => !telemetry.isRunning
-    );
+    const hasPaused = telemetries.some((telemetry) => !telemetry.isRunning);
 
-    const startTime = truncatedTelemetries.at(0)?.timeStamp;
+    const startTime = telemetries.at(0)?.timeStamp;
 
     const record: RunRecord = {
         distance: userDashboardData.totalDistance / 1000,
@@ -213,9 +213,6 @@ export async function saveRunning({
         avgCadence: userDashboardData.averageCadence,
     };
 
-    console.log("결과 텔레메트리");
-    console.log(truncatedTelemetries);
-
     const rawTelemetryFileUri =
         FileSystem.cacheDirectory + "rawTelemetry.jsonl";
     const interpolatedTelemetryFileUri =
@@ -223,7 +220,7 @@ export async function saveRunning({
 
     try {
         const rawJsonl = rawData.map((item) => JSON.stringify(item)).join("\n");
-        const interpolatedJsonl = truncatedTelemetries
+        const interpolatedJsonl = telemetries
             .map((item) => JSON.stringify(item))
             .join("\n");
 
@@ -245,6 +242,13 @@ export async function saveRunning({
             name: "interpolatedTelemetry.jsonl",
             type: "application/json",
         } as any);
+        if (runShotUri) {
+            formData.append("screenShotImage", {
+                uri: runShotUri,
+                name: "screenShotImage.jpg",
+                type: "image/jpeg",
+            } as any);
+        }
 
         if (ghostRunningId) {
             const request: CourseGhostRunning = {

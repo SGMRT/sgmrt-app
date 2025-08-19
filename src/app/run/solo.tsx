@@ -1,8 +1,11 @@
+import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
+import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
 import Countdown from "@/src/components/ui/Countdown";
 import EmptyListView from "@/src/components/ui/EmptyListView";
+import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
@@ -12,12 +15,13 @@ import colors from "@/src/theme/colors";
 import {
     getFormattedPace,
     getRunTime,
+    getTelemetriesWithoutLastFalse,
     saveRunning,
 } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, BackHandler, StyleSheet, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { BackHandler, StyleSheet, View } from "react-native";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
@@ -32,6 +36,9 @@ export default function Run() {
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const [isFirst, setIsFirst] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
+    const runShotRef = useRef<RunShareShotHandle>(null);
+    const [runShotUri, setRunShotUri] = useState<string | null>(null);
 
     const {
         runSegments,
@@ -74,6 +81,64 @@ export default function Run() {
         }
     }, [isRestarting]);
 
+    useEffect(() => {
+        const canSave =
+            isSaving && savingTelemetries.length > 0 && runShotUri !== null;
+        if (!canSave) return;
+
+        (async () => {
+            try {
+                const response = await saveRunning({
+                    telemetries: savingTelemetries,
+                    rawData: rawRunData,
+                    runShotUri,
+                    userDashboardData: runUserDashboardData,
+                    runTime,
+                    isPublic: true,
+                });
+
+                if (response) {
+                    router.replace({
+                        pathname:
+                            "/result/[runningId]/[courseId]/[ghostRunningId]",
+                        params: {
+                            runningId: response.runningId.toString(),
+                            courseId: "-1",
+                            ghostRunningId: "-1",
+                        },
+                    });
+                } else {
+                    Toast.show({
+                        type: "info",
+                        text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
+                        position: "bottom",
+                        bottomOffset: 60,
+                    });
+                }
+            } catch (e) {
+                console.log(e);
+                Toast.show({
+                    type: "info",
+                    text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
+                    position: "bottom",
+                    bottomOffset: 60,
+                });
+            } finally {
+                setIsSaving(false);
+                setSavingTelemetries([]);
+                setRunShotUri(null);
+            }
+        })();
+    }, [
+        isSaving,
+        savingTelemetries,
+        runShotUri,
+        rawRunData,
+        runUserDashboardData,
+        runTime,
+        router,
+    ]);
+
     const heightVal = useSharedValue(0);
 
     const controlPannelPosition = useAnimatedStyle(() => {
@@ -84,6 +149,33 @@ export default function Run() {
 
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
+            {isSaving && (
+                <>
+                    <LoadingLayer />
+                    {savingTelemetries.length > 0 && (
+                        <RunShot
+                            ref={runShotRef}
+                            fileName={"runImage.jpg"}
+                            telemetries={savingTelemetries}
+                            isChartActive
+                            showLogo={false}
+                            chartPointIndex={0}
+                            yKey="alt"
+                            stats={[]}
+                            onMapReady={() => {
+                                runShotRef.current
+                                    ?.capture()
+                                    .then((uri) => {
+                                        setRunShotUri(uri);
+                                    })
+                                    .catch((e) => {
+                                        setRunShotUri("");
+                                    });
+                            }}
+                        />
+                    )}
+                </>
+            )}
             <TopBlurView>
                 <WeatherInfo />
                 {isRestarting ? (
@@ -194,38 +286,11 @@ export default function Run() {
                 <SlideToDualAction
                     onSlideLeft={async () => {
                         if (isSaving) return;
+                        const truncated =
+                            getTelemetriesWithoutLastFalse(runTelemetries);
+                        setSavingTelemetries(truncated);
+                        setRunShotUri(null); // 이전 URI 초기화
                         setIsSaving(true);
-                        await saveRunning({
-                            telemetries: runTelemetries,
-                            rawData: rawRunData,
-                            userDashboardData: runUserDashboardData,
-                            runTime,
-                            isPublic: true,
-                        })
-                            .then((response) => {
-                                router.replace({
-                                    pathname:
-                                        "/result/[runningId]/[courseId]/[ghostRunningId]",
-                                    params: {
-                                        runningId:
-                                            response.runningId.toString(),
-                                        courseId: "-1",
-                                        ghostRunningId: "-1",
-                                        first: "true",
-                                    },
-                                });
-                            })
-                            .catch(() => {
-                                Toast.show({
-                                    type: "info",
-                                    text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
-                                    position: "bottom",
-                                    bottomOffset: 60,
-                                });
-                            })
-                            .finally(() => {
-                                setIsSaving(false);
-                            });
                     }}
                     onSlideRight={() => {
                         setIsRestarting(true);
@@ -235,22 +300,11 @@ export default function Run() {
                     disabled={isRestarting}
                 />
             )}
-            {isSaving && (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                </View>
-            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    loadingContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-    },
     container: {
         flex: 1,
         backgroundColor: "#111111",

@@ -51,15 +51,14 @@ const convertTelemetriesToCourse = (
         name: "",
         startLat: telemetries[0].lat,
         startLng: telemetries[0].lng,
-        pathData: telemetries.map((telemetry) => ({
-            lat: telemetry.lat,
-            lng: telemetry.lng,
-        })),
+        routeUrl: "",
+        thumbnailUrl: "",
         distance: 0,
         elevationGain: 0,
         elevationLoss: 0,
         runners: [{ uuId: "", profileUrl: "" }],
         runnersCount: 0,
+        telemetries: telemetries,
     };
 };
 

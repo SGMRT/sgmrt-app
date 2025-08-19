@@ -94,7 +94,7 @@ export default function Result() {
             },
             {
                 description: "칼로리",
-                value: "--",
+                value: course?.averageCaloriesBurned ?? "--",
                 unit: "kcal",
             },
             {
