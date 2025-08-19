@@ -88,7 +88,14 @@ export const Info = ({
     };
 
     const handleSpeechChange = (value: boolean) => {
-        setSpeechEnabled(value);
+        if (!userInfo) return;
+        setUserInfo({
+            ...userInfo,
+            voiceGuidanceEnabled: value ?? false,
+        });
+        patchUserSettings({
+            voiceGuidanceEnabled: value,
+        });
     };
 
     const onPickImage = async () => {
@@ -172,7 +179,7 @@ export const Info = ({
                     title="음성 안내"
                     rightElement={
                         <StyledSwitch
-                            isSelected={speechEnabled}
+                            isSelected={userInfo?.voiceGuidanceEnabled ?? false}
                             onValueChange={handleSpeechChange}
                         />
                     }

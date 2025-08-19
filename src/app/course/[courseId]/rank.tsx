@@ -15,7 +15,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const PERCENTILE_STOPS = [30, 45, 60, 75, 90, 100] as const;
+const PERCENTILE_STOPS = [0, 15, 30, 45, 60, 75, 90, 100] as const;
 
 type Row =
     | { kind: "header"; key: string; label: string }

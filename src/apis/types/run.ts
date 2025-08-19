@@ -4,7 +4,6 @@ export interface BaseRunning {
     record: RunRecord;
     hasPaused: boolean;
     isPublic: boolean;
-    telemetries: Telemetry[];
 }
 
 export interface CourseSoloRunning extends BaseRunning {
@@ -19,12 +18,20 @@ export interface CourseGhostRunning extends BaseRunning {
 
 export type Running = BaseRunning | CourseSoloRunning | CourseGhostRunning;
 
+export interface PostRunRequest {
+    req: Running;
+    rawTelemetry: string;
+    interpolatedTelemetry: string;
+    screenShotImage: string;
+}
+
 export interface SoloRunGetResponse {
     startedAt: number;
     runningName: string;
+    telemetries: Telemetry[];
+    isPublic: boolean;
     courseInfo: CourseInfo;
     recordInfo: RecordInfo;
-    telemetries: Telemetry[];
 }
 
 export interface RunRecord {
@@ -53,7 +60,8 @@ export interface Telemetry {
 export interface CourseInfo {
     id: number;
     name: string;
-    runnersCount: number;
+    runnersCount?: number;
+    isPublic?: boolean;
 }
 
 export interface RecordInfo {
@@ -67,13 +75,17 @@ export interface RecordInfo {
     lowestPace: number;
     elevationGain: number;
     elevationLoss: number;
-    totalElevation: number;
+    elevationAverage: number;
 }
 
 export type RunsRequest = {
+    filteredBy: "DATE" | "COURSE";
     runningMode: "SOLO" | "GHOST";
-    cursorStartedAt: number | null;
+    startEpoch: number;
+    endEpoch: number;
     cursorRunningId: number | null;
+    cursorStartedAt: number | null;
+    cursorCourseName: string | null;
 };
 
 export type RunResponse = {
@@ -84,11 +96,20 @@ export type RunResponse = {
         distance: number;
         duration: number;
         cadence: number;
+        bpm: number;
+        calories: number;
         averagePace: number;
+        highestPace: number;
+        lowestPace: number;
+        elevationGain: number;
+        elevationLoss: number;
+        elevationAverage: number;
     };
     courseInfo: {
-        id: number | null;
+        id: number;
         name: string | null;
-    };
+        isPublic: boolean;
+    } | null;
     ghostRunningId: number | null;
+    screenShotUrl: string | null;
 };

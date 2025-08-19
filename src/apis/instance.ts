@@ -33,6 +33,21 @@ server.interceptors.request.use((config) => {
     if (accessToken && config.withAuth) {
         config.headers.Authorization = `Bearer ${accessToken}`;
     }
+    // FormData 전송 시에는 Axios가 boundary를 포함한 헤더를 설정할 수 있도록 강제로 제거
+    if (
+        typeof FormData !== "undefined" &&
+        config.data instanceof FormData &&
+        config.headers["Content-Type"]
+    ) {
+        delete config.headers["Content-Type"];
+    }
+    // 그 외에는 기본값을 JSON으로 설정
+    if (
+        !(typeof FormData !== "undefined" && config.data instanceof FormData) &&
+        config.headers["Content-Type"] === undefined
+    ) {
+        config.headers["Content-Type"] = "application/json";
+    }
     return config;
 });
 

@@ -10,6 +10,7 @@ import {
     getRun,
     getRunComperison,
     patchCourseName,
+    patchRunIsPublic,
     patchRunName,
     RunComperisonResponse,
 } from "@/src/apis";
@@ -18,6 +19,7 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
+import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
@@ -29,12 +31,12 @@ import StatRow from "@/src/components/ui/StatRow";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
-import { calculateCenter } from "@/src/utils/mapUtils";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
+import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Pressable,
     ScrollView,
@@ -44,12 +46,14 @@ import {
 } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Share from "react-native-share";
 import Toast from "react-native-toast-message";
 
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
-    const [isLocked, setIsLocked] = useState(true);
+    const [isLocked, setIsLocked] = useState(false);
+    const runShotRef = useRef<RunShareShotHandle>(null);
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -78,6 +82,7 @@ export default function Result() {
 
     const {
         data: runData,
+        refetch,
         isLoading,
         isError,
     } = useQuery({
@@ -111,17 +116,6 @@ export default function Result() {
     const isChartActive = useSharedValue(false);
     const chartPointIndex = useSharedValue(0);
 
-    const center = useMemo(
-        () =>
-            calculateCenter(
-                runData?.telemetries?.map((telemetry) => ({
-                    lat: telemetry.lat,
-                    lng: telemetry.lng,
-                })) ?? []
-            ),
-        [runData?.telemetries]
-    );
-
     const paceStats = useMemo(() => {
         return [
             {
@@ -148,7 +142,7 @@ export default function Result() {
             },
             {
                 description: "고도",
-                value: runData?.recordInfo.totalElevation ?? 0,
+                value: runData?.recordInfo.elevationAverage ?? 0,
                 unit: "m",
             },
             {
@@ -209,7 +203,7 @@ export default function Result() {
             },
             {
                 description: "칼로리",
-                value: "--",
+                value: course?.averageCaloriesBurned ?? "--",
                 unit: "kcal",
             },
             {
@@ -242,11 +236,33 @@ export default function Result() {
         ];
     }, [runData]);
 
+    const captureStats = useMemo(() => {
+        return [
+            {
+                description: "거리",
+                value: (runData?.recordInfo.distance ?? 0).toFixed(2),
+                unit: "km",
+            },
+            {
+                description: "시간",
+                value: getRunTime(
+                    runData?.recordInfo.duration ?? 0,
+                    "HH:MM:SS"
+                ),
+            },
+            {
+                description: "페이스",
+                value: getFormattedPace(runData?.recordInfo.averagePace ?? 0),
+            },
+        ];
+    }, [runData]);
+
     const DisplaySlideToAction = useMemo(() => {
         if (courseId === "-1" && ghostRunningId === "-1") {
-            const canMakeCourse = !runData?.telemetries.some(
-                (telemetry) => !telemetry.isRunning
-            );
+            const canMakeCourse =
+                !runData?.telemetries.some(
+                    (telemetry) => !telemetry.isRunning
+                ) && !runData?.courseInfo?.isPublic;
             if (canMakeCourse) {
                 return (
                     <SlideToDualAction
@@ -271,7 +287,38 @@ export default function Result() {
                 direction="left"
             />
         );
-    }, [courseId, ghostRunningId, runData?.telemetries, router]);
+    }, [
+        courseId,
+        ghostRunningId,
+        runData?.telemetries,
+        router,
+        runData?.courseInfo?.isPublic,
+    ]);
+
+    const captureMap = useCallback(async () => {
+        try {
+            const uri = await runShotRef.current?.capture?.().then((uri) => {
+                return uri;
+            });
+
+            const filename = runData?.runningName + ".jpg";
+            const targetPath = `${FileSystem.cacheDirectory}/${filename}`;
+
+            await FileSystem.copyAsync({
+                from: uri ?? "",
+                to: targetPath,
+            });
+
+            return targetPath;
+        } catch (error) {
+            console.log("captureMap error: ", error);
+            return null;
+        }
+    }, [runData?.runningName]);
+
+    useEffect(() => {
+        setIsLocked(!runData?.isPublic);
+    }, [runData?.isPublic]);
 
     if (isLoading) {
         return <></>;
@@ -288,16 +335,19 @@ export default function Result() {
                     <Header
                         titleText={getDate(runData.startedAt)}
                         rightComponent={
-                            runningMode !== "SOLO" && (
+                            courseId !== "-1" && (
                                 <Pressable
                                     onPress={() => {
-                                        Toast.show({
-                                            type: "info",
-                                            text1: "해당 기능은 준비 중입니다",
-                                            position: "bottom",
+                                        patchRunIsPublic(
+                                            Number(runningId)
+                                        ).then(() => {
+                                            Toast.show({
+                                                type: "success",
+                                                text1: "공개 상태가 변경되었습니다",
+                                                position: "bottom",
+                                            });
+                                            refetch();
                                         });
-                                        setIsLocked(!isLocked);
-                                        // patchRunIsPublic(Number(runningId));
                                     }}
                                 >
                                     {isLocked ? (
@@ -336,12 +386,23 @@ export default function Result() {
                                 />
                             </View>
                             <Pressable
-                                onPress={() => {
-                                    Toast.show({
-                                        type: "info",
-                                        text1: "해당 기능은 준비 중입니다",
-                                        position: "bottom",
-                                    });
+                                onPress={async () => {
+                                    const uri = await captureMap();
+                                    Share.open({
+                                        title: runData.runningName,
+                                        message: getDate(
+                                            runData.startedAt
+                                        ).trim(),
+                                        filename:
+                                            "ghostrunner_" + runningId + ".jpg",
+                                        url: uri ?? "",
+                                    })
+                                        .then((res) => {
+                                            console.log(res);
+                                        })
+                                        .catch((err) => {
+                                            err && console.log(err);
+                                        });
                                 }}
                             >
                                 <ShareIcon style={styles.shareButton} />
@@ -354,10 +415,10 @@ export default function Result() {
                                 borderRadius: 20,
                                 alignItems: "center",
                                 backgroundColor: "#171717",
+                                width: "100%",
                             }}
                         >
                             <ResultCourseMap
-                                center={center}
                                 telemetries={runData.telemetries ?? []}
                                 isChartActive={isChartActive}
                                 chartPointIndex={chartPointIndex}
@@ -514,9 +575,11 @@ export default function Result() {
                                 stats={courseAverageStats}
                                 uuid={null}
                                 ghostList={ghostList ?? []}
-                                selectedGhostId={0}
+                                selectedGhostId={-1}
                                 setSelectedGhostId={() => {}}
-                                onPress={() => {}}
+                                onPress={() => {
+                                    router.push(`/course/${courseId}/rank`);
+                                }}
                                 hasMargin={false}
                                 color="white"
                             />
@@ -553,7 +616,7 @@ export default function Result() {
                         label="등록하기"
                         onSlideSuccess={() => {
                             patchCourseName(
-                                runData?.courseInfo.id ?? 0,
+                                runData?.courseInfo.id,
                                 courseName,
                                 true
                             ).then(() => {
@@ -574,6 +637,15 @@ export default function Result() {
                         direction="left"
                     />
                 </BottomModal>
+                <RunShot
+                    ref={runShotRef}
+                    fileName={runData?.runningName + ".jpg"}
+                    telemetries={runData.telemetries ?? []}
+                    isChartActive={isChartActive}
+                    chartPointIndex={chartPointIndex}
+                    yKey={displayMode === "pace" ? "pace" : "alt"}
+                    stats={captureStats}
+                />
             </>
         )
     );

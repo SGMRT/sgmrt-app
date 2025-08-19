@@ -49,10 +49,6 @@ export default function Index() {
         return false;
     }
 
-    Speech.getAvailableVoicesAsync().then((voices) => {
-        console.log(voices.filter((voice) => voice.language === "ko-KR"));
-    });
-
     return (
         <Pressable
             style={styles.container}

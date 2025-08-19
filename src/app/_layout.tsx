@@ -7,7 +7,6 @@ import { useFonts } from "expo-font";
 import * as Location from "expo-location";
 import { SplashScreen, Stack, useRouter } from "expo-router";
 
-import * as TaskManager from "expo-task-manager";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
@@ -44,9 +43,6 @@ function RootLayout() {
         // }
         const stopTrackingAndLiveActivity = async () => {
             try {
-                if (await TaskManager.isTaskRegisteredAsync(LOCATION_TASK)) {
-                    await TaskManager.unregisterTaskAsync(LOCATION_TASK);
-                }
                 if (
                     await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)
                 ) {

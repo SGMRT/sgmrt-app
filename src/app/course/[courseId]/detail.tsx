@@ -1,12 +1,10 @@
 import { ChevronIcon, ShareIcon } from "@/assets/svgs/svgs";
-import {
-    getCourse,
-    getCourseTopRanking,
-    getRunTelemetriesByCourseId,
-} from "@/src/apis";
+import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
+import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
+import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
@@ -16,11 +14,11 @@ import StatRow from "@/src/components/ui/StatRow";
 import { Typography } from "@/src/components/ui/Typography";
 import { UserCount } from "@/src/components/ui/UserCount";
 import colors from "@/src/theme/colors";
-import { calculateCenter, Coordinate } from "@/src/utils/mapUtils";
-import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
+import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import {
     Pressable,
     ScrollView,
@@ -28,14 +26,18 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
+import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
+import Share from "react-native-share";
 
 export default function Result() {
     const { courseId } = useLocalSearchParams();
 
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
+
+    const isChartActive = useSharedValue(false);
+    const chartPointIndex = useSharedValue(0);
 
     const { data: ghostList } = useQuery<HistoryResponse[]>({
         queryKey: ["course-top-ranking", courseId],
@@ -50,20 +52,6 @@ export default function Result() {
         enabled: courseId !== "-1",
     });
 
-    const { data: courseTelemetries } = useQuery<{
-        name: string;
-        coordinates: Coordinate[];
-    }>({
-        queryKey: ["courseTelemetries", courseId],
-        queryFn: () => getRunTelemetriesByCourseId(Number(courseId)),
-        enabled: courseId !== "-1",
-    });
-
-    const center = useMemo(
-        () => calculateCenter(courseTelemetries?.coordinates ?? []),
-        [courseTelemetries?.coordinates]
-    );
-
     const courseAverageStats = useMemo(() => {
         return [
             {
@@ -73,18 +61,17 @@ export default function Result() {
             },
             {
                 description: "고도",
-                value:
-                    (course?.elevationGain ?? 0) + (course?.elevationLoss ?? 0),
+                value: Math.round(course?.elevationAverage ?? 0).toString(),
                 unit: "m",
             },
             {
                 description: "상승",
-                value: course?.elevationGain ?? 0,
+                value: Math.round(course?.elevationGain ?? 0).toString(),
                 unit: "m",
             },
             {
                 description: "하강",
-                value: course?.elevationLoss ?? 0,
+                value: Math.round(course?.elevationLoss ?? 0).toString(),
                 unit: "m",
             },
         ];
@@ -107,7 +94,7 @@ export default function Result() {
             },
             {
                 description: "칼로리",
-                value: "--",
+                value: course?.averageCaloriesBurned ?? "--",
                 unit: "kcal",
             },
             {
@@ -118,131 +105,168 @@ export default function Result() {
         ];
     }, [course]);
 
+    const runShotRef = useRef<RunShareShotHandle>(null);
+
+    const captureMap = useCallback(async () => {
+        try {
+            const uri = await runShotRef.current?.capture?.().then((uri) => {
+                return uri;
+            });
+
+            const filename = course?.name + ".jpg";
+            const targetPath = `${FileSystem.cacheDirectory}/${filename}`;
+
+            await FileSystem.copyAsync({
+                from: uri ?? "",
+                to: targetPath,
+            });
+
+            return targetPath;
+        } catch (error) {
+            console.log("captureMap error: ", error);
+            return null;
+        }
+    }, [course?.name]);
+
     return (
-        courseTelemetries && (
-            <SafeAreaView style={styles.container}>
-                <Header titleText={"코스 생성 시간 가져와야함"} />
-                <ScrollView
-                    ref={scrollViewRef}
-                    contentContainerStyle={styles.content}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    {/* 제목 파트 */}
-                    <View style={styles.titleContainer}>
-                        <View style={styles.titleInputContainer}>
-                            <Typography variant="subhead3" color="white">
-                                {courseTelemetries.name}
-                            </Typography>
-                            <Divider />
-                            <UserCount userCount={-1} />
+        course && (
+            <>
+                <SafeAreaView style={styles.container}>
+                    <Header titleText={getDate(course?.createdAt ?? 0)} />
+                    <ScrollView
+                        ref={scrollViewRef}
+                        contentContainerStyle={styles.content}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {/* 제목 파트 */}
+                        <View style={styles.titleContainer}>
+                            <View style={styles.titleInputContainer}>
+                                <Typography variant="subhead3" color="white">
+                                    {course?.name}
+                                </Typography>
+                                <Divider />
+                                <UserCount
+                                    userCount={course?.totalRunsCount ?? 0}
+                                />
+                            </View>
+                            <Pressable
+                                onPress={async () => {
+                                    const uri = await captureMap();
+                                    Share.open({
+                                        title: course?.name,
+                                        message: getDate(
+                                            course?.createdAt ?? 0
+                                        ).trim(),
+                                        filename: course?.name + ".jpg",
+                                        url: uri ?? "",
+                                    })
+                                        .then((res) => {
+                                            console.log(res);
+                                        })
+                                        .catch((err) => {
+                                            err && console.log(err);
+                                        });
+                                }}
+                            >
+                                <ShareIcon style={styles.shareButton} />
+                            </Pressable>
                         </View>
-                        <Pressable
-                            onPress={() => {
-                                Toast.show({
-                                    type: "info",
-                                    text1: "해당 기능은 준비 중입니다",
-                                    position: "bottom",
-                                });
-                            }}
-                        >
-                            <ShareIcon style={styles.shareButton} />
-                        </Pressable>
-                    </View>
 
-                    {/* 코스 지도 파트 */}
-                    <View
-                        style={{
-                            borderRadius: 20,
-                            alignItems: "center",
-                            backgroundColor: "#171717",
-                        }}
-                    >
-                        <ResultCorseMap
-                            center={center}
-                            telemetries={courseTelemetries.coordinates.map(
-                                (coordinate) => ({
-                                    timeStamp: 0,
-                                    lat: coordinate.lat,
-                                    lng: coordinate.lng,
-                                    dist: 0,
-                                    pace: 0,
-                                    alt: 0,
-                                    cadence: 0,
-                                    bpm: 0,
-                                    isRunning: true,
-                                })
-                            )}
-                        />
-                        <TouchableOpacity
-                            onPress={() => {
-                                router.replace(`/stats`);
-                            }}
+                        {/* 코스 지도 파트 */}
+                        <View
                             style={{
-                                flexDirection: "row",
+                                borderRadius: 20,
                                 alignItems: "center",
-                                marginVertical: 12,
+                                backgroundColor: "#171717",
                             }}
                         >
-                            <Typography variant="body2" color="gray40">
-                                내 기록 보기
-                            </Typography>
-                            <ChevronIcon color={colors.gray[40]} />
-                        </TouchableOpacity>
-                    </View>
+                            <ResultCorseMap
+                                telemetries={course?.telemetries ?? []}
+                                isChartActive={isChartActive}
+                                chartPointIndex={chartPointIndex}
+                                yKey="alt"
+                            />
+                            <TouchableOpacity
+                                onPress={() => {
+                                    router.replace(`/stats`);
+                                }}
+                                style={{
+                                    flexDirection: "row",
+                                    alignItems: "center",
+                                    marginVertical: 12,
+                                }}
+                            >
+                                <Typography variant="body2" color="gray40">
+                                    내 기록 보기
+                                </Typography>
+                                <ChevronIcon color={colors.gray[40]} />
+                            </TouchableOpacity>
+                        </View>
 
-                    {/* 내 페이스 및 코스 정보 파트 */}
-                    <Section
-                        title="코스 정보"
-                        titleColor="white"
-                        style={{ gap: 15 }}
-                    >
-                        <StatRow
-                            color="gray20"
-                            style={{ gap: 20 }}
-                            stats={courseAverageStats}
-                        />
-                        <Typography variant="subhead3" color="white">
-                            고도 시계열 필요
-                        </Typography>
-                        {/* <StyledChart
+                        {/* 내 페이스 및 코스 정보 파트 */}
+                        <Section
+                            title="코스 정보"
+                            titleColor="white"
+                            style={{ gap: 15 }}
+                        >
+                            <StatRow
+                                color="gray20"
+                                style={{ gap: 20 }}
+                                stats={courseAverageStats}
+                            />
+                            <StyledChart
                                 label={"고도"}
-                                data={courseTelemetries?.coordinates ?? []}
+                                data={course?.telemetries ?? []}
                                 xKey="dist"
-                                yKeys={"alt"}
-                                invertYAxis={true}
+                                yKeys={["alt"]}
+                                showToolTip={true}
+                                onPointChange={(payload) => {
+                                    isChartActive.value = payload.isActive;
+                                    chartPointIndex.value = payload.index;
+                                }}
                                 expandable
-                            /> */}
-                    </Section>
+                            />
+                        </Section>
 
-                    <GhostInfoSection
-                        stats={ghostAverageStats}
-                        uuid={null}
-                        ghostList={ghostList ?? []}
-                        selectedGhostId={0}
-                        setSelectedGhostId={() => {}}
-                        onPress={() => {}}
-                        hasMargin={false}
-                        color="white"
+                        <GhostInfoSection
+                            stats={ghostAverageStats}
+                            uuid={null}
+                            ghostList={ghostList ?? []}
+                            selectedGhostId={0}
+                            setSelectedGhostId={() => {}}
+                            onPress={() => {}}
+                            hasMargin={false}
+                            color="white"
+                        />
+                    </ScrollView>
+                    <SlideToAction
+                        label="이 코스로 러닝 시작"
+                        onSlideSuccess={() => {
+                            router.replace(`/run/${courseId}/-1`);
+                        }}
+                        color="green"
+                        direction="left"
                     />
-                </ScrollView>
-                <SlideToAction
-                    label="이 코스로 러닝 시작"
-                    onSlideSuccess={() => {
-                        router.replace(`/run/${courseId}/-1`);
-                    }}
-                    color="green"
-                    direction="left"
+                    <ScrollButton
+                        onPress={() => {
+                            scrollViewRef.current?.scrollTo({
+                                y: 0,
+                                animated: true,
+                            });
+                        }}
+                        bottomInset={66}
+                    />
+                </SafeAreaView>
+                <RunShot
+                    ref={runShotRef}
+                    fileName={course?.name + ".jpg"}
+                    telemetries={course?.telemetries ?? []}
+                    isChartActive={isChartActive}
+                    chartPointIndex={chartPointIndex}
+                    yKey="alt"
+                    stats={[]}
                 />
-                <ScrollButton
-                    onPress={() => {
-                        scrollViewRef.current?.scrollTo({
-                            y: 0,
-                            animated: true,
-                        });
-                    }}
-                    bottomInset={66}
-                />
-            </SafeAreaView>
+            </>
         )
     );
 }
