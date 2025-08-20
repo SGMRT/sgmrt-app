@@ -94,6 +94,7 @@ export interface UserCourseInfo {
     averageFinisherPace: number;
     averageFinisherCadence: number;
     isPublic: boolean;
+    thumbnailUrl: string;
 }
 
 export type Pageable = {

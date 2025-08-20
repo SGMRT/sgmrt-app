@@ -206,6 +206,7 @@ export const CoursesWithFilter = ({
                                     index={index}
                                     userCount={course.totalRunsCount}
                                     maxLength={item.data.length}
+                                    imageUrl={course.thumbnailUrl}
                                     isSelected={
                                         course.id === selectedCourse?.id
                                     }

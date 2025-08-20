@@ -110,10 +110,12 @@ try {
                     currentTimestamp
                 );
 
-                const pressureAltitude = await getClosestAltitude(
+                const altitudeData = await getClosestAltitude(
                     sessionId,
                     currentTimestamp
                 );
+
+                const pressureAltitude = altitudeData?.altitude;
 
                 let altitude = null;
 
@@ -182,6 +184,7 @@ try {
                         altitude: location.coords.altitude ?? -1,
                         altitudeAccuracy:
                             location.coords.altitudeAccuracy ?? -1,
+                        pressure: altitudeData?.pressure ?? -1,
                     },
                 });
 
@@ -434,6 +437,7 @@ export default function useRunningSession({
                     speed: data.speed ?? -1,
                     accuracy: data.raw.accuracy ?? -1,
                     altitudeAccuracy: data.raw.altitudeAccuracy ?? -1,
+                    pressure: data.raw.pressure ?? -1,
                 }))
             );
 

@@ -577,6 +577,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
         backgroundColor: "rgba(226, 255, 0, 0.2)",
         justifyContent: "center",
+        alignItems: "center",
     },
     content: {
         flexDirection: "row",
