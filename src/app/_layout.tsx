@@ -77,13 +77,6 @@ function RootLayout() {
         SplashScreen.hideAsync();
     }, [isLoggedIn, loaded, userInfo, router]);
 
-    useEffect(() => {
-        Sentry.setUser({
-            id: uuid!,
-            username: userInfo?.username!,
-        });
-    }, [uuid, userInfo]);
-
     if (!loaded) {
         return null;
     }
