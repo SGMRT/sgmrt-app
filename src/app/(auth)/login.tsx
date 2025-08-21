@@ -4,8 +4,8 @@ import { signIn } from "@/src/apis";
 import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
 import { useAuthStore } from "@/src/store/authState";
-import { getApp } from "@react-native-firebase/app";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
+import { getCrashlytics } from "@react-native-firebase/crashlytics";
 import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as Sentry from "@sentry/react-native";
@@ -112,13 +112,12 @@ async function handleLogin({
             email: credential.user.email ?? "",
         });
 
-        getApp().crashlytics().setUserId(credential.user.uid);
-        getApp()
-            .crashlytics()
-            .setAttributes({
-                provider: providerId,
-                email: credential.user.email ?? "",
-            });
+        const crashlytics = getCrashlytics();
+        crashlytics.setUserId(credential.user.uid);
+        crashlytics.setAttributes({
+            provider: providerId,
+            email: credential.user.email ?? "",
+        });
 
         const res = await signIn({
             idToken: await credential.user.getIdToken(),
