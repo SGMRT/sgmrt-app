@@ -7,14 +7,12 @@ import WeatherInfo from "@/src/components/map/WeatherInfo";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 export default function Home() {
     const router = useRouter();
     const [type, setType] = useState<"all" | "my">("all");
-    useRunningSession();
     useEffect(() => {
         setTelemetryEnabled(false);
     }, []);

@@ -57,3 +57,5 @@ export class SensorStore {
         return sample;
     }
 }
+
+export const sharedSensorStore = new SensorStore();

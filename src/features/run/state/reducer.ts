@@ -1,0 +1,230 @@
+import { Telemetry } from "@/src/apis/types/run";
+import { RunStatus } from "../types";
+import { RunAction } from "./actions";
+import { RunContext } from "./context";
+import { DEFAULT_STATS, updateStats } from "./stats";
+import { buildTelemetry } from "./telemetry";
+
+const initialContext: RunContext = {
+    sessionId: null,
+    mode: "SOLO",
+    variant: undefined,
+    status: "IDLE",
+    mainTimeline: [],
+    pausedBuffer: [],
+    mutedBuffer: [],
+    postCompleteBuffer: [],
+    stats: DEFAULT_STATS,
+    telemetries: [],
+    _zeroNextDt: false,
+};
+
+export type RouteKey =
+    | "mainTimeline"
+    | "pausedBuffer"
+    | "mutedBuffer"
+    | "postCompleteBuffer"
+    | "ignore";
+
+export function routeKeyByStatus(status: RunStatus): RouteKey {
+    switch (status) {
+        case "RUNNING":
+        case "RUNNING_EXTENDED":
+            return "mainTimeline";
+        case "PAUSED_USER":
+            return "pausedBuffer";
+        case "PAUSED_OFFCOURSE":
+            return "mutedBuffer";
+        case "COMPLETION_PENDING":
+            return "postCompleteBuffer";
+        default:
+            return "ignore";
+    }
+}
+
+export function runReducer(
+    state: RunContext = initialContext,
+    action: RunAction
+): RunContext {
+    switch (action.type) {
+        // 러닝 시작 (초기화)
+        case "START": {
+            const { sessionId, mode, variant } = action.payload;
+            return {
+                sessionId,
+                mode,
+                variant,
+                status: mode === "COURSE" ? "READY" : "RUNNING",
+                mainTimeline: [],
+                pausedBuffer: [],
+                mutedBuffer: [],
+                postCompleteBuffer: [],
+                stats: DEFAULT_STATS,
+                telemetries: [],
+                _zeroNextDt: true,
+            };
+        }
+
+        // 코스 러닝 대기 상태
+        case "READY": {
+            return {
+                ...state,
+                status: "READY",
+            };
+        }
+
+        // 러닝 재개
+        case "RESUME": {
+            return {
+                ...state,
+                status: "RUNNING",
+                mainTimeline: [...state.mainTimeline, ...state.pausedBuffer],
+                pausedBuffer: [],
+                _zeroNextDt: true,
+            };
+        }
+
+        // 유저에 의한 일시정지
+        case "PAUSE_USER": {
+            return {
+                ...state,
+                status: "PAUSED_USER",
+            };
+        }
+
+        // 코스 이탈로 일시정지
+        case "OFFCOURSE": {
+            return {
+                ...state,
+                status: "PAUSED_OFFCOURSE",
+            };
+        }
+
+        // 코스 복귀
+        case "ONCOURSE": {
+            return {
+                ...state,
+                status: "RUNNING",
+                mutedBuffer: [],
+                _zeroNextDt: true,
+            };
+        }
+
+        // 완주 -> 보류 상태
+        case "COMPLETE": {
+            return {
+                ...state,
+                status: "COMPLETION_PENDING",
+            };
+        }
+
+        // 완주 이후 계속 러닝 대기
+        case "EXTEND": {
+            const merged = state.postCompleteBuffer;
+            let stats = state.stats;
+            let zeroFlag = state._zeroNextDt;
+            const telemetries: Telemetry[] = [];
+
+            const prevT0 = state.telemetries.at(-1);
+
+            let prevT = prevT0;
+            for (const sample of merged) {
+                stats = updateStats(stats, sample, { zeroDt: zeroFlag });
+                zeroFlag = false;
+
+                const t = buildTelemetry(stats, sample, prevT, true);
+                telemetries.push(t);
+                prevT = t;
+            }
+
+            return {
+                ...state,
+                status: "RUNNING_EXTENDED",
+                mainTimeline: [...state.mainTimeline, ...merged],
+                postCompleteBuffer: [],
+                stats,
+                _zeroNextDt: false,
+                telemetries: [...state.telemetries, ...telemetries],
+            };
+        }
+
+        // 최종 종료
+        case "STOP": {
+            return {
+                ...state,
+                status: "STOPPED",
+            };
+        }
+
+        // 초기화
+        case "RESET": {
+            return initialContext;
+        }
+
+        // 샘플 받아서 버퍼에 추가
+        case "ACCEPT_SAMPLE": {
+            const key = routeKeyByStatus(state.status);
+            if (key === "ignore") return state;
+
+            const { sample } = action.payload;
+
+            const runningFlag =
+                key === "mainTimeline" || key === "postCompleteBuffer";
+
+            if (key === "mainTimeline") {
+                const mainTimeline = [...state.mainTimeline, sample];
+                const stats = updateStats(
+                    state.stats,
+                    sample,
+                    state._zeroNextDt ? { zeroDt: true } : undefined
+                );
+
+                const telemetry = buildTelemetry(
+                    stats,
+                    sample,
+                    state.telemetries.at(-1),
+                    runningFlag
+                );
+
+                return {
+                    ...state,
+                    mainTimeline,
+                    stats,
+                    _zeroNextDt: false,
+                    telemetries: [...state.telemetries, telemetry],
+                };
+            }
+
+            if (key === "pausedBuffer") {
+                const telemetry = buildTelemetry(
+                    state.stats,
+                    sample,
+                    state.telemetries.at(-1),
+                    runningFlag
+                );
+                return {
+                    ...state,
+                    pausedBuffer: [...state.pausedBuffer, sample],
+                    telemetries: [...state.telemetries, telemetry],
+                };
+            }
+            if (key === "mutedBuffer") {
+                return {
+                    ...state,
+                    mutedBuffer: [...state.mutedBuffer, sample],
+                };
+            }
+            if (key === "postCompleteBuffer") {
+                return {
+                    ...state,
+                    postCompleteBuffer: [...state.postCompleteBuffer, sample],
+                };
+            }
+        }
+
+        default:
+            return state;
+    }
+}
+
+export const initialRunContext = initialContext;

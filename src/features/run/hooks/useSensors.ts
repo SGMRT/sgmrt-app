@@ -4,9 +4,9 @@ import * as Location from "expo-location";
 import { Barometer, Pedometer } from "expo-sensors";
 import { useEffect, useRef } from "react";
 import { LOCATION_TASK } from "../constants";
-import { sharedSensorStore } from "../store/singletonStore";
+import { sharedSensorStore } from "../store/sensorStore";
 
-export function useSensors() {
+export function useSensors(enabled: boolean) {
     const stepSubRef = useRef<ReturnType<
         typeof Pedometer.watchStepCount
     > | null>(null);
@@ -15,6 +15,8 @@ export function useSensors() {
     );
 
     useEffect(() => {
+        if (!enabled) return;
+
         let mounted = true;
 
         (async () => {
@@ -87,5 +89,5 @@ export function useSensors() {
             sharedSensorStore.reset?.();
             devLog("[SENSORS] Cleaned up");
         };
-    }, []);
+    }, [enabled]);
 }

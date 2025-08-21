@@ -10,7 +10,7 @@ import {
 } from "../constants";
 import { joinedState } from "../store/joinedState";
 import { StreamJoiner } from "../store/joiner";
-import { sharedSensorStore } from "../store/singletonStore";
+import { sharedSensorStore } from "../store/sensorStore";
 import { haversineMeters } from "../utils/haversineMeters";
 
 const joiner = new StreamJoiner(sharedSensorStore, 3000);
@@ -60,9 +60,15 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         if (isPedometerAvailable && joined.steps == null) continue;
 
         const totalSteps = joined.steps?.totalSteps ?? null;
-        const deltaSteps = totalSteps
-            ? totalSteps - (lastAcceptedSteps ?? 0)
-            : null;
+        if (
+            totalSteps &&
+            lastAcceptedSteps != null &&
+            totalSteps < lastAcceptedSteps
+        ) {
+            lastAcceptedSteps = null;
+        }
+
+        const deltaSteps = (totalSteps ?? 0) - (lastAcceptedSteps ?? 0);
 
         joinedState.push({
             timestamp: joined.timestamp,
@@ -75,6 +81,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             pressure: joined.pressure?.pressure ?? null,
             steps: deltaSteps,
             distance: deltaDistance,
+            isRunning: null,
         });
 
         lastAcceptedTs = joined.timestamp;

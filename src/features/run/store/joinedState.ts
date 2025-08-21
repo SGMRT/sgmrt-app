@@ -1,23 +1,12 @@
-type JoinedPublic = {
-    timestamp: number;
-    latitude: number;
-    longitude: number;
-    accuracy: number | null;
-    altitude: number | null;
-    altitudeAccuracy: number | null;
-    speed: number | null;
-    pressure: number | null;
-    steps: number | null;
-    distance: number;
-};
+import { RawRunData } from "../types";
 
-type Listener = (state: JoinedPublic) => void;
+type Listener = (state: RawRunData) => void;
 
 class JoinedState {
-    private last?: JoinedPublic;
+    private last?: RawRunData;
     private listeners = new Set<Listener>();
 
-    push(state: JoinedPublic) {
+    push(state: RawRunData) {
         this.last = state;
         for (const listener of this.listeners) {
             listener(state);
