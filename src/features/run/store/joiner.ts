@@ -1,3 +1,4 @@
+import { MATCH_WINDOW_MS } from "../constants";
 import { SensorStore } from "./sensorStore";
 import { LocationSample, PressureSample, StepSample } from "./sensorTypes";
 
@@ -11,7 +12,7 @@ export interface JoinedSample {
 export class StreamJoiner {
     constructor(
         private readonly store: SensorStore,
-        private readonly matchWindowMs = 2000
+        private readonly matchWindowMs = MATCH_WINDOW_MS
     ) {}
 
     onNewLocation(location: LocationSample) {

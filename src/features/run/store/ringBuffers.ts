@@ -24,4 +24,8 @@ export class RingBuffer<T extends { timestamp: number }> {
     last(): T | undefined {
         return this.buffer.at(-1);
     }
+
+    reset() {
+        this.buffer = [];
+    }
 }

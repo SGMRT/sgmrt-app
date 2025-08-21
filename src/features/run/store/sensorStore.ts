@@ -1,6 +1,11 @@
 import { LocationObject } from "expo-location";
 import { BarometerMeasurement } from "expo-sensors";
 import { PedometerResult } from "expo-sensors/build/Pedometer";
+import {
+    LOCATION_BUFFER_SIZE,
+    PEDOMETER_BUFFER_SIZE,
+    PRESSURE_BUFFER_SIZE,
+} from "../constants";
 import { RingBuffer } from "./ringBuffers";
 import {
     ensureTs,
@@ -10,11 +15,17 @@ import {
 } from "./sensorTypes";
 
 export class SensorStore {
-    readonly locations = new RingBuffer<LocationSample>(100);
-    readonly pressures = new RingBuffer<PressureSample>(100);
-    readonly steps = new RingBuffer<StepSample>(100);
+    readonly locations = new RingBuffer<LocationSample>(LOCATION_BUFFER_SIZE);
+    readonly pressures = new RingBuffer<PressureSample>(PRESSURE_BUFFER_SIZE);
+    readonly steps = new RingBuffer<StepSample>(PEDOMETER_BUFFER_SIZE);
 
-    ingestLocation(raw: LocationObject) {
+    reset() {
+        this.locations.reset();
+        this.pressures.reset();
+        this.steps.reset();
+    }
+
+    pushLocation(raw: LocationObject) {
         const sample: LocationSample = {
             latitude: raw.coords.latitude,
             longitude: raw.coords.longitude,
@@ -28,7 +39,7 @@ export class SensorStore {
         return sample;
     }
 
-    ingestPressure(raw: BarometerMeasurement) {
+    pushPressure(raw: BarometerMeasurement) {
         const sample: PressureSample = {
             pressure: raw.pressure,
             timestamp: ensureTs(raw.timestamp),
@@ -37,10 +48,10 @@ export class SensorStore {
         return sample;
     }
 
-    ingestSteps(raw: PedometerResult) {
+    pushSteps(raw: PedometerResult & { timestamp: number }) {
         const sample: StepSample = {
             totalSteps: raw.steps,
-            timestamp: ensureTs(Date.now()),
+            timestamp: ensureTs(raw.timestamp),
         };
         this.steps.push(sample);
         return sample;

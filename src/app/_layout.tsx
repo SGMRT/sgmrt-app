@@ -17,6 +17,9 @@ import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/ui/toastConfig";
 import { useAuthStore } from "../store/authState";
 import { LOCATION_TASK } from "../types/run";
+
+import "@features/run/task/location.task";
+
 SplashScreen.preventAutoHideAsync();
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
