@@ -10,6 +10,7 @@ import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import { pickImage } from "@/src/utils/pickImage";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { getAuth } from "@react-native-firebase/auth";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -126,6 +127,14 @@ export default function Profile() {
                 setRes(res);
                 bottomSheetRef.current?.present();
                 confettiRef.current?.restart();
+                amplitude.track("Sign Up", {
+                    provider: "email",
+                    nickname: nickname,
+                    gender: gender,
+                    age: age,
+                    height: height,
+                    weight: weight,
+                });
             })
             .catch((err) => {
                 console.log(err);

@@ -1,9 +1,4 @@
-import {
-    ChevronIcon,
-    LockIcon,
-    ShareIcon,
-    UnlockIcon,
-} from "@/assets/svgs/svgs";
+import { ChevronIcon, LockIcon, UnlockIcon } from "@/assets/svgs/svgs";
 import {
     getCourse,
     getCourseTopRanking,
@@ -25,6 +20,7 @@ import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import Section from "@/src/components/ui/Section";
+import ShareButton from "@/src/components/ui/ShareButton";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
@@ -32,6 +28,7 @@ import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
@@ -405,7 +402,12 @@ export default function Result() {
                                         });
                                 }}
                             >
-                                <ShareIcon style={styles.shareButton} />
+                                <ShareButton
+                                    title={runData.runningName}
+                                    message={getDate(runData.startedAt).trim()}
+                                    filename={runData.runningName + ".jpg"}
+                                    getUri={captureMap}
+                                />
                             </Pressable>
                         </View>
 
@@ -625,6 +627,13 @@ export default function Result() {
                                     params: {
                                         tab: "course",
                                     },
+                                });
+                                amplitude.track("Course Created", {
+                                    courseId: runData?.courseInfo.id,
+                                    courseName: courseName,
+                                    distance: runData?.recordInfo.distance,
+                                    elevationGain:
+                                        runData?.recordInfo.elevationGain,
                                 });
                                 Toast.show({
                                     type: "success",

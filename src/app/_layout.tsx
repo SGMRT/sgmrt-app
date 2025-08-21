@@ -8,13 +8,15 @@ import { useFonts } from "expo-font";
 import * as Location from "expo-location";
 import { SplashScreen, Stack, useRouter } from "expo-router";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Constants from "expo-constants";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "../components/ui/toastConfig";
 import { useAuthStore } from "../store/authState";
 import { LOCATION_TASK } from "../types/run";
-
 SplashScreen.preventAutoHideAsync();
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
@@ -30,6 +32,9 @@ Sentry.init({
     tracesSampleRate: 1.0,
 });
 
+const FIRST_LAUNCH_KEY = "first_launch_v1";
+const VERSION_KEY = "version_v1";
+
 function RootLayout() {
     const router = useRouter();
     const { isLoggedIn, logout, uuid, userInfo } = useAuthStore();
@@ -39,6 +44,57 @@ function RootLayout() {
         "SpoqaHanSansNeo-Bold": require("@/assets/fonts/SpoqaHanSansNeo-Bold.ttf"),
     });
     const queryClient = new QueryClient();
+    const version = Constants.expoConfig?.version;
+    const build = Constants.expoConfig?.extra?.eas?.buildNumber;
+
+    useEffect(() => {
+        (async () => {
+            // fonts 미로딩 시 조기 종료
+            if (!loaded) return;
+
+            try {
+                // 1) App Launched (매 실행)
+                amplitude.track("App Launched", {
+                    platform: Platform.OS,
+                    version,
+                    build,
+                });
+
+                // 2) First Install 체크 (단 1회)
+                const first = await AsyncStorage.getItem(FIRST_LAUNCH_KEY);
+                if (!first) {
+                    amplitude.track("App Installed", {
+                        platform: Platform.OS,
+                        version,
+                        build,
+                    });
+
+                    // setOnce로 유저 프로퍼티 박제(덮어쓰기 방지)
+                    const idObj = new amplitude.Identify()
+                        .setOnce("first_open_at", new Date().toISOString())
+                        .setOnce("install_version", version ?? "")
+                        .setOnce("install_build", build ?? "")
+                        .setOnce("install_platform", Platform.OS);
+                    amplitude.identify(idObj);
+
+                    await AsyncStorage.setItem(FIRST_LAUNCH_KEY, "true");
+                }
+
+                // 3) App Updated (버전 변경 감지)
+                const lastVersion = await AsyncStorage.getItem(VERSION_KEY);
+                if (lastVersion && lastVersion !== version) {
+                    amplitude.track("App Updated", {
+                        from: lastVersion,
+                        to: version,
+                        build,
+                    });
+                }
+                await AsyncStorage.setItem(VERSION_KEY, version ?? "");
+            } catch (e) {
+                console.warn("Analytics bootstrap error:", e);
+            }
+        })();
+    }, [loaded, version, build]);
 
     useEffect(() => {
         if (!loaded) return;

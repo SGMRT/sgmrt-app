@@ -132,6 +132,10 @@ async function handleLogin({
         });
 
         login(res.accessToken, res.refreshToken, res.uuid);
+
+        amplitude.track("Sign In", {
+            provider: providerId,
+        });
     } catch (err: any) {
         console.log(err);
         if (err?.response?.status !== 404) {
@@ -142,6 +146,9 @@ async function handleLogin({
             });
         } else {
             router.push("/register");
+            amplitude.track("Start Sign Up", {
+                provider: providerId,
+            });
         }
     }
 }

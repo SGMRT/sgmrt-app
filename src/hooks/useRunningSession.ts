@@ -48,6 +48,7 @@ import {
     getCalories,
     getPace,
 } from "../utils/runUtils";
+import { track } from "@amplitude/analytics-react-native";
 
 const locationKalmanFilter = new KalmanFilter2D();
 const NOT_SET_BASE_PRESSURE = -1000;
