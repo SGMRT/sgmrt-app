@@ -1,3 +1,5 @@
+import { useAuthStore } from "@/src/store/authState";
+import { getCalories } from "@/src/utils/runUtils";
 import { RawRunData } from "../types";
 
 export interface RunningStats {
@@ -6,8 +8,10 @@ export interface RunningStats {
     avgPaceSecPerKm: number | null;
     currentPaceSecPerKm: number | null;
     cadenceSpm: number | null;
+    calories: number | null;
     gainM: number;
     lossM: number;
+    bpm: number | null;
     last?: RawRunData;
     _window: { ts: number; dist: number; steps: number }[];
 }
@@ -18,13 +22,15 @@ export const DEFAULT_STATS: RunningStats = {
     avgPaceSecPerKm: null,
     currentPaceSecPerKm: null,
     cadenceSpm: null,
+    calories: null,
     gainM: 0,
     lossM: 0,
+    bpm: null,
     _window: [],
 };
 
 const PACE_WINDOW_MS = 10_000;
-const MAX_SPEED_MPS = 8.5;
+const MAX_SPEED_MPS = 15;
 const MIN_VALID_DIST_M = 0.3;
 const ALT_THRESHOLD_M = 0;
 
@@ -48,6 +54,7 @@ export function updateStats(
     sample: RawRunData,
     options?: { zeroDt?: boolean }
 ): RunningStats {
+    const { weight } = useAuthStore.getState().userInfo ?? { weight: 70 };
     const zero = !!options?.zeroDt;
 
     // zeroDt면 창 리셋(앵커 준비), 아니면 기존 창 유지
@@ -116,12 +123,19 @@ export function updateStats(
     // sticky: 유효값이 아니면 이전 값을 유지
     next.currentPaceSecPerKm = rawPace ?? prev.currentPaceSecPerKm ?? null;
     next.cadenceSpm = rawCadence ?? prev.cadenceSpm ?? null;
+    next.bpm = 0;
 
     // 평균 페이스(전체)
     next.avgPaceSecPerKm = secPerKmFrom(
         next.totalDistanceM,
         next.totalTimeMs / 1000
     );
+
+    next.calories = getCalories({
+        distance: next.totalDistanceM,
+        timeInSec: next.totalTimeMs / 1000,
+        weight: weight ?? 70,
+    });
 
     // 마지막 샘플 저장
     next.last = sample;

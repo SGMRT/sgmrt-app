@@ -2,6 +2,7 @@ import { Telemetry } from "@/src/apis/types/run";
 import { RunStatus } from "../types";
 import { RunAction } from "./actions";
 import { RunContext } from "./context";
+import { appendOne } from "./segments";
 import { DEFAULT_STATS, updateStats } from "./stats";
 import { buildTelemetry } from "./telemetry";
 
@@ -16,6 +17,7 @@ const initialContext: RunContext = {
     postCompleteBuffer: [],
     stats: DEFAULT_STATS,
     telemetries: [],
+    segments: [],
     _zeroNextDt: false,
 };
 
@@ -61,7 +63,8 @@ export function runReducer(
                 postCompleteBuffer: [],
                 stats: DEFAULT_STATS,
                 telemetries: [],
-                _zeroNextDt: true,
+                segments: [],
+                _zeroNextDt: false,
             };
         }
 
@@ -122,20 +125,32 @@ export function runReducer(
         case "EXTEND": {
             const merged = state.postCompleteBuffer;
             let stats = state.stats;
-            let zeroFlag = state._zeroNextDt;
+            let zeroFlag = state._zeroNextDt; // ✅ 첫 샘플에만 zeroDt 적용
             const telemetries: Telemetry[] = [];
+            let segments = state.segments.slice();
 
-            const prevT0 = state.telemetries.at(-1);
+            let prevT = state.telemetries.at(-1);
 
-            let prevT = prevT0;
-            for (const sample of merged) {
-                stats = updateStats(stats, sample, { zeroDt: zeroFlag });
+            merged.forEach((sample, i) => {
+                stats = updateStats(
+                    stats,
+                    sample,
+                    zeroFlag ? { zeroDt: true } : undefined
+                );
                 zeroFlag = false;
 
-                const t = buildTelemetry(stats, sample, prevT, true);
+                const t = buildTelemetry(
+                    stats,
+                    sample,
+                    prevT,
+                    /* isRunning */ true
+                );
                 telemetries.push(t);
                 prevT = t;
-            }
+
+                const idx = state.telemetries.length + telemetries.length - 1;
+                segments = appendOne(segments, idx, true);
+            });
 
             return {
                 ...state,
@@ -145,6 +160,7 @@ export function runReducer(
                 stats,
                 _zeroNextDt: false,
                 telemetries: [...state.telemetries, ...telemetries],
+                segments,
             };
         }
 
@@ -192,6 +208,13 @@ export function runReducer(
                     stats,
                     _zeroNextDt: false,
                     telemetries: [...state.telemetries, telemetry],
+                    segments: appendOne(
+                        state.segments,
+                        state.telemetries.length - 1 >= 0
+                            ? state.telemetries.length - 1
+                            : 0,
+                        runningFlag
+                    ),
                 };
             }
 
@@ -206,6 +229,11 @@ export function runReducer(
                     ...state,
                     pausedBuffer: [...state.pausedBuffer, sample],
                     telemetries: [...state.telemetries, telemetry],
+                    segments: appendOne(
+                        state.segments,
+                        state.telemetries.length - 1,
+                        runningFlag
+                    ),
                 };
             }
             if (key === "mutedBuffer") {

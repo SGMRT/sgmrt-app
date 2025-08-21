@@ -2,6 +2,7 @@ import { Telemetry } from "@/src/apis/types/run";
 import { RawRunData, RunMode } from "../types";
 import { CourseVariant, RunStatus } from "../types/status";
 import { RunningStats } from "./stats";
+import { SegmentMeta } from "./segments";
 
 export interface RunContext {
     sessionId: string | null;
@@ -16,5 +17,6 @@ export interface RunContext {
 
     stats: RunningStats;
     telemetries: Telemetry[];
+    segments: SegmentMeta[];
     _zeroNextDt: boolean;
 }

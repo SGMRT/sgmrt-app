@@ -26,14 +26,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     locations.sort((a, b) => a.timestamp - b.timestamp);
 
     for (const loc of locations) {
-        const {
-            latitude,
-            longitude,
-            accuracy,
-            altitude,
-            altitudeAccuracy,
-            speed,
-        } = loc.coords;
+        const { latitude, longitude, accuracy, altitude } = loc.coords;
 
         if (accuracy != null && accuracy > MAX_ACCURACY_METERS) {
             devLog("[LOCATION] 위치 불확실성 높음", accuracy);
@@ -108,8 +101,8 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         });
 
         lastAcceptedTs = joined.timestamp;
-        lastAcceptedLat = joined.location.latitude;
-        lastAcceptedLng = joined.location.longitude;
+        lastAcceptedLat = filtered.latitude;
+        lastAcceptedLng = filtered.longitude;
         lastAcceptedSteps = joined.steps?.totalSteps ?? null;
     }
 });
