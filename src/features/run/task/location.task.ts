@@ -3,14 +3,12 @@ import { devLog } from "@/src/utils/devLog";
 import type { LocationObject } from "expo-location";
 import { Barometer, Pedometer } from "expo-sensors";
 import * as TaskManager from "expo-task-manager";
-import {
-    LOCATION_TASK,
-    MAX_ACCURACY_METERS,
-    MIN_DISPLACEMENT_METERS,
-} from "../constants";
+import { LOCATION_TASK, MAX_ACCURACY_METERS } from "../constants";
 import { joinedState } from "../store/joinedState";
 import { StreamJoiner } from "../store/joiner";
 import { sharedSensorStore } from "../store/sensorStore";
+import { anchoredBaroAlt } from "../utils/anchoredBaroAlt";
+import { geoFilter } from "../utils/geoFilter";
 import { haversineMeters } from "../utils/haversineMeters";
 
 const joiner = new StreamJoiner(sharedSensorStore, 3000);
@@ -28,12 +26,27 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     locations.sort((a, b) => a.timestamp - b.timestamp);
 
     for (const loc of locations) {
-        const { latitude, longitude, accuracy } = loc.coords;
+        const {
+            latitude,
+            longitude,
+            accuracy,
+            altitude,
+            altitudeAccuracy,
+            speed,
+        } = loc.coords;
 
         if (accuracy != null && accuracy > MAX_ACCURACY_METERS) {
             devLog("[LOCATION] 위치 불확실성 높음", accuracy);
             continue;
         }
+
+        const filtered = geoFilter.process(
+            latitude,
+            longitude,
+            accuracy ?? 10,
+            loc.timestamp,
+            loc.coords.speed ?? 0
+        );
 
         let deltaDistance = 0;
 
@@ -41,13 +54,9 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             deltaDistance = haversineMeters(
                 lastAcceptedLat,
                 lastAcceptedLng,
-                latitude,
-                longitude
+                filtered.latitude,
+                filtered.longitude
             );
-            if (deltaDistance < MIN_DISPLACEMENT_METERS) {
-                devLog("[LOCATION] 위치 거리 차이 너무 작음", deltaDistance);
-                continue;
-            }
         }
 
         const sample = sharedSensorStore.pushLocation(loc);
@@ -58,6 +67,13 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
 
         if (isBaroAvailable && joined.pressure == null) continue;
         if (isPedometerAvailable && joined.steps == null) continue;
+
+        const fusedAltitude = anchoredBaroAlt.update(
+            joined.timestamp,
+            joined.pressure?.pressure ?? null,
+            joined.location.altitude ?? null,
+            joined.location.altitudeAccuracy ?? null
+        );
 
         const totalSteps = joined.steps?.totalSteps ?? null;
         if (
@@ -72,16 +88,23 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
 
         joinedState.push({
             timestamp: joined.timestamp,
-            latitude: joined.location.latitude,
-            longitude: joined.location.longitude,
-            accuracy: joined.location.accuracy,
-            altitude: joined.location.altitude,
-            altitudeAccuracy: joined.location.altitudeAccuracy,
-            speed: joined.location.speed,
+            latitude: filtered.latitude,
+            longitude: filtered.longitude,
+            altitude: fusedAltitude ?? joined.location.altitude ?? null,
             pressure: joined.pressure?.pressure ?? null,
             steps: deltaSteps,
             distance: deltaDistance,
             isRunning: null,
+            raw: {
+                timestamp: joined.timestamp,
+                latitude,
+                longitude,
+                accuracy,
+                altitude,
+                altitudeAccuracy: joined.location.altitudeAccuracy,
+                speed: joined.location.speed,
+                pressure: joined.pressure?.pressure ?? null,
+            },
         });
 
         lastAcceptedTs = joined.timestamp;

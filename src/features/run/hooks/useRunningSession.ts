@@ -5,6 +5,8 @@ import { initialRunContext, runReducer } from "../state/reducer";
 import { joinedState } from "../store/joinedState";
 import { RunMode } from "../types";
 import { CourseVariant } from "../types/status";
+import { anchoredBaroAlt } from "../utils/anchoredBaroAlt";
+import { geoFilter } from "../utils/geoFilter";
 import { useSensors } from "./useSensors";
 
 export function useRunningSession() {
@@ -36,6 +38,8 @@ export function useRunningSession() {
     const controls = useMemo(() => {
         return {
             start: (mode: RunMode, variant?: CourseVariant) => {
+                anchoredBaroAlt.reset();
+                geoFilter.reset();
                 dispatch({
                     type: "START",
                     payload: { sessionId: uuidv4(), mode, variant },
@@ -63,9 +67,13 @@ export function useRunningSession() {
                 dispatch({ type: "EXTEND" });
             },
             stop: () => {
+                anchoredBaroAlt.reset();
+                geoFilter.reset();
                 dispatch({ type: "STOP" });
             },
             reset: () => {
+                anchoredBaroAlt.reset();
+                geoFilter.reset();
                 dispatch({ type: "RESET" });
             },
         };
