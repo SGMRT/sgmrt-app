@@ -1,4 +1,4 @@
-import { ChevronIcon, ShareIcon } from "@/assets/svgs/svgs";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
@@ -9,6 +9,7 @@ import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import Section from "@/src/components/ui/Section";
+import ShareButton from "@/src/components/ui/ShareButton";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import StatRow from "@/src/components/ui/StatRow";
 import { Typography } from "@/src/components/ui/Typography";
@@ -19,16 +20,9 @@ import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef } from "react";
-import {
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Share from "react-native-share";
 
 export default function Result() {
     const { courseId } = useLocalSearchParams();
@@ -149,27 +143,12 @@ export default function Result() {
                                     userCount={course?.totalRunsCount ?? 0}
                                 />
                             </View>
-                            <Pressable
-                                onPress={async () => {
-                                    const uri = await captureMap();
-                                    Share.open({
-                                        title: course?.name,
-                                        message: getDate(
-                                            course?.createdAt ?? 0
-                                        ).trim(),
-                                        filename: course?.name + ".jpg",
-                                        url: uri ?? "",
-                                    })
-                                        .then((res) => {
-                                            console.log(res);
-                                        })
-                                        .catch((err) => {
-                                            err && console.log(err);
-                                        });
-                                }}
-                            >
-                                <ShareIcon style={styles.shareButton} />
-                            </Pressable>
+                            <ShareButton
+                                title={course?.name}
+                                message={getDate(course?.createdAt ?? 0).trim()}
+                                filename={course?.name + ".jpg"}
+                                getUri={captureMap}
+                            />
                         </View>
 
                         {/* 코스 지도 파트 */}

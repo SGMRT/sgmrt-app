@@ -1,3 +1,4 @@
+import * as amplitude from "@amplitude/analytics-react-native";
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 import {
@@ -96,6 +97,7 @@ export const useAuthStore = create<AuthState>()(
                         uuid: null,
                         isLoggedIn: false,
                     });
+                    amplitude.reset();
                 },
             }),
             {

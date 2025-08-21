@@ -4,9 +4,16 @@ import { signIn } from "@/src/apis";
 import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
 import { useAuthStore } from "@/src/store/authState";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
+import {
+    getCrashlytics,
+    setAttributes,
+    setUserId,
+} from "@react-native-firebase/crashlytics";
 import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
+import * as Sentry from "@sentry/react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
 import { Image, StyleSheet, View } from "react-native";
@@ -30,9 +37,8 @@ export default function Login() {
                     backgroundColor="#fee500"
                     icon={<KakaoIcon />}
                     onPress={async () => {
-                        const kakaoAuthRequestResponse = await kakaoLogin();
-
-                        if (!kakaoAuthRequestResponse.idToken) {
+                        const resp = await kakaoLogin();
+                        if (!resp.idToken) {
                             Toast.show({
                                 type: "info",
                                 text1: "카카오 로그인 실패",
@@ -40,40 +46,13 @@ export default function Login() {
                             });
                             return;
                         }
-
-                        const credential = await signInWithCredential(
-                            getAuth(),
-                            {
-                                providerId: "oidc.kakao",
-                                token: kakaoAuthRequestResponse.idToken,
-                                secret: kakaoAuthRequestResponse.accessToken,
-                            }
-                        );
-
-                        signIn({
-                            idToken: await credential.user.getIdToken(),
-                        })
-                            .then((res) => {
-                                login(
-                                    res.accessToken,
-                                    res.refreshToken,
-                                    res.uuid
-                                );
-                            })
-                            .catch((err) => {
-                                console.log(err);
-                                if (err.response.status !== 404) {
-                                    Toast.show({
-                                        type: "info",
-                                        text1: "로그인에 실패했습니다.",
-                                        position: "bottom",
-                                    });
-                                    return;
-                                } else {
-                                    router.push("/register");
-                                    return;
-                                }
-                            });
+                        await handleLogin({
+                            providerId: "oidc.kakao",
+                            token: resp.idToken,
+                            secret: resp.accessToken,
+                            router,
+                            login,
+                        });
                     }}
                 />
                 <LoginButton
@@ -82,17 +61,15 @@ export default function Login() {
                     textColor="white"
                     icon={<AppleIcon />}
                     onPress={async () => {
-                        const appleAuthRequestResponse =
-                            await AppleAuthentication.signInAsync({
-                                requestedScopes: [
-                                    AppleAuthentication.AppleAuthenticationScope
-                                        .FULL_NAME,
-                                    AppleAuthentication.AppleAuthenticationScope
-                                        .EMAIL,
-                                ],
-                            });
-
-                        if (!appleAuthRequestResponse.identityToken) {
+                        const resp = await AppleAuthentication.signInAsync({
+                            requestedScopes: [
+                                AppleAuthentication.AppleAuthenticationScope
+                                    .FULL_NAME,
+                                AppleAuthentication.AppleAuthenticationScope
+                                    .EMAIL,
+                            ],
+                        });
+                        if (!resp.identityToken) {
                             Toast.show({
                                 type: "info",
                                 text1: "애플 로그인 실패",
@@ -100,48 +77,80 @@ export default function Login() {
                             });
                             return;
                         }
-
-                        const credential = await signInWithCredential(
-                            getAuth(),
-                            {
-                                providerId: "apple.com",
-                                token: appleAuthRequestResponse.identityToken,
-                                secret:
-                                    appleAuthRequestResponse.authorizationCode ??
-                                    "",
-                            }
-                        );
-
-                        signIn({
-                            idToken: await credential.user.getIdToken(),
-                        })
-                            .then((res) => {
-                                console.log(res);
-                                login(
-                                    res.accessToken,
-                                    res.refreshToken,
-                                    res.uuid
-                                );
-                            })
-                            .catch((err) => {
-                                console.log(err);
-                                if (err.response.status !== 404) {
-                                    Toast.show({
-                                        type: "info",
-                                        text1: "로그인에 실패했습니다.",
-                                        position: "bottom",
-                                    });
-                                    return;
-                                } else {
-                                    router.push("/register");
-                                    return;
-                                }
-                            });
+                        await handleLogin({
+                            providerId: "apple.com",
+                            token: resp.identityToken,
+                            secret: resp.authorizationCode ?? "",
+                            router,
+                            login,
+                        });
                     }}
                 />
             </View>
         </SafeAreaView>
     );
+}
+
+async function handleLogin({
+    providerId,
+    token,
+    secret,
+    router,
+    login,
+}: {
+    providerId: string;
+    token: string;
+    secret?: string;
+    router: ReturnType<typeof useRouter>;
+    login: (accessToken: string, refreshToken: string, uuid: string) => void;
+}) {
+    try {
+        const credential = await signInWithCredential(getAuth(), {
+            providerId,
+            token,
+            secret: secret ?? "",
+        });
+
+        Sentry.setUser({
+            id: credential.user.uid,
+            provider: providerId,
+            email: credential.user.email ?? "",
+        });
+
+        const crashlytics = getCrashlytics();
+        setUserId(crashlytics, credential.user.uid);
+        setAttributes(crashlytics, {
+            provider: providerId,
+            email: credential.user.email ?? "",
+        });
+
+        amplitude.setUserId(credential.user.uid);
+        amplitude.setGroup("provider", providerId);
+
+        const res = await signIn({
+            idToken: await credential.user.getIdToken(),
+        });
+
+        login(res.accessToken, res.refreshToken, res.uuid);
+
+        amplitude.track("Sign In", {
+            provider: providerId,
+        });
+    } catch (err: any) {
+        console.log(err);
+        if (err?.response?.status !== 404) {
+            Toast.show({
+                type: "info",
+                text1: "로그인에 실패했습니다.",
+                position: "bottom",
+            });
+        } else {
+            router.push("/register");
+            amplitude.track("Start Sign Up", {
+                provider: providerId,
+            });
+        }
+    }
 }
 
 const styles = StyleSheet.create({
