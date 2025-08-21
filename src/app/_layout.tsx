@@ -1,3 +1,4 @@
+import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import Mapbox from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
@@ -17,6 +18,10 @@ import { LOCATION_TASK } from "../types/run";
 SplashScreen.preventAutoHideAsync();
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
+
+amplitude.init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || "", undefined, {
+    disableCookies: true,
+});
 
 Sentry.init({
     dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,

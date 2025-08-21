@@ -4,8 +4,13 @@ import { signIn } from "@/src/apis";
 import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
 import { useAuthStore } from "@/src/store/authState";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
-import { getCrashlytics } from "@react-native-firebase/crashlytics";
+import {
+    getCrashlytics,
+    setAttributes,
+    setUserId,
+} from "@react-native-firebase/crashlytics";
 import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as Sentry from "@sentry/react-native";
@@ -113,11 +118,14 @@ async function handleLogin({
         });
 
         const crashlytics = getCrashlytics();
-        crashlytics.setUserId(credential.user.uid);
-        crashlytics.setAttributes({
+        setUserId(crashlytics, credential.user.uid);
+        setAttributes(crashlytics, {
             provider: providerId,
             email: credential.user.email ?? "",
         });
+
+        amplitude.setUserId(credential.user.uid);
+        amplitude.setGroup("provider", providerId);
 
         const res = await signIn({
             idToken: await credential.user.getIdToken(),
