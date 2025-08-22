@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef } from "react";
+import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import { RunAction } from "../state/actions";
 import { initialRunContext, runReducer } from "../state/reducer";
@@ -8,6 +9,7 @@ import { CourseVariant } from "../types/status";
 import { anchoredBaroAlt } from "../utils/anchoredBaroAlt";
 import { geoFilter } from "../utils/geoFilter";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
+import { useRunAnalytics } from "./useRunAnalytics";
 import { useSensors } from "./useSensors";
 
 export function useRunningSession() {
@@ -16,6 +18,7 @@ export function useRunningSession() {
     const sensorsEnabled =
         context.status !== "IDLE" && context.status !== "STOPPED";
     useSensors(sensorsEnabled);
+    useRunAnalytics(context);
 
     const unsubRef = useRef<null | (() => void)>(null);
 
@@ -41,6 +44,7 @@ export function useRunningSession() {
             start: (mode: RunMode, variant?: CourseVariant) => {
                 anchoredBaroAlt.reset();
                 geoFilter.reset();
+
                 dispatch({
                     type: "START",
                     payload: { sessionId: uuidv4(), mode, variant },

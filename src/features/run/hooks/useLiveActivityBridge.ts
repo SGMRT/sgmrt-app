@@ -1,10 +1,8 @@
-import type { RunType as NativeRunType } from "@/modules/expo-live-activity";
 import expoLiveActivity from "@/modules/expo-live-activity";
 import { useCallback, useEffect, useRef } from "react";
 import { RunContext } from "../state/context";
 import { selectLiveActivityPayload } from "../state/selectors";
-import { RunMode } from "../types";
-import { CourseVariant } from "../types/status";
+import { mapRunType } from "../utils/mapRunType";
 
 // 전송 기준
 const UPDATE_MIN_INTERVAL_MS = 1000;
@@ -39,11 +37,6 @@ function changedEnough(prev?: Payload, next?: Payload) {
         return true;
 
     return false;
-}
-
-function mapRunType(mode: RunMode, variant?: CourseVariant): NativeRunType {
-    if (mode === "COURSE") return variant === "GHOST" ? "GHOST" : "COURSE";
-    return "SOLO";
 }
 
 export function useLiveActivityBridge(context: RunContext) {
