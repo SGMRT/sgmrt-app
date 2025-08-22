@@ -531,7 +531,7 @@ export default function CourseRun() {
                 {runSegments.map((segment, index) => (
                     <RunningLine
                         key={index.toString()}
-                        index={index}
+                        id={"course" + index.toString()}
                         segment={segment}
                         belowLayerID={
                             mode === "GHOST" ? "custom-puck-layer-2" : undefined
@@ -540,7 +540,7 @@ export default function CourseRun() {
                 ))}
                 {/* 코스에 대한 세그먼트 렌더링 */}
                 {courseSegment && currentRunType === "COURSE" && (
-                    <RunningLine index="course" segment={courseSegment} />
+                    <RunningLine id="course" segment={courseSegment} />
                 )}
                 {/* 고스트에 대한 세그먼트 렌더링 */}
                 {mode === "GHOST" &&
@@ -548,7 +548,7 @@ export default function CourseRun() {
                     ghostSegments.map((segment, index) => (
                         <RunningLine
                             key={index.toString()}
-                            index={"ghost" + index}
+                            id={"ghost" + index.toString()}
                             segment={segment}
                             belowLayerID="custom-puck-layer-2"
                             color="red"

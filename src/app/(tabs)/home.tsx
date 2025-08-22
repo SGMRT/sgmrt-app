@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
 export default function Home() {
     const router = useRouter();
     const [type, setType] = useState<"all" | "my">("all");
-
     useEffect(() => {
         setTelemetryEnabled(false);
     }, []);
