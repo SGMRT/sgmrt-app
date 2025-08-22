@@ -35,7 +35,6 @@ export function useSensors(enabled: boolean) {
             if (!already) {
                 await Location.startLocationUpdatesAsync(LOCATION_TASK, {
                     accuracy: Location.Accuracy.BestForNavigation,
-                    deferredUpdatesInterval: 3000,
                     activityType: Location.ActivityType.Fitness,
                     pausesUpdatesAutomatically: false,
                     showsBackgroundLocationIndicator: true, // iOS 가시 표시

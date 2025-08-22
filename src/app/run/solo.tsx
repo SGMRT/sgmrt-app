@@ -7,12 +7,18 @@ import Countdown from "@/src/components/ui/Countdown";
 import EmptyListView from "@/src/components/ui/EmptyListView";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import SlideToAction from "@/src/components/ui/SlideToAction";
+import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
-import { selectPolylineSegments } from "@/src/features/run/state/selectors";
+import { buildUserRecordData } from "@/src/features/run/state/record";
+import {
+    selectPolylineSegments,
+    selectStatsDisplay,
+} from "@/src/features/run/state/selectors";
+import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
-import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -36,6 +42,15 @@ export default function Run() {
     const [runShotUri, setRunShotUri] = useState<string | null>(null);
 
     const { context, controls } = useRunningSession();
+
+    const hasSavedRef = useRef<boolean>(false);
+
+    const triggerCapture = useCallback(() => {
+        runShotRef.current
+            ?.capture()
+            .then((uri) => setRunShotUri(uri))
+            .catch(() => setRunShotUri(""));
+    }, []);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -82,9 +97,89 @@ export default function Run() {
         setIsFirst(false);
     }, [context.status, controls]);
 
-    const segments = useMemo(() => {
-        return selectPolylineSegments(context);
-    }, [context]);
+    const segments = useMemo(
+        () => selectPolylineSegments(context),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [context.telemetries, context.segments]
+    );
+
+    const statsForUI = useMemo(
+        () => selectStatsDisplay(context),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [
+            context.stats.totalDistanceM,
+            context.stats.avgPaceSecPerKm,
+            context.stats.currentPaceSecPerKm,
+            context.stats.currentCadenceSpm,
+            context.stats.bpm,
+            context.stats.calories,
+        ]
+    );
+
+    const requestSave = useCallback(() => {
+        if (isSaving) return;
+        if (!context.telemetries.length) {
+            Toast.show({
+                type: "info",
+                text1: "저장할 러닝 데이터가 없어요",
+                position: "bottom",
+            });
+            return;
+        }
+        hasSavedRef.current = false;
+        setSavingTelemetries(context.telemetries);
+        setIsSaving(true);
+        controls.stop();
+    }, [isSaving, context.telemetries, controls]);
+
+    // URI가 생기는 순간 저장 수행 (한 번만)
+    useEffect(() => {
+        if (!isSaving) return;
+        if (!runShotUri) return; // 아직 캡처 안 됨
+        if (hasSavedRef.current) return; // 중복 방지
+        hasSavedRef.current = true;
+
+        (async () => {
+            try {
+                const userRecordData = buildUserRecordData(context.stats);
+                const response = await saveRunning({
+                    telemetries: context.telemetries,
+                    rawData: extractRawData(context.mainTimeline),
+                    runShotUri,
+                    userDashboardData: userRecordData,
+                    runTime: Math.round(context.stats.totalTimeMs / 1000),
+                    isPublic: false,
+                });
+                router.replace({
+                    pathname: "/result/[runningId]/[courseId]/[ghostRunningId]",
+                    params: {
+                        runningId: response.runningId.toString(),
+                        courseId: "-1",
+                        ghostRunningId: "-1",
+                    },
+                });
+            } catch {
+                Toast.show({
+                    type: "info",
+                    text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
+                    position: "bottom",
+                    bottomOffset: 60,
+                });
+            } finally {
+                setIsSaving(false);
+                setRunShotUri(null);
+                setSavingTelemetries([]);
+            }
+        })();
+    }, [
+        isSaving,
+        runShotUri,
+        context.telemetries,
+        context.mainTimeline,
+        router,
+        controls,
+        context.stats,
+    ]);
 
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
@@ -92,16 +187,7 @@ export default function Run() {
                 <>
                     <LoadingLayer
                         limitDelay={3000}
-                        onDelayed={() => {
-                            runShotRef.current
-                                ?.capture()
-                                .then((uri) => {
-                                    setRunShotUri(uri);
-                                })
-                                .catch((e) => {
-                                    setRunShotUri("");
-                                });
-                        }}
+                        onDelayed={triggerCapture}
                     />
                     {savingTelemetries.length > 0 && (
                         <RunShot
@@ -113,16 +199,7 @@ export default function Run() {
                             chartPointIndex={0}
                             yKey="alt"
                             stats={[]}
-                            onMapReady={() => {
-                                runShotRef.current
-                                    ?.capture()
-                                    .then((uri) => {
-                                        setRunShotUri(uri);
-                                    })
-                                    .catch((e) => {
-                                        setRunShotUri("");
-                                    });
-                            }}
+                            onMapReady={triggerCapture}
                         />
                     )}
                 </>
@@ -151,9 +228,10 @@ export default function Run() {
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
                 {segments.map((segment, index) => (
                     <RunningLine
-                        key={index.toString()}
-                        index={index}
+                        key={segment.id ?? String(index)}
+                        id={segment.id ?? String(index)}
                         segment={segment}
+                        color={segment.isRunning ? "green" : "red"}
                     />
                 ))}
             </MapViewWrapper>
@@ -176,48 +254,7 @@ export default function Run() {
                                 fontColor="white"
                             />
                         ) : (
-                            <StatsIndicator
-                                stats={[
-                                    {
-                                        label: "거리",
-                                        value: (
-                                            context.stats.totalDistanceM / 1000
-                                        ).toFixed(2),
-                                        unit: "km",
-                                    },
-                                    {
-                                        label: "평균 페이스",
-                                        value: getFormattedPace(
-                                            context.stats.avgPaceSecPerKm ?? 0
-                                        ),
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "최근 페이스",
-                                        value: getFormattedPace(
-                                            context.stats.currentPaceSecPerKm ??
-                                                0
-                                        ),
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "케이던스",
-                                        value: context.stats.cadenceSpm ?? 0,
-                                        unit: "spm",
-                                    },
-                                    {
-                                        label: "심박수",
-                                        value: context.stats.bpm ?? 0,
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "소모 칼로리",
-                                        value: context.stats.calories ?? 0,
-                                        unit: "kcal",
-                                    },
-                                ]}
-                                color="gray20"
-                            />
+                            <StatsIndicator stats={statsForUI} color="gray20" />
                         )}
                     </View>
                 </BottomSheetView>
@@ -232,13 +269,14 @@ export default function Run() {
                     direction="right"
                 />
             ) : (
-                <SlideToAction
-                    label="재개 하기"
-                    onSlideSuccess={() => {
-                        controls.resume();
+                <SlideToDualAction
+                    onSlideLeft={requestSave}
+                    onSlideRight={() => {
+                        setIsRestarting(true);
                     }}
+                    leftLabel="기록 저장"
+                    rightLabel="이어서 뛰기"
                     color="red"
-                    direction="right"
                 />
             )}
         </View>

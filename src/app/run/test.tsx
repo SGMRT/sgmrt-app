@@ -32,8 +32,8 @@ export default function RunScreen() {
             <Text>pace(cur): {fmt(context.stats.currentPaceSecPerKm)}</Text>
             <Text>
                 cadence:{" "}
-                {context.stats.cadenceSpm
-                    ? context.stats.cadenceSpm.toFixed(0)
+                {context.stats.avgCadenceSpm
+                    ? context.stats.avgCadenceSpm.toFixed(0)
                     : "-"}{" "}
                 spm
             </Text>

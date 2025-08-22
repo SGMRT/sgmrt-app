@@ -13,14 +13,14 @@ export function buildTelemetry(
         lat: sample.latitude,
         lng: sample.longitude,
         dist: isRunning
-            ? statsAfterUpdate.totalDistanceM / 1000
+            ? Number(statsAfterUpdate.totalDistanceM.toFixed(2))
             : prev?.dist ?? 0,
         pace: isRunning
             ? statsAfterUpdate.currentPaceSecPerKm ?? prev?.pace ?? 0
             : prev?.pace ?? 0,
         alt: sample.altitude ?? prev?.alt ?? 0,
         cadence: isRunning
-            ? statsAfterUpdate.cadenceSpm ?? prev?.cadence ?? 0
+            ? statsAfterUpdate.currentCadenceSpm ?? prev?.cadence ?? 0
             : prev?.cadence ?? 0,
         bpm: prev?.bpm ?? 0,
         isRunning,

@@ -6,27 +6,31 @@ export interface RunningStats {
     totalTimeMs: number;
     totalDistanceM: number;
     avgPaceSecPerKm: number | null;
+    avgCadenceSpm: number | null;
     currentPaceSecPerKm: number | null;
-    cadenceSpm: number | null;
+    currentCadenceSpm: number | null;
     calories: number | null;
     gainM: number;
     lossM: number;
     bpm: number | null;
     last?: RawRunData;
     _window: { ts: number; dist: number; steps: number }[];
+    _totalSteps: number;
 }
 
 export const DEFAULT_STATS: RunningStats = {
     totalTimeMs: 0,
     totalDistanceM: 0,
     avgPaceSecPerKm: null,
+    avgCadenceSpm: null,
     currentPaceSecPerKm: null,
-    cadenceSpm: null,
+    currentCadenceSpm: null,
     calories: null,
     gainM: 0,
     lossM: 0,
     bpm: null,
     _window: [],
+    _totalSteps: 0,
 };
 
 const PACE_WINDOW_MS = 10_000;
@@ -61,6 +65,7 @@ export function updateStats(
     const next: RunningStats = {
         ...prev,
         _window: zero ? [] : [...prev._window],
+        _totalSteps: prev._totalSteps ?? 0,
     };
 
     const last = prev.last;
@@ -87,6 +92,9 @@ export function updateStats(
         }
     }
 
+    const deltaSteps = !zero ? Math.max(0, sample.steps ?? 0) : 0;
+    next._totalSteps += deltaSteps;
+
     // --- 롤링 창 갱신(앵커/실샘플) ---
     if (zero) {
         // 재개 첫 샘플: 기여 0인 앵커만 넣음
@@ -95,7 +103,7 @@ export function updateStats(
         next._window.push({
             ts: sample.timestamp,
             dist: filteredDistM,
-            steps: sample.steps ?? 0, // Δsteps 가정
+            steps: deltaSteps,
         });
     }
 
@@ -122,7 +130,7 @@ export function updateStats(
 
     // sticky: 유효값이 아니면 이전 값을 유지
     next.currentPaceSecPerKm = rawPace ?? prev.currentPaceSecPerKm ?? null;
-    next.cadenceSpm = rawCadence ?? prev.cadenceSpm ?? null;
+    next.currentCadenceSpm = rawCadence ?? prev.currentCadenceSpm ?? null;
     next.bpm = 0;
 
     // 평균 페이스(전체)
@@ -130,6 +138,13 @@ export function updateStats(
         next.totalDistanceM,
         next.totalTimeMs / 1000
     );
+
+    // 평균 케이던스(전체)
+    const totalTimeSec = next.totalTimeMs / 1000;
+    next.avgCadenceSpm =
+        totalTimeSec > 0 && (next._totalSteps ?? 0) > 0
+            ? ((next._totalSteps ?? 0) / totalTimeSec) * 60
+            : prev.avgCadenceSpm ?? null;
 
     next.calories = getCalories({
         distance: next.totalDistanceM,

@@ -2,7 +2,6 @@ import { Logo, TouchText } from "@/assets/icons/icons";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { Barometer, Pedometer } from "expo-sensors";
-import * as Speech from "expo-speech";
 import { Alert, Image, Linking, Pressable, StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";

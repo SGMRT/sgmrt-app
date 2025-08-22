@@ -19,7 +19,7 @@ export interface RunData {
     };
 }
 
-export interface RawRunData {
+export interface RawData {
     timestamp: number;
     latitude: number;
     longitude: number;

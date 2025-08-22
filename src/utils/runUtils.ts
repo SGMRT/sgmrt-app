@@ -9,7 +9,7 @@ import {
     Telemetry,
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
-import { RawRunData, UserDashBoardData } from "../types/run";
+import { RawData, UserDashBoardData } from "../types/run";
 import { Coordinate, getDistance } from "./mapUtils";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
@@ -143,7 +143,7 @@ export function getTelemetriesWithoutLastFalse(
 
 interface SaveRunningProps {
     telemetries: Telemetry[];
-    rawData: RawRunData[];
+    rawData: RawData[];
     userDashboardData: UserDashBoardData;
     runShotUri: string | null;
     runTime: number;
