@@ -5,6 +5,11 @@ public enum RunType: String, Codable, Hashable, Sendable {
     case solo = "SOLO"
     case ghost = "GHOST"
     case course = "COURSE"
+  
+    var displayName: String {
+      let lower = rawValue.lowercased()
+      return lower.prefix(1).uppercased() + lower.dropFirst()
+    }
 }
 
 public enum MessageType: String, Codable, Hashable, Sendable {

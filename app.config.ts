@@ -22,6 +22,9 @@ const config = {
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false,
                 NSSupportsLiveActivities: true,
+                NSAppTransportSecurity: {
+                    NSAllowsArbitraryLoads: true,
+                },
             },
             config: {
                 usesNonExemptEncryption: false,
@@ -100,6 +103,7 @@ const config = {
             ],
             "@react-native-firebase/app",
             "@react-native-firebase/auth",
+            "@react-native-firebase/crashlytics",
             [
                 "expo-build-properties",
                 {
@@ -143,6 +147,19 @@ const config = {
                 },
             ],
             "expo-audio",
+            [
+                "react-native-share",
+                {
+                    ios: ["fb", "instagram", "twitter", "tiktoksharesdk"],
+                    android: [
+                        "com.facebook.katana",
+                        "com.instagram.android",
+                        "com.twitter.android",
+                        "com.zhiliaoapp.musically",
+                    ],
+                    enableBase64ShareAndroid: true,
+                },
+            ],
         ],
         experiments: {
             typedRoutes: true,

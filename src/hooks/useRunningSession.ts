@@ -12,6 +12,7 @@ import { Segment } from "../components/map/RunningLine";
 import { useAuthStore } from "../store/authState";
 import {
     LOCATION_TASK,
+    RawRunData,
     RunData,
     RunnningStatus,
     StepCount,
@@ -47,154 +48,170 @@ import {
     getCalories,
     getPace,
 } from "../utils/runUtils";
+import { track } from "@amplitude/analytics-react-native";
 
 const locationKalmanFilter = new KalmanFilter2D();
 const NOT_SET_BASE_PRESSURE = -1000;
 
-TaskManager.defineTask(
-    LOCATION_TASK,
-    async ({ data }: { data: { locations: Location.LocationObject[] } }) => {
-        const batchSize = 100;
-        const sessionId = await getCurrentSessionId();
-        if (!sessionId) return;
+try {
+    TaskManager.defineTask(
+        LOCATION_TASK,
+        async ({
+            data,
+        }: {
+            data: { locations: Location.LocationObject[] };
+        }) => {
+            const batchSize = 100;
+            const sessionId = await getCurrentSessionId();
+            if (!sessionId) return;
 
-        const runStatus = (await getCurrentRunStatus(
-            sessionId
-        )) as RunnningStatus;
-        if (!runStatus) return;
-        const runBatch = await getCurrentRunBatch(sessionId);
-        if (!runBatch) return;
+            const runStatus = (await getCurrentRunStatus(
+                sessionId
+            )) as RunnningStatus;
+            if (!runStatus) return;
+            const runBatch = await getCurrentRunBatch(sessionId);
+            if (!runBatch) return;
 
-        const previousRunData = await getCurrentRunDataOfBatch(
-            sessionId,
-            runBatch
-        );
-
-        let runDataArray = previousRunData ? JSON.parse(previousRunData) : [];
-
-        if (runBatch === "0" && runDataArray.length === 0) {
-            locationKalmanFilter.reset();
-        }
-
-        let lastRunData = runDataArray.at(-1);
-
-        if (runDataArray.length === 0) {
-            const previous = await getCurrentRunDataOfBatch(
+            const previousRunData = await getCurrentRunDataOfBatch(
                 sessionId,
-                (Number(runBatch) - 1).toString()
+                runBatch
             );
-            if (previous) {
-                lastRunData = JSON.parse(previous).at(-1);
+
+            let runDataArray = previousRunData
+                ? JSON.parse(previousRunData)
+                : [];
+
+            if (runBatch === "0" && runDataArray.length === 0) {
+                locationKalmanFilter.reset();
             }
-        }
 
-        let lastTimestamp = lastRunData?.timestamp;
-        let lastTotalStepCount = lastRunData?.totalSteps;
+            let lastRunData = runDataArray.at(-1);
 
-        const newRunData: RunData[] = [];
+            if (runDataArray.length === 0) {
+                const previous = await getCurrentRunDataOfBatch(
+                    sessionId,
+                    (Number(runBatch) - 1).toString()
+                );
+                if (previous) {
+                    lastRunData = JSON.parse(previous).at(-1);
+                }
+            }
 
-        for (const location of data.locations) {
-            const speed = location.coords.speed ?? 0;
+            let lastTimestamp = lastRunData?.timestamp;
+            let lastTotalStepCount = lastRunData?.totalSteps;
 
-            const currentTimestamp = location.timestamp;
-            const stepCount = await getClosestStepCount(
-                sessionId,
-                currentTimestamp
-            );
+            const newRunData: RunData[] = [];
 
-            const pressureAltitude = await getClosestAltitude(
-                sessionId,
-                currentTimestamp
-            );
+            for (const location of data.locations) {
+                const speed = location.coords.speed ?? 0;
 
-            let altitude = null;
+                const currentTimestamp = location.timestamp;
+                const stepCount = await getClosestStepCount(
+                    sessionId,
+                    currentTimestamp
+                );
 
-            if (pressureAltitude) {
-                // json 파싱
-                const altitudeData = await getBaseAltitude(sessionId);
+                const altitudeData = await getClosestAltitude(
+                    sessionId,
+                    currentTimestamp
+                );
 
-                let basePressureAltitude;
-                let baseAltitude;
+                const pressureAltitude = altitudeData?.altitude;
 
-                if (altitudeData) {
-                    const { pressure, altitude } = JSON.parse(altitudeData);
-                    basePressureAltitude = pressure;
-                    baseAltitude = altitude;
+                let altitude = null;
+
+                if (pressureAltitude) {
+                    // json 파싱
+                    const altitudeData = await getBaseAltitude(sessionId);
+
+                    let basePressureAltitude;
+                    let baseAltitude;
+
+                    if (altitudeData) {
+                        const { pressure, altitude } = JSON.parse(altitudeData);
+                        basePressureAltitude = pressure;
+                        baseAltitude = altitude;
+                    } else {
+                        basePressureAltitude = pressureAltitude;
+                        baseAltitude = location.coords.altitude ?? 0;
+                        await setBaseAltitude(
+                            sessionId,
+                            pressureAltitude,
+                            location.coords.altitude ?? 0
+                        );
+                    }
+
+                    const deltaAltitude =
+                        pressureAltitude - basePressureAltitude!;
+
+                    altitude = baseAltitude
+                        ? baseAltitude + deltaAltitude
+                        : location.coords.altitude ?? 0;
                 } else {
-                    basePressureAltitude = pressureAltitude;
-                    baseAltitude = location.coords.altitude ?? 0;
-                    await setBaseAltitude(
-                        sessionId,
-                        pressureAltitude,
-                        location.coords.altitude ?? 0
-                    );
+                    altitude = location.coords.altitude ?? 0;
                 }
 
-                const deltaAltitude = pressureAltitude - basePressureAltitude!;
+                const filteredLocation = locationKalmanFilter.process(
+                    location.coords.latitude,
+                    location.coords.longitude,
+                    location.coords.accuracy ?? 10,
+                    location.timestamp,
+                    speed
+                );
 
-                altitude = baseAltitude
-                    ? baseAltitude + deltaAltitude
-                    : location.coords.altitude ?? 0;
-            } else {
-                altitude = location.coords.altitude ?? 0;
+                let steps = 0;
+
+                steps = stepCount
+                    ? stepCount - (lastTotalStepCount ?? stepCount)
+                    : 0;
+
+                const totalSteps = stepCount ?? lastTotalStepCount ?? 0;
+
+                newRunData.push({
+                    timestamp: currentTimestamp,
+                    timeDiff:
+                        currentTimestamp - (lastTimestamp ?? currentTimestamp),
+                    latitude: filteredLocation.latitude,
+                    longitude: filteredLocation.longitude,
+                    altitude: Number(altitude.toFixed(2)),
+                    speed: speed,
+                    totalSteps: totalSteps,
+                    deltaSteps: steps,
+                    runStatus: runStatus,
+                    raw: {
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude,
+                        accuracy: location.coords.accuracy ?? -1,
+                        altitude: location.coords.altitude ?? -1,
+                        altitudeAccuracy:
+                            location.coords.altitudeAccuracy ?? -1,
+                        pressure: altitudeData?.pressure ?? -1,
+                    },
+                });
+
+                lastTimestamp = currentTimestamp;
+                lastTotalStepCount = totalSteps;
             }
 
-            const filteredLocation = locationKalmanFilter.process(
-                location.coords.latitude,
-                location.coords.longitude,
-                location.coords.accuracy ?? 10,
-                location.timestamp,
-                speed
+            console.log("[RUN] 러닝 데이터 수신");
+
+            runDataArray = [...runDataArray, ...newRunData];
+
+            await setCurrentRunDataToBatch(
+                sessionId,
+                runBatch,
+                JSON.stringify(runDataArray)
             );
 
-            let steps = 0;
-
-            steps = stepCount
-                ? stepCount - (lastTotalStepCount ?? stepCount)
-                : 0;
-
-            const totalSteps = stepCount ?? lastTotalStepCount ?? 0;
-
-            newRunData.push({
-                timestamp: currentTimestamp,
-                timeDiff:
-                    currentTimestamp - (lastTimestamp ?? currentTimestamp),
-                latitude: filteredLocation.latitude,
-                longitude: filteredLocation.longitude,
-                altitude: Number(altitude.toFixed(2)),
-                speed: speed,
-                totalSteps: totalSteps,
-                deltaSteps: steps,
-                runStatus: runStatus,
-                raw: {
-                    latitude: location.coords.latitude,
-                    longitude: location.coords.longitude,
-                    accuracy: location.coords.accuracy ?? -1,
-                    altitude: location.coords.altitude ?? -1,
-                    altitudeAccuracy: location.coords.altitudeAccuracy ?? -1,
-                },
-            });
-
-            lastTimestamp = currentTimestamp;
-            lastTotalStepCount = totalSteps;
+            if (runDataArray.length >= batchSize) {
+                const newRunBatch = (Number(runBatch) + 1).toString();
+                await setCurrentRunBatch(sessionId, newRunBatch);
+            }
         }
-
-        console.log("[RUN] 러닝 데이터 수신");
-
-        runDataArray = [...runDataArray, ...newRunData];
-
-        await setCurrentRunDataToBatch(
-            sessionId,
-            runBatch,
-            JSON.stringify(runDataArray)
-        );
-
-        if (runDataArray.length >= batchSize) {
-            const newRunBatch = (Number(runBatch) + 1).toString();
-            await setCurrentRunBatch(sessionId, newRunBatch);
-        }
-    }
-);
+    );
+} catch (e) {
+    console.error("[LOCATION] 태스크 등록 오류", e);
+}
 
 interface RunningSessionProps {
     restore?: boolean;
@@ -247,6 +264,8 @@ export default function useRunningSession({
 
     const courseIndex = useRef<number>(0);
     const courseRef = useRef<Telemetry[]>(course);
+
+    const rawRunData = useRef<RawRunData[]>([]);
 
     // keep latest course without re-running heavy effects
     useEffect(() => {
@@ -317,11 +336,6 @@ export default function useRunningSession({
                 console.log("[SESSION] 러닝 유형", type);
                 setSessionId(newSessionId);
 
-                if (await TaskManager.isTaskRegisteredAsync(LOCATION_TASK)) {
-                    console.log("[SESSION] 기존 태스크 삭제");
-                    TaskManager.unregisterTaskAsync(LOCATION_TASK);
-                }
-
                 await LiveActivities.startActivity(
                     type as RunType,
                     newSessionId,
@@ -386,7 +400,6 @@ export default function useRunningSession({
 
                 return () => {
                     Location.stopLocationUpdatesAsync(LOCATION_TASK);
-                    TaskManager.unregisterTaskAsync(LOCATION_TASK);
                     stepCountSubscription.remove();
                     relativeAltitudeSubscription.remove();
                     LiveActivities.endActivity();
@@ -415,6 +428,19 @@ export default function useRunningSession({
 
             const mergedData = mergeRunData(runData.current, batchData);
             newRunData = getOnlyNewData(batchData, runData.current);
+
+            rawRunData.current.push(
+                ...newRunData.map((data) => ({
+                    timestamp: data.timestamp,
+                    latitude: data.raw.latitude,
+                    longitude: data.raw.longitude,
+                    altitude: data.raw.altitude ?? -1,
+                    speed: data.speed ?? -1,
+                    accuracy: data.raw.accuracy ?? -1,
+                    altitudeAccuracy: data.raw.altitudeAccuracy ?? -1,
+                    pressure: data.raw.pressure ?? -1,
+                }))
+            );
 
             newRunData.forEach((data) => {
                 if (
@@ -804,5 +830,6 @@ export default function useRunningSession({
         runTime: elapsedTime.current,
         runUserDashboardData: runUserDashboardData.current,
         courseIndex: courseIndex.current,
+        rawRunData: rawRunData.current,
     };
 }

@@ -105,7 +105,7 @@ export default function BottomCourseInfoModal({
 
     const onClickGhostRank = () => {
         bottomSheetRef.current?.dismiss();
-        router.push(`/course/rank/${courseId}`);
+        router.push(`/course/${courseId}/rank`);
     };
 
     return (
@@ -216,7 +216,7 @@ export const GhostInfoSection = ({
                         avatar={ghost.runnerProfileUrl}
                         time={getRunTime(ghost.duration, "MM:SS")}
                         pace={getFormattedPace(ghost.averagePace)}
-                        cadence={ghost.cadence.toString() + " spm"}
+                        cadence={ghost.cadence.toString()}
                         ghostId={ghost.runningId.toString()}
                         isGhostSelected={selectedGhostId === ghost.runningId}
                         onPress={() => {

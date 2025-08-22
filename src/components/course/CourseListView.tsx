@@ -1,3 +1,4 @@
+import { DefaultLogo } from "@/assets/icons/icons";
 import { CourseResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getDistance } from "@/src/utils/mapUtils";
@@ -5,7 +6,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Dimensions, FlatList, View } from "react-native";
+import { Dimensions, FlatList, Image, View } from "react-native";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
@@ -34,6 +35,7 @@ const CourseListView = ({
     const [editMode, setEditMode] = useState(false);
     const [filter, setFilter] = useState<"near" | "trend">("near");
     const [sortedCourses, setSortedCourses] = useState<CourseResponse[]>([]);
+
     const router = useRouter();
 
     useEffect(() => {
@@ -153,6 +155,7 @@ const CourseListView = ({
                                 userCount={item.runnersCount}
                                 index={index}
                                 maxLength={courses.length}
+                                imageUrl={item.thumbnailUrl}
                                 isSelected={selectedCourse?.id === item.id}
                                 onClickCourse={() => onClickCourse(item)}
                                 onClickCourseInfo={() =>
@@ -190,6 +193,7 @@ export const CourseGalleryItem = ({
     userCount,
     index,
     maxLength,
+    imageUrl,
     isSelected,
     onClickCourse,
     onClickCourseInfo,
@@ -201,6 +205,7 @@ export const CourseGalleryItem = ({
     index: number;
     maxLength: number;
     isSelected: boolean;
+    imageUrl: string;
     onClickCourse: () => void;
     onClickCourseInfo: () => void;
 }) => {
@@ -223,9 +228,14 @@ export const CourseGalleryItem = ({
                     justifyContent: "center",
                 }}
             >
-                <Typography variant="headline" color="white">
-                    준비 중
-                </Typography>
+                <Image
+                    source={imageUrl ? { uri: imageUrl } : DefaultLogo}
+                    style={{
+                        width: 120,
+                        height: 120,
+                        borderRadius: 10,
+                    }}
+                />
             </View>
             {/* 코스 정보 */}
             <View

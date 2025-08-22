@@ -190,7 +190,7 @@ export const CoursesWithFilter = ({
                                     }}
                                     onClickCourseInfo={() => {
                                         router.push(
-                                            `/course/rank/${course.id}`
+                                            `/course/${course.id}/detail`
                                         );
                                     }}
                                     isSelected={
@@ -206,6 +206,7 @@ export const CoursesWithFilter = ({
                                     index={index}
                                     userCount={course.totalRunsCount}
                                     maxLength={item.data.length}
+                                    imageUrl={course.thumbnailUrl}
                                     isSelected={
                                         course.id === selectedCourse?.id
                                     }
@@ -215,7 +216,7 @@ export const CoursesWithFilter = ({
                                     onClickCourseInfo={() => {
                                         console.log(course.id);
                                         router.push(
-                                            `/course/rank/${course.id}`
+                                            `/course/${course.id}/rank`
                                         );
                                     }}
                                 />

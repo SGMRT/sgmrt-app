@@ -10,13 +10,16 @@ import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import { pickImage } from "@/src/utils/pickImage";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { getAuth } from "@react-native-firebase/auth";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
+    Alert,
     Image,
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     SafeAreaView,
@@ -58,6 +61,7 @@ export default function Profile() {
             setImage(image);
         }
     };
+    const [isRegistering, setIsRegistering] = useState(false);
 
     // 특수문자 검사 regex
     const specialCharacterRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
@@ -78,6 +82,9 @@ export default function Profile() {
             (numberOnlyRegex.test(weight.toString()) && weight > 0));
 
     const handleSubmit = async () => {
+        if (isRegistering) return;
+        setIsRegistering(true);
+        Keyboard.dismiss();
         const data = getSignupData();
         data.agreement.agreedAt = new Date().toISOString();
         const idToken = await getAuth().currentUser?.getIdToken();
@@ -121,6 +128,14 @@ export default function Profile() {
                 setRes(res);
                 bottomSheetRef.current?.present();
                 confettiRef.current?.restart();
+                amplitude.track("Sign Up", {
+                    provider: "email",
+                    nickname: nickname,
+                    gender: gender,
+                    age: age,
+                    height: height,
+                    weight: weight,
+                });
             })
             .catch((err) => {
                 console.log(err);
@@ -129,6 +144,7 @@ export default function Profile() {
                     text1: "회원가입 오류. 다시 시도해주세요.",
                     position: "bottom",
                 });
+                setIsRegistering(false);
             });
     };
 
@@ -255,7 +271,22 @@ export default function Profile() {
                     isActive={isActive}
                     canPress={isActive}
                     onPress={() => {
-                        handleSubmit();
+                        Alert.alert(
+                            "회원가입",
+                            "회원가입을 진행하시겠습니까?",
+                            [
+                                {
+                                    text: "확인",
+                                    onPress: () => {
+                                        handleSubmit();
+                                    },
+                                },
+                                {
+                                    text: "취소",
+                                    style: "cancel",
+                                },
+                            ]
+                        );
                     }}
                     title="가입완료"
                 />
@@ -276,7 +307,7 @@ export default function Profile() {
                 autoplay={false}
             />
 
-            <BottomModal bottomSheetRef={bottomSheetRef}>
+            <BottomModal bottomSheetRef={bottomSheetRef} canClose={false}>
                 <View
                     style={{
                         alignItems: "center",

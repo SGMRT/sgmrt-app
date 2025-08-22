@@ -1,7 +1,10 @@
+import { Telemetry } from "./run";
+
 export interface CoursesRequest {
     lat: number;
     lng: number;
     radiusM?: number;
+    sort?: "DISTANCE" | "POPULARITY";
     ownerUuid?: string;
     minDistance?: number;
     maxDistance?: number;
@@ -14,7 +17,8 @@ export interface CourseResponse {
     name: string;
     startLat: number;
     startLng: number;
-    pathData: PathData[];
+    routeUrl: string;
+    thumbnailUrl: string;
     distance: number;
     elevationGain: number;
     elevationLoss: number;
@@ -25,18 +29,29 @@ export interface CourseResponse {
         }
     ];
     runnersCount: number;
+    telemetries: Telemetry[];
 }
 
 export interface CourseDetailResponse {
     id: number;
     name: string;
+    telemetryUrl: string;
+    telemetries: Telemetry[];
     distance: number;
+    elevationAverage: number;
     elevationGain: number;
     elevationLoss: number;
+    createdAt: number;
     averageCompletionTime: number;
     averageFinisherPace: number;
     averageFinisherCadence: number;
+    averageCaloriesBurned: number;
     lowestFinisherPace: number;
+    uniqueRunnersCount: number;
+    totalRunsCount: number;
+    myLowestPace: number;
+    myAveragePace: number;
+    myHighestPace: number;
 }
 
 export interface PathData {
@@ -45,6 +60,7 @@ export interface PathData {
 }
 
 export interface HistoryResponse {
+    rank?: number;
     runnerUuid: string;
     runnerProfileUrl: string;
     runnerNickname: string;
@@ -58,27 +74,27 @@ export interface HistoryResponse {
     startedAt: string;
 }
 
-export interface UserRankResponse {
-    rank: number;
-    runningId: number;
-    runningName: string;
-    duration: number;
-    bpm: number;
-    averagePace: number;
-    runnerProfileUrl: string;
-}
+// export interface UserRankResponse {
+//     rank: number;
+//     runningId: number;
+//     runningName: string;
+//     duration: number;
+//     bpm: number;
+//     averagePace: number;
+//     runnerProfileUrl: string;
+// }
 
 export interface UserCourseInfo {
     id: number;
     name: string;
     createdAt: number;
-    uniqueRunnersCount: number;
     totalRunsCount: number;
     distance: number;
     averageCompletionTime: number;
     averageFinisherPace: number;
     averageFinisherCadence: number;
-    isPublic: true;
+    isPublic: boolean;
+    thumbnailUrl: string;
 }
 
 export type Pageable = {

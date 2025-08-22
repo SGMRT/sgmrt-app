@@ -13,7 +13,6 @@ import { useEffect, useState } from "react";
 export default function Home() {
     const router = useRouter();
     const [type, setType] = useState<"all" | "my">("all");
-
     useEffect(() => {
         setTelemetryEnabled(false);
     }, []);
@@ -27,7 +26,7 @@ export default function Home() {
             <HomeMap courseType={type} />
             <TabBar />
             <SlideToAction
-                label="밀어서 러닝시작"
+                label="밀어서 러닝 시작"
                 onSlideSuccess={() => {
                     router.push("/run/solo");
                 }}

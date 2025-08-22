@@ -28,6 +28,14 @@ export default function Stats() {
         null
     );
 
+    const handleCourseSelect = (course: RunResponse) => {
+        if (selectedTab === "SOLO") {
+            setSelectedCourse(course);
+        } else {
+            setSelectedGhost(course);
+        }
+    };
+
     const handleHistoryClickWithDelete = (history: RunResponse) => {
         if (isDeleteMode) {
             setSelectedDeleteItems((prev) => {
@@ -39,7 +47,7 @@ export default function Stats() {
                 return [...prev, history];
             });
         } else {
-            setSelectedCourse(history);
+            handleCourseSelect(history);
         }
     };
 
@@ -111,7 +119,9 @@ export default function Stats() {
                 <UserHistory
                     mode={selectedTab}
                     isDeleteMode={isDeleteMode}
-                    selectedItem={selectedCourse}
+                    selectedItem={
+                        selectedTab === "SOLO" ? selectedCourse : selectedGhost
+                    }
                     selectedDeleteItem={selectedDeleteItems}
                     onClickItem={handleHistoryClickWithDelete}
                     shouldRefresh={shouldRefresh}
@@ -122,12 +132,9 @@ export default function Stats() {
                 label={
                     isDeleteMode
                         ? "선택한 기록들 삭제 하기"
-                        : selectedTab === "SOLO"
-                        ? selectedCourse?.courseInfo.id
-                            ? "이 코스로 러닝 시작"
-                            : "밀어서 러닝 시작"
-                        : selectedGhost?.ghostRunningId
-                        ? "고스트와 러닝 시작"
+                        : (selectedTab === "SOLO" && selectedCourse) ||
+                          (selectedTab === "GHOST" && selectedGhost)
+                        ? "이 코스로 러닝 시작"
                         : "밀어서 러닝 시작"
                 }
                 onSlideSuccess={() => {
@@ -135,24 +142,21 @@ export default function Stats() {
                         onDeleteItems();
                         return;
                     }
-                    if (selectedTab === "SOLO") {
-                        if (selectedCourse?.courseInfo.id) {
-                            router.push(
-                                `/run/${selectedCourse!.courseInfo.id}/-1`
-                            );
-                        } else {
-                            router.push("/run/solo");
-                        }
+
+                    if (
+                        selectedTab === "SOLO" &&
+                        selectedCourse?.courseInfo?.id
+                    ) {
+                        router.push(
+                            `/run/${selectedCourse!.courseInfo!.id}/-1`
+                        );
+                    } else if (
+                        selectedTab === "GHOST" &&
+                        selectedGhost?.courseInfo?.id
+                    ) {
+                        router.push(`/run/${selectedGhost!.courseInfo!.id}/-1`);
                     } else {
-                        if (selectedGhost?.ghostRunningId) {
-                            router.push(
-                                `/run/${selectedGhost!.courseInfo.id}/${
-                                    selectedGhost!.ghostRunningId
-                                }`
-                            );
-                        } else {
-                            router.push("/run/solo");
-                        }
+                        router.push("/run/solo");
                     }
                 }}
                 color="green"
@@ -177,10 +181,32 @@ const UserHistory = ({
     onClickItem: (history: RunResponse) => void;
     shouldRefresh: boolean;
 }) => {
-    const { data, isLoading, isError, fetchNextPage, hasNextPage } = useGetRuns(
-        mode,
-        shouldRefresh
+    // 검색 기간과 필터 타입을 상위에서 관리하여 서버 요청에 반영
+    const [searchPeriod, setSearchPeriod] = useState<{
+        startDate: Date;
+        endDate: Date;
+    }>({
+        startDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+        endDate: new Date(),
+    });
+
+    const [selectedFilter, setSelectedFilter] = useState<"date" | "course">(
+        "date"
     );
+
+    const startEpoch = searchPeriod.startDate.getTime();
+    const endEpoch = searchPeriod.endDate.getTime();
+    const filteredBy: "DATE" | "COURSE" =
+        selectedFilter === "date" ? "DATE" : "COURSE";
+
+    const {
+        data,
+        isLoading,
+        isError,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useGetRuns(startEpoch, endEpoch, filteredBy, mode, shouldRefresh);
 
     if (isLoading) {
         return <></>;
@@ -190,43 +216,99 @@ const UserHistory = ({
         return <Typography>에러가 발생했습니다.</Typography>;
     }
 
+    const flatPages: RunResponse[] = data ?? [];
+
     return (
-        data && (
-            <HistoryWithFilter
-                mode={mode}
-                data={data.pages.flat() as RunResponse[]}
-                isDeleteMode={isDeleteMode}
-                selectedItem={selectedItem}
-                selectedDeleteItem={selectedDeleteItem}
-                onClickItem={onClickItem}
-                hasNextPage={hasNextPage}
-                fetchNextPage={fetchNextPage}
-            />
-        )
+        <HistoryWithFilter
+            mode={mode}
+            data={flatPages}
+            isDeleteMode={isDeleteMode}
+            selectedItem={selectedItem}
+            selectedDeleteItem={selectedDeleteItem}
+            onClickItem={onClickItem}
+            hasNextPage={hasNextPage}
+            fetchNextPage={fetchNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            searchPeriod={searchPeriod}
+            setSearchPeriod={setSearchPeriod}
+            selectedFilter={selectedFilter}
+            setSelectedFilter={setSelectedFilter}
+        />
     );
 };
 
-function useGetRuns(runningMode: "SOLO" | "GHOST", shouldRefresh: boolean) {
-    return useInfiniteQuery({
-        queryKey: ["runs", runningMode, shouldRefresh],
+type RunsPageParam = {
+    cursorRunningId: number | null;
+    cursorStartedAt: number | null;
+    cursorCourseName: string | null;
+};
+
+function useGetRuns(
+    startEpoch: number,
+    endEpoch: number,
+    filteredBy: "DATE" | "COURSE",
+    runningMode: "SOLO" | "GHOST",
+    shouldRefresh: boolean
+) {
+    return useInfiniteQuery<
+        RunResponse[],
+        Error,
+        RunResponse[],
+        (string | number | boolean)[],
+        RunsPageParam
+    >({
+        queryKey: [
+            "runs",
+            startEpoch,
+            endEpoch,
+            filteredBy,
+            runningMode,
+            shouldRefresh,
+        ],
         queryFn: async ({ pageParam }) => {
             const request = {
+                filteredBy,
                 runningMode,
+                startEpoch,
+                endEpoch,
                 ...pageParam,
             };
-            return getRuns(request);
+            return await getRuns(request);
         },
-        getNextPageParam: (lastPage) => {
+        select: (data) =>
+            data.pages
+                .flat()
+                .filter(
+                    (item, index, self) =>
+                        index ===
+                        self.findIndex((t) => t.runningId === item.runningId)
+                ),
+        getNextPageParam: (lastPage, allPages) => {
             if (!lastPage.length) return undefined;
             const lastItem = lastPage[lastPage.length - 1];
+
+            // 직전 페이지의 마지막 아이템과 동일하면 더 이상 다음 페이지 없음 처리
+            const prevPage = allPages?.[allPages.length - 2] as
+                | RunResponse[]
+                | undefined;
+            const prevLastItem = prevPage?.[prevPage.length - 1];
+            if (prevLastItem && prevLastItem.runningId === lastItem.runningId) {
+                return undefined;
+            }
+
             return {
-                cursorStartedAt: lastItem.startedAt,
                 cursorRunningId: lastItem.runningId,
+                cursorStartedAt: lastItem.startedAt,
+                cursorCourseName:
+                    filteredBy === "COURSE"
+                        ? lastItem.courseInfo?.name ?? null
+                        : null,
             };
         },
         initialPageParam: {
-            cursorStartedAt: null,
             cursorRunningId: null,
+            cursorStartedAt: null,
+            cursorCourseName: null,
         },
     });
 }

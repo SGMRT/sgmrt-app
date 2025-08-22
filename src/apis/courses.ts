@@ -1,14 +1,16 @@
 import { useAuthStore } from "../store/authState";
+import { getDataFromS3, parseJsonl } from "./common";
 import server from "./instance";
 import {
+    CourseDetailResponse,
     CourseResponse,
     CoursesRequest,
     HistoryResponse,
     Pageable,
     UserCourseInfo,
-    UserRankResponse,
 } from "./types/course";
-import { getUpdateAttrs } from "./utils";
+import { Telemetry } from "./types/run";
+import { attachTelemetries, getUpdateAttrs } from "./utils";
 
 export async function deleteCourse(courseId: number) {
     try {
@@ -46,18 +48,37 @@ export async function getCourses(
     request: CoursesRequest
 ): Promise<CourseResponse[]> {
     try {
-        const response = await server.get("/courses", { params: request });
-        return response.data;
+        const response = await server.get("/courses", {
+            params: request,
+        });
+        const responseData = response.data as CourseResponse[];
+        const filteredResponseData = responseData.filter(
+            (course) => course.routeUrl !== null
+        );
+        return await attachTelemetries(filteredResponseData);
     } catch (error) {
         console.error(error);
         throw error;
     }
 }
 
-export async function getCourse(courseId: number) {
+export async function getCourse(
+    courseId: number
+): Promise<CourseDetailResponse> {
     try {
         const response = await server.get(`/courses/${courseId}`);
-        return response.data;
+        const telemetryUrl: string | undefined = response.data?.telemetryUrl;
+
+        let telemetries: Telemetry[] = [];
+        if (telemetryUrl) {
+            const text = await getDataFromS3(telemetryUrl);
+            if (text) {
+                const parsed = await parseJsonl(text);
+                telemetries = (parsed as unknown as Telemetry[]) ?? [];
+            }
+        }
+
+        return { ...response.data, telemetries };
     } catch (error) {
         console.error(error);
         throw error;
@@ -70,7 +91,7 @@ export async function getCourseTopRanking({
 }: {
     courseId: number;
     count: number;
-}) {
+}): Promise<HistoryResponse[]> {
     try {
         const response = await server.get(`/courses/${courseId}/top-ranking`, {
             params: { count },
@@ -88,7 +109,7 @@ export async function getCourseUserRank({
 }: {
     courseId: number;
     memberUuid: string;
-}): Promise<UserRankResponse> {
+}): Promise<HistoryResponse> {
     try {
         const response = await server.get(`/courses/${courseId}/ranking`, {
             params: { memberUuid },

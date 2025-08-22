@@ -1,22 +1,29 @@
+import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
+import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
 import Countdown from "@/src/components/ui/Countdown";
 import EmptyListView from "@/src/components/ui/EmptyListView";
+import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import useRunningSession from "@/src/hooks/useRunningSession";
-import colors from "@/src/theme/colors";
+import { useNow } from "@/src/features/run/hooks/useNow";
+import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
+import { buildUserRecordData } from "@/src/features/run/state/record";
 import {
-    getFormattedPace,
-    getRunTime,
-    saveRunning,
-} from "@/src/utils/runUtils";
+    selectPolylineSegments,
+    selectStatsDisplay,
+} from "@/src/features/run/state/selectors";
+import { getElapsedMs } from "@/src/features/run/state/time";
+import { extractRawData } from "@/src/features/run/utils/extractRawData";
+import colors from "@/src/theme/colors";
+import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BackHandler, StyleSheet, View } from "react-native";
 import Animated, {
     FadeIn,
@@ -31,15 +38,21 @@ export default function Run() {
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const [isFirst, setIsFirst] = useState<boolean>(true);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
+    const runShotRef = useRef<RunShareShotHandle>(null);
+    const [runShotUri, setRunShotUri] = useState<string | null>(null);
 
-    const {
-        runSegments,
-        runTelemetries,
-        updateRunStatus,
-        runStatus,
-        runTime,
-        runUserDashboardData,
-    } = useRunningSession({});
+    const { context, controls } = useRunningSession();
+
+    const hasSavedRef = useRef<boolean>(false);
+
+    const triggerCapture = useCallback(() => {
+        runShotRef.current
+            ?.capture()
+            .then((uri) => setRunShotUri(uri))
+            .catch(() => setRunShotUri(""));
+    }, []);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -51,14 +64,6 @@ export default function Run() {
 
         return () => backHandler.remove();
     }, []);
-
-    const onCompleteRestart = async () => {
-        if (isRestarting) {
-            setIsRestarting(false);
-            await updateRunStatus("start_running");
-            setIsFirst(false);
-        }
-    };
 
     useEffect(() => {
         if (isRestarting) {
@@ -80,8 +85,139 @@ export default function Run() {
         };
     });
 
+    const onCountdownComplete = useCallback(() => {
+        if (context.status === "IDLE") {
+            controls.start("SOLO");
+        } else if (context.status === "COMPLETION_PENDING") {
+            controls.extend();
+        } else if (context.status === "PAUSED_USER") {
+            controls.resume();
+        } else if (context.status === "PAUSED_OFFCOURSE") {
+            controls.oncourse();
+        }
+        setIsRestarting(false);
+        setIsFirst(false);
+    }, [context.status, controls]);
+
+    const segments = useMemo(
+        () => selectPolylineSegments(context),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [context.telemetries, context.segments]
+    );
+
+    const statsForUI = useMemo(
+        () => selectStatsDisplay(context),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [
+            context.stats.totalDistanceM,
+            context.stats.avgPaceSecPerKm,
+            context.stats.currentPaceSecPerKm,
+            context.stats.currentCadenceSpm,
+            context.stats.bpm,
+            context.stats.calories,
+        ]
+    );
+
+    const requestSave = useCallback(() => {
+        if (isSaving) return;
+        if (!context.telemetries.length) {
+            Toast.show({
+                type: "info",
+                text1: "저장할 러닝 데이터가 없어요",
+                position: "bottom",
+            });
+            return;
+        }
+        hasSavedRef.current = false;
+        setSavingTelemetries(context.telemetries);
+        setIsSaving(true);
+        controls.stop();
+    }, [isSaving, context.telemetries, controls]);
+
+    // URI가 생기는 순간 저장 수행 (한 번만)
+    useEffect(() => {
+        if (!isSaving) return;
+        if (!runShotUri) return; // 아직 캡처 안 됨
+        if (hasSavedRef.current) return; // 중복 방지
+        hasSavedRef.current = true;
+
+        (async () => {
+            try {
+                const userRecordData = buildUserRecordData(context.stats);
+                const response = await saveRunning({
+                    telemetries: context.telemetries,
+                    rawData: extractRawData(context.mainTimeline),
+                    runShotUri,
+                    userDashboardData: userRecordData,
+                    runTime: Math.round(context.stats.totalTimeMs / 1000),
+                    isPublic: false,
+                });
+                router.replace({
+                    pathname: "/result/[runningId]/[courseId]/[ghostRunningId]",
+                    params: {
+                        runningId: response.runningId.toString(),
+                        courseId: "-1",
+                        ghostRunningId: "-1",
+                    },
+                });
+            } catch {
+                Toast.show({
+                    type: "info",
+                    text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
+                    position: "bottom",
+                    bottomOffset: 60,
+                });
+            } finally {
+                setIsSaving(false);
+                setRunShotUri(null);
+                setSavingTelemetries([]);
+            }
+        })();
+    }, [
+        isSaving,
+        runShotUri,
+        context.telemetries,
+        context.mainTimeline,
+        router,
+        controls,
+        context.stats,
+    ]);
+
+    const now = useNow(
+        context.status === "RUNNING" ||
+            context.status === "RUNNING_EXTENDED" ||
+            context.status === "PAUSED_USER" ||
+            context.status === "PAUSED_OFFCOURSE"
+    );
+    const elapsedMs = getElapsedMs(
+        context.liveActivity.startedAtMs ?? 0,
+        context.liveActivity.pausedAtMs ?? null,
+        now
+    );
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
+            {isSaving && (
+                <>
+                    <LoadingLayer
+                        limitDelay={3000}
+                        onDelayed={triggerCapture}
+                    />
+                    {savingTelemetries.length > 0 && (
+                        <RunShot
+                            ref={runShotRef}
+                            fileName={"runImage.jpg"}
+                            telemetries={savingTelemetries}
+                            isChartActive
+                            showLogo={false}
+                            chartPointIndex={0}
+                            yKey="alt"
+                            stats={[]}
+                            onMapReady={triggerCapture}
+                        />
+                    )}
+                </>
+            )}
             <TopBlurView>
                 <WeatherInfo />
                 {isRestarting ? (
@@ -89,23 +225,24 @@ export default function Run() {
                         count={3}
                         color={colors.primary}
                         size={60}
-                        onComplete={onCompleteRestart}
+                        onComplete={onCountdownComplete}
                     />
                 ) : (
                     <Animated.Text
                         style={[styles.timeText, { color: colors.white }]}
                         entering={FadeIn.duration(1000)}
                     >
-                        {getRunTime(runTime, "MM:SS")}
+                        {getRunTime(Math.round(elapsedMs / 1000), "MM:SS")}
                     </Animated.Text>
                 )}
             </TopBlurView>
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {runSegments.map((segment, index) => (
+                {segments.map((segment, index) => (
                     <RunningLine
-                        key={index.toString()}
-                        index={index}
+                        key={segment.id ?? String(index)}
+                        id={segment.id ?? String(index)}
                         segment={segment}
+                        color={segment.isRunning ? "green" : "red"}
                     />
                 ))}
             </MapViewWrapper>
@@ -128,84 +265,29 @@ export default function Run() {
                                 fontColor="white"
                             />
                         ) : (
-                            <StatsIndicator
-                                stats={[
-                                    {
-                                        label: "거리",
-                                        value: (
-                                            runUserDashboardData.totalDistance /
-                                            1000
-                                        ).toFixed(2),
-                                        unit: "km",
-                                    },
-                                    {
-                                        label: "평균 페이스",
-                                        value: getFormattedPace(
-                                            runUserDashboardData.averagePace
-                                        ),
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "최근 페이스",
-                                        value: getFormattedPace(
-                                            runUserDashboardData.recentPointsPace
-                                        ),
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "케이던스",
-                                        value: runUserDashboardData.averageCadence,
-                                        unit: "spm",
-                                    },
-                                    {
-                                        label: "심박수",
-                                        value: runUserDashboardData.bpm,
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "소모 칼로리",
-                                        value: runUserDashboardData.totalCalories,
-                                        unit: "kcal",
-                                    },
-                                ]}
-                                color="gray20"
-                            />
+                            <StatsIndicator stats={statsForUI} color="gray20" />
                         )}
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {runStatus === "start_running" || runStatus === "before_running" ? (
+            {context.status === "RUNNING" ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
-                    onSlideSuccess={async () => {
-                        if (runStatus === "start_running") {
-                            await updateRunStatus("pause_running");
-                        } else {
-                            router.back();
-                        }
+                    onSlideSuccess={() => {
+                        controls.pauseUser();
                     }}
                     color="red"
                     direction="right"
-                    disabled={isRestarting}
                 />
             ) : (
                 <SlideToDualAction
-                    onSlideLeft={async () => {
-                        const response = await saveRunning({
-                            telemetries: runTelemetries,
-                            userDashboardData: runUserDashboardData,
-                            runTime,
-                            isPublic: true,
-                        });
-                        router.replace(`/result/${response.runningId}/-1/-1`);
-                        console.log("saveRunning");
-                    }}
+                    onSlideLeft={requestSave}
                     onSlideRight={() => {
                         setIsRestarting(true);
                     }}
                     leftLabel="기록 저장"
                     rightLabel="이어서 뛰기"
-                    disabled={isRestarting}
+                    color="red"
                 />
             )}
         </View>

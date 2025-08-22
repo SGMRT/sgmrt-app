@@ -27,9 +27,9 @@ export default memo(function CourseLayer({
                     },
                     geometry: {
                         type: "LineString",
-                        coordinates: course.pathData.map((path) => [
-                            path.lng,
-                            path.lat,
+                        coordinates: course.telemetries.map((telemetry) => [
+                            telemetry.lng,
+                            telemetry.lat,
                         ]),
                     },
                 }}
@@ -50,8 +50,10 @@ export default memo(function CourseLayer({
                     geometry: {
                         type: "Point",
                         coordinates: [
-                            course.pathData[course.pathData.length - 1].lng,
-                            course.pathData[course.pathData.length - 1].lat,
+                            course.telemetries[course.telemetries.length - 1]
+                                .lng,
+                            course.telemetries[course.telemetries.length - 1]
+                                .lat,
                         ],
                     },
                     properties: {},

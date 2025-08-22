@@ -1,5 +1,4 @@
 import { useLocationInfoStore } from "@/src/store/locationInfo";
-import { getDistance } from "@/src/utils/mapUtils";
 import axios from "axios";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useState } from "react";
@@ -25,12 +24,13 @@ export default function WeatherInfo() {
             if (
                 lastUpdated &&
                 coords &&
-                new Date(lastUpdated).getTime() + 1000 * 60 * 60 > Date.now() &&
-                getDistance(coords, { lng: longitude, lat: latitude }) < 5000
+                new Date(lastUpdated).getTime() + 3000 * 60 * 60 > Date.now()
             ) {
                 setIsLoading(false);
                 return;
             }
+
+            console.log("기상 정보 요청");
 
             const [address, temperature] = await Promise.all([
                 Location.reverseGeocodeAsync({

@@ -15,8 +15,21 @@ export interface RunData {
         accuracy: number;
         altitude: number;
         altitudeAccuracy: number;
+        pressure: number;
     };
 }
+
+export interface RawData {
+    timestamp: number;
+    latitude: number;
+    longitude: number;
+    altitude: number;
+    speed: number;
+    accuracy: number;
+    altitudeAccuracy: number;
+    pressure: number;
+}
+
 export type RunnningStatus =
     | "before_running"
     | "ready_course_running"

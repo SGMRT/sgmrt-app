@@ -26,6 +26,7 @@ type PatchUserInfoRequest = {
 type PatchUserSettingsRequest = {
     pushAlarmEnabled?: boolean;
     vibrationEnabled?: boolean;
+    voiceGuidanceEnabled?: boolean;
 };
 
 type GetUserInfoResponse = {
@@ -37,6 +38,7 @@ type GetUserInfoResponse = {
     height: number | null;
     pushAlarmEnabled: boolean;
     vibrationEnabled: boolean;
+    voiceGuidanceEnabled: boolean;
 };
 
 export type {

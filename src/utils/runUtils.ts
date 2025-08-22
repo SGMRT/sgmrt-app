@@ -1,5 +1,4 @@
-import LiveActivities from "@/modules/expo-live-activity";
-import * as Location from "expo-location";
+import * as FileSystem from "expo-file-system";
 import Toast from "react-native-toast-message";
 import { postCourseRun, postRun } from "../apis";
 import {
@@ -10,7 +9,7 @@ import {
     Telemetry,
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
-import { LOCATION_TASK, UserDashBoardData } from "../types/run";
+import { RawData, UserDashBoardData } from "../types/run";
 import { Coordinate, getDistance } from "./mapUtils";
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
@@ -132,7 +131,9 @@ function telemetriesToSegment(
     ];
 }
 
-function getTelemetriesWithoutLastFalse(telemetries: Telemetry[]): Telemetry[] {
+export function getTelemetriesWithoutLastFalse(
+    telemetries: Telemetry[]
+): Telemetry[] {
     const lastTrueIndex = telemetries.findLastIndex(
         (telemetry) => telemetry.isRunning
     );
@@ -142,7 +143,9 @@ function getTelemetriesWithoutLastFalse(telemetries: Telemetry[]): Telemetry[] {
 
 interface SaveRunningProps {
     telemetries: Telemetry[];
+    rawData: RawData[];
     userDashboardData: UserDashBoardData;
+    runShotUri: string | null;
     runTime: number;
     isPublic: boolean;
     ghostRunningId?: number | null;
@@ -151,7 +154,9 @@ interface SaveRunningProps {
 
 export async function saveRunning({
     telemetries,
+    rawData,
     userDashboardData,
+    runShotUri,
     runTime,
     isPublic,
     ghostRunningId,
@@ -173,31 +178,20 @@ export async function saveRunning({
         return;
     }
 
-    if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)) {
-        await Location.stopLocationUpdatesAsync(LOCATION_TASK);
-    }
-    if (LiveActivities.isActivityInProgress()) {
-        LiveActivities.endActivity();
-    }
-
-    const truncatedTelemetries = getTelemetriesWithoutLastFalse(telemetries);
-
     const stablePace =
-        truncatedTelemetries.length > 30
-            ? truncatedTelemetries.at(29)!.pace
-            : truncatedTelemetries.at(-1)?.pace ?? 0;
+        telemetries.length > 10
+            ? telemetries.at(10)!.pace
+            : telemetries.at(-1)?.pace ?? 0;
 
-    truncatedTelemetries.forEach((telemetry, index) => {
-        if (index < 30) {
+    telemetries.forEach((telemetry, index) => {
+        if (index < 10) {
             telemetry.pace = stablePace;
         }
     });
 
-    const hasPaused = truncatedTelemetries.some(
-        (telemetry) => !telemetry.isRunning
-    );
+    const hasPaused = telemetries.some((telemetry) => !telemetry.isRunning);
 
-    const startTime = truncatedTelemetries.at(0)?.timeStamp;
+    const startTime = telemetries.at(0)?.timeStamp;
 
     const record: RunRecord = {
         distance: userDashboardData.totalDistance / 1000,
@@ -210,43 +204,122 @@ export async function saveRunning({
         avgCadence: userDashboardData.averageCadence,
     };
 
-    if (ghostRunningId) {
-        const request: CourseGhostRunning = {
-            runningName: getRunName(startTime ?? 0),
-            startedAt: startTime ?? 0,
-            hasPaused,
-            isPublic: hasPaused ? false : isPublic,
-            telemetries: truncatedTelemetries,
-            mode: "GHOST",
-            ghostRunningId,
-            record,
-        };
-        const response = await postCourseRun(request, courseId!);
-        return response;
-    } else if (courseId) {
-        const request: CourseSoloRunning = {
-            runningName: getRunName(startTime ?? 0),
-            startedAt: startTime ?? 0,
-            hasPaused,
-            isPublic: hasPaused ? false : isPublic,
-            telemetries: truncatedTelemetries,
-            mode: "SOLO",
-            ghostRunningId: null,
-            record,
-        };
-        const response = await postCourseRun(request, courseId);
-        return response;
-    } else {
-        const request: BaseRunning = {
-            runningName: getRunName(startTime ?? 0),
-            startedAt: startTime ?? 0,
-            hasPaused,
-            isPublic: hasPaused ? false : isPublic,
-            telemetries: truncatedTelemetries,
-            record,
-        };
-        const response = await postRun(request);
-        return response;
+    const rawTelemetryFileUri =
+        FileSystem.cacheDirectory + "rawTelemetry.jsonl";
+    const interpolatedTelemetryFileUri =
+        FileSystem.cacheDirectory + "interpolatedTelemetry.jsonl";
+
+    try {
+        const rawJsonl = rawData.map((item) => JSON.stringify(item)).join("\n");
+        const interpolatedJsonl = telemetries
+            .map((item) => JSON.stringify(item))
+            .join("\n");
+
+        await FileSystem.writeAsStringAsync(rawTelemetryFileUri, rawJsonl);
+        await FileSystem.writeAsStringAsync(
+            interpolatedTelemetryFileUri,
+            interpolatedJsonl
+        );
+
+        const formData = new FormData();
+
+        formData.append("rawTelemetry", {
+            uri: rawTelemetryFileUri,
+            name: "rawTelemetry.jsonl",
+            type: "application/json",
+        } as any);
+        formData.append("interpolatedTelemetry", {
+            uri: interpolatedTelemetryFileUri,
+            name: "interpolatedTelemetry.jsonl",
+            type: "application/json",
+        } as any);
+        if (runShotUri) {
+            formData.append("screenShotImage", {
+                uri: runShotUri,
+                name: "screenShotImage.jpg",
+                type: "image/jpeg",
+            } as any);
+        }
+
+        if (ghostRunningId) {
+            const request: CourseGhostRunning = {
+                runningName: getRunName(startTime ?? 0),
+                startedAt: startTime ?? 0,
+                hasPaused,
+                isPublic: hasPaused ? false : isPublic,
+                mode: "GHOST",
+                ghostRunningId,
+                record,
+            };
+
+            const reqFileUri = FileSystem.cacheDirectory + "req.json";
+            await FileSystem.writeAsStringAsync(
+                reqFileUri,
+                JSON.stringify(request)
+            );
+            formData.append("req", {
+                uri: reqFileUri,
+                name: "req.json",
+                type: "application/json",
+            } as any);
+
+            const response = await postCourseRun(formData, courseId!);
+            return {
+                runningId: response,
+                courseId: courseId,
+            };
+        } else if (courseId) {
+            const request: CourseSoloRunning = {
+                runningName: getRunName(startTime ?? 0),
+                startedAt: startTime ?? 0,
+                hasPaused,
+                isPublic: hasPaused ? false : isPublic,
+                mode: "SOLO",
+                ghostRunningId: null,
+                record,
+            };
+
+            const reqFileUri = FileSystem.cacheDirectory + "req.json";
+            await FileSystem.writeAsStringAsync(
+                reqFileUri,
+                JSON.stringify(request)
+            );
+            formData.append("req", {
+                uri: reqFileUri,
+                name: "req.json",
+                type: "application/json",
+            } as any);
+
+            const response = await postCourseRun(formData, courseId);
+            return {
+                runningId: response,
+                courseId: courseId,
+            };
+        } else {
+            const request: BaseRunning = {
+                runningName: getRunName(startTime ?? 0),
+                startedAt: startTime ?? 0,
+                hasPaused,
+                isPublic: hasPaused ? false : isPublic,
+                record,
+            };
+
+            const reqFileUri = FileSystem.cacheDirectory + "req.json";
+            await FileSystem.writeAsStringAsync(
+                reqFileUri,
+                JSON.stringify(request)
+            );
+            formData.append("req", {
+                uri: reqFileUri,
+                name: "req.json",
+                type: "application/json",
+            } as any);
+
+            const response = await postRun(formData);
+            return response;
+        }
+    } catch (error) {
+        console.error(error);
     }
 }
 

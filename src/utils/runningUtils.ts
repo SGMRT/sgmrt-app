@@ -215,7 +215,7 @@ export async function getClosestAltitude(sessionId: string, timestamp: number) {
 
     if (!closest) return undefined;
 
-    return closest.altitude;
+    return closest;
 }
 
 export function clamp(value: number, min: number, max: number) {
