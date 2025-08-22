@@ -24,7 +24,7 @@ struct GoRunActivity: Widget {
         // 러닝 상태, 거리, 시간, 진행률
         VStack(alignment: .center, spacing: 8){
           // 러닝 상태 표시
-          Text(context.state.isRunning() ? "Running" : "Stop")
+          Text(context.state.isRunning() ? context.attributes.runType.displayName + "Running" : "Stop")
             .font(.system(size: 16, weight: .regular))
             .foregroundStyle(Color(hex: context.state.isRunning() ? "#E2FF00" : "#FF3358"))
           // 러닝 정보 표시
@@ -88,7 +88,7 @@ struct GoRunActivity: Widget {
             // 러닝 상태, 거리, 시간, 진행률
             VStack(alignment: .center, spacing: 8){
               // 러닝 상태 표시
-              Text(context.state.isRunning() ? "Running" : "Stop")
+              Text(context.state.isRunning() ? context.attributes.runType.displayName + "Running" : "Stop")
                 .font(.system(size: 16, weight: .regular))
                 .foregroundStyle(Color(hex: context.state.isRunning() ? "#E2FF00" : "#FF3358"))
               // 러닝 정보 표시

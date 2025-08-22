@@ -1,8 +1,13 @@
 import { Telemetry } from "@/src/apis/types/run";
 import { RawRunData, RunMode } from "../types";
 import { CourseVariant, RunStatus } from "../types/status";
-import { RunningStats } from "./stats";
 import { SegmentMeta } from "./segments";
+import { RunningStats } from "./stats";
+
+export interface LiveActivityState {
+    startedAtMs: number | null;
+    pausedAtMs: number | null;
+}
 
 export interface RunContext {
     sessionId: string | null;
@@ -18,5 +23,7 @@ export interface RunContext {
     stats: RunningStats;
     telemetries: Telemetry[];
     segments: SegmentMeta[];
+    liveActivity: LiveActivityState;
+
     _zeroNextDt: boolean;
 }

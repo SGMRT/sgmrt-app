@@ -7,6 +7,7 @@ import { RunMode } from "../types";
 import { CourseVariant } from "../types/status";
 import { anchoredBaroAlt } from "../utils/anchoredBaroAlt";
 import { geoFilter } from "../utils/geoFilter";
+import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useSensors } from "./useSensors";
 
 export function useRunningSession() {
@@ -79,5 +80,6 @@ export function useRunningSession() {
         };
     }, [dispatch]);
 
+    useLiveActivityBridge(context);
     return { context, controls };
 }

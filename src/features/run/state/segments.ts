@@ -11,21 +11,27 @@ export function appendSegmentMeta(
     isRunning: boolean
 ): SegmentMeta[] {
     if (count <= 0) return meta;
-    const end = start + count - 1;
 
+    const end = start + count - 1;
     const next = meta.slice();
     const last = next.at(-1);
 
+    // 1) 같은 상태 + 연속이면 확장
     if (last && last.isRunning === isRunning && last.end === start - 1) {
-        // 같은 상태로 연속이면 뒤로 확장
         last.end = end;
-    } else {
-        next.push({ start, end, isRunning });
+        return next;
     }
+
+    // 2) 다른 상태로 바뀌는 시점이고, 인덱스가 연속이면
+    //    '브리지 포인트'로 이전 세그먼트의 마지막 점(start-1)을 포함
+    const isContiguousToPrev = !!last && last.end === start - 1;
+    const bridgedStart = isContiguousToPrev ? Math.max(0, start - 1) : start;
+
+    next.push({ start: bridgedStart, end, isRunning });
     return next;
 }
 
-// 단일 샘플을 계속 붙이는 경우에 편한 헬퍼
+// 단일 샘플용 헬퍼
 export function appendOne(
     meta: SegmentMeta[],
     index: number,

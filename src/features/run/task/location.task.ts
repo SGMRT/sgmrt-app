@@ -6,7 +6,7 @@ import * as TaskManager from "expo-task-manager";
 import { LOCATION_TASK, MAX_ACCURACY_METERS } from "../constants";
 import { joinedState } from "../store/joinedState";
 import { StreamJoiner } from "../store/joiner";
-import { sharedSensorStore } from "../store/sensorStore";
+import { SensorStore, sharedSensorStore } from "../store/sensorStore";
 import { anchoredBaroAlt } from "../utils/anchoredBaroAlt";
 import { geoFilter } from "../utils/geoFilter";
 import { haversineMeters } from "../utils/haversineMeters";
@@ -18,12 +18,28 @@ let lastAcceptedLat = 0;
 let lastAcceptedLng = 0;
 let lastAcceptedSteps: number | null = null;
 
+function isFirstSample(sharedSensorStore: SensorStore) {
+    return sharedSensorStore.locations.last() === undefined;
+}
+
+function reset() {
+    lastAcceptedTs = 0;
+    lastAcceptedLat = 0;
+    lastAcceptedLng = 0;
+    lastAcceptedSteps = null;
+}
+
 TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     if (error) return;
     const { locations } = (data ?? {}) as { locations?: LocationObject[] };
     if (!locations?.length) return;
 
     locations.sort((a, b) => a.timestamp - b.timestamp);
+
+    if (isFirstSample(sharedSensorStore)) {
+        devLog("[LOCATION] 첫 샘플");
+        reset();
+    }
 
     for (const loc of locations) {
         const { latitude, longitude, accuracy, altitude } = loc.coords;

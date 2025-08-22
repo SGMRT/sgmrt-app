@@ -19,6 +19,10 @@ const initialContext: RunContext = {
     telemetries: [],
     segments: [],
     _zeroNextDt: false,
+    liveActivity: {
+        startedAtMs: null,
+        pausedAtMs: null,
+    },
 };
 
 export type RouteKey =
@@ -52,6 +56,7 @@ export function runReducer(
         // 러닝 시작 (초기화)
         case "START": {
             const { sessionId, mode, variant } = action.payload;
+            const now = Date.now();
             return {
                 sessionId,
                 mode,
@@ -65,6 +70,10 @@ export function runReducer(
                 telemetries: [],
                 segments: [],
                 _zeroNextDt: false,
+                liveActivity: {
+                    startedAtMs: now,
+                    pausedAtMs: null,
+                },
             };
         }
 
@@ -76,48 +85,48 @@ export function runReducer(
             };
         }
 
-        // 러닝 재개
-        case "RESUME": {
-            return {
-                ...state,
-                status: "RUNNING",
-                mainTimeline: [...state.mainTimeline, ...state.pausedBuffer],
-                pausedBuffer: [],
-                _zeroNextDt: true,
-            };
-        }
-
         // 유저에 의한 일시정지
-        case "PAUSE_USER": {
-            return {
-                ...state,
-                status: "PAUSED_USER",
-            };
-        }
-
+        case "PAUSE_USER":
         // 코스 이탈로 일시정지
-        case "OFFCOURSE": {
-            return {
-                ...state,
-                status: "PAUSED_OFFCOURSE",
-            };
-        }
-
-        // 코스 복귀
-        case "ONCOURSE": {
-            return {
-                ...state,
-                status: "RUNNING",
-                mutedBuffer: [],
-                _zeroNextDt: true,
-            };
-        }
-
+        case "OFFCOURSE":
         // 완주 -> 보류 상태
         case "COMPLETE": {
+            const now = Date.now();
             return {
                 ...state,
-                status: "COMPLETION_PENDING",
+                status:
+                    action.type === "PAUSE_USER"
+                        ? "PAUSED_USER"
+                        : action.type === "OFFCOURSE"
+                        ? "PAUSED_OFFCOURSE"
+                        : "COMPLETION_PENDING",
+                liveActivity: {
+                    ...state.liveActivity,
+                    pausedAtMs: state.liveActivity.pausedAtMs ?? now,
+                },
+            };
+        }
+
+        // 러닝 재개
+        case "RESUME":
+        case "ONCOURSE": {
+            const now = Date.now();
+            const pausedAt = state.liveActivity.pausedAtMs;
+            const startedAt =
+                pausedAt != null
+                    ? (state.liveActivity.startedAtMs ?? now) + (now - pausedAt)
+                    : state.liveActivity.startedAtMs ?? now;
+            return {
+                ...state,
+                status: "RUNNING",
+                mutedBuffer:
+                    action.type === "ONCOURSE" ? [] : state.mutedBuffer,
+                _zeroNextDt: true,
+                liveActivity: {
+                    ...state.liveActivity,
+                    startedAtMs: startedAt,
+                    pausedAtMs: null,
+                },
             };
         }
 
@@ -125,11 +134,18 @@ export function runReducer(
         case "EXTEND": {
             const merged = state.postCompleteBuffer;
             let stats = state.stats;
-            let zeroFlag = state._zeroNextDt; // ✅ 첫 샘플에만 zeroDt 적용
+            let zeroFlag = state._zeroNextDt; // 첫 샘플에만 zeroDt 적용
             const telemetries: Telemetry[] = [];
             let segments = state.segments.slice();
 
             let prevT = state.telemetries.at(-1);
+
+            const now = Date.now();
+            const pausedAt = state.liveActivity.pausedAtMs;
+            const startedAt =
+                pausedAt != null
+                    ? (state.liveActivity.startedAtMs ?? now) + (now - pausedAt)
+                    : state.liveActivity.startedAtMs ?? now;
 
             merged.forEach((sample, i) => {
                 stats = updateStats(
@@ -161,6 +177,10 @@ export function runReducer(
                 _zeroNextDt: false,
                 telemetries: [...state.telemetries, ...telemetries],
                 segments,
+                liveActivity: {
+                    startedAtMs: startedAt,
+                    pausedAtMs: null,
+                },
             };
         }
 
@@ -202,19 +222,16 @@ export function runReducer(
                     runningFlag
                 );
 
+                const telemetries = [...state.telemetries, telemetry];
+                const idx = telemetries.length - 1;
+
                 return {
                     ...state,
                     mainTimeline,
                     stats,
                     _zeroNextDt: false,
-                    telemetries: [...state.telemetries, telemetry],
-                    segments: appendOne(
-                        state.segments,
-                        state.telemetries.length - 1 >= 0
-                            ? state.telemetries.length - 1
-                            : 0,
-                        runningFlag
-                    ),
+                    telemetries,
+                    segments: appendOne(state.segments, idx, runningFlag),
                 };
             }
 
@@ -225,15 +242,14 @@ export function runReducer(
                     state.telemetries.at(-1),
                     runningFlag
                 );
+                const telemetries = [...state.telemetries, telemetry];
+                const idx = telemetries.length - 1;
+
                 return {
                     ...state,
                     pausedBuffer: [...state.pausedBuffer, sample],
-                    telemetries: [...state.telemetries, telemetry],
-                    segments: appendOne(
-                        state.segments,
-                        state.telemetries.length - 1,
-                        runningFlag
-                    ),
+                    telemetries,
+                    segments: appendOne(state.segments, idx, runningFlag),
                 };
             }
             if (key === "mutedBuffer") {
