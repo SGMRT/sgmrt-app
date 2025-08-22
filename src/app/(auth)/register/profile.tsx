@@ -17,6 +17,7 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
+    Alert,
     Image,
     Keyboard,
     KeyboardAvoidingView,
@@ -143,8 +144,6 @@ export default function Profile() {
                     text1: "회원가입 오류. 다시 시도해주세요.",
                     position: "bottom",
                 });
-            })
-            .finally(() => {
                 setIsRegistering(false);
             });
     };
@@ -272,7 +271,22 @@ export default function Profile() {
                     isActive={isActive}
                     canPress={isActive}
                     onPress={() => {
-                        handleSubmit();
+                        Alert.alert(
+                            "회원가입",
+                            "회원가입을 진행하시겠습니까?",
+                            [
+                                {
+                                    text: "확인",
+                                    onPress: () => {
+                                        handleSubmit();
+                                    },
+                                },
+                                {
+                                    text: "취소",
+                                    style: "cancel",
+                                },
+                            ]
+                        );
                     }}
                     title="가입완료"
                 />

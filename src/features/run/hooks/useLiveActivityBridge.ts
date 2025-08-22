@@ -57,6 +57,8 @@ export function useLiveActivityBridge(context: RunContext) {
                 payload.messageType !== last.payload.messageType;
 
             if (!startedRef.current) {
+                expoLiveActivity.endActivity();
+
                 expoLiveActivity.startActivity(
                     mapRunType(context.mode, context.variant),
                     context.sessionId!,

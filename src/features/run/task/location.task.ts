@@ -1,7 +1,7 @@
 // features/run/background/location.task.ts
 import { devLog } from "@/src/utils/devLog";
 import type { LocationObject } from "expo-location";
-import { Barometer, Pedometer } from "expo-sensors";
+import { Barometer } from "expo-sensors";
 import * as TaskManager from "expo-task-manager";
 import { LOCATION_TASK, MAX_ACCURACY_METERS } from "../constants";
 import { joinedState } from "../store/joinedState";
@@ -72,10 +72,11 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         const joined = joiner.onNewLocation(sample);
 
         const isBaroAvailable = await Barometer.isAvailableAsync();
-        const isPedometerAvailable = await Pedometer.isAvailableAsync();
 
-        if (isBaroAvailable && joined.pressure == null) continue;
-        if (isPedometerAvailable && joined.steps == null) continue;
+        if (isBaroAvailable && joined.pressure == null) {
+            devLog("[LOCATION] 압력 데이터 없음");
+            continue;
+        }
 
         const fusedAltitude = anchoredBaroAlt.update(
             joined.timestamp,
@@ -84,16 +85,9 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             joined.location.altitudeAccuracy ?? null
         );
 
-        const totalSteps = joined.steps?.totalSteps ?? null;
-        if (
-            totalSteps &&
-            lastAcceptedSteps != null &&
-            totalSteps < lastAcceptedSteps
-        ) {
-            lastAcceptedSteps = null;
-        }
+        const totalSteps = joined.steps?.totalSteps ?? lastAcceptedSteps ?? 0;
 
-        const deltaSteps = (totalSteps ?? 0) - (lastAcceptedSteps ?? 0);
+        const deltaSteps = totalSteps - (lastAcceptedSteps ?? 0);
 
         joinedState.push({
             timestamp: joined.timestamp,
@@ -119,6 +113,6 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         lastAcceptedTs = joined.timestamp;
         lastAcceptedLat = filtered.latitude;
         lastAcceptedLng = filtered.longitude;
-        lastAcceptedSteps = joined.steps?.totalSteps ?? null;
+        lastAcceptedSteps = totalSteps;
     }
 });

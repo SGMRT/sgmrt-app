@@ -35,9 +35,7 @@ export function useSensors(enabled: boolean) {
             if (!already) {
                 await Location.startLocationUpdatesAsync(LOCATION_TASK, {
                     accuracy: Location.Accuracy.BestForNavigation,
-                    activityType: Location.ActivityType.Fitness,
-                    pausesUpdatesAutomatically: false,
-                    showsBackgroundLocationIndicator: true, // iOS 가시 표시
+                    deferredUpdatesInterval: 3000,
                 });
                 devLog("[SENSORS] Location updates started");
             } else {
@@ -52,10 +50,7 @@ export function useSensors(enabled: boolean) {
                 if (!mounted) return;
                 sharedSensorStore.pushPressure({
                     pressure: res?.pressure ?? 0,
-                    timestamp:
-                        typeof res?.timestamp === "number"
-                            ? res.timestamp
-                            : Date.now(),
+                    timestamp: Date.now(),
                 });
             });
 

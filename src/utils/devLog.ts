@@ -1,5 +1,5 @@
 export function devLog(...args: any[]) {
-    if (__DEV__) {
+    if (true) {
         console.log(...args);
     }
 }

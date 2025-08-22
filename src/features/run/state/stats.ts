@@ -33,7 +33,7 @@ export const DEFAULT_STATS: RunningStats = {
     _totalSteps: 0,
 };
 
-const PACE_WINDOW_MS = 10_000;
+const PACE_WINDOW_MS = 30_000;
 const MAX_SPEED_MPS = 15;
 const MIN_VALID_DIST_M = 0.3;
 const ALT_THRESHOLD_M = 0;
@@ -88,7 +88,7 @@ export function updateStats(
         const dz = sample.altitude - last.altitude;
         if (Math.abs(dz) > ALT_THRESHOLD_M) {
             if (dz > 0) next.gainM += dz;
-            else next.lossM += Math.abs(dz); // 음수 추가 금지
+            else next.lossM += dz; // 음수 누적
         }
     }
 

@@ -10,12 +10,14 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
+import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { buildUserRecordData } from "@/src/features/run/state/record";
 import {
     selectPolylineSegments,
     selectStatsDisplay,
 } from "@/src/features/run/state/selectors";
+import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
@@ -181,6 +183,18 @@ export default function Run() {
         context.stats,
     ]);
 
+    const now = useNow(
+        context.status === "RUNNING" ||
+            context.status === "RUNNING_EXTENDED" ||
+            context.status === "PAUSED_USER" ||
+            context.status === "PAUSED_OFFCOURSE"
+    );
+    const elapsedMs = getElapsedMs(
+        context.liveActivity.startedAtMs ?? 0,
+        context.liveActivity.pausedAtMs ?? null,
+        now
+    );
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             {isSaving && (
@@ -218,10 +232,7 @@ export default function Run() {
                         style={[styles.timeText, { color: colors.white }]}
                         entering={FadeIn.duration(1000)}
                     >
-                        {getRunTime(
-                            Math.round(context.stats.totalTimeMs / 1000),
-                            "MM:SS"
-                        )}
+                        {getRunTime(Math.round(elapsedMs / 1000), "MM:SS")}
                     </Animated.Text>
                 )}
             </TopBlurView>

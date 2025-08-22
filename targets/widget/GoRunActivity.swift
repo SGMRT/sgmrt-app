@@ -41,11 +41,23 @@ struct GoRunActivity: Widget {
             }
             Spacer(minLength: 4)
             VStack(alignment: .leading){
-              Text(context.state.formattedElapsedTime())
+              let timeAnchor = context.state.isRunning()
+                ? context.state.startedAt
+                : (context.state.pausedAt ?? context.state.startedAt)
+
+              Text("00:00")
                 .lineLimit(1)
                 .font(.system(size: 28, weight: .bold))
                 .monospacedDigit()
                 .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
+                .hidden()
+                .overlay(alignment: .leading) {
+                  Text(timeAnchor, style: .timer)
+                    .lineLimit(1)
+                    .font(.system(size: 28, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
+                }
               Text("시간")
                 .font(.system(size: 12, weight: .regular))
                 .foregroundStyle(Color(hex: "#676767"))
@@ -105,11 +117,23 @@ struct GoRunActivity: Widget {
                 }
                 Spacer(minLength: 4)
                 VStack(alignment: .leading){
-                  Text(context.state.formattedElapsedTime())
+                  let timeAnchor = context.state.isRunning()
+                    ? context.state.startedAt
+                    : (context.state.pausedAt ?? context.state.startedAt)
+
+                  Text("00:00")
                     .lineLimit(1)
                     .font(.system(size: 28, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
+                    .hidden()
+                    .overlay(alignment: .leading) {
+                      Text(timeAnchor, style: .timer)
+                        .lineLimit(1)
+                        .font(.system(size: 28, weight: .bold))
+                        .monospacedDigit()
+                        .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
+                    }
                   Text("시간")
                     .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(Color(hex: "#676767"))
@@ -151,7 +175,7 @@ struct GoRunActivity: Widget {
           .resizable()
           .frame(width: 20, height: 18)
       }
-      .keylineTint(Color(hex: "E2FF00"))
+      .keylineTint(Color(hex: "#E2FF00"))
     }
   }
 }
