@@ -23,6 +23,7 @@ interface ResultCourseMapProps {
     yKey?: "pace" | "alt";
     onReady?: () => void;
     logoPosition?: any;
+    attributionPosition?: any;
     borderRadius?: number;
     width?: number;
     height?: number;
@@ -36,6 +37,7 @@ export default function ResultCourseMap({
     yKey = "pace",
     onReady,
     logoPosition = { bottom: 10, left: 10 },
+    attributionPosition = { bottom: 10, right: 10 },
     borderRadius = 20,
     width = Dimensions.get("window").width - 34,
     height = 260,
@@ -144,7 +146,7 @@ export default function ResultCourseMap({
             <Typography
                 variant="caption1"
                 color="gray40"
-                style={styles.attribution}
+                style={[styles.attribution, attributionPosition]}
             >
                 © Mapbox, © OpenStreetMap
             </Typography>
@@ -181,7 +183,5 @@ const styles = StyleSheet.create({
     },
     attribution: {
         position: "absolute",
-        bottom: 10,
-        right: 10,
     },
 });

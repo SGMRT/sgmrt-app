@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "./Typography";
 
-interface TextWithUnitProps {
+export interface TextWithUnitProps {
     value: string | number;
     unit?: string;
     description?: string;
@@ -18,6 +18,7 @@ interface TextWithUnitProps {
     unitVariant?: TypographyVariant;
     style?: StyleProp<ViewStyle>;
     descriptionColor?: TypographyColor;
+    descriptionVariant?: TypographyVariant;
 }
 
 export default function TextWithUnit({
@@ -30,6 +31,7 @@ export default function TextWithUnit({
     unitVariant,
     style,
     descriptionColor = "gray40",
+    descriptionVariant = "body2",
 }: TextWithUnitProps) {
     return (
         <View style={[styles.container, style, { alignItems: align }]}>
@@ -47,7 +49,10 @@ export default function TextWithUnit({
                 )}
             </View>
             {description && (
-                <Typography variant="body2" color={descriptionColor}>
+                <Typography
+                    variant={descriptionVariant}
+                    color={descriptionColor}
+                >
                     {description}
                 </Typography>
             )}

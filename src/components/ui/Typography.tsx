@@ -11,7 +11,12 @@ export type TypographyVariant =
     | "body1"
     | "body2"
     | "body3"
-    | "caption1";
+    | "caption1"
+    | "share_subhead"
+    | "share_headline"
+    | "share_stat"
+    | "share_stat_unit"
+    | "share_stat_description";
 
 export type TypographyColor =
     | "black"
@@ -100,6 +105,38 @@ export const typographyStyles = StyleSheet.create({
         lineHeight: 18,
         letterSpacing: -0.6,
     },
+
+    share_subhead: {
+        fontFamily: "SpoqaHanSansNeo-Regular",
+        fontSize: 14.7,
+        letterSpacing: -0.49,
+        lineHeight: 22.05,
+    },
+    share_headline: {
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontSize: 51.41,
+        letterSpacing: -1.1,
+        lineHeight: 77.15,
+    },
+    share_stat: {
+        fontFamily: "SpoqaHanSansNeo-Medium",
+        fontSize: 21.58,
+        lineHeight: 32.37,
+        letterSpacing: -0.46,
+    },
+    share_stat_unit: {
+        fontFamily: "SpoqaHanSansNeo-Regular",
+        fontSize: 18.5,
+        lineHeight: 27.75,
+        letterSpacing: -0.46,
+    },
+    share_stat_description: {
+        fontFamily: "SpoqaHanSansNeo-Regular",
+        fontSize: 12.33,
+        lineHeight: 18.495,
+        letterSpacing: -0.46,
+    },
+
     black: {
         color: colors.black,
     },

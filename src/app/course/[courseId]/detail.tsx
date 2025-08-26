@@ -4,7 +4,7 @@ import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
-import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
@@ -99,7 +99,7 @@ export default function Result() {
         ];
     }, [course]);
 
-    const runShotRef = useRef<RunShareShotHandle>(null);
+    const runShotRef = useRef<RunShotHandle>(null);
 
     const captureMap = useCallback(async () => {
         try {
@@ -240,10 +240,8 @@ export default function Result() {
                     ref={runShotRef}
                     fileName={course?.name + ".jpg"}
                     telemetries={course?.telemetries ?? []}
-                    isChartActive={isChartActive}
-                    chartPointIndex={chartPointIndex}
-                    yKey="alt"
-                    stats={[]}
+                    type="share"
+                    stats={courseAverageStats}
                 />
             </>
         )

@@ -14,7 +14,7 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
-import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
@@ -50,7 +50,7 @@ export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
     const [isLocked, setIsLocked] = useState(false);
-    const runShotRef = useRef<RunShareShotHandle>(null);
+    const runShotRef = useRef<RunShotHandle>(null);
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -236,11 +236,6 @@ export default function Result() {
     const captureStats = useMemo(() => {
         return [
             {
-                description: "거리",
-                value: (runData?.recordInfo.distance ?? 0).toFixed(2),
-                unit: "km",
-            },
-            {
                 description: "시간",
                 value: getRunTime(
                     runData?.recordInfo.duration ?? 0,
@@ -248,8 +243,18 @@ export default function Result() {
                 ),
             },
             {
-                description: "페이스",
+                description: "평균 페이스",
                 value: getFormattedPace(runData?.recordInfo.averagePace ?? 0),
+            },
+            {
+                description: "케이던스",
+                value: runData?.recordInfo.cadence ?? 0,
+                unit: "spm",
+            },
+            {
+                description: "칼로리",
+                value: runData?.recordInfo.calories ?? 0,
+                unit: "kcal",
             },
         ];
     }, [runData]);
@@ -650,9 +655,8 @@ export default function Result() {
                     ref={runShotRef}
                     fileName={runData?.runningName + ".jpg"}
                     telemetries={runData.telemetries ?? []}
-                    isChartActive={isChartActive}
-                    chartPointIndex={chartPointIndex}
-                    yKey={displayMode === "pace" ? "pace" : "alt"}
+                    distance={runData.recordInfo.distance.toFixed(2)}
+                    type="share"
                     stats={captureStats}
                 />
             </>
