@@ -103,15 +103,16 @@ export default function Result() {
 
     const captureMap = useCallback(async () => {
         try {
-            const uri = await runShotRef.current?.capture?.().then((uri) => {
-                return uri;
-            });
+            const uri = await runShotRef.current?.capture?.();
 
-            const filename = course?.name + ".jpg";
+            if (!uri) return null;
+
+            const safeName = (course?.name ?? "run").replace(/\s+/g, "_");
+            const filename = `${safeName}.jpg`;
             const targetPath = `${FileSystem.cacheDirectory}/${filename}`;
 
             await FileSystem.copyAsync({
-                from: uri ?? "",
+                from: uri,
                 to: targetPath,
             });
 
@@ -241,6 +242,8 @@ export default function Result() {
                     fileName={course?.name + ".jpg"}
                     telemetries={course?.telemetries ?? []}
                     type="share"
+                    title={course?.name}
+                    distance={((course?.distance ?? 0) / 1000).toFixed(2)}
                     stats={courseAverageStats}
                 />
             </>

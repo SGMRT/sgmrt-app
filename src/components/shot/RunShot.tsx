@@ -63,7 +63,7 @@ const RunShot = forwardRef<RunShotHandle, RunShotProps>(
         }));
 
         return (
-            <View pointerEvents="none" style={styles.container}>
+            <View pointerEvents="none" style={styles.container} collapsable>
                 <ViewShot
                     ref={viewShotRef}
                     options={{

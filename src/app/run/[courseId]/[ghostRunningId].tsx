@@ -333,7 +333,7 @@ export default function CourseRun() {
 
     useEffect(() => {
         const canSave =
-            isSaving && savingTelemetries.length > 0 && thumbnailUri !== null;
+            isSaving && savingTelemetries.length > 0 && !!thumbnailUri;
         const saveMode =
             runStatus === "complete_course_running" ? "COURSE" : "SOLO";
 

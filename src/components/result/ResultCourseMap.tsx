@@ -7,6 +7,7 @@ import {
 } from "@/src/utils/mapUtils";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { MarkerView } from "@rnmapbox/maps";
+import { Link } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { Dimensions, InteractionManager, StyleSheet, View } from "react-native";
 import { SharedValue, runOnJS, useDerivedValue } from "react-native-reanimated";
@@ -148,7 +149,10 @@ export default function ResultCourseMap({
                 color="gray40"
                 style={[styles.attribution, attributionPosition]}
             >
-                © Mapbox, © OpenStreetMap
+                <Link href="https://www.mapbox.com/">© Mapbox</Link>{" "}
+                <Link href="https://www.openstreetmap.org/copyright">
+                    © OpenStreetMap
+                </Link>
             </Typography>
         </View>
     );

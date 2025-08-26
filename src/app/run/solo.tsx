@@ -303,8 +303,7 @@ export default function Run() {
                         setIsRestarting(true);
                     }}
                     leftLabel={
-                        context.stats.totalDistanceM < 500 ||
-                        context.stats.totalTimeMs < 60 * 1000
+                        context.stats.totalDistanceM < 500
                             ? "나가기"
                             : "기록 저장"
                     }
