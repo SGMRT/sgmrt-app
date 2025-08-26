@@ -145,7 +145,7 @@ interface SaveRunningProps {
     telemetries: Telemetry[];
     rawData: RawData[];
     userDashboardData: UserDashBoardData;
-    runShotUri: string | null;
+    thumbnailUri: string | null;
     runTime: number;
     isPublic: boolean;
     ghostRunningId?: number | null;
@@ -156,7 +156,7 @@ export async function saveRunning({
     telemetries,
     rawData,
     userDashboardData,
-    runShotUri,
+    thumbnailUri,
     runTime,
     isPublic,
     ghostRunningId,
@@ -233,9 +233,9 @@ export async function saveRunning({
             name: "interpolatedTelemetry.jsonl",
             type: "application/json",
         } as any);
-        if (runShotUri) {
+        if (thumbnailUri) {
             formData.append("screenShotImage", {
-                uri: runShotUri,
+                uri: thumbnailUri,
                 name: "screenShotImage.jpg",
                 type: "image/jpeg",
             } as any);

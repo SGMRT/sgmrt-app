@@ -3,7 +3,7 @@ import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
-import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import Countdown from "@/src/components/ui/Countdown";
 import { Divider } from "@/src/components/ui/Divider";
 import EmptyListView from "@/src/components/ui/EmptyListView";
@@ -70,8 +70,8 @@ export default function CourseRun() {
 
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
-    const runShotRef = useRef<RunShareShotHandle>(null);
-    const [runShotUri, setRunShotUri] = useState<string | null>(null);
+    const runShotRef = useRef<RunShotHandle>(null);
+    const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
 
     const {
         currentRunType,
@@ -333,7 +333,7 @@ export default function CourseRun() {
 
     useEffect(() => {
         const canSave =
-            isSaving && savingTelemetries.length > 0 && runShotUri !== null;
+            isSaving && savingTelemetries.length > 0 && !!thumbnailUri;
         const saveMode =
             runStatus === "complete_course_running" ? "COURSE" : "SOLO";
 
@@ -344,7 +344,7 @@ export default function CourseRun() {
                 const response = await saveRunning({
                     telemetries: savingTelemetries,
                     rawData: rawRunData,
-                    runShotUri,
+                    thumbnailUri,
                     userDashboardData: runUserDashboardData,
                     runTime,
                     isPublic: true,
@@ -370,7 +370,7 @@ export default function CourseRun() {
                         setIsRestarting(true);
                         setIsSaving(false);
                         setSavingTelemetries([]);
-                        setRunShotUri(null);
+                        setThumbnailUri(null);
                         return;
                     } else {
                         router.replace({
@@ -407,13 +407,13 @@ export default function CourseRun() {
                 });
             }
             setSavingTelemetries([]);
-            setRunShotUri(null);
+            setThumbnailUri(null);
             setIsRestarting(true);
         })();
     }, [
         isSaving,
         savingTelemetries,
-        runShotUri,
+        thumbnailUri,
         runUserDashboardData,
         runTime,
         rawRunData,
@@ -460,10 +460,10 @@ export default function CourseRun() {
                                 ?.capture()
                                 .then((uri) => {
                                     console.log("uri", uri);
-                                    setRunShotUri(uri);
+                                    setThumbnailUri(uri);
                                 })
                                 .catch((e) => {
-                                    setRunShotUri("");
+                                    setThumbnailUri("");
                                 });
                         }}
                     />
@@ -472,21 +472,17 @@ export default function CourseRun() {
                             ref={runShotRef}
                             fileName={"runImage.jpg"}
                             telemetries={savingTelemetries}
-                            isChartActive
-                            showLogo={false}
-                            chartPointIndex={0}
-                            yKey="alt"
-                            stats={[]}
+                            type="thumbnail"
                             onMapReady={() => {
                                 console.log("onMapReady");
                                 runShotRef.current
                                     ?.capture()
                                     .then((uri) => {
                                         console.log("uri", uri);
-                                        setRunShotUri(uri);
+                                        setThumbnailUri(uri);
                                     })
                                     .catch((e) => {
-                                        setRunShotUri("");
+                                        setThumbnailUri("");
                                         console.log(e);
                                     })
                                     .finally(() => {
