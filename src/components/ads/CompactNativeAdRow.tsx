@@ -20,7 +20,7 @@ export default function CompactNativeAdRow({ style }: Props) {
         let active = true;
         NativeAd.createForAdRequest(AD_UNIT_ID, {
             aspectRatio: NativeMediaAspectRatio.LANDSCAPE,
-            adChoicesPlacement: NativeAdChoicesPlacement.BOTTOM_RIGHT,
+            adChoicesPlacement: NativeAdChoicesPlacement.TOP_RIGHT,
             startVideoMuted: true,
         })
             .then((a) => active && setAd(a))
@@ -63,13 +63,10 @@ export default function CompactNativeAdRow({ style }: Props) {
 
 const styles = StyleSheet.create({
     container: {
-        paddingVertical: 8,
-        minHeight: 50,
         paddingLeft: 12,
         flexDirection: "row",
         alignItems: "center",
         gap: 8,
-        overflow: "hidden",
     },
     badge: {
         width: 28,
@@ -78,15 +75,18 @@ const styles = StyleSheet.create({
         backgroundColor: "#28323B",
         alignItems: "center",
         justifyContent: "center",
-        marginRight: 2,
     },
-    badgeText: { color: "#C7D1DA", fontSize: 10, fontWeight: "700" },
+    badgeText: { color: "#C7D1DA" },
     textLine: {
-        flex: 1,
         flexDirection: "row",
-        minWidth: 0,
+        alignItems: "center",
+        minHeight: 32,
     },
-    advertiser: { color: "#FFFFFF", fontSize: 14, fontWeight: "700" },
-    sep: { color: "#9AA0A6", fontSize: 14 },
-    headline: { color: "#C9CED6", fontSize: 14, flexShrink: 1 },
+    advertiser: {
+        color: "#FFFFFF",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    sep: { color: "#9AA0A6" },
+    headline: { color: "#C9CED6" },
 });
