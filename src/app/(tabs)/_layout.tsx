@@ -1,3 +1,4 @@
+import CompactNativeAdRow from "@/src/components/ads/CompactNativeAdRow";
 import { Tabs } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -18,6 +19,7 @@ export default function TabLayout() {
                 <Tabs.Screen name="home" />
                 <Tabs.Screen name="(profile)" />
             </Tabs>
+            <CompactNativeAdRow />
         </SafeAreaView>
     );
 }

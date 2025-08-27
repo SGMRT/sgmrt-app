@@ -19,6 +19,7 @@ import { useAuthStore } from "../store/authState";
 import { LOCATION_TASK } from "../types/run";
 
 import "@features/run/task/location.task";
+import mobileAds, { MaxAdContentRating } from "react-native-google-mobile-ads";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -98,6 +99,28 @@ function RootLayout() {
             }
         })();
     }, [loaded, version, build]);
+
+    useEffect(() => {
+        (async () => {
+            if (!loaded) return;
+
+            try {
+                // 전역 광고 요청 설정
+                await mobileAds().setRequestConfiguration({
+                    maxAdContentRating: MaxAdContentRating.T,
+                    tagForChildDirectedTreatment: false,
+                    tagForUnderAgeOfConsent: false,
+                    // 테스트 안전장치
+                    testDeviceIdentifiers: ["EMULATOR"],
+                });
+
+                // SDK 초기화
+                await mobileAds().initialize();
+            } catch (e) {
+                console.warn("AdMob bootstrap error:", e);
+            }
+        })();
+    }, [loaded]);
 
     useEffect(() => {
         if (!loaded) return;
