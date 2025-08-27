@@ -20,7 +20,7 @@ export default function CompactNativeAdRow({ style }: Props) {
         let active = true;
         NativeAd.createForAdRequest(AD_UNIT_ID, {
             aspectRatio: NativeMediaAspectRatio.LANDSCAPE,
-            adChoicesPlacement: NativeAdChoicesPlacement.TOP_RIGHT,
+            adChoicesPlacement: NativeAdChoicesPlacement.BOTTOM_RIGHT,
             startVideoMuted: true,
         })
             .then((a) => active && setAd(a))
@@ -63,6 +63,7 @@ export default function CompactNativeAdRow({ style }: Props) {
 
 const styles = StyleSheet.create({
     container: {
+        paddingVertical: 8,
         minHeight: 50,
         paddingLeft: 12,
         flexDirection: "row",
