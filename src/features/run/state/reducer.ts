@@ -39,6 +39,8 @@ export function routeKeyByStatus(status: RunStatus): RouteKey {
             return "mainTimeline";
         case "PAUSED_USER":
             return "pausedBuffer";
+        case "READY":
+            return "mutedBuffer";
         case "PAUSED_OFFCOURSE":
             return "mutedBuffer";
         case "COMPLETION_PENDING":
@@ -119,8 +121,9 @@ export function runReducer(
             return {
                 ...state,
                 status: "RUNNING",
-                mutedBuffer:
-                    action.type === "ONCOURSE" ? [] : state.mutedBuffer,
+                mainTimeline: [...state.mainTimeline, ...state.pausedBuffer],
+                pausedBuffer: [],
+                mutedBuffer: [],
                 _zeroNextDt: true,
                 liveActivity: {
                     ...state.liveActivity,
