@@ -32,11 +32,17 @@ export interface CourseResponse {
     telemetries: Telemetry[];
 }
 
+export type Checkpoint = {
+    lat: number;
+    lng: number;
+    angle: number;
+};
+
 export interface CourseDetailResponse {
     id: number;
     name: string;
     telemetryUrl: string;
-    telemetries: Telemetry[];
+    checkpointsUrl: string;
     distance: number;
     elevationAverage: number;
     elevationGain: number;
@@ -52,6 +58,8 @@ export interface CourseDetailResponse {
     myLowestPace: number;
     myAveragePace: number;
     myHighestPace: number;
+    telemetries: Telemetry[];
+    courseCheckpoints: Checkpoint[];
 }
 
 export interface PathData {
