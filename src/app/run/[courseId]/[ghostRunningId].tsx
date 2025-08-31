@@ -1,5 +1,4 @@
 import { getCourse } from "@/src/apis";
-import { CourseDetailResponse } from "@/src/apis/types/course";
 import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
@@ -50,7 +49,6 @@ export default function Run() {
     const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
 
     const { courseId, ghostRunningId } = useLocalSearchParams();
-    const courseRef = useRef<CourseDetailResponse | null>(null);
     const [courseSegments, setCourseSegments] = useState<Segment>();
 
     const { context, controls } = useRunningSession();
@@ -66,16 +64,15 @@ export default function Run() {
 
     useEffect(() => {
         (async () => {
-            if (!courseId || courseId === "-1" || !isFirst) return;
             const response = await getCourse(Number(courseId));
-            if (courseRef.current) {
-                setCourseSegments(
-                    telemetriesToSegment(response.telemetries, 0)[1]
-                );
-            }
-            courseRef.current = response;
+            setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
+            controls.start(
+                "COURSE",
+                "PLAIN",
+                response.telemetries,
+                response.courseCheckpoints
+            );
         })();
-        controls.start("COURSE");
         setIsFirst(false);
     }, [courseId, isFirst, controls]);
 

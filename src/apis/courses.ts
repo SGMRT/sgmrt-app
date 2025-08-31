@@ -90,7 +90,11 @@ export async function getCourse(
             }
         }
 
-        return { ...response.data, telemetries, checkpoints };
+        return {
+            ...response.data,
+            telemetries,
+            courseCheckpoints: checkpoints,
+        };
     } catch (error) {
         console.error(error);
         throw error;

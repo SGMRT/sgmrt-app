@@ -189,6 +189,12 @@ export async function saveRunning({
         }
     });
 
+    // 마지막 isRunning인 true인 값 뒤 isRunning이 false인 값을 모두 삭제
+    const lastTrueIndex = telemetries.findLastIndex(
+        (telemetry) => telemetry.isRunning
+    );
+    telemetries = telemetries.slice(0, lastTrueIndex + 1);
+
     const hasPaused = telemetries.some((telemetry) => !telemetry.isRunning);
 
     const startTime = telemetries.at(0)?.timeStamp;
