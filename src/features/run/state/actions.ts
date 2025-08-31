@@ -1,5 +1,3 @@
-import { Checkpoint } from "@/src/apis/types/course";
-import { Telemetry } from "@/src/apis/types/run";
 import { RawRunData, RunMode } from "../types";
 import { CourseVariant } from "../types/status";
 
@@ -10,8 +8,6 @@ export type RunAction =
               sessionId: string;
               mode: RunMode;
               variant?: CourseVariant;
-              course?: Telemetry[];
-              checkpoints?: Checkpoint[];
           };
       } // 러닝 시작
     | { type: "READY" } // 코스 러닝 대기
