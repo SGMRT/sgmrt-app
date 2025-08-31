@@ -1,4 +1,3 @@
-import { Checkpoint } from "@/src/apis/types/course";
 import { Telemetry } from "@/src/apis/types/run";
 import { RawRunData, RunMode } from "../types";
 import { CourseVariant, RunStatus } from "../types/status";
@@ -25,9 +24,6 @@ export interface RunContext {
     telemetries: Telemetry[];
     segments: SegmentMeta[];
     liveActivity: LiveActivityState;
-
-    course?: Telemetry[];
-    checkpoints?: Checkpoint[];
 
     _zeroNextDt: boolean;
 }

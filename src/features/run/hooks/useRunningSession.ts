@@ -1,5 +1,3 @@
-import { Checkpoint } from "@/src/apis/types/course";
-import { Telemetry } from "@/src/apis/types/run";
 import { useEffect, useMemo, useReducer, useRef } from "react";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
@@ -10,7 +8,6 @@ import { RunMode } from "../types";
 import { CourseVariant } from "../types/status";
 import { anchoredBaroAlt } from "../utils/anchoredBaroAlt";
 import { geoFilter } from "../utils/geoFilter";
-import { useCourseProgress } from "./useCourseProgress";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useRunAnalytics } from "./useRunAnalytics";
 import { useSensors } from "./useSensors";
@@ -44,12 +41,7 @@ export function useRunningSession() {
 
     const controls = useMemo(() => {
         return {
-            start: (
-                mode: RunMode,
-                variant?: CourseVariant,
-                course?: Telemetry[],
-                checkpoints?: Checkpoint[]
-            ) => {
+            start: (mode: RunMode, variant?: CourseVariant) => {
                 anchoredBaroAlt.reset();
                 geoFilter.reset();
 
@@ -59,8 +51,6 @@ export function useRunningSession() {
                         sessionId: uuidv4(),
                         mode,
                         variant,
-                        course,
-                        checkpoints,
                     },
                 });
             },
@@ -99,13 +89,6 @@ export function useRunningSession() {
     }, [dispatch]);
 
     useLiveActivityBridge(context);
-
-    useCourseProgress({
-        context,
-        oncourse: controls.oncourse,
-        offcourse: controls.offcourse,
-        complete: controls.complete,
-    });
 
     return { context, controls };
 }

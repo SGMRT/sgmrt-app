@@ -19,8 +19,6 @@ const initialContext: RunContext = {
     telemetries: [],
     segments: [],
     _zeroNextDt: false,
-    course: [],
-    checkpoints: [],
     liveActivity: {
         startedAtMs: null,
         pausedAtMs: null,
@@ -59,8 +57,7 @@ export function runReducer(
     switch (action.type) {
         // 러닝 시작 (초기화)
         case "START": {
-            const { sessionId, mode, variant, course, checkpoints } =
-                action.payload;
+            const { sessionId, mode, variant } = action.payload;
             const now = Date.now();
             return {
                 sessionId,
@@ -75,8 +72,6 @@ export function runReducer(
                 telemetries: [],
                 segments: [],
                 _zeroNextDt: false,
-                course,
-                checkpoints,
                 liveActivity: {
                     startedAtMs: now,
                     pausedAtMs: null,
