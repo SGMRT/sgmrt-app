@@ -354,7 +354,6 @@ export default function Run() {
                                 iconAllowOverlap: true,
                             }}
                             aboveLayerID="layer-course"
-                            belowLayerID=""
                         />
                     </ShapeSource>
                 )}
@@ -368,6 +367,7 @@ export default function Run() {
                                 id={"ghost-segment-" + index}
                                 segment={segment}
                                 color="red"
+                                belowLayerID={"layer-" + segments[0].id}
                             />
                         ))}
             </MapViewWrapper>
@@ -394,7 +394,12 @@ export default function Run() {
                                 fontColor="white"
                             />
                         ) : (
-                            <StatsIndicator stats={statsForUI} color="gray20" />
+                            <StatsIndicator
+                                stats={statsForUI}
+                                color="gray20"
+                                ghost={isGhostRunning}
+                                ghostTelemetry={ghostCoordinator?.ghostPoint}
+                            />
                         )}
                     </View>
                 </BottomSheetView>
