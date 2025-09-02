@@ -12,6 +12,7 @@ import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
+import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { buildUserRecordData } from "@/src/features/run/state/record";
@@ -61,19 +62,28 @@ export default function Run() {
 
     useRunVoice(context);
 
-    const { initializeCourse, offcourseAnchor } = useCourseProgress({
-        context,
-        controls,
-        onStart: () => {
-            if (context.status === "READY" || isFirst) {
-                console.log("restarting");
-                setIsRestarting(true);
-            }
-        },
-        onForceStop: () => {
-            setWithRouting(true);
-            requestSave();
-        },
+    const { initializeCourse, offcourseAnchor, legIndex, legs } =
+        useCourseProgress({
+            context,
+            controls,
+            onStart: () => {
+                if (context.status === "READY" || isFirst) {
+                    console.log("restarting");
+                    setIsRestarting(true);
+                }
+            },
+            onForceStop: () => {
+                setWithRouting(true);
+                requestSave();
+            },
+        });
+
+    const ghostCoordinator = useGhostCoordinator({
+        legs,
+        ghostTelemetry: ghostRecordRef.current?.telemetries ?? [],
+        myPoint: context.telemetries[context.telemetries.length - 1],
+        myLegIndex: legIndex,
+        timestamp: context.stats.totalTimeMs,
     });
 
     const hasSavedRef = useRef<boolean>(false);
@@ -322,9 +332,44 @@ export default function Run() {
                                 iconImage: "puck2",
                                 iconAllowOverlap: true,
                             }}
+                            aboveLayerID="layer-course"
                         />
                     </ShapeSource>
                 )}
+                {isGhostRunning && ghostCoordinator?.ghostPoint && (
+                    <ShapeSource
+                        id="ghost-puck"
+                        shape={{
+                            type: "Point",
+                            coordinates: [
+                                ghostCoordinator.ghostPoint.lng,
+                                ghostCoordinator.ghostPoint.lat,
+                            ],
+                        }}
+                    >
+                        <SymbolLayer
+                            id="ghost-puck-layer"
+                            style={{
+                                iconImage: "puck3",
+                                iconAllowOverlap: true,
+                            }}
+                            aboveLayerID="layer-course"
+                            belowLayerID=""
+                        />
+                    </ShapeSource>
+                )}
+                {isGhostRunning &&
+                    ghostCoordinator?.ghostSegments &&
+                    ghostCoordinator.ghostSegments
+                        .filter((segment) => segment.isRunning)
+                        .map((segment, index) => (
+                            <RunningLine
+                                key={"ghost-segment-" + index}
+                                id={"ghost-segment-" + index}
+                                segment={segment}
+                                color="red"
+                            />
+                        ))}
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
