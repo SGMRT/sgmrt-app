@@ -1,3 +1,4 @@
+import { MessageType } from "@/modules/expo-live-activity";
 import { RawRunData, RunMode } from "../types";
 import { CourseVariant } from "../types/status";
 
@@ -19,4 +20,8 @@ export type RunAction =
     | { type: "EXTEND" } // 완주 이후 계속 달리기 대기
     | { type: "STOP" } // 최종 종료
     | { type: "RESET" } // 초기화
-    | { type: "ACCEPT_SAMPLE"; payload: { sample: RawRunData } }; // 샘플 받아서 버퍼에 추가
+    | { type: "ACCEPT_SAMPLE"; payload: { sample: RawRunData } } // 샘플 받아서 버퍼에 추가
+    | {
+          type: "SET_LIVE_ACTIVITY_MESSAGE";
+          payload: { message: string | null; messageType: MessageType | null };
+      }; // 라이브 액티비티 메시지 설정

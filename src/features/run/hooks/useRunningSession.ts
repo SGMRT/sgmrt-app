@@ -11,6 +11,7 @@ import { geoFilter } from "../utils/geoFilter";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useRunAnalytics } from "./useRunAnalytics";
 import { useSensors } from "./useSensors";
+import { MessageType } from "@/modules/expo-live-activity";
 
 export type Controls = ReturnType<typeof useRunningSession>["controls"];
 
@@ -86,6 +87,15 @@ export function useRunningSession() {
                 anchoredBaroAlt.reset();
                 geoFilter.reset();
                 dispatch({ type: "RESET" });
+            },
+            setLiveActivityMessage: (
+                message: string | null,
+                messageType: MessageType | null
+            ) => {
+                dispatch({
+                    type: "SET_LIVE_ACTIVITY_MESSAGE",
+                    payload: { message, messageType },
+                });
             },
         };
     }, [dispatch]);
