@@ -277,18 +277,13 @@ export function useCourseProgress(props: CourseProgressProps) {
         }
 
         // 2) 오프코스 진입/복귀 (앵커 기반 복귀)
-        if (context.status === "PAUSED_OFFCOURSE") {
-            if (!offRef.current) {
-                const distToLine = nearestDistanceToPolylineM(
-                    leg.points,
-                    current
-                );
-                if (distToLine > offEnterM) {
-                    enterOffcourse(current);
-                }
-            } else {
-                tryReturnOncourse(current);
+        if (context.status === "RUNNING") {
+            const distToLine = nearestDistanceToPolylineM(leg.points, current);
+            if (distToLine > offEnterM) {
+                enterOffcourse(current);
             }
+        } else if (context.status === "PAUSED_OFFCOURSE") {
+            tryReturnOncourse(current);
         }
 
         // 3) 다음 레그 안내: 마지막 레그에선 안내 안함
