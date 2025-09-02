@@ -9,8 +9,11 @@ import { RunContext } from "../../run/state/context";
 import { selectUserLocation } from "../../run/state/selectors";
 import { voiceGuide } from "../../voice/VoiceGuide";
 import { buildCourseLegs } from "../utils/buildCourseLegs";
+import {
+    nearestDistanceToPolylineM,
+    remainingAlongLegM,
+} from "../utils/courseGemoetry";
 import { dedupeConsecutiveByLatLng } from "../utils/dedupeConsecutiveByLatLng";
-import { nearestDistanceToPolylineM } from "../utils/nearestDistanceToPolylineM";
 
 const OFFCOURSE_TOAST_MS = 3200;
 const OFFCOURSE_NOTIFY_INTERVAL_MS = 4000;
@@ -107,30 +110,6 @@ export function useCourseProgress(props: CourseProgressProps) {
         } as Telemetry;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [context.mainTimeline, context.pausedBuffer, context.mutedBuffer]);
-
-    // 레그 내 “종점까지 남은 거리”(m) — 간단히: 레그 포인트 중 현재에 가장 가까운 인덱스를 잡고 그 이후 합
-    const remainingAlongLegM = useCallback(
-        (poly: Telemetry[], p: Telemetry): number => {
-            if (poly.length === 0) return Infinity;
-            // 가장 가까운 인덱스
-            let minIdx = 0;
-            let minD = Infinity;
-            for (let i = 0; i < poly.length; i++) {
-                const d = getDistance(poly[i], p);
-                if (d < minD) {
-                    minD = d;
-                    minIdx = i;
-                }
-            }
-            // minIdx → end까지 누적
-            let rest = getDistance(p, poly[minIdx]); // 현재→최근접 포인트까지 보정
-            for (let i = minIdx; i < poly.length - 1; i++) {
-                rest += getDistance(poly[i], poly[i + 1]);
-            }
-            return rest;
-        },
-        []
-    );
 
     // 안전 래퍼
     const safeComplete = useCallback(() => {
@@ -372,7 +351,6 @@ export function useCourseProgress(props: CourseProgressProps) {
         legIndex,
         checkpoints,
         context.status,
-        remainingAlongLegM,
         onStart,
         guideAdvanceM,
         offEnterM,
