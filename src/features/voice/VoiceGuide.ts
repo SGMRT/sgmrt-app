@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/src/store/authState";
+import { getRunTime } from "@/src/utils/runUtils";
 import * as Sentry from "@sentry/react-native";
 import * as Speech from "expo-speech";
 export type VoicePriority = "CRITICAL" | "HIGH" | "NORMAL" | "LOW";
@@ -18,16 +19,16 @@ export type VoiceEvent =
           type: "run/complete";
           totalTime: number;
           totalDistance: number;
-          totalCalories: number;
-          avgPace: number;
+          totalCalories: number | null;
+          avgPace: number | null;
       }
     | { type: "run/extend" }
     | {
           type: "run/stop";
           totalTime: number;
           totalDistance: number;
-          totalCalories: number;
-          avgPace: number;
+          totalCalories: number | null;
+          avgPace: number | null;
       }
     | { type: "run/offcourse-warning" }
     | {
@@ -171,11 +172,34 @@ class VoiceGuide {
                 };
             }
             case "run/resume": {
-                return { text: "러닝을 다시 시작합니다.", priority: "NORMAL" };
+                return {
+                    text: "러닝을 다시 시작합니다.",
+                    priority: "CRITICAL",
+                };
             }
             case "run/complete": {
+                const prefix = "코스를 완주했습니다. ";
+                const time = getRunTime(event.totalTime, "HH:MM:SS").split(":");
+                const timeText =
+                    "시간 " +
+                    (time.length === 3
+                        ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
+                        : `${time[0]}분 ${time[1]}초 `);
+                const distanceText =
+                    "거리 " + event.totalDistance.toFixed(2) + "km ";
+                const caloriesText = event.totalCalories
+                    ? `소모칼로리 ${event.totalCalories} 칼로리 `
+                    : "";
+                const paceText = event.avgPace
+                    ? "평균 페이스 " + event.avgPace.toFixed(2)
+                    : "";
                 return {
-                    text: "러닝을 완료했습니다.",
+                    text:
+                        prefix +
+                        timeText +
+                        distanceText +
+                        paceText +
+                        caloriesText,
                     priority: "CRITICAL",
                     cooldownKey: "run/complete",
                 };
@@ -194,8 +218,28 @@ class VoiceGuide {
                 };
             }
             case "run/stop": {
+                const prefix = "러닝을 종료했습니다. ";
+                const time = getRunTime(event.totalTime, "HH:MM:SS").split(":");
+                const timeText =
+                    "시간 " +
+                    (time.length === 3
+                        ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
+                        : `${time[0]}분 ${time[1]}초`);
+                const distanceText =
+                    "거리 " + event.totalDistance.toFixed(2) + "km ";
+                const caloriesText = event.totalCalories
+                    ? `소모칼로리 ${event.totalCalories} 칼로리 `
+                    : "";
+                const paceText = event.avgPace
+                    ? "평균 페이스 " + event.avgPace.toFixed(2)
+                    : "";
                 return {
-                    text: "러닝을 종료합니다.",
+                    text:
+                        prefix +
+                        timeText +
+                        distanceText +
+                        paceText +
+                        caloriesText,
                     priority: "CRITICAL",
                     cooldownKey: "run/stop",
                 };

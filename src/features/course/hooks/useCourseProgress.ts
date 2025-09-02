@@ -7,6 +7,7 @@ import Toast from "react-native-toast-message";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { RunContext } from "../../run/state/context";
 import { selectUserLocation } from "../../run/state/selectors";
+import { voiceGuide } from "../../voice/VoiceGuide";
 import { buildCourseLegs } from "./utils/buildCourseLegs";
 import { dedupeConsecutiveByLatLng } from "./utils/dedupeConsecutiveByLatLng";
 import { nearestDistanceToPolylineM } from "./utils/nearestDistanceToPolylineM";
@@ -20,13 +21,6 @@ interface CourseProgressProps {
     controls: Controls;
     onStart: () => void;
     onForceStop: () => void;
-
-    onApproachNextLeg?: (info: {
-        legIndex: number;
-        nextAngle?: number | null;
-        at: Checkpoint;
-        remainingM: number;
-    }) => void;
 
     guideAdvanceM?: number; // default 40
     startEnterM?: number; // default 25
@@ -49,7 +43,6 @@ export function useCourseProgress(props: CourseProgressProps) {
         context,
         controls,
         onStart,
-        onApproachNextLeg,
         onForceStop,
         guideAdvanceM = 40,
         offEnterM = 35,
@@ -77,6 +70,11 @@ export function useCourseProgress(props: CourseProgressProps) {
         null
     );
     const offcourseToggleRef = useRef<boolean>(false);
+
+    const onForceStopRef = useRef(onForceStop);
+    useEffect(() => {
+        onForceStopRef.current = onForceStop;
+    }, [onForceStop]);
 
     const initializeCourse = useCallback(
         (course: Telemetry[], checkpoints: Checkpoint[]) => {
@@ -187,6 +185,10 @@ export function useCourseProgress(props: CourseProgressProps) {
                     "WARNING"
                 );
 
+                voiceGuide.announce({
+                    type: "run/offcourse-warning",
+                });
+
                 // 4초마다 "코스를 이탈..." / "10분 뒤 자동 종료..." 번갈아 표시
                 offcourseIntervalRef.current = setInterval(() => {
                     offcourseToggleRef.current = !offcourseToggleRef.current;
@@ -209,6 +211,10 @@ export function useCourseProgress(props: CourseProgressProps) {
                             : "10분 뒤 자동 종료됩니다",
                         "WARNING"
                     );
+
+                    voiceGuide.announce({
+                        type: "run/offcourse-warning",
+                    });
                 }, OFFCOURSE_NOTIFY_INTERVAL_MS);
 
                 // 10분 뒤 자동 종료
@@ -225,7 +231,7 @@ export function useCourseProgress(props: CourseProgressProps) {
                         "러닝이 자동 종료되었습니다",
                         "ERROR"
                     );
-                    onForceStop();
+                    onForceStopRef.current();
                 }, OFFCOURSE_AUTO_STOP_MS);
             }
         } else {
@@ -255,7 +261,7 @@ export function useCourseProgress(props: CourseProgressProps) {
                 offcourseTimeoutRef.current = null;
             }
         };
-    }, [context.status, onForceStop, controls]);
+    }, [context.status, controls]);
 
     useEffect(() => {
         if (!current) return;
@@ -294,11 +300,14 @@ export function useCourseProgress(props: CourseProgressProps) {
             const remaining = remainingAlongLegM(leg.points, current);
             if (remaining <= guideAdvanceM) {
                 approachFiredRef.current.add(legIndex);
-                onApproachNextLeg?.({
+                voiceGuide.announce({
+                    type: "nav/approach-leg",
                     legIndex,
-                    nextAngle: leg.end?.angle ?? null,
-                    at: leg.end,
-                    remainingM: Math.max(0, Math.round(remaining)),
+                    meters: Math.max(
+                        0,
+                        Number(Math.round(remaining).toFixed(0))
+                    ),
+                    angle: leg.end?.angle ?? null,
                 });
             }
         }
@@ -317,8 +326,17 @@ export function useCourseProgress(props: CourseProgressProps) {
 
         // 마지막 이전 레그: 통과 시 다음 레그로 1단계만 전진
         if (dEnd <= passCpM) {
-            setLegIndex((i) => Math.min(i + 1, legs.length - 1));
-            console.log("setLegIndex", legIndex);
+            setLegIndex((i) => {
+                const next = Math.min(i + 1, legs.length - 1);
+                voiceGuide.announce({
+                    type: "nav/enter-leg",
+                    legIndex: next,
+                    meters: Number(
+                        Math.round(legs[next].legDistance).toFixed(0)
+                    ),
+                });
+                return next;
+            });
         }
     }, [
         current,
@@ -328,7 +346,6 @@ export function useCourseProgress(props: CourseProgressProps) {
         context.status,
         remainingAlongLegM,
         onStart,
-        onApproachNextLeg,
         guideAdvanceM,
         offEnterM,
         enterOffcourse,
