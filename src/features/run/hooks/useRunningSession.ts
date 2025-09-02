@@ -1,3 +1,4 @@
+import { MessageType } from "@/modules/expo-live-activity";
 import { useEffect, useMemo, useReducer, useRef } from "react";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
@@ -11,7 +12,6 @@ import { geoFilter } from "../utils/geoFilter";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useRunAnalytics } from "./useRunAnalytics";
 import { useSensors } from "./useSensors";
-import { MessageType } from "@/modules/expo-live-activity";
 
 export type Controls = ReturnType<typeof useRunningSession>["controls"];
 

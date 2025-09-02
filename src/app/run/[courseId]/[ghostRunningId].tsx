@@ -21,6 +21,7 @@ import {
 } from "@/src/features/run/state/selectors";
 import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
+import { useRunVoice } from "@/src/features/voice/useRunVoice";
 import colors from "@/src/theme/colors";
 import {
     getRunTime,
@@ -54,6 +55,9 @@ export default function Run() {
     const [courseSegments, setCourseSegments] = useState<Segment>();
 
     const { context, controls } = useRunningSession();
+
+    useRunVoice(context);
+
     const { initializeCourse, offcourseAnchor } = useCourseProgress({
         context,
         controls,
@@ -66,10 +70,6 @@ export default function Run() {
         onForceStop: () => {
             setWithRouting(true);
             requestSave();
-        },
-        onApproachNextLeg: (info) => {
-            console.log("approachNextLeg");
-            console.log(info);
         },
     });
 
@@ -89,7 +89,8 @@ export default function Run() {
             controls.start("COURSE", "PLAIN");
             initializeCourse(response.telemetries, response.courseCheckpoints);
         })();
-    }, [courseId, isFirst, controls, initializeCourse]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [courseId, initializeCourse]);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(

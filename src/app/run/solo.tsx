@@ -19,6 +19,7 @@ import {
 } from "@/src/features/run/state/selectors";
 import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
+import { useRunVoice } from "@/src/features/voice/useRunVoice";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -44,6 +45,8 @@ export default function Run() {
     const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
 
     const { context, controls } = useRunningSession();
+
+    useRunVoice(context);
 
     const hasSavedRef = useRef<boolean>(false);
 
@@ -290,6 +293,7 @@ export default function Run() {
                                         text: "나가기",
                                         style: "destructive",
                                         onPress: () => {
+                                            controls.stop();
                                             router.back();
                                         },
                                     },
