@@ -61,7 +61,7 @@ export default function Run() {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
             () => {
-                return false;
+                return true;
             }
         );
 
