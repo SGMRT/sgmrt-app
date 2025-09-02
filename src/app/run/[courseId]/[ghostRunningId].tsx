@@ -89,8 +89,7 @@ export default function Run() {
             controls.start("COURSE", "PLAIN");
             initializeCourse(response.telemetries, response.courseCheckpoints);
         })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [courseId, initializeCourse]);
+    }, [courseId, initializeCourse, controls]);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(

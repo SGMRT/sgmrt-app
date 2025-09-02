@@ -1,5 +1,5 @@
 import { useAuthStore } from "@/src/store/authState";
-import { getRunTime } from "@/src/utils/runUtils";
+import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as Sentry from "@sentry/react-native";
 import * as Speech from "expo-speech";
 export type VoicePriority = "CRITICAL" | "HIGH" | "NORMAL" | "LOW";
@@ -96,16 +96,17 @@ class VoiceGuide {
         } as const;
         const priority = priorityMap[utter.priority ?? "NORMAL"];
 
-        if (priority >= 10 && this.speaking) {
-            Speech.stop();
-        }
-
         const idx = this.queue.findIndex((q) => {
             const queuePriority = priorityMap[q.priority ?? "NORMAL"];
             return queuePriority < priority;
         });
         if (idx >= 0) this.queue.splice(idx, 0, utter);
         else this.queue.push(utter);
+
+        if (priority >= 10 && this.speaking) {
+            Speech.stop();
+            this.speaking = false;
+        }
 
         this.trySpeakNext();
     }
@@ -193,14 +194,14 @@ class VoiceGuide {
                     (time.length === 3
                         ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
                         : `${time[0]}분 ${time[1]}초 `);
-                const distanceText =
-                    "거리 " + event.totalDistance.toFixed(2) + "km ";
+                const distanceKm = (event.totalDistance / 1000).toFixed(2);
+                const distanceText = "거리 " + distanceKm + "km ";
                 const caloriesText = event.totalCalories
                     ? `소모칼로리 ${event.totalCalories} 칼로리 `
                     : "";
-                const paceText = event.avgPace
-                    ? "평균 페이스 " + event.avgPace.toFixed(2)
-                    : "";
+                const pace = getFormattedPace(event.avgPace ?? 0).split("’");
+                const paceText =
+                    "평균 페이스 " + pace[0] + "분 " + pace[1] + "초 ";
                 return {
                     text:
                         prefix +
@@ -233,14 +234,14 @@ class VoiceGuide {
                     (time.length === 3
                         ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
                         : `${time[0]}분 ${time[1]}초`);
-                const distanceText =
-                    "거리 " + event.totalDistance.toFixed(2) + "km ";
+                const distanceKm = (event.totalDistance / 1000).toFixed(2);
+                const distanceText = "거리 " + distanceKm + "km ";
                 const caloriesText = event.totalCalories
                     ? `소모칼로리 ${event.totalCalories} 칼로리 `
                     : "";
-                const paceText = event.avgPace
-                    ? "평균 페이스 " + event.avgPace.toFixed(2)
-                    : "";
+                const pace = getFormattedPace(event.avgPace ?? 0).split("’");
+                const paceText =
+                    "평균 페이스 " + pace[0] + "분 " + pace[1] + "초 ";
                 return {
                     text:
                         prefix +
