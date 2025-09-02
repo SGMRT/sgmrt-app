@@ -27,6 +27,7 @@ interface CourseProgressProps {
     offEnterM?: number; // default 35
     offReturnM?: number; // default 18
     passCpM?: number; // default 15
+    endApproachAlertM?: number; // default 50
 }
 
 export type CourseLeg = {
@@ -49,6 +50,7 @@ export function useCourseProgress(props: CourseProgressProps) {
         offReturnM = 18,
         startEnterM = 25,
         passCpM = 15,
+        endApproachAlertM = 50,
     } = props;
 
     const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
@@ -317,6 +319,24 @@ export function useCourseProgress(props: CourseProgressProps) {
 
         // 마지막 레그: 모든 레그 완료 시 단 한 번만 complete
         if (legIndex === legs.length - 1) {
+            if (dEnd <= endApproachAlertM) {
+                voiceGuide.announce({
+                    type: "nav/end-approach-alert",
+                    legIndex,
+                    meters: Math.max(0, Number(Math.round(dEnd).toFixed(0))),
+                });
+                controls.setLiveActivityMessage(
+                    `${dEnd} 미터 후 완주 지점입니다.`,
+                    "INFO"
+                );
+                Toast.show({
+                    type: "info",
+                    text1: `${dEnd} 미터 후 완주 지점입니다.`,
+                    position: "bottom",
+                    bottomOffset: 60,
+                    visibilityTime: 3000,
+                });
+            }
             if (dEnd <= passCpM) {
                 safeComplete(); // ref로 보장: 정확히 한 번
                 return; // 이후 아무 것도 하지 않음
