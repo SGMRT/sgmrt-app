@@ -8,9 +8,9 @@ import { Controls } from "../../run/hooks/useRunningSession";
 import { RunContext } from "../../run/state/context";
 import { selectUserLocation } from "../../run/state/selectors";
 import { voiceGuide } from "../../voice/VoiceGuide";
-import { buildCourseLegs } from "./utils/buildCourseLegs";
-import { dedupeConsecutiveByLatLng } from "./utils/dedupeConsecutiveByLatLng";
-import { nearestDistanceToPolylineM } from "./utils/nearestDistanceToPolylineM";
+import { buildCourseLegs } from "../utils/buildCourseLegs";
+import { dedupeConsecutiveByLatLng } from "../utils/dedupeConsecutiveByLatLng";
+import { nearestDistanceToPolylineM } from "../utils/nearestDistanceToPolylineM";
 
 const OFFCOURSE_TOAST_MS = 3200;
 const OFFCOURSE_NOTIFY_INTERVAL_MS = 4000;
