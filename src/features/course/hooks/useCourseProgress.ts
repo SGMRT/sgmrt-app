@@ -294,6 +294,8 @@ export function useCourseProgress(props: CourseProgressProps) {
             tryReturnOncourse(current);
         }
 
+        if (context.status !== "RUNNING") return;
+
         // 3) 다음 레그 안내: 마지막 레그에선 안내 안함
         if (
             legIndex < legs.length - 1 &&
@@ -373,6 +375,8 @@ export function useCourseProgress(props: CourseProgressProps) {
         safeComplete,
         startEnterM,
         passCpM,
+        endApproachAlertM,
+        controls,
     ]);
 
     return {
