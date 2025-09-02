@@ -11,6 +11,7 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
+import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { buildUserRecordData } from "@/src/features/run/state/record";
@@ -27,9 +28,10 @@ import {
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, BackHandler, StyleSheet, View } from "react-native";
+import { BackHandler, StyleSheet, View } from "react-native";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
@@ -52,6 +54,20 @@ export default function Run() {
     const [courseSegments, setCourseSegments] = useState<Segment>();
 
     const { context, controls } = useRunningSession();
+    const { initializeCourse, offcourseAnchor } = useCourseProgress({
+        context,
+        controls,
+        onStart: () => {
+            if (context.status === "READY" || isFirst) {
+                console.log("restarting");
+                setIsRestarting(true);
+            }
+        },
+        onForceStop: () => {
+            setWithRouting(true);
+            requestSave();
+        },
+    });
 
     const hasSavedRef = useRef<boolean>(false);
 
@@ -66,15 +82,10 @@ export default function Run() {
         (async () => {
             const response = await getCourse(Number(courseId));
             setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
-            controls.start(
-                "COURSE",
-                "PLAIN",
-                response.telemetries,
-                response.courseCheckpoints
-            );
+            controls.start("COURSE", "PLAIN");
+            initializeCourse(response.telemetries, response.courseCheckpoints);
         })();
-        setIsFirst(false);
-    }, [courseId, isFirst, controls]);
+    }, [courseId, isFirst, controls, initializeCourse]);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -89,6 +100,7 @@ export default function Run() {
 
     useEffect(() => {
         if (isRestarting) {
+            setIsFirst(false);
             Toast.show({
                 type: "info",
                 text1: "3초 뒤 러닝이 시작됩니다.",
@@ -108,8 +120,8 @@ export default function Run() {
     });
 
     const onCountdownComplete = useCallback(() => {
-        if (context.status === "IDLE") {
-            controls.start("COURSE");
+        if (context.status === "READY") {
+            controls.oncourse();
         } else if (context.status === "COMPLETION_PENDING") {
             controls.extend();
         } else if (context.status === "PAUSED_USER") {
@@ -118,7 +130,6 @@ export default function Run() {
             controls.oncourse();
         }
         setIsRestarting(false);
-        setIsFirst(false);
     }, [context.status, controls]);
 
     const segments = useMemo(
@@ -140,21 +151,18 @@ export default function Run() {
         ]
     );
 
+    const [withRouting, setWithRouting] = useState<boolean>(false);
+
     const requestSave = useCallback(() => {
         if (isSaving) return;
         if (!context.telemetries.length) {
-            Toast.show({
-                type: "info",
-                text1: "저장할 러닝 데이터가 없어요",
-                position: "bottom",
-            });
-            return;
+            router.back();
         }
         hasSavedRef.current = false;
         setSavingTelemetries(context.telemetries);
         setIsSaving(true);
         controls.stop();
-    }, [isSaving, context.telemetries, controls]);
+    }, [isSaving, context.telemetries, controls, router]);
 
     // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {
@@ -174,14 +182,17 @@ export default function Run() {
                     runTime: Math.round(context.stats.totalTimeMs / 1000),
                     isPublic: false,
                 });
-                router.replace({
-                    pathname: "/result/[runningId]/[courseId]/[ghostRunningId]",
-                    params: {
-                        runningId: response.runningId.toString(),
-                        courseId: "-1",
-                        ghostRunningId: "-1",
-                    },
-                });
+                if (withRouting) {
+                    router.replace({
+                        pathname:
+                            "/result/[runningId]/[courseId]/[ghostRunningId]",
+                        params: {
+                            runningId: response.runningId.toString(),
+                            courseId: "-1",
+                            ghostRunningId: "-1",
+                        },
+                    });
+                }
             } catch {
                 Toast.show({
                     type: "info",
@@ -196,6 +207,7 @@ export default function Run() {
             }
         })();
     }, [
+        withRouting,
         isSaving,
         thumbnailUri,
         context.telemetries,
@@ -247,10 +259,24 @@ export default function Run() {
                     />
                 ) : (
                     <Animated.Text
-                        style={[styles.timeText, { color: colors.white }]}
+                        style={[
+                            styles.timeText,
+                            {
+                                color:
+                                    context.status === "READY" ||
+                                    context.status === "PAUSED_OFFCOURSE"
+                                        ? colors.red
+                                        : context.status ===
+                                          "COMPLETION_PENDING"
+                                        ? colors.primary
+                                        : colors.white,
+                            },
+                        ]}
                         entering={FadeIn.duration(1000)}
                     >
-                        {getRunTime(Math.round(elapsedMs / 1000), "MM:SS")}
+                        {context.status === "READY"
+                            ? "3"
+                            : getRunTime(Math.round(elapsedMs / 1000), "MM:SS")}
                     </Animated.Text>
                 )}
             </TopBlurView>
@@ -266,6 +292,26 @@ export default function Run() {
                 {courseSegments && (
                     <RunningLine id="course" segment={courseSegments} />
                 )}
+                {offcourseAnchor && (
+                    <ShapeSource
+                        id="custom-puck"
+                        shape={{
+                            type: "Point",
+                            coordinates: [
+                                offcourseAnchor.lng,
+                                offcourseAnchor.lat,
+                            ],
+                        }}
+                    >
+                        <SymbolLayer
+                            id="custom-puck-layer"
+                            style={{
+                                iconImage: "puck2",
+                                iconAllowOverlap: true,
+                            }}
+                        />
+                    </ShapeSource>
+                )}
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
@@ -280,7 +326,11 @@ export default function Run() {
                     <View style={styles.bottomSheetContent}>
                         {isFirst ? (
                             <EmptyListView
-                                description={`러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`}
+                                description={
+                                    isRestarting
+                                        ? `러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`
+                                        : `러닝 기록을 위해\n코스 시작 지점으로 이동해 주세요`
+                                }
                                 iconColor={colors.red}
                                 fontSize="headline"
                                 fontColor="white"
@@ -291,7 +341,8 @@ export default function Run() {
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {context.status === "RUNNING" ? (
+            {context.status === "RUNNING" ||
+            context.status === "RUNNING_EXTENDED" ? (
                 <SlideToAction
                     label="밀어서 러닝 종료"
                     onSlideSuccess={() => {
@@ -300,40 +351,69 @@ export default function Run() {
                     color="red"
                     direction="right"
                 />
-            ) : (
+            ) : context.status === "PAUSED_OFFCOURSE" ? (
                 <SlideToDualAction
+                    leftLabel={
+                        context.stats.totalDistanceM < 500
+                            ? "나가기"
+                            : "러닝 종료"
+                    }
+                    rightLabel="일반 러닝 전환"
                     onSlideLeft={() => {
-                        const tooShort = context.stats.totalDistanceM < 500;
-
-                        if (tooShort) {
-                            Alert.alert(
-                                "러닝을 종료하시겠습니까?",
-                                "500m 이하의 러닝은 저장되지 않습니다.",
-                                [
-                                    { text: "계속하기", style: "cancel" },
-                                    {
-                                        text: "나가기",
-                                        style: "destructive",
-                                        onPress: () => {
-                                            router.back();
-                                        },
-                                    },
-                                ]
-                            );
-                        } else {
-                            requestSave();
-                        }
+                        setWithRouting(true);
+                        requestSave();
                     }}
                     onSlideRight={() => {
-                        setIsRestarting(true);
+                        controls.extend();
+                        Toast.show({
+                            type: "info",
+                            text1: "일반 러닝으로 전환합니다",
+                            position: "bottom",
+                            bottomOffset: 60,
+                        });
                     }}
+                    color="primary"
+                />
+            ) : context.status === "PAUSED_USER" ? (
+                <SlideToDualAction
                     leftLabel={
                         context.stats.totalDistanceM < 500
                             ? "나가기"
                             : "기록 저장"
                     }
                     rightLabel="이어서 뛰기"
+                    onSlideLeft={() => {
+                        setWithRouting(true);
+                        requestSave();
+                    }}
+                    onSlideRight={() => {
+                        controls.resume();
+                    }}
+                    color="primary"
+                />
+            ) : context.status === "COMPLETION_PENDING" ? (
+                <SlideToDualAction
+                    leftLabel="결과 및 랭킹"
+                    rightLabel="이어서 뛰기"
+                    onSlideLeft={() => {
+                        setWithRouting(true);
+                        requestSave();
+                    }}
+                    onSlideRight={() => {
+                        setWithRouting(false);
+                        requestSave();
+                        setIsRestarting(true);
+                    }}
+                    color="primary"
+                />
+            ) : (
+                <SlideToAction
+                    label="밀어서 러닝 종료"
+                    onSlideSuccess={() => {
+                        router.back();
+                    }}
                     color="red"
+                    direction="right"
                 />
             )}
         </View>

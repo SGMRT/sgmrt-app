@@ -1,5 +1,6 @@
-import { MessageType } from "@/modules/expo-live-activity";
+import { RawRunData } from "../types";
 import { RunContext } from "./context";
+import { RouteKey, routeKeyByStatus } from "./reducer";
 
 export type PolylineSeg = {
     id: string;
@@ -31,8 +32,8 @@ export function selectLiveActivityPayload(ctx: RunContext) {
     const isCourse = ctx.mode === "COURSE";
     const progress = isCourse ? 0 : undefined;
 
-    const message = "개발 필요";
-    const messageType = "INFO" as MessageType;
+    const message = ctx.liveActivity.message ?? undefined;
+    const messageType = ctx.liveActivity.messageType ?? undefined;
 
     return {
         startedAtISO: new Date(startedAtMs).toISOString(),
@@ -88,4 +89,23 @@ export function selectStatsDisplay(context: RunContext) {
             unit: "kcal",
         },
     ];
+}
+
+export function selectUserLocation(context: RunContext) {
+    const {
+        status,
+        mainTimeline,
+        pausedBuffer,
+        mutedBuffer,
+        postCompleteBuffer,
+    } = context;
+    const key = routeKeyByStatus(status);
+    const bufferMap: Record<RouteKey, RawRunData[]> = {
+        mainTimeline,
+        pausedBuffer,
+        mutedBuffer,
+        postCompleteBuffer,
+        ignore: [],
+    };
+    return bufferMap[key]?.at(-1) ?? null;
 }

@@ -15,6 +15,7 @@ type Payload = ReturnType<typeof selectLiveActivityPayload>;
 function changedEnough(prev?: Payload, next?: Payload) {
     if (!prev || !next) return false;
 
+    if (prev.startedAtISO !== next.startedAtISO) return true;
     if (!!prev.pausedAtISO !== !!next.pausedAtISO) return true;
     if (prev.message !== next.message || prev.messageType !== next.messageType)
         return true;
@@ -44,6 +45,39 @@ export function useLiveActivityBridge(context: RunContext) {
     const lastSentRef = useRef<{ ts: number; payload: Payload } | null>(null);
     const pendingRef = useRef<Payload | null>(null);
     const timerRef = useRef<number | null>(null);
+    const prevSessionIdRef = useRef<string | null>(null);
+
+    // 공통 클린업 함수
+    const cleanup = useCallback(() => {
+        if (startedRef.current) {
+            try {
+                expoLiveActivity.endActivity();
+            } catch {}
+        }
+        startedRef.current = false;
+        lastSentRef.current = null;
+        pendingRef.current = null;
+        if (timerRef.current) clearTimeout(timerRef.current);
+        timerRef.current = null;
+    }, []);
+
+    // 세션 아이디 변경 감지 시 정리
+    useEffect(() => {
+        const cur = context.sessionId ?? null;
+        const prev = prevSessionIdRef.current;
+        if (prev && cur && prev !== cur) {
+            // 세션이 바뀌면 이전 라이브 액티비티 종료 후 초기화
+            cleanup();
+        }
+        prevSessionIdRef.current = cur;
+    }, [context.sessionId, cleanup]);
+
+    // IDLE/READY 진입 시에도 정리
+    useEffect(() => {
+        if (context.status === "IDLE" || context.status === "READY") {
+            cleanup();
+        }
+    }, [context.status, cleanup]);
 
     const flush = useCallback(
         (payload: Payload, force = false) => {
@@ -54,10 +88,14 @@ export function useLiveActivityBridge(context: RunContext) {
                 !last ||
                 !!payload.pausedAtISO !== !!last.payload.pausedAtISO ||
                 payload.message !== last.payload.message ||
-                payload.messageType !== last.payload.messageType;
+                payload.messageType !== last.payload.messageType ||
+                payload.startedAtISO !== last.payload.startedAtISO;
 
             if (!startedRef.current) {
-                expoLiveActivity.endActivity();
+                try {
+                    expoLiveActivity.endActivity();
+                } catch {}
+                if (!payload.startedAtISO) return;
 
                 expoLiveActivity.startActivity(
                     mapRunType(context.mode, context.variant),
@@ -74,7 +112,8 @@ export function useLiveActivityBridge(context: RunContext) {
                 return;
             }
 
-            if (!force && !changedEnough(last?.payload, payload)) return;
+            if (!force && !changedEnough(last?.payload, payload) && !forceEvent)
+                return;
 
             const since = last ? now - last.ts : Infinity;
             if (!force && !forceEvent && since < UPDATE_MIN_INTERVAL_MS) {
@@ -86,11 +125,11 @@ export function useLiveActivityBridge(context: RunContext) {
                         const toSend = pendingRef.current;
                         pendingRef.current = null;
                         if (!toSend) return;
-
                         if (
                             !changedEnough(lastSentRef.current?.payload, toSend)
                         )
                             return;
+
                         expoLiveActivity.updateActivity(
                             toSend.startedAtISO,
                             toSend.recentPace ?? 0,
@@ -109,7 +148,7 @@ export function useLiveActivityBridge(context: RunContext) {
                 return;
             }
 
-            // 즉시 전송 (강제 이벤트 / 간격 충족)
+            // 즉시 전송
             expoLiveActivity.updateActivity(
                 payload.startedAtISO,
                 payload.recentPace ?? 0,
