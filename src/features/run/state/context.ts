@@ -1,3 +1,4 @@
+import { MessageType } from "@/modules/expo-live-activity";
 import { Telemetry } from "@/src/apis/types/run";
 import { RawRunData, RunMode } from "../types";
 import { CourseVariant, RunStatus } from "../types/status";
@@ -7,6 +8,8 @@ import { RunningStats } from "./stats";
 export interface LiveActivityState {
     startedAtMs: number | null;
     pausedAtMs: number | null;
+    message: string | null;
+    messageType: MessageType | null;
 }
 
 export interface RunContext {

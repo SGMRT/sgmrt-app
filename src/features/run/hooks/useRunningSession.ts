@@ -11,6 +11,9 @@ import { geoFilter } from "../utils/geoFilter";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useRunAnalytics } from "./useRunAnalytics";
 import { useSensors } from "./useSensors";
+import { MessageType } from "@/modules/expo-live-activity";
+
+export type Controls = ReturnType<typeof useRunningSession>["controls"];
 
 export function useRunningSession() {
     const [context, dispatch] = useReducer(runReducer, initialRunContext);
@@ -47,7 +50,11 @@ export function useRunningSession() {
 
                 dispatch({
                     type: "START",
-                    payload: { sessionId: uuidv4(), mode, variant },
+                    payload: {
+                        sessionId: uuidv4(),
+                        mode,
+                        variant,
+                    },
                 });
             },
             ready: () => {
@@ -81,9 +88,19 @@ export function useRunningSession() {
                 geoFilter.reset();
                 dispatch({ type: "RESET" });
             },
+            setLiveActivityMessage: (
+                message: string | null,
+                messageType: MessageType | null
+            ) => {
+                dispatch({
+                    type: "SET_LIVE_ACTIVITY_MESSAGE",
+                    payload: { message, messageType },
+                });
+            },
         };
     }, [dispatch]);
 
     useLiveActivityBridge(context);
+
     return { context, controls };
 }
