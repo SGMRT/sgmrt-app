@@ -6,7 +6,7 @@ import { RunAction } from "../state/actions";
 import { initialRunContext, runReducer } from "../state/reducer";
 import { joinedState } from "../store/joinedState";
 import { RunMode } from "../types";
-import { CourseVariant } from "../types/status";
+import { CourseMetadata, CourseVariant } from "../types/status";
 import { anchoredBaroAlt } from "../utils/anchoredBaroAlt";
 import { geoFilter } from "../utils/geoFilter";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
@@ -44,7 +44,11 @@ export function useRunningSession() {
 
     const controls = useMemo(() => {
         return {
-            start: (mode: RunMode, variant?: CourseVariant) => {
+            start: (
+                mode: RunMode,
+                variant?: CourseVariant,
+                courseMetadata?: CourseMetadata
+            ) => {
                 anchoredBaroAlt.reset();
                 geoFilter.reset();
 
@@ -54,6 +58,7 @@ export function useRunningSession() {
                         sessionId: uuidv4(),
                         mode,
                         variant,
+                        courseMetadata,
                     },
                 });
             },

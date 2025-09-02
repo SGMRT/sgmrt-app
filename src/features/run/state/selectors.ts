@@ -30,7 +30,12 @@ export function selectLiveActivityPayload(ctx: RunContext) {
     const distanceMeters = ctx.stats.totalDistanceM ?? 0;
 
     const isCourse = ctx.mode === "COURSE";
-    const progress = isCourse ? 0 : undefined;
+    const progress = isCourse
+        ? Number(
+              (ctx.stats.totalDistanceM ?? 0) /
+                  (ctx.courseMetadata?.distanceMeters ?? 0)
+          )
+        : undefined;
 
     const message = ctx.liveActivity.message ?? undefined;
     const messageType = ctx.liveActivity.messageType ?? undefined;

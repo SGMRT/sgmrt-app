@@ -1,7 +1,7 @@
 import { MessageType } from "@/modules/expo-live-activity";
 import { Telemetry } from "@/src/apis/types/run";
 import { RawRunData, RunMode } from "../types";
-import { CourseVariant, RunStatus } from "../types/status";
+import { CourseMetadata, CourseVariant, RunStatus } from "../types/status";
 import { SegmentMeta } from "./segments";
 import { RunningStats } from "./stats";
 
@@ -16,6 +16,7 @@ export interface RunContext {
     sessionId: string | null;
     mode: RunMode;
     variant?: CourseVariant;
+    courseMetadata?: CourseMetadata;
     status: RunStatus;
 
     mainTimeline: RawRunData[]; // 러닝 중 기록 된 데이터

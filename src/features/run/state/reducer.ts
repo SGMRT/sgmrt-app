@@ -10,6 +10,7 @@ const initialContext: RunContext = {
     sessionId: null,
     mode: "SOLO",
     variant: undefined,
+    courseMetadata: undefined,
     status: "IDLE",
     mainTimeline: [],
     pausedBuffer: [],
@@ -59,12 +60,13 @@ export function runReducer(
     switch (action.type) {
         // 러닝 시작 (초기화)
         case "START": {
-            const { sessionId, mode, variant } = action.payload;
+            const { sessionId, mode, variant, courseMetadata } = action.payload;
             const now = Date.now();
             return {
                 sessionId,
                 mode,
                 variant,
+                courseMetadata,
                 status: mode === "COURSE" ? "READY" : "RUNNING",
                 mainTimeline: [],
                 pausedBuffer: [],

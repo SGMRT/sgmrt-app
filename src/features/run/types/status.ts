@@ -1,5 +1,8 @@
 export type RunMode = "SOLO" | "COURSE";
 export type CourseVariant = "PLAIN" | "GHOST";
+export type CourseMetadata = {
+    distanceMeters: number;
+};
 
 export type RunStatus =
     | "IDLE" // 아무것도 안 하는 상태
