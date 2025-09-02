@@ -182,8 +182,10 @@ export function useCourseProgress(props: CourseProgressProps) {
                     visibilityTime: OFFCOURSE_TOAST_MS,
                 });
 
-                context.liveActivity.message = "코스를 이탈하였습니다";
-                context.liveActivity.messageType = "WARNING";
+                controls.setLiveActivityMessage(
+                    "코스를 이탈하였습니다",
+                    "WARNING"
+                );
 
                 // 4초마다 "코스를 이탈..." / "10분 뒤 자동 종료..." 번갈아 표시
                 offcourseIntervalRef.current = setInterval(() => {
@@ -201,10 +203,12 @@ export function useCourseProgress(props: CourseProgressProps) {
                         visibilityTime: OFFCOURSE_TOAST_MS,
                     });
 
-                    context.liveActivity.message = first
-                        ? "코스를 이탈하였습니다"
-                        : "10분 뒤 자동 종료됩니다";
-                    context.liveActivity.messageType = "WARNING";
+                    controls.setLiveActivityMessage(
+                        first
+                            ? "코스를 이탈하였습니다"
+                            : "10분 뒤 자동 종료됩니다",
+                        "WARNING"
+                    );
                 }, OFFCOURSE_NOTIFY_INTERVAL_MS);
 
                 // 10분 뒤 자동 종료
@@ -217,8 +221,10 @@ export function useCourseProgress(props: CourseProgressProps) {
                         bottomOffset: 60,
                         visibilityTime: OFFCOURSE_TOAST_MS,
                     });
-                    context.liveActivity.message = "러닝이 자동 종료되었습니다";
-                    context.liveActivity.messageType = "ERROR";
+                    controls.setLiveActivityMessage(
+                        "러닝이 자동 종료되었습니다",
+                        "ERROR"
+                    );
                     onForceStop();
                 }, OFFCOURSE_AUTO_STOP_MS);
             }
@@ -235,8 +241,7 @@ export function useCourseProgress(props: CourseProgressProps) {
             offcourseStartedAtRef.current = null;
             offcourseToggleRef.current = false;
             Toast.hide();
-            context.liveActivity.message = null;
-            context.liveActivity.messageType = null;
+            controls.setLiveActivityMessage(null, null);
         }
 
         // 언마운트/의존성 변경 시 안전 정리
@@ -250,7 +255,7 @@ export function useCourseProgress(props: CourseProgressProps) {
                 offcourseTimeoutRef.current = null;
             }
         };
-    }, [context.status, onForceStop, context.liveActivity]);
+    }, [context.status, onForceStop, controls]);
 
     useEffect(() => {
         if (!current) return;

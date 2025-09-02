@@ -274,6 +274,13 @@ export function runReducer(
             }
         }
 
+        case "SET_LIVE_ACTIVITY_MESSAGE": {
+            return {
+                ...state,
+                liveActivity: { ...state.liveActivity, ...action.payload },
+            };
+        }
+
         default:
             return state;
     }
