@@ -318,6 +318,7 @@ export function useCourseProgress(props: CourseProgressProps) {
         // 마지막 이전 레그: 통과 시 다음 레그로 1단계만 전진
         if (dEnd <= passCpM) {
             setLegIndex((i) => Math.min(i + 1, legs.length - 1));
+            console.log("setLegIndex", legIndex);
         }
     }, [
         current,
