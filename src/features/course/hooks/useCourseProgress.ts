@@ -62,6 +62,7 @@ export function useCourseProgress(props: CourseProgressProps) {
     const completedRef = useRef(false);
     const offRef = useRef(false);
     const offAnchorRef = useRef<Telemetry | null>(null);
+    const endApproachAlertRef = useRef(false);
     const approachFiredRef = useRef<Set<number>>(new Set()); // 레그별 안내 1회 트리거
 
     const offcourseStartedAtRef = useRef<number | null>(null);
@@ -321,19 +322,24 @@ export function useCourseProgress(props: CourseProgressProps) {
 
         // 마지막 레그: 모든 레그 완료 시 단 한 번만 complete
         if (legIndex === legs.length - 1) {
-            if (dEnd <= endApproachAlertM) {
+            if (dEnd <= endApproachAlertM && !endApproachAlertRef.current) {
+                endApproachAlertRef.current = true;
                 voiceGuide.announce({
                     type: "nav/end-approach-alert",
                     legIndex,
                     meters: Math.max(0, Number(Math.round(dEnd).toFixed(0))),
                 });
                 controls.setLiveActivityMessage(
-                    `${dEnd} 미터 후 완주 지점입니다.`,
+                    `${Math.round(
+                        Number(dEnd.toFixed(0))
+                    )} 미터 후 완주 지점입니다.`,
                     "INFO"
                 );
                 Toast.show({
                     type: "info",
-                    text1: `${dEnd} 미터 후 완주 지점입니다.`,
+                    text1: `${Math.round(
+                        Number(dEnd.toFixed(0))
+                    )} 미터 후 완주 지점입니다.`,
                     position: "bottom",
                     bottomOffset: 60,
                     visibilityTime: 3000,
