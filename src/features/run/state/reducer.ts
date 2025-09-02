@@ -22,6 +22,8 @@ const initialContext: RunContext = {
     liveActivity: {
         startedAtMs: null,
         pausedAtMs: null,
+        message: null,
+        messageType: null,
     },
 };
 
@@ -73,8 +75,10 @@ export function runReducer(
                 segments: [],
                 _zeroNextDt: false,
                 liveActivity: {
-                    startedAtMs: now,
+                    startedAtMs: mode === "COURSE" ? null : now,
                     pausedAtMs: null,
+                    message: null,
+                    messageType: null,
                 },
             };
         }
@@ -181,6 +185,7 @@ export function runReducer(
                 telemetries: [...state.telemetries, ...telemetries],
                 segments,
                 liveActivity: {
+                    ...state.liveActivity,
                     startedAtMs: startedAt,
                     pausedAtMs: null,
                 },

@@ -12,6 +12,8 @@ import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useRunAnalytics } from "./useRunAnalytics";
 import { useSensors } from "./useSensors";
 
+export type Controls = ReturnType<typeof useRunningSession>["controls"];
+
 export function useRunningSession() {
     const [context, dispatch] = useReducer(runReducer, initialRunContext);
 

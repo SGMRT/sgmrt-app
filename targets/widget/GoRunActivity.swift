@@ -41,23 +41,27 @@ struct GoRunActivity: Widget {
             }
             Spacer(minLength: 4)
             VStack(alignment: .leading){
-              let timeAnchor = context.state.isRunning()
-                ? context.state.startedAt
-                : (context.state.pausedAt ?? context.state.startedAt)
-
-              Text("00:00")
-                .lineLimit(1)
-                .font(.system(size: 28, weight: .bold))
-                .monospacedDigit()
-                .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
-                .hidden()
-                .overlay(alignment: .leading) {
-                  Text(timeAnchor, style: .timer)
-                    .lineLimit(1)
-                    .font(.system(size: 28, weight: .bold))
-                    .monospacedDigit()
-                    .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
-                }
+              if context.state.isRunning() {
+                Text("00:00")
+                  .lineLimit(1)
+                  .font(.system(size: 28, weight: .bold))
+                  .monospacedDigit()
+                  .foregroundStyle(Color(hex: "#E8E8E8"))
+                  .hidden()
+                  .overlay(alignment: .leading) {
+                    Text(context.state.startedAt, style: .timer)
+                      .lineLimit(1)
+                      .font(.system(size: 28, weight: .bold))
+                      .monospacedDigit()
+                      .foregroundStyle(Color(hex: "#E8E8E8"))
+                  }
+              } else {
+                Text(context.state.formattedElapsedTime())
+                  .lineLimit(1)
+                  .font(.system(size: 28, weight: .bold))
+                  .monospacedDigit()
+                  .foregroundStyle(Color(hex: "#FF3358"))
+              }
               Text("시간")
                 .font(.system(size: 12, weight: .regular))
                 .foregroundStyle(Color(hex: "#676767"))
@@ -117,23 +121,27 @@ struct GoRunActivity: Widget {
                 }
                 Spacer(minLength: 4)
                 VStack(alignment: .leading){
-                  let timeAnchor = context.state.isRunning()
-                    ? context.state.startedAt
-                    : (context.state.pausedAt ?? context.state.startedAt)
-
-                  Text("00:00")
-                    .lineLimit(1)
-                    .font(.system(size: 28, weight: .bold))
-                    .monospacedDigit()
-                    .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
-                    .hidden()
-                    .overlay(alignment: .leading) {
-                      Text(timeAnchor, style: .timer)
-                        .lineLimit(1)
-                        .font(.system(size: 28, weight: .bold))
-                        .monospacedDigit()
-                        .foregroundStyle(Color(hex: context.state.isRunning() ? "#E8E8E8" : "#FF3358"))
-                    }
+                  if context.state.isRunning() {
+                    Text("00:00")
+                      .lineLimit(1)
+                      .font(.system(size: 28, weight: .bold))
+                      .monospacedDigit()
+                      .foregroundStyle(Color(hex: "#E8E8E8"))
+                      .hidden()
+                      .overlay(alignment: .leading) {
+                        Text(context.state.startedAt, style: .timer)
+                          .lineLimit(1)
+                          .font(.system(size: 28, weight: .bold))
+                          .monospacedDigit()
+                          .foregroundStyle(Color(hex: "#E8E8E8"))
+                      }
+                  } else {
+                    Text(context.state.formattedElapsedTime())
+                      .lineLimit(1)
+                      .font(.system(size: 28, weight: .bold))
+                      .monospacedDigit()
+                      .foregroundStyle(Color(hex: "#FF3358"))
+                  }
                   Text("시간")
                     .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(Color(hex: "#676767"))
