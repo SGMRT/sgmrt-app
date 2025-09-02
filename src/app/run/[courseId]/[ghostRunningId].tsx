@@ -67,6 +67,10 @@ export default function Run() {
             setWithRouting(true);
             requestSave();
         },
+        onApproachNextLeg: (info) => {
+            console.log("approachNextLeg");
+            console.log(info);
+        },
     });
 
     const hasSavedRef = useRef<boolean>(false);
