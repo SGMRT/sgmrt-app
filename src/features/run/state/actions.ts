@@ -1,6 +1,6 @@
 import { MessageType } from "@/modules/expo-live-activity";
 import { RawRunData, RunMode } from "../types";
-import { CourseVariant } from "../types/status";
+import { CourseMetadata, CourseVariant } from "../types/status";
 
 export type RunAction =
     | {
@@ -9,6 +9,7 @@ export type RunAction =
               sessionId: string;
               mode: RunMode;
               variant?: CourseVariant;
+              courseMetadata?: CourseMetadata;
           };
       } // 러닝 시작
     | { type: "READY" } // 코스 러닝 대기

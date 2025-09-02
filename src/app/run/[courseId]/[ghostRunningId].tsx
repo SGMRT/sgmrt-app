@@ -86,7 +86,9 @@ export default function Run() {
         (async () => {
             const response = await getCourse(Number(courseId));
             setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
-            controls.start("COURSE", "PLAIN");
+            controls.start("COURSE", "PLAIN", {
+                distanceMeters: response.distance,
+            });
             initializeCourse(response.telemetries, response.courseCheckpoints);
         })();
     }, [courseId, initializeCourse, controls]);
