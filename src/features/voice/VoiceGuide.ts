@@ -12,6 +12,7 @@ export type VoiceEvent =
           angle?: number | null;
           legIndex: number;
       }
+    | { type: "nav/end-approach-alert"; meters: number; legIndex: number }
     | { type: "run/start"; mode: "SOLO" | "COURSE" | "GHOST" }
     | { type: "run/pause"; reason: "user" | "offcourse" }
     | { type: "run/resume" }
@@ -156,6 +157,13 @@ class VoiceGuide {
                     text: `${event.meters} 미터 앞에서 ${angleText}입니다.`,
                     priority: "HIGH",
                     cooldownKey: `nav/approach-leg:${event.meters}:${event.legIndex}`,
+                };
+            }
+            case "nav/end-approach-alert": {
+                return {
+                    text: `${event.meters} 미터 후 완주 지점입니다.`,
+                    priority: "CRITICAL",
+                    cooldownKey: `nav/end-approach-alert:${event.meters}:${event.legIndex}`,
                 };
             }
             case "run/start": {

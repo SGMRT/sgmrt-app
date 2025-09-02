@@ -39,7 +39,7 @@ export function useRunVoice(context: RunContext) {
                 case "COMPLETION_PENDING":
                     voiceGuide.announce({
                         type: "run/complete",
-                        totalTime: context.stats.totalTimeMs,
+                        totalTime: Math.round(context.stats.totalTimeMs / 1000),
                         totalDistance: context.stats.totalDistanceM,
                         totalCalories: context.stats.calories,
                         avgPace: context.stats.avgPaceSecPerKm,
