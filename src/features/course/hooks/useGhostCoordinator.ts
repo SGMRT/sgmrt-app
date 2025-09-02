@@ -3,6 +3,7 @@ import { Segment } from "@/src/components/map/RunningLine";
 import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
 import { useMemo, useRef } from "react";
+import Toast from "react-native-toast-message";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { voiceGuide } from "../../voice/VoiceGuide";
 import {
@@ -146,6 +147,16 @@ export function useGhostCoordinator(
                     type: "run/ghost-change-leader",
                     leader,
                     deltaM: Math.abs(deltaM),
+                });
+                Toast.show({
+                    text1:
+                        leader === "ME"
+                            ? "고스트를 추월하였습니다"
+                            : "고스트가 앞서고 있습니다",
+                    type: "info",
+                    position: "bottom",
+                    bottomOffset: 60,
+                    visibilityTime: 3000,
                 });
             }
         }
