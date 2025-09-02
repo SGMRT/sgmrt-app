@@ -33,6 +33,11 @@ export type VoiceEvent =
       }
     | { type: "run/offcourse-warning" }
     | {
+          type: "run/ghost-change-leader";
+          leader: "ME" | "GHOST";
+          deltaM: number;
+      }
+    | {
           type: "custom";
           text: string;
           priority?: VoicePriority;
@@ -58,6 +63,7 @@ class VoiceGuide {
     private cooldownMs: Record<string, number> = {
         "nav/approach-leg": 3000,
         "run/offcourse-warning": 5000,
+        "run/ghost-change-leader": 5000,
     };
 
     setEnabled(enabled: boolean) {
@@ -163,7 +169,7 @@ class VoiceGuide {
             case "nav/end-approach-alert": {
                 return {
                     text: `${event.meters} 미터 후 완주 지점입니다.`,
-                    priority: "CRITICAL",
+                    priority: "HIGH",
                     cooldownKey: `nav/end-approach-alert:${event.meters}:${event.legIndex}`,
                 };
             }
@@ -176,7 +182,7 @@ class VoiceGuide {
                         event.reason === "user"
                             ? "러닝을 일시정지합니다."
                             : "코스를 이탈하였습니다. 러닝을 일시정지합니다.",
-                    priority: "HIGH",
+                    priority: "CRITICAL",
                     cooldownKey: "run/pause",
                 };
             }
@@ -223,7 +229,7 @@ class VoiceGuide {
             case "run/extend": {
                 return {
                     text: "러닝을 이어서 시작합니다.",
-                    priority: "NORMAL",
+                    priority: "CRITICAL",
                 };
             }
             case "run/stop": {
@@ -251,6 +257,20 @@ class VoiceGuide {
                         caloriesText,
                     priority: "CRITICAL",
                     cooldownKey: "run/stop",
+                };
+            }
+            case "run/ghost-change-leader": {
+                return {
+                    text:
+                        event.leader === "ME"
+                            ? "고스트를 추월하였습니다. 거리 차이는 " +
+                              event.deltaM +
+                              " 미터 입니다."
+                            : "고스트가 앞서고 있습니다. 거리 차이는 " +
+                              event.deltaM +
+                              " 미터 입니다.",
+                    priority: "HIGH",
+                    cooldownKey: "run/ghost-change-leader",
                 };
             }
             case "custom": {

@@ -3,6 +3,8 @@ import { Segment } from "@/src/components/map/RunningLine";
 import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
 import { useMemo, useRef } from "react";
+import { Controls } from "../../run/hooks/useRunningSession";
+import { voiceGuide } from "../../voice/VoiceGuide";
 import {
     nearestDistanceToPolylineM,
     progressAlongCourseM,
@@ -32,18 +34,21 @@ interface GhostCoordinatorProps {
     myPoint: Telemetry;
     myLegIndex: number;
     timestamp: number; // 상대 시간 (0초 ~ )
+    controls: Controls;
 }
 
 export function useGhostCoordinator(
     props: GhostCoordinatorProps
 ): GhostCompareResult | null {
-    const { legs, ghostTelemetry, myPoint, myLegIndex, timestamp } = props;
+    const { legs, ghostTelemetry, myPoint, myLegIndex, timestamp, controls } =
+        props;
     const ghostLegIndexRef = useRef(0);
     const prevTimestampRef = useRef(null);
+    const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
 
     const ghostPoint = findClosest(
         ghostTelemetry,
-        timestamp,
+        timestamp * 1.1,
         (t) => t.timeStamp
     );
 
@@ -121,6 +126,29 @@ export function useGhostCoordinator(
         const deltaM = ghostProgressM - myProgressM;
         const leader =
             Math.abs(deltaM) < 5 ? "TIED" : deltaM > 0 ? "GHOST" : "ME";
+
+        if (leader !== prevLeaderRef.current && leader !== "TIED") {
+            prevLeaderRef.current = leader;
+            console.log("이전 리더 업데이트", prevLeaderRef.current);
+
+            if (leader === "ME" || leader === "GHOST") {
+                console.log("조건 충족");
+                const text =
+                    leader === "ME"
+                        ? "고스트를 추월하였습니다. 거리 차이는 " +
+                          Math.abs(deltaM) +
+                          " 미터 입니다."
+                        : "고스트가 앞서고 있습니다. 거리 차이는 " +
+                          Math.abs(deltaM) +
+                          " 미터 입니다.";
+                controls.setLiveActivityMessage(text, "INFO");
+                voiceGuide.announce({
+                    type: "run/ghost-change-leader",
+                    leader,
+                    deltaM: Math.abs(deltaM),
+                });
+            }
+        }
 
         const ghostStat = {
             distance: ghostPoint.dist,
