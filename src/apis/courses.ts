@@ -77,7 +77,8 @@ export async function getCourse(
             const text = await getDataFromS3(telemetryUrl);
             if (text) {
                 const parsed = await parseJsonl(text);
-                telemetries = (parsed as unknown as Telemetry[]) ?? [];
+                const arr = Array.isArray(parsed) ? parsed : [];
+                telemetries = arr as Telemetry[];
             }
         }
 
@@ -86,7 +87,8 @@ export async function getCourse(
             const text = await getDataFromS3(checkpointsUrl);
             if (text) {
                 const parsed = await parseJsonl(text);
-                checkpoints = (parsed as unknown as Checkpoint[]) ?? [];
+                const arr = Array.isArray(parsed) ? parsed : [];
+                checkpoints = arr as Checkpoint[];
             }
         }
 

@@ -63,7 +63,8 @@ export async function getRun(
             const text = await getDataFromS3(telemetryUrl);
             if (text) {
                 const parsed = await parseJsonl(text);
-                telemetries = (parsed as unknown as Telemetry[]) ?? [];
+                const arr = Array.isArray(parsed) ? parsed : [];
+                telemetries = arr as Telemetry[];
             }
         }
 
