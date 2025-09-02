@@ -19,6 +19,7 @@ import {
 } from "@/src/features/run/state/selectors";
 import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
+import { useRunVoice } from "@/src/features/voice/useRunVoice";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -45,6 +46,8 @@ export default function Run() {
 
     const { context, controls } = useRunningSession();
 
+    useRunVoice(context);
+
     const hasSavedRef = useRef<boolean>(false);
 
     const triggerCapture = useCallback(() => {
@@ -58,7 +61,7 @@ export default function Run() {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
             () => {
-                return false;
+                return true;
             }
         );
 
@@ -290,6 +293,7 @@ export default function Run() {
                                         text: "나가기",
                                         style: "destructive",
                                         onPress: () => {
+                                            controls.stop();
                                             router.back();
                                         },
                                     },
