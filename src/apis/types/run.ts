@@ -28,6 +28,7 @@ export interface PostRunRequest {
 export interface SoloRunGetResponse {
     startedAt: number;
     runningName: string;
+    telemetryUrl: string;
     telemetries: Telemetry[];
     isPublic: boolean;
     courseInfo: CourseInfo;

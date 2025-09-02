@@ -1,5 +1,5 @@
-import { getCourse } from "@/src/apis";
-import { Telemetry } from "@/src/apis/types/run";
+import { getCourse, getRun } from "@/src/apis";
+import { SoloRunGetResponse, Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -52,7 +52,10 @@ export default function Run() {
     const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
 
     const { courseId, ghostRunningId } = useLocalSearchParams();
+    const isGhostRunning = ghostRunningId !== "-1";
     const [courseSegments, setCourseSegments] = useState<Segment>();
+
+    const ghostRecordRef = useRef<SoloRunGetResponse | null>(null);
 
     const { context, controls } = useRunningSession();
 
@@ -86,12 +89,16 @@ export default function Run() {
         (async () => {
             const response = await getCourse(Number(courseId));
             setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
-            controls.start("COURSE", "PLAIN", {
+            controls.start("COURSE", isGhostRunning ? "GHOST" : "PLAIN", {
                 distanceMeters: response.distance,
             });
             initializeCourse(response.telemetries, response.courseCheckpoints);
+            if (isGhostRunning) {
+                const ghostRecord = await getRun(Number(ghostRunningId));
+                ghostRecordRef.current = ghostRecord;
+            }
         })();
-    }, [courseId, initializeCourse, controls]);
+    }, [courseId, initializeCourse, controls, isGhostRunning, ghostRunningId]);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
