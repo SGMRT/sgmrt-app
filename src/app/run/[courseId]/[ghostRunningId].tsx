@@ -84,6 +84,7 @@ export default function Run() {
         myPoint: context.telemetries[context.telemetries.length - 1],
         myLegIndex: legIndex,
         timestamp: context.stats.totalTimeMs,
+        controls,
     });
 
     const hasSavedRef = useRef<boolean>(false);
