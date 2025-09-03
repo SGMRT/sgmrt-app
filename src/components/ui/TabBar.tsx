@@ -1,9 +1,8 @@
-import { HomeIcon, ProfileIcon, StatsIcon } from "@/assets/icons/icons";
+import { HomeIcon, ProfileIcon, StatsIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { usePathname, useRouter } from "expo-router";
 import { memo } from "react";
 import {
-    Image,
     Pressable,
     StyleProp,
     StyleSheet,
@@ -42,16 +41,10 @@ export default memo(function TabBar({ position, style }: TabBarProps) {
                         onPress={() => router.navigate(tab.path as any)}
                         style={styles.tab}
                     >
-                        <Image
-                            source={tab.icon}
-                            style={{
-                                width: 24,
-                                height: 24,
-                                tintColor: isActive
-                                    ? colors.gray[40]
-                                    : colors.gray[60],
-                                opacity: isActive ? 1 : 0.3,
-                            }}
+                        <tab.icon
+                            color={isActive ? colors.primary : colors.gray[40]}
+                            width={24}
+                            height={24}
                         />
                     </Pressable>
                 );
@@ -63,19 +56,27 @@ export default memo(function TabBar({ position, style }: TabBarProps) {
 const styles = StyleSheet.create({
     tab: {
         flex: 1,
-        height: "100%",
+        height: 64,
         justifyContent: "center",
         alignItems: "center",
         zIndex: 100,
     },
     container: {
+        paddingTop: 12,
+        paddingBottom: 6,
         flexDirection: "row",
         width: "100%",
-        height: 64,
         backgroundColor: "#111111",
         justifyContent: "space-between",
         alignItems: "center",
-        zIndex: -1,
+        borderColor: "#212121",
+        borderTopWidth: 1,
+        borderTopStartRadius: 20,
+        borderTopEndRadius: 20,
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
     },
     bottom: {
         position: "absolute",

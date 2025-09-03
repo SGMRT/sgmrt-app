@@ -5,7 +5,6 @@ import HomeMap from "@/src/components/map/HomeMap";
 import HomeTopBar from "@/src/components/map/HomeTopFilter";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import BottomModal from "@/src/components/ui/BottomModal";
-import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import { SuccessToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
@@ -34,7 +33,7 @@ export default function Home() {
         const loadWelcome = async () => {
             const welcome = await AsyncStorage.getItem("welcome");
 
-            if (true) {
+            if (welcome === "true" || welcome === null) {
                 confettiRef.current?.restart();
                 bottomSheetRef.current?.present();
                 setTimeout(() => {
@@ -54,14 +53,14 @@ export default function Home() {
             </TopBlurView>
             <HomeMap courseType={type} />
             <TabBar />
-            <SlideToAction
+            {/* <SlideToAction
                 label="밀어서 러닝 시작"
                 onSlideSuccess={() => {
                     router.push("/run/solo");
                 }}
                 color="green"
                 direction="left"
-            />
+            /> */}
 
             <Confetti
                 ref={confettiRef}

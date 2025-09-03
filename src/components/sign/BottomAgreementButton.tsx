@@ -6,6 +6,7 @@ interface BottomAgreementButtonProps {
     canPress?: boolean;
     title?: string;
     onPress: () => void;
+    topStroke?: boolean;
 }
 
 export default function BottomAgreementButton({
@@ -13,21 +14,30 @@ export default function BottomAgreementButton({
     canPress = true,
     title = "동의하기",
     onPress,
+    topStroke = false,
 }: BottomAgreementButtonProps) {
     return (
-        <View style={styles.container}>
-            <Button
-                title={title}
-                type={isActive ? "active" : "inactive"}
-                onPress={onPress}
-                disabled={!canPress}
-            />
-        </View>
+        <>
+            {topStroke && <View style={styles.topStroke} />}
+            <View style={styles.container}>
+                <Button
+                    title={title}
+                    type={isActive ? "active" : "inactive"}
+                    onPress={onPress}
+                    disabled={!canPress}
+                />
+            </View>
+        </>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         marginHorizontal: 16.5,
+    },
+    topStroke: {
+        height: 1,
+        backgroundColor: "#212121",
+        marginBottom: 12,
     },
 });

@@ -17,6 +17,7 @@ interface ButtonProps extends PressableProps {
     variant?: TypographyVariant;
     customColor?: TypographyColor;
     customBackgroundColor?: string;
+    topStroke?: boolean;
 }
 
 export const Button = ({
