@@ -39,6 +39,9 @@ import ProfileIcon from "./profile.svg";
 import StatsIcon from "./stats.svg";
 
 import MenuIcon from "./menu.svg";
+
+import PlayIcon from "./play.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -56,6 +59,7 @@ export {
     LocateMe,
     LockIcon,
     MenuIcon,
+    PlayIcon,
     ProfileIcon,
     ScrollTopIcon,
     ShareIcon,

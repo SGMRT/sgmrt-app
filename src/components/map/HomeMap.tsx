@@ -7,6 +7,7 @@ import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import { useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions } from "react-native";
 import {
@@ -16,6 +17,7 @@ import {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CourseListView from "../course/CourseListView";
+import { ActionButton } from "../ui/ActionButton";
 import BottomModal from "../ui/BottomModal";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
@@ -31,7 +33,7 @@ interface HomeMapProps {
 const ZOOM_THRESHOLD = 14.5;
 const CAMERA_LATITUDE_OFFSET = -0.0003;
 const BOTTOM_BAR_HEIGHT = 82;
-const CONTROL_PANEL_OFFSET = 54;
+const CONTROL_PANEL_OFFSET = 64;
 
 export default function HomeMap({
     courseType,
@@ -39,6 +41,7 @@ export default function HomeMap({
     setShowListView,
     mapBottomSheetRef,
 }: HomeMapProps) {
+    const router = useRouter();
     const [activeCourse, setActiveCourse] = useState<CourseResponse | null>(
         null
     );
@@ -215,6 +218,8 @@ export default function HomeMap({
                 controlPannelPosition={controlPannelPosition}
                 onRegionDidChange={onRegionDidChange}
                 cameraRef={cameraRef}
+                logoPosition={{ bottom: 90, left: 10 }}
+                attributionPosition={{ bottom: 88, right: 0 }}
             >
                 {/* active Course가 가장 먼저 표시되도록 정렬 */}
                 {sortedCourses.map((course) => (
@@ -227,6 +232,18 @@ export default function HomeMap({
                     />
                 ))}
             </MapViewWrapper>
+            <ActionButton
+                type="text"
+                text="러닝 시작"
+                style={{
+                    position: "absolute",
+                    bottom: 93,
+                    alignSelf: "center",
+                }}
+                onPress={() => {
+                    router.push("/run/solo");
+                }}
+            />
             <HomeBottomModal
                 bottomSheetRef={mapBottomSheetRef}
                 heightVal={heightVal}
