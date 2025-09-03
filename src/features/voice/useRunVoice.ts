@@ -46,6 +46,7 @@ export function useRunVoice(context: RunContext) {
                     });
                     break;
                 case "STOPPED":
+                    if (prevStatus.current === "COMPLETION_PENDING") return;
                     voiceGuide.announce({
                         type: "run/stop",
                         totalTime: Math.round(context.stats.totalTimeMs / 1000),
