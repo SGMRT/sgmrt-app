@@ -15,7 +15,7 @@ const config = {
         },
         owner: "sgmrt",
         splash: {
-            backgroundColor: "#090A0A",
+            backgroundColor: "#111111",
         },
         ios: {
             bundleIdentifier: "com.sgmrt.ghostrunner",

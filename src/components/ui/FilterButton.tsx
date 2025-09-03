@@ -13,6 +13,7 @@ interface FilterButtonProps {
     variant?: TypographyVariant;
     color?: TypographyColor;
     style?: StyleProp<ViewStyle>;
+    title?: string;
 }
 
 export const FilterButton = ({
@@ -20,11 +21,12 @@ export const FilterButton = ({
     variant = "caption1",
     color = "gray40",
     style,
+    title,
 }: FilterButtonProps) => {
     return (
         <ButtonWithIcon
             icon={<FilterIcon />}
-            title="필터"
+            title={title ?? "필터"}
             onPress={onPress}
             variant={variant}
             color={color}

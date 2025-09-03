@@ -43,9 +43,10 @@ export default function BottomModal({
                 disappearsOnIndex={-1}
                 pressBehavior="close"
                 opacity={0.4}
+                style={{ marginBottom: bottom }}
             />
         ),
-        []
+        [bottom]
     );
     return (
         <>

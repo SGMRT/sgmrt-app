@@ -56,9 +56,7 @@ export default function HomeMap({
     };
 
     const onClickCourse = (course: CourseResponse) => {
-        setShowListView(false);
         setActiveCourse(course);
-        handlePresentModalPress();
         cameraRef.current?.moveTo([
             course.startLng,
             course.startLat - CAMERA_LATITUDE_OFFSET,
@@ -208,6 +206,8 @@ export default function HomeMap({
 
     const onClickCourseInfo = (course: CourseResponse) => {
         onClickCourse(course);
+        setShowListView(false);
+        handlePresentModalPress();
     };
 
     return (
@@ -226,7 +226,7 @@ export default function HomeMap({
                         key={course.id}
                         course={course}
                         activeCourseId={activeCourse?.id ?? -1}
-                        onClickCourse={onClickCourse}
+                        onClickCourse={onClickCourseInfo}
                         zoomLevel={zoomLevel}
                     />
                 ))}
@@ -247,6 +247,7 @@ export default function HomeMap({
                 bottomSheetRef={mapBottomSheetRef}
                 heightVal={heightVal}
                 modalType={showListView ? "list" : courseType}
+                courseType={courseType}
                 activeCourse={activeCourse}
                 courses={courses ?? []}
                 onClickCourse={onClickCourse}
@@ -260,6 +261,7 @@ interface HomeBottomModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     heightVal: SharedValue<number>;
     modalType: "all" | "my" | "list";
+    courseType: "all" | "my";
     activeCourse: CourseResponse | null;
     courses: CourseResponse[];
     onClickCourse: (course: CourseResponse) => void;
@@ -269,6 +271,7 @@ interface HomeBottomModalProps {
 const HomeBottomModal = ({
     bottomSheetRef,
     heightVal,
+    courseType,
     modalType,
     activeCourse,
     courses,
@@ -285,6 +288,7 @@ const HomeBottomModal = ({
             ) : (
                 <CourseListView
                     bottomSheetRef={bottomSheetRef}
+                    courseType={courseType}
                     courses={courses ?? []}
                     selectedCourse={activeCourse}
                     onClickCourse={onClickCourse}

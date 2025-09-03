@@ -10,10 +10,10 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import StyledChart from "../../chart/StyledChart";
+import ButtonWithMap from "../../ui/ButtonWithMap";
 import { Divider } from "../../ui/Divider";
 import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
-import SlideToAction from "../../ui/SlideToAction";
 import StatRow, { Stat } from "../../ui/StatRow";
 import { Typography, TypographyColor } from "../../ui/Typography";
 import UserStatItem from "./UserStatItem";
@@ -131,22 +131,28 @@ export default function BottomCourseInfoModal({
                     onPress={onClickGhostRank}
                 />
             )}
-            <SlideToAction
-                label={
+            <ButtonWithMap
+                onPressMapButton={() => {
+                    bottomSheetRef.current?.dismiss();
+                }}
+                type="active"
+                title={
                     tab === "course"
                         ? "이 코스로 러닝 시작"
                         : "고스트와 러닝 시작"
                 }
-                onSlideSuccess={() => {
+                onPress={() => {
                     bottomSheetRef.current?.dismiss();
-                    if (tab === "course") {
+                    if (
+                        tab === "course" ||
+                        !selectedGhostId ||
+                        selectedGhostId === -1
+                    ) {
                         router.push(`/run/${course?.id}/-1`);
                     } else {
                         router.push(`/run/${course?.id}/${selectedGhostId}`);
                     }
                 }}
-                color="green"
-                direction="left"
             />
         </>
     );

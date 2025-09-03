@@ -10,7 +10,7 @@ type ButtonType =
     | "dark-inactive"
     | "custom";
 
-interface ButtonProps extends PressableProps {
+export interface ButtonProps extends PressableProps {
     type?: ButtonType;
     icon?: React.ReactNode;
     title: string;
@@ -85,6 +85,7 @@ function getButtonStyle(
 
 const styles = StyleSheet.create({
     base: {
+        flex: 1,
         height: 58,
         borderRadius: 16,
         paddingHorizontal: 16,
