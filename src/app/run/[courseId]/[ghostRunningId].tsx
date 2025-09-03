@@ -368,7 +368,11 @@ export default function Run() {
                                 id={"ghost-segment-" + index}
                                 segment={segment}
                                 color="red"
-                                belowLayerID={"layer-" + segments[0].id}
+                                belowLayerID={
+                                    segments[0]
+                                        ? "layer-" + segments[0].id
+                                        : undefined
+                                }
                             />
                         ))}
             </MapViewWrapper>
