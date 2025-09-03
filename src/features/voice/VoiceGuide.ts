@@ -55,8 +55,7 @@ class VoiceGuide {
     private speaking = false;
     private queue: Utterance[] = [];
     private lastSpokenAt: Record<string, number> = {};
-    private enabled =
-        useAuthStore.getState().userSettings?.voiceGuidanceEnabled ?? true;
+    private enabled = false;
 
     // 전역 설정
     private lang = "ko-KR";
@@ -80,7 +79,11 @@ class VoiceGuide {
     }
 
     announce(event: VoiceEvent) {
-        if (!this.enabled) return;
+        if (
+            !this.enabled &&
+            !useAuthStore.getState().userSettings?.voiceGuidanceEnabled
+        )
+            return;
 
         const utter = this.toUtterance(event);
         if (!utter) return;

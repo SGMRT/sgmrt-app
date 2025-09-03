@@ -37,8 +37,8 @@ export const Info = ({
     modalRef: React.RefObject<BottomSheetModal | null>;
 }) => {
     const [userInfo, setUserInfo] = useState<GetUserInfoResponse | null>(null);
-    const { setUserInfo: setUserInfoStore } = useAuthStore();
-    const [speechEnabled, setSpeechEnabled] = useState<boolean>(false);
+    const { setUserInfo: setUserInfoStore, setUserSettings: setUserSettings } =
+        useAuthStore();
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
 
@@ -78,6 +78,11 @@ export const Info = ({
             ...userInfo,
             pushAlarmEnabled: value ?? false,
         });
+        setUserSettings({
+            pushAlarmEnabled: value ?? false,
+            vibrationEnabled: userInfo.vibrationEnabled,
+            voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
+        });
         patchUserSettings({
             pushAlarmEnabled: value,
             vibrationEnabled: userInfo.vibrationEnabled,
@@ -90,6 +95,11 @@ export const Info = ({
             ...userInfo,
             vibrationEnabled: value ?? false,
         });
+        setUserSettings({
+            pushAlarmEnabled: userInfo.pushAlarmEnabled,
+            vibrationEnabled: value ?? false,
+            voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
+        });
         patchUserSettings({
             pushAlarmEnabled: userInfo.pushAlarmEnabled,
             vibrationEnabled: value,
@@ -100,6 +110,11 @@ export const Info = ({
         if (!userInfo) return;
         setUserInfo({
             ...userInfo,
+            voiceGuidanceEnabled: value ?? false,
+        });
+        setUserSettings({
+            pushAlarmEnabled: userInfo.pushAlarmEnabled,
+            vibrationEnabled: userInfo.vibrationEnabled,
             voiceGuidanceEnabled: value ?? false,
         });
         patchUserSettings({
