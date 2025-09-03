@@ -243,6 +243,7 @@ export default function Run() {
         router,
         controls,
         context.stats,
+        ghostRunningId,
     ]);
 
     const now = useNow(

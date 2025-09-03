@@ -55,7 +55,7 @@ export const Info = ({
                     {
                         text: "확인",
                         onPress: () => {
-                            router.replace("/intro");
+                            router.replace("/");
                         },
                     },
                 ]);
