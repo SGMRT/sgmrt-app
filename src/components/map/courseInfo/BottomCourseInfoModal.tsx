@@ -60,7 +60,7 @@ export default function BottomCourseInfoModal({
         },
         {
             description: "평균 고도",
-            value: "--",
+            value: course?.elevationAverage.toString() ?? "--",
             unit: "m",
         },
         {
@@ -88,7 +88,7 @@ export default function BottomCourseInfoModal({
         },
         {
             description: "칼로리",
-            value: "--",
+            value: course?.averageCaloriesBurned ?? "--",
             unit: "kcal",
         },
         {

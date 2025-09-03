@@ -84,7 +84,7 @@ export default function Run() {
 
     const controlPannelPosition = useAnimatedStyle(() => {
         return {
-            top: heightVal.value - 116,
+            top: heightVal.value - 64,
         };
     });
 
@@ -323,7 +323,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
-        borderRadius: 0,
+        borderTopStartRadius: 20,
+        borderTopEndRadius: 20,
     },
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",

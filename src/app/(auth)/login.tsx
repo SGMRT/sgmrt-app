@@ -29,7 +29,13 @@ export default function Login() {
     return (
         <SafeAreaView style={styles.container}>
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
-            <View style={{ width: "100%", gap: 10, paddingHorizontal: 16.5 }}>
+            <View
+                style={{
+                    gap: 10,
+                    paddingHorizontal: 16.5,
+                    width: "100%",
+                }}
+            >
                 <LoginButton
                     text="카카오로 시작하기"
                     backgroundColor="#fee500"
@@ -158,6 +164,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         paddingTop: 20,
+        width: "100%",
     },
     logo: {
         width: 274.75,

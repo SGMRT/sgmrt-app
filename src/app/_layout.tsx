@@ -43,6 +43,7 @@ function RootLayout() {
     useEffect(() => {
         if (status !== "idle") {
             console.log(`[bootstrap] status=${status}`, error ?? "");
+            SplashScreen.hideAsync();
         }
     }, [status, error]);
 
