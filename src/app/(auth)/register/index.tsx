@@ -20,7 +20,7 @@ export default function Register() {
                 <Typography
                     variant="headline"
                     color="white"
-                    style={{ paddingHorizontal: 17 }}
+                    style={{ paddingHorizontal: 16 }}
                 >
                     서비스 이용을 위해{"\n"}이용약관에 동의해 주세요
                 </Typography>

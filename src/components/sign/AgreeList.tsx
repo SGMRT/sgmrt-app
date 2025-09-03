@@ -23,9 +23,9 @@ export default function AgreeList() {
             <ScrollView
                 style={{ flex: 1 }}
                 contentContainerStyle={{
-                    paddingHorizontal: 17,
+                    paddingHorizontal: 16,
                     gap: 8,
-                    paddingVertical: 16,
+                    paddingTop: 16,
                 }}
             >
                 <AgreeItem
