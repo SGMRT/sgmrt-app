@@ -8,6 +8,7 @@ import {
     uploadToS3,
 } from "@/src/apis";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
+import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -36,6 +37,7 @@ export const Info = ({
     modalRef: React.RefObject<BottomSheetModal | null>;
 }) => {
     const [userInfo, setUserInfo] = useState<GetUserInfoResponse | null>(null);
+    const { setUserInfo: setUserInfoStore } = useAuthStore();
     const [speechEnabled, setSpeechEnabled] = useState<boolean>(false);
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
@@ -49,6 +51,13 @@ export const Info = ({
         getUserInfo()
             .then((res) => {
                 setUserInfo(res);
+                setUserInfoStore({
+                    username: res.nickname,
+                    gender: res.gender,
+                    age: res.age,
+                    height: res.height,
+                    weight: res.weight,
+                });
             })
             .catch(() => {
                 Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
