@@ -2,6 +2,7 @@ import { useAuthStore } from "@/src/store/authState";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as Sentry from "@sentry/react-native";
 import * as Speech from "expo-speech";
+import { initAudioModule } from "../bootstrap/useBootstrapApp";
 export type VoicePriority = "CRITICAL" | "HIGH" | "NORMAL" | "LOW";
 
 export type VoiceEvent =
@@ -123,10 +124,11 @@ class VoiceGuide {
         this.speaking = false;
     }
 
-    private trySpeakNext() {
+    private async trySpeakNext() {
         if (this.speaking || this.queue.length === 0) return;
         const next = this.queue.shift()!;
         this.speaking = true;
+        await initAudioModule();
         Speech.speak(next.text, {
             language: this.lang,
             rate: this.rate,

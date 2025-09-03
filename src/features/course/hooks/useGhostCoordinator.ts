@@ -126,7 +126,7 @@ export function useGhostCoordinator(
             ghostPoint
         );
 
-        const deltaM = ghostProgressM - myProgressM;
+        const deltaM = Math.round(ghostProgressM - myProgressM);
         const leader =
             Math.abs(deltaM) < 5 ? "TIED" : deltaM > 0 ? "GHOST" : "ME";
 
@@ -186,5 +186,6 @@ export function useGhostCoordinator(
         ghostPoint,
         timestamp,
         ghostTelemetry.length,
+        controls,
     ]);
 }

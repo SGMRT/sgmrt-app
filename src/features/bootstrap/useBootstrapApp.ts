@@ -56,7 +56,7 @@ async function stopTrackingAndLiveActivity() {
     }
 }
 
-async function initAudioModule() {
+export async function initAudioModule() {
     try {
         await setAudioModeAsync({
             playsInSilentMode: true,
@@ -158,8 +158,10 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 // 4) 라우팅
                 if (cancelled) return;
                 if (isLoggedIn) {
+                    console.log("replace to /(tabs)/home");
                     router.replace("/(tabs)/home");
                 } else {
+                    console.log("replace to /(auth)/login");
                     router.replace("/(auth)/login");
                 }
 
