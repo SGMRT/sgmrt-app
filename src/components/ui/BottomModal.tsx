@@ -43,7 +43,15 @@ export default function BottomModal({
             maxDynamicContentSize={Dimensions.get("window").height - 250}
             keyboardBehavior="interactive"
         >
-            <BottomSheetView>{children}</BottomSheetView>
+            <BottomSheetView
+                style={{
+                    minHeight: 280 - (bottomInset ?? bottom) - 35,
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                {children}
+            </BottomSheetView>
         </BottomSheetModal>
     );
 }
@@ -52,7 +60,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
-        borderRadius: 0,
+        borderTopStartRadius: 16,
+        borderTopEndRadius: 16,
     },
     handle: {
         paddingTop: 10,

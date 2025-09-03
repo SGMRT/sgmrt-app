@@ -4,23 +4,27 @@ import { StyleSheet } from "react-native";
 import { ToastShowParams } from "react-native-toast-message";
 import { Typography } from "./Typography";
 
+export const SuccessToast = (props: ToastShowParams) => (
+    <BlurView intensity={14} style={styles.container}>
+        <ToastCheckIcon />
+        <Typography variant="subhead2" color="white">
+            {props.text1}
+        </Typography>
+    </BlurView>
+);
+
+export const InfoToast = (props: ToastShowParams) => (
+    <BlurView intensity={14} style={styles.container}>
+        <ToastInfoIcon />
+        <Typography variant="subhead2" color="white">
+            {props.text1}
+        </Typography>
+    </BlurView>
+);
+
 export const toastConfig = {
-    success: (props: ToastShowParams) => (
-        <BlurView intensity={14} style={styles.container}>
-            <ToastCheckIcon />
-            <Typography variant="subhead2" color="white">
-                {props.text1}
-            </Typography>
-        </BlurView>
-    ),
-    info: (props: ToastShowParams) => (
-        <BlurView intensity={14} style={styles.container}>
-            <ToastInfoIcon />
-            <Typography variant="subhead2" color="white">
-                {props.text1}
-            </Typography>
-        </BlurView>
-    ),
+    success: SuccessToast,
+    info: InfoToast,
 };
 
 const styles = StyleSheet.create({
@@ -34,5 +38,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 30,
         overflow: "hidden",
+        zIndex: 100,
     },
 });

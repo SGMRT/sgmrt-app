@@ -1,6 +1,6 @@
 import { ElipsisVerticalIcon } from "@/assets/svgs/svgs";
 import { getCourseUserRank } from "@/src/apis";
-import { HistoryResponse, UserRankResponse } from "@/src/apis/types/course";
+import { HistoryResponse } from "@/src/apis/types/course";
 import { useAuthStore } from "@/src/store/authState";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -34,7 +34,7 @@ export default function CourseTopUsers({
 }: CourseTopUsersProps) {
     const router = useRouter();
     const [includeMyRecord, setIncludeMyRecord] = useState(false);
-    const [myRecord, setMyRecord] = useState<UserRankResponse | null>(null);
+    const [myRecord, setMyRecord] = useState<HistoryResponse | null>(null);
     const { uuid } = useAuthStore();
 
     useEffect(() => {
