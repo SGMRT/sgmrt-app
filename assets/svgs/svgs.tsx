@@ -37,6 +37,8 @@ import UnlockIcon from "./lock_open.svg";
 import HomeIcon from "./home.svg";
 import ProfileIcon from "./profile.svg";
 import StatsIcon from "./stats.svg";
+
+import MenuIcon from "./menu.svg";
 export {
     AlertIcon,
     AppleIcon,
@@ -53,6 +55,7 @@ export {
     ListIcon,
     LocateMe,
     LockIcon,
+    MenuIcon,
     ProfileIcon,
     ScrollTopIcon,
     ShareIcon,

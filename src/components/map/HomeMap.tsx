@@ -19,11 +19,13 @@ import CourseListView from "../course/CourseListView";
 import BottomModal from "../ui/BottomModal";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
-import ListViewButton from "./ListViewButton";
 import MapViewWrapper from "./MapViewWrapper";
 
 interface HomeMapProps {
     courseType: "all" | "my";
+    showListView: boolean;
+    setShowListView: (showListView: boolean) => void;
+    mapBottomSheetRef: React.RefObject<BottomSheetModal | null>;
 }
 
 const ZOOM_THRESHOLD = 14.5;
@@ -31,7 +33,12 @@ const CAMERA_LATITUDE_OFFSET = -0.0003;
 const BOTTOM_BAR_HEIGHT = 82;
 const CONTROL_PANEL_OFFSET = 54;
 
-export default function HomeMap({ courseType }: HomeMapProps) {
+export default function HomeMap({
+    courseType,
+    showListView,
+    setShowListView,
+    mapBottomSheetRef,
+}: HomeMapProps) {
     const [activeCourse, setActiveCourse] = useState<CourseResponse | null>(
         null
     );
@@ -40,12 +47,10 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     // const [allCourseList, setAllCourseList] = useState<CourseResponse[]>([]);
 
     const [zoomLevel, setZoomLevel] = useState(16);
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
-    const handlePresentModalPress = () => {
-        bottomSheetRef.current?.present();
-    };
 
-    const [showCourseList, setShowCourseList] = useState(false);
+    const handlePresentModalPress = () => {
+        mapBottomSheetRef.current?.present();
+    };
 
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
@@ -175,8 +180,9 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     }, []);
 
     useEffect(() => {
-        setShowCourseList(false);
-        bottomSheetRef.current?.dismiss();
+        setShowListView(false);
+        mapBottomSheetRef.current?.dismiss();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [courseType]);
 
     const sortedCourses = useMemo(() => {
@@ -197,14 +203,9 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         }
     }, [courses, activeCourse, courseType]);
 
-    const onPressListViewButton = () => {
-        setShowCourseList(true);
-        bottomSheetRef.current?.present();
-    };
-
     const onClickCourseInfo = (course: CourseResponse) => {
         setActiveCourse(course);
-        setShowCourseList(false);
+        setShowListView(false);
     };
 
     return (
@@ -226,11 +227,10 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                     />
                 ))}
             </MapViewWrapper>
-            <ListViewButton onPress={onPressListViewButton} />
             <HomeBottomModal
-                bottomSheetRef={bottomSheetRef}
+                bottomSheetRef={mapBottomSheetRef}
                 heightVal={heightVal}
-                modalType={showCourseList ? "list" : courseType}
+                modalType={showListView ? "list" : courseType}
                 activeCourse={activeCourse}
                 courses={courses ?? []}
                 onClickCourse={onClickCourse}
