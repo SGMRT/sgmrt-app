@@ -205,6 +205,10 @@ export default function Run() {
                     userDashboardData: userRecordData,
                     runTime: Math.round(context.stats.totalTimeMs / 1000),
                     isPublic: false,
+                    ghostRunningId:
+                        Number(ghostRunningId) !== -1
+                            ? Number(ghostRunningId)
+                            : null,
                 });
                 if (withRouting) {
                     router.replace({
