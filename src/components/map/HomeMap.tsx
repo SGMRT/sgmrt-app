@@ -56,6 +56,7 @@ export default function HomeMap({
     };
 
     const onClickCourse = (course: CourseResponse) => {
+        setShowListView(false);
         setActiveCourse(course);
         handlePresentModalPress();
         cameraRef.current?.moveTo([
@@ -185,8 +186,7 @@ export default function HomeMap({
     useEffect(() => {
         setShowListView(false);
         mapBottomSheetRef.current?.dismiss();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [courseType]);
+    }, [courseType, setShowListView, mapBottomSheetRef]);
 
     const sortedCourses = useMemo(() => {
         if (courseType === "my") {
@@ -207,8 +207,7 @@ export default function HomeMap({
     }, [courses, activeCourse, courseType]);
 
     const onClickCourseInfo = (course: CourseResponse) => {
-        setActiveCourse(course);
-        setShowListView(false);
+        onClickCourse(course);
     };
 
     return (

@@ -1,6 +1,8 @@
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import { useAuthStore } from "@/src/store/authState";
+import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -112,7 +114,12 @@ export default function BottomCourseInfoModal({
         <>
             <TabHeader tab={tab} setTab={setTab} />
             {tab === "course" && (
-                <CourseInfoSection stats={courseStats} dummyData={dummyData} />
+                <CourseInfoSection
+                    courseName={course?.name ?? ""}
+                    stats={courseStats}
+                    dummyData={dummyData}
+                    onPress={() => setTab("ghost")}
+                />
             )}
             {tab === "ghost" && (
                 <GhostInfoSection
@@ -233,18 +240,21 @@ export const GhostInfoSection = ({
 };
 
 const CourseInfoSection = ({
+    courseName,
     stats,
     dummyData,
+    onPress,
 }: {
+    courseName: string;
     stats: Stat[];
     dummyData: any[];
+    onPress: () => void;
 }) => {
     return (
         <View
             style={{
                 marginBottom: 30,
                 marginHorizontal: 16.5,
-                paddingVertical: 5,
             }}
         >
             <Section
@@ -252,6 +262,32 @@ const CourseInfoSection = ({
                     gap: 15,
                 }}
             >
+                <View style={{ marginBottom: 5, gap: 10 }}>
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography variant="subhead1" color="gray20">
+                            {courseName}
+                        </Typography>
+                        <Pressable
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                            }}
+                            onPress={onPress}
+                        >
+                            <Typography variant="caption1" color="gray40">
+                                고스트 선택
+                            </Typography>
+                            <ChevronIcon />
+                        </Pressable>
+                    </View>
+                    <Divider direction="horizontal" color={colors.gray[40]} />
+                </View>
                 <StatRow
                     stats={stats}
                     color="gray20"
