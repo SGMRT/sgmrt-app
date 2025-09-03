@@ -1,7 +1,6 @@
 import { Logo } from "@/assets/icons/icons";
 import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
 import { signIn } from "@/src/apis";
-import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
 import { useAuthStore } from "@/src/store/authState";
 import * as amplitude from "@amplitude/analytics-react-native";
@@ -30,8 +29,7 @@ export default function Login() {
     return (
         <SafeAreaView style={styles.container}>
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
-            <Compass />
-            <View style={{ width: "100%", gap: 8 }}>
+            <View style={{ width: "100%", gap: 10, paddingHorizontal: 16.5 }}>
                 <LoginButton
                     text="카카오로 시작하기"
                     backgroundColor="#fee500"
@@ -57,7 +55,7 @@ export default function Login() {
                 />
                 <LoginButton
                     text="애플로 시작하기"
-                    backgroundColor="#333333"
+                    backgroundColor="#3F3F3F"
                     textColor="white"
                     icon={<AppleIcon />}
                     onPress={async () => {
@@ -162,7 +160,8 @@ const styles = StyleSheet.create({
         paddingTop: 20,
     },
     logo: {
-        width: 360,
-        height: 156,
+        width: 274.75,
+        height: 63.44,
+        flex: 1,
     },
 });
