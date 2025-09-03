@@ -35,6 +35,9 @@ import GhostIcon from "./g.svg";
 import LockIcon from "./lock_close.svg";
 import UnlockIcon from "./lock_open.svg";
 
+import HomeIcon from "./home.svg";
+import ProfileIcon from "./profile.svg";
+import StatsIcon from "./stats.svg";
 export {
     AlertIcon,
     AppleIcon,
@@ -47,12 +50,15 @@ export {
     ElipsisVerticalIcon,
     FilterIcon,
     GhostIcon,
+    HomeIcon,
     KakaoIcon,
     ListIcon,
     LocateMe,
     LockIcon,
+    ProfileIcon,
     ScrollTopIcon,
     ShareIcon,
+    StatsIcon,
     ToastCheckIcon,
     ToastInfoIcon,
     TrashIcon,

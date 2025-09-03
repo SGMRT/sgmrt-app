@@ -46,7 +46,6 @@ export default function BottomModal({
             <BottomSheetView
                 style={{
                     minHeight: 280 - (bottomInset ?? bottom) - 35,
-                    alignItems: "center",
                     justifyContent: "center",
                 }}
             >
@@ -60,8 +59,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
-        borderTopStartRadius: 16,
-        borderTopEndRadius: 16,
+        borderTopStartRadius: 20,
+        borderTopEndRadius: 20,
     },
     handle: {
         paddingTop: 10,

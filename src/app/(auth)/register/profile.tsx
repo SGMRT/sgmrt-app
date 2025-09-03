@@ -290,6 +290,7 @@ export default function Profile() {
                         );
                     }}
                     title="가입 완료"
+                    topStroke
                 />
             </KeyboardAvoidingView>
         </SafeAreaView>
