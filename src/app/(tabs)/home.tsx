@@ -12,18 +12,19 @@ import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
 export default function Home() {
-    const router = useRouter();
     const [type, setType] = useState<"all" | "my">("all");
+    const [showListView, setShowListView] = useState(false);
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const confettiRef = useRef<ConfettiMethods | null>(null);
     const { height: windowHeight, width: windowWidth } = useWindowDimensions();
     const { username } = useAuthStore().userInfo ?? {};
+
+    const mapBottomSheetRef = useRef<BottomSheetModal>(null);
 
     useEffect(() => {
         setTelemetryEnabled(false);
@@ -49,9 +50,21 @@ export default function Home() {
         <View style={styles.container}>
             <TopBlurView>
                 <WeatherInfo />
-                <HomeTopBar type={type} setType={setType} />
+                <HomeTopBar
+                    type={type}
+                    setType={setType}
+                    onClickMenu={() => {
+                        setShowListView(true);
+                        mapBottomSheetRef.current?.present();
+                    }}
+                />
             </TopBlurView>
-            <HomeMap courseType={type} />
+            <HomeMap
+                courseType={type}
+                showListView={showListView}
+                setShowListView={setShowListView}
+                mapBottomSheetRef={mapBottomSheetRef}
+            />
             <TabBar />
             {/* <SlideToAction
                 label="밀어서 러닝 시작"
