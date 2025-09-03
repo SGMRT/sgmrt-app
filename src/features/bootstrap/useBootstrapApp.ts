@@ -158,7 +158,7 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 // 4) 라우팅
                 if (cancelled) return;
                 if (isLoggedIn) {
-                    router.replace("/(tabs)/home");
+                    router.replace("/(auth)/register");
                 } else {
                     router.replace("/(auth)/login");
                 }

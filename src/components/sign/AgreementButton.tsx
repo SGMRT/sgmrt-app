@@ -49,11 +49,12 @@ export default function AgreementButton({
 
 const styles = StyleSheet.create({
     container: {
-        width: "100%",
         height: 60,
         backgroundColor: "#171717",
         justifyContent: "center",
-        paddingHorizontal: 17,
+        paddingHorizontal: 20,
+        borderRadius: 16,
+        marginHorizontal: 16,
     },
     checkIcon: {
         borderRadius: 100,
