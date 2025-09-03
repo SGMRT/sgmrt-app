@@ -288,7 +288,7 @@ export default function Profile() {
                             ]
                         );
                     }}
-                    title="가입완료"
+                    title="가입 완료"
                 />
             </KeyboardAvoidingView>
 
@@ -379,5 +379,6 @@ const styles = StyleSheet.create({
     },
     genderButton: {
         paddingHorizontal: 12,
+        paddingVertical: 7,
     },
 });
