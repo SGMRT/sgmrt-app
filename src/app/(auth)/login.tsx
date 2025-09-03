@@ -34,6 +34,7 @@ export default function Login() {
                     gap: 10,
                     paddingHorizontal: 16.5,
                     width: "100%",
+                    height: 126,
                 }}
             >
                 <LoginButton
