@@ -39,6 +39,13 @@ export type VoiceEvent =
           deltaM: number;
       }
     | {
+          type: "run/distance";
+          distanceKM: string;
+          totalTime: number;
+          totalCalories: number | null;
+          avgPace: number | null;
+      }
+    | {
           type: "custom";
           text: string;
           priority?: VoicePriority;
@@ -93,6 +100,8 @@ class VoiceGuide {
             const now = Date.now();
             const cool = this.cooldownMs[utter.cooldownKey] ?? 1000;
 
+            console.log("cooldown", utter.cooldownKey, now - last, cool);
+
             if (now - last < cool) return;
 
             this.lastSpokenAt[utter.cooldownKey] = now;
@@ -125,6 +134,10 @@ class VoiceGuide {
         Speech.stop();
         this.queue = [];
         this.speaking = false;
+    }
+
+    clearQueue() {
+        this.queue = [];
     }
 
     private async trySpeakNext() {
@@ -276,6 +289,26 @@ class VoiceGuide {
                               " 미터 입니다.",
                     priority: "HIGH",
                     cooldownKey: "run/ghost-change-leader",
+                };
+            }
+            case "run/distance": {
+                const prefix = "거리 " + event.distanceKM + "km";
+                const time = getRunTime(event.totalTime, "HH:MM:SS").split(":");
+                const timeText =
+                    "시간 " +
+                    (time.length === 3
+                        ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
+                        : `${time[0]}분 ${time[1]}초`);
+                const pace = getFormattedPace(event.avgPace ?? 0).split("’");
+                const paceText =
+                    "평균 페이스 " + pace[0] + "분 " + pace[1] + "초 ";
+                const caloriesText = event.totalCalories
+                    ? `소모칼로리 ${event.totalCalories} 칼로리 입니다.`
+                    : "";
+                return {
+                    text: `${prefix} ${timeText} ${paceText} ${caloriesText}`,
+                    priority: "HIGH",
+                    cooldownKey: "run/distance" + event.distanceKM,
                 };
             }
             case "custom": {
