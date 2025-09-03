@@ -1,7 +1,7 @@
 import { Checkpoint } from "@/src/apis/types/course";
 import { Telemetry } from "@/src/apis/types/run";
 import { getDistance } from "@/src/utils/mapUtils";
-import { CourseLeg } from "../useCourseProgress";
+import { CourseLeg } from "../types/courseLeg";
 
 type LatLngLike = { lat: number; lng: number };
 

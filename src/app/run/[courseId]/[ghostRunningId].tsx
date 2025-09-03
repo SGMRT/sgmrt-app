@@ -1,5 +1,5 @@
-import { getCourse } from "@/src/apis";
-import { Telemetry } from "@/src/apis/types/run";
+import { getCourse, getRun } from "@/src/apis";
+import { SoloRunGetResponse, Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -12,6 +12,7 @@ import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
+import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { buildUserRecordData } from "@/src/features/run/state/record";
@@ -52,25 +53,38 @@ export default function Run() {
     const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
 
     const { courseId, ghostRunningId } = useLocalSearchParams();
+    const isGhostRunning = ghostRunningId !== "-1";
     const [courseSegments, setCourseSegments] = useState<Segment>();
+
+    const ghostRecordRef = useRef<SoloRunGetResponse | null>(null);
 
     const { context, controls } = useRunningSession();
 
     useRunVoice(context);
 
-    const { initializeCourse, offcourseAnchor } = useCourseProgress({
-        context,
+    const { initializeCourse, offcourseAnchor, legIndex, legs } =
+        useCourseProgress({
+            context,
+            controls,
+            onStart: () => {
+                if (context.status === "READY" || isFirst) {
+                    console.log("restarting");
+                    setIsRestarting(true);
+                }
+            },
+            onForceStop: () => {
+                setWithRouting(true);
+                requestSave();
+            },
+        });
+
+    const ghostCoordinator = useGhostCoordinator({
+        legs,
+        ghostTelemetry: ghostRecordRef.current?.telemetries ?? [],
+        myPoint: context.telemetries[context.telemetries.length - 1],
+        myLegIndex: legIndex,
+        timestamp: context.stats.totalTimeMs,
         controls,
-        onStart: () => {
-            if (context.status === "READY" || isFirst) {
-                console.log("restarting");
-                setIsRestarting(true);
-            }
-        },
-        onForceStop: () => {
-            setWithRouting(true);
-            requestSave();
-        },
     });
 
     const hasSavedRef = useRef<boolean>(false);
@@ -86,10 +100,16 @@ export default function Run() {
         (async () => {
             const response = await getCourse(Number(courseId));
             setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
-            controls.start("COURSE", "PLAIN");
+            controls.start("COURSE", isGhostRunning ? "GHOST" : "PLAIN", {
+                distanceMeters: response.distance,
+            });
             initializeCourse(response.telemetries, response.courseCheckpoints);
+            if (isGhostRunning) {
+                const ghostRecord = await getRun(Number(ghostRunningId));
+                ghostRecordRef.current = ghostRecord;
+            }
         })();
-    }, [courseId, initializeCourse, controls]);
+    }, [courseId, initializeCourse, controls, isGhostRunning, ghostRunningId]);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -313,9 +333,48 @@ export default function Run() {
                                 iconImage: "puck2",
                                 iconAllowOverlap: true,
                             }}
+                            aboveLayerID="layer-course"
                         />
                     </ShapeSource>
                 )}
+                {isGhostRunning && ghostCoordinator?.ghostPoint && (
+                    <ShapeSource
+                        id="ghost-puck"
+                        shape={{
+                            type: "Point",
+                            coordinates: [
+                                ghostCoordinator.ghostPoint.lng,
+                                ghostCoordinator.ghostPoint.lat,
+                            ],
+                        }}
+                    >
+                        <SymbolLayer
+                            id="ghost-puck-layer"
+                            style={{
+                                iconImage: "puck3",
+                                iconAllowOverlap: true,
+                            }}
+                            aboveLayerID="layer-course"
+                        />
+                    </ShapeSource>
+                )}
+                {isGhostRunning &&
+                    ghostCoordinator?.ghostSegments &&
+                    ghostCoordinator.ghostSegments
+                        .filter((segment) => segment.isRunning)
+                        .map((segment, index) => (
+                            <RunningLine
+                                key={"ghost-segment-" + index}
+                                id={"ghost-segment-" + index}
+                                segment={segment}
+                                color="red"
+                                belowLayerID={
+                                    segments[0]
+                                        ? "layer-" + segments[0].id
+                                        : undefined
+                                }
+                            />
+                        ))}
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
@@ -340,7 +399,12 @@ export default function Run() {
                                 fontColor="white"
                             />
                         ) : (
-                            <StatsIndicator stats={statsForUI} color="gray20" />
+                            <StatsIndicator
+                                stats={statsForUI}
+                                color="gray20"
+                                ghost={isGhostRunning}
+                                ghostTelemetry={ghostCoordinator?.ghostPoint}
+                            />
                         )}
                     </View>
                 </BottomSheetView>
