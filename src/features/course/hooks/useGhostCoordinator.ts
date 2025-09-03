@@ -6,12 +6,12 @@ import { useMemo, useRef } from "react";
 import Toast from "react-native-toast-message";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { voiceGuide } from "../../voice/VoiceGuide";
+import { CourseLeg } from "../types/courseLeg";
 import {
     nearestDistanceToPolylineM,
     progressAlongCourseM,
     remainingAlongLegM,
-} from "../utils/courseGemoetry";
-import { CourseLeg } from "./useCourseProgress";
+} from "../utils/courseGeometry";
 
 type GhostCompareResult = {
     ghostPoint: Telemetry;
@@ -34,7 +34,7 @@ interface GhostCoordinatorProps {
     ghostTelemetry: Telemetry[];
     myPoint: Telemetry;
     myLegIndex: number;
-    timestamp: number; // 상대 시간 (0초 ~ )
+    timestamp: number; // 상대 시간 (0ms ~ )
     controls: Controls;
 }
 
@@ -44,12 +44,12 @@ export function useGhostCoordinator(
     const { legs, ghostTelemetry, myPoint, myLegIndex, timestamp, controls } =
         props;
     const ghostLegIndexRef = useRef(0);
-    const prevTimestampRef = useRef(null);
+    const prevTimestampRef = useRef<number | null>(null);
     const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
 
     const ghostPoint = findClosest(
         ghostTelemetry,
-        timestamp * 1.1,
+        timestamp,
         (t) => t.timeStamp
     );
 
@@ -76,6 +76,8 @@ export function useGhostCoordinator(
             prevTimestampRef.current === timestamp
         )
             return null;
+
+        prevTimestampRef.current = timestamp;
 
         const myProgressM = progressAlongCourseM(legs, myLegIndex, myPoint);
 
@@ -130,10 +132,8 @@ export function useGhostCoordinator(
 
         if (leader !== prevLeaderRef.current && leader !== "TIED") {
             prevLeaderRef.current = leader;
-            console.log("이전 리더 업데이트", prevLeaderRef.current);
 
             if (leader === "ME" || leader === "GHOST") {
-                console.log("조건 충족");
                 const text =
                     leader === "ME"
                         ? "고스트를 추월하였습니다. 거리 차이는 " +
