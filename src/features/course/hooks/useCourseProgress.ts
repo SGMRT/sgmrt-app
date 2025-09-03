@@ -12,8 +12,9 @@ import { buildCourseLegs } from "../utils/buildCourseLegs";
 import {
     nearestDistanceToPolylineM,
     remainingAlongLegM,
-} from "../utils/courseGemoetry";
+} from "../utils/courseGeometry";
 import { dedupeConsecutiveByLatLng } from "../utils/dedupeConsecutiveByLatLng";
+import { CourseLeg } from "../types/courseLeg";
 
 const OFFCOURSE_TOAST_MS = 3200;
 const OFFCOURSE_NOTIFY_INTERVAL_MS = 4000;
@@ -32,15 +33,6 @@ interface CourseProgressProps {
     passCpM?: number; // default 15
     endApproachAlertM?: number; // default 50
 }
-
-export type CourseLeg = {
-    index: number;
-    start: Checkpoint;
-    end: Checkpoint;
-    legDistance: number; // (m)
-    cumDistance: number; // (m) 코스 시작~현재 레그 끝
-    points: Telemetry[]; // [startIdx..endIdx] 포함
-};
 
 export function useCourseProgress(props: CourseProgressProps) {
     const {

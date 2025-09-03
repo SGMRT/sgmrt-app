@@ -1,6 +1,6 @@
 import { Telemetry } from "@/src/apis/types/run";
 import { getDistance } from "@/src/utils/mapUtils";
-import { CourseLeg } from "../hooks/useCourseProgress";
+import { CourseLeg } from "../types/courseLeg";
 
 export function nearestIndexOnPolyline(
     polyline: Telemetry[],
@@ -29,15 +29,7 @@ export function remainingAlongLegM(
 ): number {
     if (polyline.length === 0) return Infinity;
     // 가장 가까운 인덱스
-    let minIdx = 0;
-    let minD = Infinity;
-    for (let i = 0; i < polyline.length; i++) {
-        const d = getDistance(polyline[i], point);
-        if (d < minD) {
-            minD = d;
-            minIdx = i;
-        }
-    }
+    const { nearestIndex: minIdx } = nearestIndexOnPolyline(polyline, point);
     // minIdx → end까지 누적
     let rest = getDistance(point, polyline[minIdx]); // 현재→최근접 포인트까지 보정
     for (let i = minIdx; i < polyline.length - 1; i++) {
