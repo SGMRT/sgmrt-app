@@ -28,9 +28,8 @@ interface HomeMapProps {
 
 const ZOOM_THRESHOLD = 14.5;
 const CAMERA_LATITUDE_OFFSET = -0.0003;
-const BOTTOM_BAR_HEIGHT = 64;
-const BOTTOM_NAV_HEIGHT = 56;
-const CONTROL_PANEL_OFFSET = 116;
+const BOTTOM_BAR_HEIGHT = 82;
+const CONTROL_PANEL_OFFSET = 54;
 
 export default function HomeMap({ courseType }: HomeMapProps) {
     const [activeCourse, setActiveCourse] = useState<CourseResponse | null>(
@@ -78,8 +77,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
 
     const heightVal = useSharedValue(0);
     const controlPannelPosition = useAnimatedStyle(() => {
-        const baseHeight =
-            deviceHeight - BOTTOM_BAR_HEIGHT - BOTTOM_NAV_HEIGHT - bottom;
+        const baseHeight = deviceHeight - BOTTOM_BAR_HEIGHT - bottom;
         if (heightVal.value === 0) {
             return { top: baseHeight - CONTROL_PANEL_OFFSET };
         }

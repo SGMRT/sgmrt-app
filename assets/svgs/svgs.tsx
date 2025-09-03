@@ -1,4 +1,3 @@
-import Compass from "./compass.svg";
 import LocateMe from "./focus.svg";
 
 import BackIcon from "./back.svg";
@@ -45,7 +44,6 @@ export {
     CalendarIcon,
     CheckIcon,
     ChevronIcon,
-    Compass,
     EditIcon,
     ElipsisVerticalIcon,
     FilterIcon,

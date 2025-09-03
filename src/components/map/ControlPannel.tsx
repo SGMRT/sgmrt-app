@@ -1,48 +1,35 @@
-import { Compass, LocateMe } from "@/assets/svgs/svgs";
+import { LocateMe } from "@/assets/svgs/svgs";
 import { useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import Animated from "react-native-reanimated";
 
+type TrackPhase = "idle" | "follow" | "heading";
+
 interface ControlPannelProps {
-    onClickCompass: () => void;
-    onClickLocateMe: () => void;
+    phase: TrackPhase;
+    onToggleTracking: () => void;
     controlPannelPosition: any;
 }
 
 export default function ControlPannel({
-    onClickCompass,
-    onClickLocateMe,
+    phase,
+    onToggleTracking,
     controlPannelPosition,
 }: ControlPannelProps) {
-    const [debouncedCompass, setDebouncedCompass] = useState(Date.now());
-    const [debouncedLocateMe, setDebouncedLocateMe] = useState(Date.now());
+    const [lastPress, setLastPress] = useState(0);
 
-    const debouncedOnClickCompass = useCallback(() => {
-        if (Date.now() - debouncedCompass > 2000) {
-            setDebouncedCompass(Date.now());
-            onClickCompass();
+    const onPress = useCallback(() => {
+        const now = Date.now();
+        if (now - lastPress > 1000) {
+            // 1s 디바운스
+            setLastPress(now);
+            onToggleTracking();
         }
-    }, [debouncedCompass, onClickCompass]);
-
-    const debouncedOnClickLocateMe = useCallback(() => {
-        if (Date.now() - debouncedLocateMe > 2000) {
-            setDebouncedLocateMe(Date.now());
-            onClickLocateMe();
-        }
-    }, [debouncedLocateMe, onClickLocateMe]);
+    }, [lastPress, onToggleTracking]);
 
     return (
         <Animated.View style={[styles.container, controlPannelPosition]}>
-            <TouchableOpacity
-                style={styles.buttonContainer}
-                onPress={debouncedOnClickCompass}
-            >
-                <Compass />
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={styles.buttonContainer}
-                onPress={debouncedOnClickLocateMe}
-            >
+            <TouchableOpacity style={styles.buttonContainer} onPress={onPress}>
                 <LocateMe />
             </TouchableOpacity>
         </Animated.View>
@@ -52,9 +39,10 @@ export default function ControlPannel({
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
-        left: 17,
-        gap: 8,
+        left: 16.5,
         bottom: 16,
+        height: 48,
+        width: 48,
     },
     buttonContainer: {
         backgroundColor: "rgba(17, 17, 17, 0.8)",
