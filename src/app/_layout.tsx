@@ -13,6 +13,7 @@ import { toastConfig } from "../components/ui/toastConfig";
 import { useAuthStore } from "../store/authState";
 
 import "@features/run/task/location.task";
+import PushNotificationGate from "../features/notifications/PushNotificationGate";
 
 import mobileAds, { MaxAdContentRating } from "react-native-google-mobile-ads";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
@@ -78,6 +79,7 @@ function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
             <QueryClientProvider client={queryClient}>
                 <BottomSheetModalProvider>
+                    <PushNotificationGate />
                     <Stack
                         screenOptions={{
                             headerShown: false,
