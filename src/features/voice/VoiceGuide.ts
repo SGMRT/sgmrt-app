@@ -295,15 +295,15 @@ class VoiceGuide {
                 const prefix = "거리 " + event.distanceKM + "km";
                 const time = getRunTime(event.totalTime, "HH:MM:SS").split(":");
                 const timeText =
-                    "시간 " +
+                    " 시간 " +
                     (time.length === 3
                         ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
                         : `${time[0]}분 ${time[1]}초`);
                 const pace = getFormattedPace(event.avgPace ?? 0).split("’");
                 const paceText =
-                    "평균 페이스 " + pace[0] + "분 " + pace[1] + "초 ";
+                    " 평균 페이스 " + pace[0] + "분 " + pace[1] + "초 ";
                 const caloriesText = event.totalCalories
-                    ? `소모칼로리 ${event.totalCalories} 칼로리 입니다.`
+                    ? ` 소모칼로리 ${event.totalCalories} 칼로리 입니다.`
                     : "";
                 return {
                     text: `${prefix} ${timeText} ${paceText} ${caloriesText}`,
