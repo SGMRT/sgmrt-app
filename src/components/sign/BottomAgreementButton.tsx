@@ -34,6 +34,7 @@ export default function BottomAgreementButton({
 const styles = StyleSheet.create({
     container: {
         marginHorizontal: 16.5,
+        height: 58,
     },
     topStroke: {
         height: 1,
