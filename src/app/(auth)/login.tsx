@@ -22,6 +22,23 @@ import { Image, Platform, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+/**
+ * Login screen component that renders social sign-in options and initiates authentication flows.
+ *
+ * Renders the app logo and buttons for signing in with Kakao (always) and Apple (iOS only).
+ * Initializes the Kakao SDK on mount. Tapping a provider button starts the provider-specific
+ * authentication flow, shows a brief toast if the provider response is missing a token,
+ * and delegates successful authentication to `handleLogin`, which completes Firebase sign-in,
+ * exchanges tokens with the app backend, and invokes the global `login` action.
+ *
+ * Side effects:
+ * - Calls `initializeKakaoSDK` with the Kakao app key.
+ * - Starts provider sign-in flows (Kakao or Apple) and may display a toast on failure.
+ * - Uses router navigation and the auth store's `login` to continue app flow after authentication.
+ *
+ * Platform specifics:
+ * - The Apple sign-in button is rendered only on iOS.
+ */
 export default function Login() {
     const router = useRouter();
 

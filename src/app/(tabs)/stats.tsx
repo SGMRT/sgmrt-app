@@ -13,6 +13,26 @@ import { useState } from "react";
 import { Alert, SafeAreaView, View } from "react-native";
 import Toast from "react-native-toast-message";
 
+/**
+ * Screen component that displays the user's running records with SOLO and GHOST tabs,
+ * supports selecting runs, batch deletion mode, and navigation to start a run.
+ *
+ * Detailed behavior:
+ * - Renders tabs for "SOLO" and "GHOST", a history list, and contextual action buttons.
+ * - Click behavior:
+ *   - In normal mode, tapping a history item selects/deselects it (per-tab selection).
+ *   - In delete mode, tapping toggles items in the batch deletion list.
+ * - Delete mode:
+ *   - Toggling into delete mode shows a toast and clears any prior delete selections.
+ *   - Toggling out when no items are selected exits delete mode and shows an info toast.
+ *   - If items are selected, presents a confirmation Alert; on confirmation, deletes all selected runs,
+ *     shows a success toast, clears selections, exits delete mode, and triggers a refresh of history.
+ * - Action button:
+ *   - When not in delete mode, shows actions to start a run. If a run is selected, the secondary action
+ *     navigates to starting a run using the selected run's course; otherwise it navigates to the default solo run page.
+ *
+ * @returns The Stats React component for rendering the records screen.
+ */
 export default function Stats() {
     const [selectedTab, setSelectedTab] = useState<"SOLO" | "GHOST">("SOLO");
     const [isDeleteMode, setIsDeleteMode] = useState(false);

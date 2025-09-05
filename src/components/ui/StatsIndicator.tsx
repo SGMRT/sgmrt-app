@@ -13,6 +13,21 @@ interface StatsIndicatorProps {
     ghost?: boolean;
 }
 
+/**
+ * Displays a set of numeric stats in a compact grid and, optionally, a ghost-vs-user comparison.
+ *
+ * Renders either a "solo" grid of all provided stats or, when `ghost` is enabled and ghost telemetry
+ * is available (current or previously provided), a three-row comparison (distance, cadence, pace)
+ * between the ghost data and the corresponding stats from `stats`. The component preserves the last
+ * non-null `ghostTelemetry` in a ref so the comparison view can remain available if the prop becomes
+ * undefined while `ghost` remains enabled.
+ *
+ * @param stats - Array of stat objects shown in the solo view; each object should include `label`, `value`, and `unit`.
+ * @param ghostTelemetry - Optional telemetry used as the "ghost" values for the comparison view.
+ * @param ghost - When true, shows a two-tab header to switch between solo and comparison views (comparison only renders if ghost telemetry exists or was previously provided).
+ * @param color - Text color theme for stat values (defaults to `"gray40"`).
+ * @returns A React element that renders the stats and optional ghost comparison UI.
+ */
 export default function StatsIndicator({
     stats,
     ghostTelemetry,

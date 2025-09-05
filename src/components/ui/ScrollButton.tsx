@@ -8,6 +8,18 @@ interface ScrollButtonProps {
     bottomInset?: number;
 }
 
+/**
+ * Floating circular button that triggers `onPress` and positions itself at the bottom-left or bottom-right
+ * using theme-provided offsets.
+ *
+ * The component reads `bottomLeft` / `bottomRight` positioning from `useGlobalStyles()` and adds `bottomInset`
+ * (if provided) to that value. Defaults to `"bottom-right"` when `position` is omitted.
+ *
+ * @param onPress - Callback invoked when the button is pressed.
+ * @param position - Which corner to anchor the button to; either `"bottom-left"` or `"bottom-right"`. Defaults to `"bottom-right"`.
+ * @param bottomInset - Optional additional pixels to add to the computed bottom offset.
+ * @returns A touchable React element containing the scroll-to-top icon.
+ */
 export default function ScrollButton({
     onPress,
     position = "bottom-right",

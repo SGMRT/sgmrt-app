@@ -2,6 +2,18 @@ import { useEffect, useRef } from "react";
 import { RunContext } from "../run/state/context";
 import { voiceGuide } from "./VoiceGuide";
 
+/**
+ * Hooks up voiceGuide announcements to run state changes and distance milestones.
+ *
+ * Subscribes to the provided RunContext and:
+ * - Announces a "run/distance" event each time the run crosses a new whole kilometer (1 km, 2 km, ...).
+ * - Announces lifecycle events when the run status changes (start, resume, extend, pause, complete, stop).
+ * - Clears the voice queue after completion or stop where applicable.
+ *
+ * The hook uses internal refs to track the previous status and the last kilometer announced.
+ *
+ * @param context - The current run context (status, mode, and runtime stats) used to decide which announcements to emit.
+ */
 export function useRunVoice(context: RunContext) {
     const prevStatus = useRef(context.status);
     const lastKmSpokenRef = useRef(0);

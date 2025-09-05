@@ -4,6 +4,19 @@ import { ScrollView } from "react-native-gesture-handler";
 import AgreeItem from "./AgreeItem";
 import AgreementButton from "./AgreementButton";
 
+/**
+ * Renders the agreement list UI with a global "Agree All" toggle and individual agreement items.
+ *
+ * Displays an AgreementButton that toggles all agreements, followed by a scrollable list of AgreeItem rows
+ * for service terms, privacy policy, data consignment, third‑party data sharing, and marketing consent.
+ * Each item reflects its current state from the signup store and offers:
+ * - a checkbox/toggle to update that specific agreement in the store
+ * - a detail button that navigates to /register/termDetail with the item title and key as params
+ *
+ * The component reads agreement state and toggle actions from the signup store and uses the router for navigation.
+ *
+ * @returns The component's rendered JSX.
+ */
 export default function AgreeList() {
     const router = useRouter();
     const {

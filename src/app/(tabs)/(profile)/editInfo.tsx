@@ -17,6 +17,22 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
+/**
+ * Edit user profile information and submit partial updates.
+ *
+ * Fetches the current user info on mount and renders a form to edit nickname, gender, age, height, and weight.
+ * Tracks the original values and current edits, enabling the submit button only when at least one field differs.
+ * On submit, sends only the changed fields via `patchUserInfo`; shows a success toast and navigates back on success,
+ * or an alert with the server error message on failure. Also displays an alert if no fields were changed.
+ *
+ * Side effects:
+ * - Calls `getUserInfo` on mount to populate form state.
+ * - Calls `patchUserInfo` on submit for changed fields.
+ * - Shows platform alerts and toast notifications.
+ * - Navigates back on successful update.
+ *
+ * @returns The component's rendered JSX.
+ */
 export default function EditInfo() {
     const [userInfo, setUserInfo] = useState<PatchUserInfoRequest | null>(null);
     const [originalUserInfo, setOriginalUserInfo] =

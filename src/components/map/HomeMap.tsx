@@ -35,6 +35,19 @@ const CAMERA_LATITUDE_OFFSET = -0.0003;
 const BOTTOM_BAR_HEIGHT = 82;
 const CONTROL_PANEL_OFFSET = 64;
 
+/**
+ * Renders the Home map screen with course markers, map interactions, and a bottom sheet for course details or list.
+ *
+ * Displays course markers around the current map center, keeps track of the selected (active) course,
+ * updates visible search radius when the map region changes, and exposes a bottom sheet controlled via
+ * the provided `mapBottomSheetRef`. Also provides a "Start Run" action that navigates to the solo run screen.
+ *
+ * @param courseType - Which courses to show: `"all"` shows all courses, `"my"` restricts to the current user's courses.
+ * @param showListView - When true, the bottom sheet displays the course list view; otherwise it shows course info.
+ * @param setShowListView - Callback to toggle the list view state (used to hide/show the list before presenting the modal).
+ * @param mapBottomSheetRef - Ref to the BottomSheetModal used to present/dismiss course details or list.
+ * @returns The HomeMap React element.
+ */
 export default function HomeMap({
     courseType,
     showListView,

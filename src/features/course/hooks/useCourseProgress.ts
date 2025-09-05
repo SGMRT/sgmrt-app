@@ -34,6 +34,33 @@ interface CourseProgressProps {
     endApproachAlertM?: number; // default 50
 }
 
+/**
+ * React hook that manages progression along a course: initialization, leg transitions,
+ * off-course detection/return, guidance cues, and completion.
+ *
+ * This hook tracks checkpoints, built legs, the active leg index, off-course state,
+ * and completion state based on the provided run context and location samples. It
+ * emits voice guidance, toasts, and live-activity messages and invokes control callbacks
+ * (e.g., `controls.offcourse()`, `controls.oncourse()`, `controls.complete()`),
+ * and may call `onStart()` and `onForceStop()` when appropriate.
+ *
+ * Thresholds (overridable via props) with their defaults:
+ * - guideAdvanceM = 50 (distance before leg end to announce approach)
+ * - offEnterM = 35 (distance from route polyline to consider off-course)
+ * - offReturnM = 18 (distance to off-course anchor required to restore on-course)
+ * - startEnterM = 25 (distance to first checkpoint to auto-start from READY)
+ * - passCpM = 10 (distance to checkpoint to advance to next leg or finish)
+ * - endApproachAlertM = 50 (distance to final checkpoint to trigger end approach alert)
+ *
+ * @param props - CourseProgressProps containing run context, controls, callbacks, and optional thresholds.
+ * @returns An object with:
+ *   - initializeCourse(course, checkpoints): function to set up the course data,
+ *   - legs: the built CourseLeg[] for the active course,
+ *   - legIndex: current active leg index,
+ *   - isOffcourse: boolean indicating whether the run is currently marked off-course,
+ *   - offcourseAnchor: Telemetry | null anchor used for off-course return checks,
+ *   - isCompleted: boolean indicating whether the run has been completed.
+ */
 export function useCourseProgress(props: CourseProgressProps) {
     const {
         context,

@@ -47,6 +47,16 @@ export const CourseSection = ({
     );
 };
 
+/**
+ * Hook that fetches the current user's courses with infinite pagination.
+ *
+ * Fetches pages via getUserCourses and exposes react-query's infinite query result
+ * (data pages, isLoading, isError, fetchNextPage, hasNextPage, etc.).
+ *
+ * @param size - Number of courses to request per page (default: 10).
+ * @param sort - Sort order passed to the API (default: `"id,asc"`).
+ * @returns The result object returned by `useInfiniteQuery` for the user courses query.
+ */
 export function useUserCourses(
     size: number = 10,
     sort: GhostSortOption = "id,asc"

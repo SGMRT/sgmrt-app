@@ -22,6 +22,25 @@ interface BottomModalProps {
     backdrop?: boolean;
 }
 
+/**
+ * A configurable bottom sheet modal built on @gorhom/bottom-sheet.
+ *
+ * Renders a BottomSheetModal with sensible defaults (rounded top corners, interactive keyboard behavior,
+ * optional backdrop, and safe-area aware insets). The modal supports swipe-to-close, custom snap points,
+ * an animated position value, and an optional external ref.
+ *
+ * @param bottomSheetRef - Optional ref to control the BottomSheetModal instance.
+ * @param canClose - When false, disables pan-down-to-close (defaults to true).
+ * @param heightVal - Optional Reanimated SharedValue tied to the modal's animated position.
+ * @param handleStyle - Additional style applied to the sheet handle area.
+ * @param snapPoints - Snap points for the sheet (e.g., ['25%', '50%']).
+ * @param index - Initial snap index within `snapPoints`.
+ * @param bottomInset - Explicit bottom inset to override the safe-area bottom inset.
+ * @param onDismiss - Callback invoked when the modal is dismissed.
+ * @param backdrop - If true (default), renders a semi-opaque backdrop that closes the sheet on press.
+ *
+ * @returns The BottomSheetModal React element.
+ */
 export default function BottomModal({
     bottomSheetRef,
     canClose = true,

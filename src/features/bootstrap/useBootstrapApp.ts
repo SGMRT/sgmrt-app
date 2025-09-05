@@ -15,6 +15,14 @@ const VERSION_KEY = "version_v1";
 
 type Status = "idle" | "running" | "blocked" | "done" | "error";
 
+/**
+ * Requests foreground permissions for location, pedometer, and barometer.
+ *
+ * Returns true if all three permissions are granted. If any permission is missing,
+ * displays an alert (Korean) prompting the user to open system settings and returns false.
+ *
+ * @returns Whether all required permissions were granted.
+ */
 async function requestPermissions(): Promise<boolean> {
     const locationPermission =
         await Location.requestForegroundPermissionsAsync();
@@ -46,6 +54,13 @@ async function requestPermissions(): Promise<boolean> {
     return false;
 }
 
+/**
+ * Stops any active background location updates for the configured LOCATION_TASK.
+ *
+ * If location updates for LOCATION_TASK are currently running, this function stops them; it swallows and logs any errors encountered during cleanup.
+ *
+ * @returns A promise that resolves once the stop operation completes.
+ */
 async function stopTrackingAndLiveActivity() {
     try {
         if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)) {
@@ -56,6 +71,15 @@ async function stopTrackingAndLiveActivity() {
     }
 }
 
+/**
+ * Configure the app's global audio mode for playback and background behavior.
+ *
+ * Sets the audio mode to play in silent mode, duck other audio on interruptions,
+ * and allow playback while the app runs in the background. Initialization errors
+ * are caught and logged; the function does not throw.
+ *
+ * @returns A promise that resolves once the audio mode has been configured.
+ */
 export async function initAudioModule() {
     try {
         await setAudioModeAsync({
@@ -68,6 +92,20 @@ export async function initAudioModule() {
     }
 }
 
+/**
+ * Initialize analytics on app startup: track launch, detect first install and updates, and persist install/version metadata.
+ *
+ * Records:
+ * - "App Launched" on every run (includes platform, version, build).
+ * - "App Installed" once on first launch and sets Identify properties (`first_open_at`, `install_version`, `install_build`, `install_platform`).
+ * - "App Updated" when a previously stored version differs from the current `version`.
+ *
+ * Persists first-launch and current version to AsyncStorage keys so subsequent runs can detect installs/updates.
+ *
+ * @param version - Optional app version string to include in events and persistence.
+ * @param build - Optional build identifier to include in events.
+ * @returns A promise that resolves when analytics bootstrap completes.
+ */
 async function bootstrapAnalytics({
     version,
     build,
@@ -117,6 +155,18 @@ async function bootstrapAnalytics({
     }
 }
 
+/**
+ * Runs the app bootstrap sequence and exposes progress/error state.
+ *
+ * After fonts are loaded, this hook requests required device permissions, initializes
+ * platform services (audio, location cleanup), boots analytics, navigates to the
+ * appropriate initial screen based on authentication state, and hides the splash screen.
+ * Progress is reported via the returned `status` and any runtime error is captured in `error`.
+ *
+ * @param isLoggedIn - True when the user is authenticated; determines post-bootstrap route.
+ * @param loadedFonts - Must be true before the bootstrap sequence starts; the hook waits for fonts.
+ * @returns An object with `status` ("idle" | "running" | "blocked" | "done" | "error") and `error` (captured exception or null).
+ */
 export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
     const router = useRouter();
     const [status, setStatus] = useState<Status>("idle");

@@ -34,6 +34,15 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+/**
+ * Running screen component that manages an active running session UI, save flow, and end-of-run actions.
+ *
+ * This component coordinates running session state (start/resume/pause/stop/extend), renders map segments and run stats,
+ * shows a countdown when restarting, captures a thumbnail for saving, and runs the save workflow that persists telemetry
+ * and navigates to the results screen. It also intercepts the hardware back button while mounted.
+ *
+ * @returns The React element tree for the running screen.
+ */
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();

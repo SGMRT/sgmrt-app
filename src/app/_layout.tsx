@@ -30,6 +30,13 @@ Sentry.init({
     tracesSampleRate: 1.0,
 });
 
+/**
+ * Root app layout component used by the Expo Router.
+ *
+ * Initializes and memoizes the React Query client, waits for custom fonts and the bootstrap hook to complete, hides the splash screen when bootstrap status moves off "idle", and renders top-level providers (gesture handler, QueryClient, BottomSheet modal provider, push notification gate), the navigation Stack, and global Toast. Returns null while fonts are loading.
+ *
+ * @returns The root JSX element for the application.
+ */
 function RootLayout() {
     const queryClient = useMemo(() => new QueryClient(), []);
     const { isLoggedIn } = useAuthStore();

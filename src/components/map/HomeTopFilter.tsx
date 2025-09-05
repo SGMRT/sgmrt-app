@@ -24,6 +24,18 @@ const MENU_SIZE = 48;
 const MENU_GAP = 6; // 메뉴 버튼과 탭 컨테이너 사이 간격
 const TAB_COUNT = 3;
 
+/**
+ * Top bar with a left-side menu button and a 3-tab segmented control with an animated sliding active pill.
+ *
+ * Renders a circular menu button that calls `onClickMenu`, and a tab group sized responsively to window width.
+ * The active tab pill animates horizontally when `type` changes (maps "all" → first tab, "my" → second tab).
+ * The third tab shows an informational toast and is not selectable. Tabs call `setType` to switch between "all" and "my".
+ *
+ * @param type - Currently selected tab key: `"all"` or `"my"`.
+ * @param setType - Callback invoked with the new tab key when user selects the first or second tab.
+ * @param onClickMenu - Callback invoked when the menu button is pressed.
+ * @returns A React element containing the menu button and tab control.
+ */
 export default function HomeTopBar({
     type,
     setType,

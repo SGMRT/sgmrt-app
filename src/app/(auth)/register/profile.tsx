@@ -27,6 +27,24 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
+/**
+ * Profile screen component for collecting user basic information and completing sign-up.
+ *
+ * Renders a form to enter nickname, gender, age, height, weight, and to pick a profile image.
+ * Validates inputs, uploads the selected image to S3 using a presigned URL (if provided),
+ * exchanges Firebase ID token and collected data with the backend via `signUp`, persists a
+ * "welcome" flag in AsyncStorage, tracks a "Sign Up" event in Amplitude, updates local auth
+ * state, and performs final login/navigation on success.
+ *
+ * Side effects:
+ * - Reads Firebase ID token from the current user.
+ * - Requests presigned upload URLs and uploads images to S3 when an image is chosen.
+ * - Calls `signUp` API and, on success, stores a welcome flag in AsyncStorage, tracks analytics,
+ *   updates `useAuthStore` (user info), and calls `login`.
+ * - Shows toast messages and navigates to the login screen on missing ID token or on failures.
+ *
+ * @returns The rendered Profile screen (JSX element).
+ */
 export default function Profile() {
     const {
         nickname,

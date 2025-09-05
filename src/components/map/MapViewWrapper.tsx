@@ -36,6 +36,28 @@ interface MapViewWrapperProps {
     attributionPosition?: any;
 }
 
+/**
+ * Renders a Mapbox MapView with an optional tracking control panel, location puck, and configurable camera behavior.
+ *
+ * The component manages a local tracking phase state (`"idle" | "follow" | "heading"`) and exposes a single toggle
+ * that cycles the phase: idle → follow → heading → idle. When in `follow` or `heading`, the map camera follows the
+ * user's location; `heading` additionally follows device heading. `controlEnabled` disables user interactions and
+ * hides the control panel when false. Camera and MapView refs passed via `ref` and `cameraRef` are forwarded.
+ *
+ * @param controlEnabled - When false, disables map interactions and hides the control panel (default: true).
+ * @param center - Optional initial center coordinate; used to set the camera's centerCoordinate when provided.
+ * @param zoom - Initial zoom level applied to the Camera (default: 16).
+ * @param showPuck - If true, renders a location puck on the map (default: true).
+ * @param onZoomLevelChanged - Optional callback invoked with the new zoom level when the camera changes.
+ * @param onRegionDidChange - Optional callback forwarded from MapView's region change events.
+ * @param controlPannelPosition - Position for the control panel overlay.
+ * @param ref - Forwarded MapView ref.
+ * @param cameraRef - Forwarded Camera ref.
+ * @param logoEnabled - Show or hide Mapbox logo (default: true).
+ * @param logoPosition - Position for the Mapbox logo (default: { bottom: 10, left: 10 }).
+ * @param attributionEnabled - Show or hide attribution (default: true).
+ * @param attributionPosition - Position for the attribution control (default: { bottom: 8, right: 0 }).
+ */
 export default function MapViewWrapper({
     children,
     onZoomLevelChanged,

@@ -15,6 +15,25 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
+/**
+ * Home screen component composing header, map, onboarding modal, confetti, and tab bar.
+ *
+ * Renders the top weather/header area, a map with optional list view, a bottom tab bar, and two bottom-sheet-driven UX elements:
+ * - An onboarding BottomModal that shows a welcome message and a success toast on first launch (controlled via AsyncStorage "welcome" key).
+ * - A map-related BottomSheet presented from the top bar menu.
+ *
+ * Side effects:
+ * - Disables Mapbox telemetry on mount.
+ * - On first run (when "welcome" is "true" or not set), restarts the confetti animation, presents the onboarding modal for ~3 seconds, then persists "welcome" = "false".
+ *
+ * Internal state:
+ * - `type` ("all" | "my"): filter applied to the map content.
+ * - `showListView`: toggles the map's list view.
+ *
+ * The component exposes no props and returns the rendered JSX for the home screen.
+ *
+ * @returns The Home screen React element.
+ */
 export default function Home() {
     const [type, setType] = useState<"all" | "my">("all");
     const [showListView, setShowListView] = useState(false);

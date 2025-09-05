@@ -11,6 +11,16 @@ interface ControlPannelProps {
     controlPannelPosition: any;
 }
 
+/**
+ * Compact control panel with a single "locate me" button that toggles tracking.
+ *
+ * Renders a circular button that calls `onToggleTracking` when pressed. Repeated presses are ignored for 1 second to prevent rapid toggles.
+ *
+ * @param phase - Current tracking phase ("idle" | "follow" | "heading"); accepted for state awareness (not used for visual changes here).
+ * @param onToggleTracking - Callback invoked when the user toggles tracking via the button.
+ * @param controlPannelPosition - Style object applied to position the panel container.
+ * @returns A React element containing the positioned control panel.
+ */
 export default function ControlPannel({
     phase,
     onToggleTracking,

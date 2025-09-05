@@ -46,6 +46,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Share from "react-native-share";
 import Toast from "react-native-toast-message";
 
+/**
+ * Result screen component displaying a completed run's details.
+ *
+ * Renders the run summary (map, telemetry chart, statistics), course information,
+ * and optional ghost-competition comparison. Determines mode from URL params
+ * (`runningId`, `courseId`, `ghostRunningId`) as SOLO, COURSE, or GHOST and
+ * fetches required data (run, course, top rankings, comparison) via React Query.
+ *
+ * UI actions and side effects:
+ * - Rename run (saves to server on blur).
+ * - Toggle run public/private (patches server and refreshes data).
+ * - Capture and share a snapshot of the run (creates a temp file used by the system share dialog).
+ * - Start a new run using the displayed course (navigates to the run flow).
+ * - Register the displayed run as a course (opens bottom sheet, patches course, navigates to profile on success).
+ * - On successful course registration, emits an analytics event ("Course Created").
+ *
+ * Returns a React element (the result screen) when run data is available; redirects to the app root on loading error.
+ */
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");

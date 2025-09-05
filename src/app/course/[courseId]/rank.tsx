@@ -87,6 +87,13 @@ function buildRows(
     return rows;
 }
 
+/**
+ * Screen that displays a ranked, paginated list of ghosts for a course and lets the user select one to start a run.
+ *
+ * Renders an infinite-scrolling, deduplicated list of HistoryResponse entries grouped into a "Top 50" section and percentile buckets.
+ * Initializes selection to the first listed ghost when data becomes available and keeps track of the total entry count for bucket computation.
+ * Selecting a row highlights that ghost; sliding the action control navigates to the run screen for the currently selected ghost.
+ */
 export default function CourseRankScreen() {
     const { courseId } = useLocalSearchParams();
     const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);

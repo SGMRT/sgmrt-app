@@ -49,6 +49,17 @@ export const Button = ({
     );
 };
 
+/**
+ * Return the background and text color pair for a given button variant.
+ *
+ * Maps known ButtonType values to their corresponding backgroundColor and textColor.
+ * When `type` is "custom", `opts.customBackgroundColor` and `opts.customColor` are used with sensible fallbacks
+ * (transparent background, white text). Unrecognized types fall back to the "inactive" styling.
+ *
+ * @param type - The button variant to resolve.
+ * @param opts - Optional custom colors; only used when `type` is "custom".
+ * @returns An object with `backgroundColor` (CSS color string) and `textColor` (Typography color token or color string).
+ */
 function getButtonStyle(
     type: ButtonType,
     opts: { customBackgroundColor?: string; customColor?: TypographyColor }

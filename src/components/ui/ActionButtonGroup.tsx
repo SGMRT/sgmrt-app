@@ -10,6 +10,21 @@ import { ActionButton } from "./ActionButton";
 
 type GroupState = "single" | "dual";
 
+/**
+ * A two-state action button group that displays a primary action and, optionally, a temporary secondary action.
+ *
+ * When `state` is "single" the primary button appears as active; pressing it will switch the group to "dual" if `action` is true.
+ * In "dual" state a secondary text button appears (with `secondaryButtonText`) and remains visible for 3 seconds before the group
+ * automatically reverts to "single". Pressing the secondary button invokes `onSecondaryPress`.
+ *
+ * @param initialState - Initial group state, either `"single"` or `"dual"`.
+ * @param action - If true (default), pressing the primary button in "single" state transitions to "dual"; otherwise the primary press falls back to `onPrimaryPress` if provided.
+ * @param onPrimaryPress - Optional callback invoked when the primary button is pressed and the component is not transitioning to "dual".
+ * @param onSecondaryPress - Callback invoked when the secondary button is pressed.
+ * @param secondaryButtonText - Text label shown on the secondary button.
+ *
+ * @returns A React element rendering the animated action button group.
+ */
 export function ActionButtonGroup({
     initialState,
     action = true,

@@ -42,6 +42,23 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+/**
+ * Screen component that manages and displays a live run session with map, stats, controls, and saving.
+ *
+ * Renders the running UI (map with live and course segments, ghost run overlay, header with time/weather,
+ * bottom sheet with stats/empty state, and slide-to-action controls). On mount it loads course (and optional
+ * ghost run) data, initializes course progress, and wires up running session state and ghost coordination.
+ * Supports restarting with a countdown, pausing/resuming, stopping and capturing a thumbnail, saving run data,
+ * and optionally routing to a results screen after save. Saving is guarded to avoid duplicate uploads.
+ *
+ * Side effects:
+ * - Fetches course (and ghost run) data and initializes run/course state on mount.
+ * - Intercepts hardware back button.
+ * - Triggers thumbnail capture and uploads run data when the user ends a run.
+ * - May navigate to a results page when saving completes and routing is requested.
+ *
+ * @returns The Run screen React element.
+ */
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();

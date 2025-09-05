@@ -22,6 +22,22 @@ interface CourseTopUsersProps {
     titleColor?: TypographyColor;
 }
 
+/**
+ * Displays a compact list of top runners (ghosts) for a course with optional inclusion of the current user's record and ghost selection.
+ *
+ * Renders an expandable header showing participant count and a list of top ghost entries (defaults to the top 2). If the current user's record is not already in the provided `ghostList`, the component will asynchronously fetch the user's rank for the course and render it as a trailing item with an ellipsis separator when available. Selecting an entry calls `setSelectedGhostId`; tapping the header navigates to the course rank page and dismisses the bottom sheet.
+ *
+ * @param ghostList - Array of ghost running records to display.
+ * @param selectedGhostId - Currently selected ghost runningId (used to highlight the selected item).
+ * @param setSelectedGhostId - Callback invoked with a runningId when a ghost item is selected.
+ * @param bottomSheetRef - Ref to a BottomSheetModal that will be dismissed when navigating to the rank page.
+ * @param courseId - Course identifier used for navigation and fetching the current user's rank.
+ * @param userCount - Number of participants shown in the header title.
+ * @param marginHorizontal - If true, applies horizontal padding to child items (defaults to true).
+ * @param titleColor - Title text color for the header (defaults to "gray40").
+ *
+ * @returns The CourseTopUsers React element.
+ */
 export default function CourseTopUsers({
     ghostList,
     selectedGhostId,

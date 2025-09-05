@@ -8,6 +8,15 @@ import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import { useSignupStore } from "@/src/store/signupStore";
 import { useRouter } from "expo-router";
 
+/**
+ * Registration agreement screen component.
+ *
+ * Renders the sign-up terms agreement UI: header, instruction text, list of agreements,
+ * and a bottom action button that becomes active when all required agreements are fulfilled.
+ * When active and pressed, the button navigates to the profile setup route ("/register/profile").
+ *
+ * @returns The Register screen as a React element.
+ */
 export default function Register() {
     const router = useRouter();
     const { agreementFullfilled } = useSignupStore();

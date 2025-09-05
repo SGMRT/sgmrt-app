@@ -16,6 +16,17 @@ interface ButtonWithIconProps extends ButtonProps {
     containerStyle?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
+/**
+ * A composite button that pairs a square icon pressable with a configurable primary Button.
+ *
+ * Renders a horizontal container with a left square Pressable that shows either a map ("지도") or home ("메인") icon and label, and a right-side Button that receives the remaining Button props.
+ *
+ * @param onPressIcon - Callback invoked when the square icon Pressable is pressed.
+ * @param iconType - Selects which icon and label to show: `"map"` renders a map icon and the label `지도`; any other value renders a home icon and the label `메인`.
+ * @param containerStyle - Optional additional style applied to the outer container View.
+ * @param topStroke - When true, applies an extra top border and padding to the container.
+ * @returns The rendered React element.
+ */
 export default function ButtonWithIcon({
     onPressIcon,
     containerStyle,

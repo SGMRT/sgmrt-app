@@ -20,6 +20,17 @@ import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 
+/**
+ * Renders the Profile screen with "Info" and "My Courses" tabs, a confirmation bottom modal
+ * for logout or account withdrawal, and persistent action controls to start a run.
+ *
+ * The "Info" tab shows user information (and receives a scroll ref used by the screen);
+ * the "My Courses" tab shows course selection. A bottom modal (logout/withdraw) is opened
+ * from the Info section and either logs the user out or prompts for account deletion.
+ * The action button group can start a solo run or begin a run using the selected course.
+ *
+ * @returns The rendered Profile screen component.
+ */
 export default function ProfileScreen() {
     const { tab } = useLocalSearchParams();
     const [selectedTab, setSelectedTab] = useState<"info" | "course">(

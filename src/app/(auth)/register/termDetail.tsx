@@ -7,6 +7,13 @@ import { useLocalSearchParams } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+/**
+ * Screen that displays term details for a given agreement key and lets the user toggle consent.
+ *
+ * Renders a header, the term title, an agreement button bound to the signup store's agreement state,
+ * the term content inside a scrollable view, and a bottom gradient overlay. Reads `title` and `key`
+ * from local search params and calls `toggleAgreement(key)` when the user presses the agreement button.
+ */
 export default function TermDetail() {
     const { title, key } = useLocalSearchParams();
     const { agreement, toggleAgreement } = useSignupStore();

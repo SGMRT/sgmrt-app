@@ -24,6 +24,17 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+/**
+ * Displays detailed results for a running course, including header, map, stats, rankings, and sharing controls.
+ *
+ * Renders a full result screen for the course identified by the `courseId` from local search params. The component
+ * fetches course details and top rankings, computes derived display stats (course and ghost averages), and wires up
+ * interactive UI elements: an altitude chart (with hover state), a map synchronized with chart interaction, share/capture
+ * functionality, navigation actions (view stats, start run, go home), and a scroll-to-top button. If course data is
+ * not available, the component renders nothing.
+ *
+ * @returns A React element containing the result screen when course data is available, or `null` otherwise.
+ */
 export default function Result() {
     const { courseId } = useLocalSearchParams();
 

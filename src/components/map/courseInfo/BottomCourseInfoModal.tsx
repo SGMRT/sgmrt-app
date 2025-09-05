@@ -23,6 +23,19 @@ interface BottomCourseInfoModalProps {
     courseId: number;
 }
 
+/**
+ * Modal content that displays course details and ghost (top-ranking) selections, plus a start-run action.
+ *
+ * Renders a two-tab view ("course" and "ghost") with course statistics, a small elevation chart, ghost average stats,
+ * and a top-3 ghost list. Fetches course details and the course top-ranking ghosts (up to 3) when a valid courseId is provided;
+ * when top-ranking ghosts are available the first ghost becomes the default selection. Provides controls to switch tabs,
+ * open the full ghost ranking view, dismiss the containing bottom sheet, and navigate to the run screen either with
+ * no ghost (-1) or with the currently selected ghost.
+ *
+ * @param bottomSheetRef - Ref to the BottomSheetModal controlling this modal; used to dismiss the sheet before navigation.
+ * @param courseId - Course identifier; when -1 data fetching is disabled.
+ * @returns The modal content as a React element.
+ */
 export default function BottomCourseInfoModal({
     bottomSheetRef,
     courseId,

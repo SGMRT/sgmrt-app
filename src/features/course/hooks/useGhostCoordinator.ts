@@ -38,6 +38,27 @@ interface GhostCoordinatorProps {
     controls: Controls;
 }
 
+/**
+ * Coordinates ghost telemetry with the player's telemetry to compute progress, leader state, and related stats.
+ *
+ * Computes the closest ghost telemetry point to the given timestamp, maps nearby ghost telemetries into segments,
+ * determines the ghost's leg/progress along the course, and compares that progress to the player's to produce a
+ * GhostCompareResult. The hook may return null when required inputs are missing or when the same timestamp was
+ * already processed.
+ *
+ * Side effects:
+ * - When the leader (ME | GHOST) changes (excluding ties), the hook updates a live activity message, issues a voice
+ *   announcement, and shows a brief Toast notification.
+ *
+ * Leader and delta determination:
+ * - ghostProgressM and myProgressM are computed along the provided `legs`.
+ * - deltaM is Math.round(ghostProgressM - myProgressM).
+ * - If |deltaM| < 5 the leader is "TIED"; if deltaM > 0 it's "GHOST"; otherwise it's "ME".
+ *
+ * @returns A GhostCompareResult describing the ghost point, segments, stats, progress values, delta, leader, and leg indices;
+ *          or `null` if legs are empty, telemetry is missing, myPoint/ghostPoint is null, ghostTelemetry is empty, or the
+ *          timestamp was already processed.
+ */
 export function useGhostCoordinator(
     props: GhostCoordinatorProps
 ): GhostCompareResult | null {
