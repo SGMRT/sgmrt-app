@@ -10,12 +10,15 @@ import {
     setAttributes,
     setUserId,
 } from "@react-native-firebase/crashlytics";
-import { initializeKakaoSDK } from "@react-native-kakao/core";
+import {
+    getKeyHashAndroid,
+    initializeKakaoSDK,
+} from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as Sentry from "@sentry/react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, Platform, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
@@ -60,37 +63,39 @@ export default function Login() {
                         });
                     }}
                 />
-                <LoginButton
-                    text="애플로 시작하기"
-                    backgroundColor="#3F3F3F"
-                    textColor="white"
-                    icon={<AppleIcon />}
-                    onPress={async () => {
-                        const resp = await AppleAuthentication.signInAsync({
-                            requestedScopes: [
-                                AppleAuthentication.AppleAuthenticationScope
-                                    .FULL_NAME,
-                                AppleAuthentication.AppleAuthenticationScope
-                                    .EMAIL,
-                            ],
-                        });
-                        if (!resp.identityToken) {
-                            Toast.show({
-                                type: "info",
-                                text1: "애플 로그인 실패",
-                                position: "bottom",
+                {Platform.OS === "ios" && (
+                    <LoginButton
+                        text="애플로 시작하기"
+                        backgroundColor="#333333"
+                        textColor="white"
+                        icon={<AppleIcon />}
+                        onPress={async () => {
+                            const resp = await AppleAuthentication.signInAsync({
+                                requestedScopes: [
+                                    AppleAuthentication.AppleAuthenticationScope
+                                        .FULL_NAME,
+                                    AppleAuthentication.AppleAuthenticationScope
+                                        .EMAIL,
+                                ],
                             });
-                            return;
-                        }
-                        await handleLogin({
-                            providerId: "apple.com",
-                            token: resp.identityToken,
-                            secret: resp.authorizationCode ?? "",
-                            router,
-                            login,
-                        });
-                    }}
-                />
+                            if (!resp.identityToken) {
+                                Toast.show({
+                                    type: "info",
+                                    text1: "애플 로그인 실패",
+                                    position: "bottom",
+                                });
+                                return;
+                            }
+                            await handleLogin({
+                                providerId: "apple.com",
+                                token: resp.identityToken,
+                                secret: resp.authorizationCode ?? "",
+                                router,
+                                login,
+                            });
+                        }}
+                    />
+                )}
             </View>
         </SafeAreaView>
     );
