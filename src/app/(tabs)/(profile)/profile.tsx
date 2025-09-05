@@ -18,7 +18,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
@@ -33,7 +32,6 @@ export default function ProfileScreen() {
     const [selectedCourse, setSelectedCourse] = useState<UserCourseInfo | null>(
         null
     );
-    const { bottom } = useSafeAreaInsets();
     const scrollViewRef = useRef<ScrollView>(null);
 
     const onPressSignButton = useCallback(
@@ -181,7 +179,7 @@ const styles = StyleSheet.create({
     safeAreaView: {
         flex: 1,
         backgroundColor: "#111111",
-        marginBottom: 70,
+        marginBottom: 83,
     },
     header: {
         marginTop: 10,
