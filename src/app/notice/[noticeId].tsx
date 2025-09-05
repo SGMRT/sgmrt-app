@@ -19,7 +19,7 @@ export default function NoticeDetailPage() {
     });
 
     const formattedDate = useMemo(() => {
-        return formatDate(new Date(data?.startAt ?? 0));
+        return data?.startAt ? formatDate(new Date(data?.startAt)) : "";
     }, [data]);
 
     return (
