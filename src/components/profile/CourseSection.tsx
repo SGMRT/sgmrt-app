@@ -15,6 +15,14 @@ export const CourseSection = ({
     const { data, isLoading, isError, fetchNextPage, hasNextPage } =
         useUserCourses();
 
+    const handleSelectCourse = (course: UserCourseInfo | null) => {
+        if (selectedCourse?.id === course?.id) {
+            setSelectedCourse(null);
+        } else {
+            setSelectedCourse(course);
+        }
+    };
+
     if (isLoading) {
         return <></>;
     }
@@ -25,7 +33,8 @@ export const CourseSection = ({
         <View style={{ marginTop: 20, flex: 1 }}>
             <CoursesWithFilter
                 data={data?.pages.flatMap((page) => page.content) ?? []}
-                selectedCourse={null}
+                selectedCourse={selectedCourse}
+                setSelectedCourse={handleSelectCourse}
                 hasNextPage={hasNextPage}
                 fetchNextPage={fetchNextPage}
                 filters={{
