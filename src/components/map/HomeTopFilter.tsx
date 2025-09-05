@@ -8,6 +8,7 @@ import {
     useWindowDimensions,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { Notice } from "../notice/Notice";
 import { Typography } from "../ui/Typography";
 
 interface HomeTopBarProps {
@@ -62,109 +63,107 @@ export default function HomeTopBar({
     }, [targetX, x]);
 
     return (
-        <View
-            style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "flex-start",
-                marginHorizontal: SIDE_MARGIN,
-                gap: MENU_GAP,
-            }}
-        >
-            <Pressable
-                style={{
-                    width: MENU_SIZE,
-                    height: MENU_SIZE,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    backgroundColor: "rgba(17, 17, 17, 0.8)",
-                    borderRadius: 999,
-                }}
-                onPress={onClickMenu}
-            >
-                <MenuIcon />
-            </Pressable>
+        <View style={styles.container}>
+            <View style={styles.topContainer}>
+                <Pressable style={styles.menu} onPress={onClickMenu}>
+                    <MenuIcon />
+                </Pressable>
 
-            <View style={[styles.container, { width: containerWidth }]}>
-                {/* moving pill background */}
-                <Animated.View
-                    pointerEvents="none"
-                    style={[
-                        styles.activePill,
-                        {
-                            width: tabWidth,
-                            transform: [{ translateX: x }],
-                        },
-                    ]}
-                />
+                <View style={[styles.tabContainer, { width: containerWidth }]}>
+                    {/* moving pill background */}
+                    <Animated.View
+                        pointerEvents="none"
+                        style={[
+                            styles.activePill,
+                            {
+                                width: tabWidth,
+                                transform: [{ translateX: x }],
+                            },
+                        ]}
+                    />
 
-                {/* tabs */}
-                <Pressable
-                    onPress={() => setType("all")}
-                    style={({ pressed }) => [
-                        styles.button,
-                        {
-                            width: tabWidth,
-                            transform: [{ scale: pressed ? 0.98 : 1 }],
-                        },
-                    ]}
-                    hitSlop={8}
-                >
-                    <Typography
-                        variant="subhead3"
-                        color={type === "all" ? "primary" : "gray40"}
+                    {/* tabs */}
+                    <Pressable
+                        onPress={() => setType("all")}
+                        style={({ pressed }) => [
+                            styles.button,
+                            {
+                                width: tabWidth,
+                                transform: [{ scale: pressed ? 0.98 : 1 }],
+                            },
+                        ]}
+                        hitSlop={8}
                     >
-                        고스트 코스
-                    </Typography>
-                </Pressable>
+                        <Typography
+                            variant="subhead3"
+                            color={type === "all" ? "primary" : "gray40"}
+                        >
+                            고스트 코스
+                        </Typography>
+                    </Pressable>
 
-                <Pressable
-                    onPress={() => setType("my")}
-                    style={({ pressed }) => [
-                        styles.button,
-                        {
-                            width: tabWidth,
-                            transform: [{ scale: pressed ? 0.98 : 1 }],
-                        },
-                    ]}
-                    hitSlop={8}
-                >
-                    <Typography
-                        variant="subhead3"
-                        color={type === "my" ? "primary" : "gray40"}
+                    <Pressable
+                        onPress={() => setType("my")}
+                        style={({ pressed }) => [
+                            styles.button,
+                            {
+                                width: tabWidth,
+                                transform: [{ scale: pressed ? 0.98 : 1 }],
+                            },
+                        ]}
+                        hitSlop={8}
                     >
-                        내 코스
-                    </Typography>
-                </Pressable>
+                        <Typography
+                            variant="subhead3"
+                            color={type === "my" ? "primary" : "gray40"}
+                        >
+                            내 코스
+                        </Typography>
+                    </Pressable>
 
-                <Pressable
-                    onPress={() =>
-                        Toast.show({
-                            type: "info",
-                            text1: "챌린지 코스는 준비중입니다.",
-                            topOffset: 60,
-                        })
-                    }
-                    style={({ pressed }) => [
-                        styles.button,
-                        {
-                            width: tabWidth,
-                            transform: [{ scale: pressed ? 0.98 : 1 }],
-                        },
-                    ]}
-                    hitSlop={8}
-                >
-                    <Typography variant="subhead3" color={"gray40"}>
-                        챌린지 코스
-                    </Typography>
-                </Pressable>
+                    <Pressable
+                        onPress={() =>
+                            Toast.show({
+                                type: "info",
+                                text1: "챌린지 코스는 준비중입니다.",
+                                topOffset: 60,
+                            })
+                        }
+                        style={({ pressed }) => [
+                            styles.button,
+                            {
+                                width: tabWidth,
+                                transform: [{ scale: pressed ? 0.98 : 1 }],
+                            },
+                        ]}
+                        hitSlop={8}
+                    >
+                        <Typography variant="subhead3" color={"gray40"}>
+                            챌린지 코스
+                        </Typography>
+                    </Pressable>
+                </View>
             </View>
+            <Notice />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        marginHorizontal: 16.5,
+    },
+    topContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        marginHorizontal: SIDE_MARGIN,
+        gap: MENU_GAP,
+    },
+    tabContainer: {
         position: "relative",
         flexDirection: "row",
         alignSelf: "center",
@@ -173,6 +172,14 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(17, 17, 17, 0.8)",
         borderRadius: 999,
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
+    },
+    menu: {
+        width: MENU_SIZE,
+        height: MENU_SIZE,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(17, 17, 17, 0.8)",
+        borderRadius: 999,
     },
     button: {
         height: TAB_HEIGHT,
