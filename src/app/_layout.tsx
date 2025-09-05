@@ -66,6 +66,7 @@ function RootLayout() {
                         <Stack.Screen name="(auth)" />
                         <Stack.Screen name="(tabs)" />
                         <Stack.Screen name="course" />
+                        <Stack.Screen name="notice" />
                         <Stack.Screen name="result/[runningId]/[courseId]/[ghostRunningId]" />
                         <Stack.Screen
                             name="run"
