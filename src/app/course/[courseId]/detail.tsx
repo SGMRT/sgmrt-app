@@ -234,7 +234,6 @@ export default function Result() {
                                 animated: true,
                             });
                         }}
-                        bottomInset={66}
                     />
                 </SafeAreaView>
                 <RunShot

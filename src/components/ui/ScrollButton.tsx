@@ -1,25 +1,24 @@
 import { ScrollTopIcon } from "@/assets/svgs/svgs";
+import { useGlobalStyles } from "@/src/theme/useGlobalStyles";
 import { StyleSheet, TouchableOpacity } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface ScrollButtonProps {
     onPress: () => void;
-    bottomInset?: number;
+    position?: "bottom-left" | "bottom-right";
 }
 
 export default function ScrollButton({
     onPress,
-    bottomInset = 10,
+    position = "bottom-right",
 }: ScrollButtonProps) {
-    const { bottom } = useSafeAreaInsets();
+    const globalStyles = useGlobalStyles();
     return (
         <TouchableOpacity
             onPress={onPress}
             style={[
                 styles.container,
-                {
-                    bottom: bottom + bottomInset,
-                },
+                position === "bottom-left" && globalStyles.bottomLeft,
+                position === "bottom-right" && globalStyles.bottomRight,
             ]}
         >
             <ScrollTopIcon />
@@ -31,7 +30,9 @@ const styles = StyleSheet.create({
     container: {
         width: 48,
         height: 48,
-        backgroundColor: "#212121",
+        backgroundColor: "#111111",
+        borderWidth: 1,
+        borderColor: "#3F3F3F",
         position: "absolute",
         zIndex: 10,
         right: 16.5,

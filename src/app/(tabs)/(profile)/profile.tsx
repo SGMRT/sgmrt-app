@@ -3,8 +3,10 @@ import { deleteUser, getUserCourses, invalidateToken } from "@/src/apis";
 import { GhostSortOption, UserCourseInfo } from "@/src/apis/types/course";
 import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
 import { Info } from "@/src/components/profile/Info";
+import { ActionButton } from "@/src/components/ui/ActionButton";
 import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
+import ScrollButton from "@/src/components/ui/ScrollButton";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import { TabItem } from "@/src/components/ui/TabItem";
@@ -16,6 +18,8 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Alert, SafeAreaView, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
@@ -30,12 +34,15 @@ export default function ProfileScreen() {
     const [selectedCourse, setSelectedCourse] = useState<UserCourseInfo | null>(
         null
     );
+    const { bottom } = useSafeAreaInsets();
+    const scrollViewRef = useRef<ScrollView>(null);
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: "#111111" }}>
             <SafeAreaView
                 style={{
                     flex: 1,
                     backgroundColor: "#111111",
+                    marginBottom: bottom + 70,
                 }}
             >
                 {/* Header */}
@@ -59,6 +66,7 @@ export default function ProfileScreen() {
                     <Info
                         setModalType={setModalType}
                         modalRef={bottomSheetRef}
+                        scrollViewRef={scrollViewRef}
                     />
                 )}
                 {selectedTab === "course" && (
@@ -134,6 +142,21 @@ export default function ProfileScreen() {
                     />
                 </View>
             </BottomModal>
+            <ActionButton
+                type="active"
+                postion="bottom-left"
+                onPress={() => {
+                    router.push("/run/solo");
+                }}
+            />
+            <ScrollButton
+                onPress={() => {
+                    scrollViewRef.current?.scrollTo({
+                        y: 0,
+                        animated: true,
+                    });
+                }}
+            />
             {selectedTab === "course" && selectedCourse && (
                 <SlideToAction
                     label="이 코스로 러닝 시작"

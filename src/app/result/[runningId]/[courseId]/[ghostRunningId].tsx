@@ -601,7 +601,6 @@ export default function Result() {
                             animated: true,
                         });
                     }}
-                    bottomInset={66}
                 />
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}
