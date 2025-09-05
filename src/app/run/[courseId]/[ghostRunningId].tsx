@@ -139,7 +139,7 @@ export default function Run() {
 
     const controlPannelPosition = useAnimatedStyle(() => {
         return {
-            top: heightVal.value - 116,
+            top: heightVal.value - 64,
         };
     });
 
@@ -243,6 +243,7 @@ export default function Run() {
         router,
         controls,
         context.stats,
+        ghostRunningId,
     ]);
 
     const now = useNow(

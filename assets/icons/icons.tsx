@@ -1,7 +1,3 @@
-import StatsIcon from "./chart.png";
-import HomeIcon from "./map.png";
-import ProfileIcon from "./user.png";
-
 import Puck from "./puck.png";
 import Puck3 from "./red-puck.png";
 import Triangle from "./triangle.png";
@@ -18,14 +14,11 @@ export {
     DefaultLogo,
     DefaultProfileIcon,
     Direction,
-    HomeIcon,
     Logo,
     Needle,
-    ProfileIcon,
     Puck,
     Puck2,
     Puck3,
-    StatsIcon,
     TouchText,
     Triangle,
 };

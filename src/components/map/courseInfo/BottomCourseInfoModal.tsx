@@ -1,6 +1,8 @@
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { getCourse, getCourseTopRanking } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import { useAuthStore } from "@/src/store/authState";
+import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
@@ -8,10 +10,10 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import StyledChart from "../../chart/StyledChart";
+import ButtonWithIcon from "../../ui/ButtonWithMap";
 import { Divider } from "../../ui/Divider";
 import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
-import SlideToAction from "../../ui/SlideToAction";
 import StatRow, { Stat } from "../../ui/StatRow";
 import { Typography, TypographyColor } from "../../ui/Typography";
 import UserStatItem from "./UserStatItem";
@@ -58,7 +60,7 @@ export default function BottomCourseInfoModal({
         },
         {
             description: "평균 고도",
-            value: "--",
+            value: course?.elevationAverage.toString() ?? "--",
             unit: "m",
         },
         {
@@ -86,7 +88,7 @@ export default function BottomCourseInfoModal({
         },
         {
             description: "칼로리",
-            value: "--",
+            value: course?.averageCaloriesBurned ?? "--",
             unit: "kcal",
         },
         {
@@ -112,7 +114,12 @@ export default function BottomCourseInfoModal({
         <>
             <TabHeader tab={tab} setTab={setTab} />
             {tab === "course" && (
-                <CourseInfoSection stats={courseStats} dummyData={dummyData} />
+                <CourseInfoSection
+                    courseName={course?.name ?? ""}
+                    stats={courseStats}
+                    dummyData={dummyData}
+                    onPress={() => setTab("ghost")}
+                />
             )}
             {tab === "ghost" && (
                 <GhostInfoSection
@@ -124,22 +131,29 @@ export default function BottomCourseInfoModal({
                     onPress={onClickGhostRank}
                 />
             )}
-            <SlideToAction
-                label={
+            <ButtonWithIcon
+                iconType="map"
+                onPressIcon={() => {
+                    bottomSheetRef.current?.dismiss();
+                }}
+                type="active"
+                title={
                     tab === "course"
                         ? "이 코스로 러닝 시작"
                         : "고스트와 러닝 시작"
                 }
-                onSlideSuccess={() => {
+                onPress={() => {
                     bottomSheetRef.current?.dismiss();
-                    if (tab === "course") {
+                    if (
+                        tab === "course" ||
+                        !selectedGhostId ||
+                        selectedGhostId === -1
+                    ) {
                         router.push(`/run/${course?.id}/-1`);
                     } else {
                         router.push(`/run/${course?.id}/${selectedGhostId}`);
                     }
                 }}
-                color="green"
-                direction="left"
             />
         </>
     );
@@ -233,18 +247,21 @@ export const GhostInfoSection = ({
 };
 
 const CourseInfoSection = ({
+    courseName,
     stats,
     dummyData,
+    onPress,
 }: {
+    courseName: string;
     stats: Stat[];
     dummyData: any[];
+    onPress: () => void;
 }) => {
     return (
         <View
             style={{
                 marginBottom: 30,
                 marginHorizontal: 16.5,
-                paddingVertical: 5,
             }}
         >
             <Section
@@ -252,6 +269,32 @@ const CourseInfoSection = ({
                     gap: 15,
                 }}
             >
+                <View style={{ marginBottom: 5, gap: 10 }}>
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography variant="subhead1" color="gray20">
+                            {courseName}
+                        </Typography>
+                        <Pressable
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                            }}
+                            onPress={onPress}
+                        >
+                            <Typography variant="caption1" color="gray40">
+                                고스트 선택
+                            </Typography>
+                            <ChevronIcon />
+                        </Pressable>
+                    </View>
+                    <Divider direction="horizontal" color={colors.gray[40]} />
+                </View>
                 <StatRow
                     stats={stats}
                     color="gray20"

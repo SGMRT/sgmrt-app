@@ -7,18 +7,19 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Dimensions, FlatList, Image, View } from "react-native";
+import ButtonWithIcon from "../ui/ButtonWithMap";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterButton } from "../ui/FilterButton";
 import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
-import SlideToAction from "../ui/SlideToAction";
 import { Typography } from "../ui/Typography";
 import { UserCount } from "../ui/UserCount";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
+    courseType: "all" | "my";
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     selectedCourse: CourseResponse | null;
     onClickCourse: (course: CourseResponse) => void;
@@ -27,6 +28,7 @@ interface CourseListViewProps {
 
 const CourseListView = ({
     courses,
+    courseType,
     bottomSheetRef,
     selectedCourse,
     onClickCourse,
@@ -114,8 +116,9 @@ const CourseListView = ({
     if (editMode) {
         return (
             <DualFilter
-                firstLabel="나와 가까운 코스"
-                secondLabel="요즘 뜨는 코스"
+                description="정렬 방식"
+                firstLabel="가까운 순"
+                secondLabel="인기 순"
                 onPressFirst={onPressNear}
                 onPressSecond={onPressTrend}
                 selected={filter === "near" ? "first" : "second"}
@@ -127,17 +130,20 @@ const CourseListView = ({
         <View>
             <View style={{ marginHorizontal: 16.5 }}>
                 <Section
-                    title={
-                        filter === "near"
-                            ? "나와 가까운 코스"
-                            : "요즘 뜨는 코스"
-                    }
+                    title={courseType === "all" ? "고스트 코스" : "내 코스"}
                     titleColor="white"
                     style={{
                         maxHeight: Dimensions.get("window").height - 500,
                     }}
+                    containerStyle={{
+                        borderBottomStartRadius: 0,
+                        borderBottomEndRadius: 0,
+                    }}
                     titleRightChildren={
-                        <FilterButton onPress={onPressFilter} />
+                        <FilterButton
+                            onPress={onPressFilter}
+                            title={filter === "near" ? "가까운 순" : "인기 순"}
+                        />
                     }
                 >
                     <FlatList
@@ -158,20 +164,21 @@ const CourseListView = ({
                                 imageUrl={item.thumbnailUrl}
                                 isSelected={selectedCourse?.id === item.id}
                                 onClickCourse={() => onClickCourse(item)}
-                                onClickCourseInfo={() =>
-                                    onClickCourseInfo(item)
-                                }
+                                onClickCourseInfo={() => {
+                                    onClickCourseInfo(item);
+                                }}
                             />
                         )}
                         showsVerticalScrollIndicator={false}
                     />
                 </Section>
             </View>
-            <SlideToAction
-                label={
+            <ButtonWithIcon
+                iconType="map"
+                title={
                     selectedCourse ? "이 코스로 러닝 시작" : "밀어서 러닝 시작"
                 }
-                onSlideSuccess={() => {
+                onPress={() => {
                     bottomSheetRef.current?.dismiss();
                     if (selectedCourse) {
                         router.push(`/run/${selectedCourse?.id}/-1`);
@@ -179,8 +186,11 @@ const CourseListView = ({
                         router.push("/run/solo");
                     }
                 }}
-                color="green"
-                direction="left"
+                topStroke
+                onPressIcon={() => {
+                    bottomSheetRef.current?.dismiss();
+                }}
+                type="active"
             />
         </View>
     );
@@ -206,7 +216,7 @@ export const CourseGalleryItem = ({
     maxLength: number;
     isSelected: boolean;
     imageUrl: string;
-    onClickCourse: () => void;
+    onClickCourse?: () => void;
     onClickCourseInfo: () => void;
 }) => {
     return (
@@ -259,12 +269,14 @@ export const CourseGalleryItem = ({
                     >
                         {courseName}
                     </Typography>
-                    <RadioButton
-                        isSelected={isSelected}
-                        showMyRecord={false}
-                        onPress={onClickCourse}
-                        inactiveColor={colors.gray[40]}
-                    />
+                    {onClickCourse && (
+                        <RadioButton
+                            isSelected={isSelected}
+                            showMyRecord={false}
+                            onPress={onClickCourse}
+                            inactiveColor={colors.gray[40]}
+                        />
+                    )}
                 </View>
                 {/* 코스 거리, 고도 */}
                 <View>

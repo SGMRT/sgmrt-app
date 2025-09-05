@@ -2,6 +2,7 @@ import { useAuthStore } from "@/src/store/authState";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as Sentry from "@sentry/react-native";
 import * as Speech from "expo-speech";
+import { initAudioModule } from "../bootstrap/useBootstrapApp";
 export type VoicePriority = "CRITICAL" | "HIGH" | "NORMAL" | "LOW";
 
 export type VoiceEvent =
@@ -38,6 +39,13 @@ export type VoiceEvent =
           deltaM: number;
       }
     | {
+          type: "run/distance";
+          distanceKM: string;
+          totalTime: number;
+          totalCalories: number | null;
+          avgPace: number | null;
+      }
+    | {
           type: "custom";
           text: string;
           priority?: VoicePriority;
@@ -54,8 +62,7 @@ class VoiceGuide {
     private speaking = false;
     private queue: Utterance[] = [];
     private lastSpokenAt: Record<string, number> = {};
-    private enabled =
-        useAuthStore.getState().userSettings?.voiceGuidanceEnabled ?? true;
+    private enabled = false;
 
     // 전역 설정
     private lang = "ko-KR";
@@ -79,7 +86,11 @@ class VoiceGuide {
     }
 
     announce(event: VoiceEvent) {
-        if (!this.enabled) return;
+        if (
+            !this.enabled &&
+            !useAuthStore.getState().userSettings?.voiceGuidanceEnabled
+        )
+            return;
 
         const utter = this.toUtterance(event);
         if (!utter) return;
@@ -88,6 +99,8 @@ class VoiceGuide {
             const last = this.lastSpokenAt[utter.cooldownKey] ?? 0;
             const now = Date.now();
             const cool = this.cooldownMs[utter.cooldownKey] ?? 1000;
+
+            console.log("cooldown", utter.cooldownKey, now - last, cool);
 
             if (now - last < cool) return;
 
@@ -123,10 +136,15 @@ class VoiceGuide {
         this.speaking = false;
     }
 
-    private trySpeakNext() {
+    clearQueue() {
+        this.queue = [];
+    }
+
+    private async trySpeakNext() {
         if (this.speaking || this.queue.length === 0) return;
         const next = this.queue.shift()!;
         this.speaking = true;
+        await initAudioModule();
         Speech.speak(next.text, {
             language: this.lang,
             rate: this.rate,
@@ -271,6 +289,26 @@ class VoiceGuide {
                               " 미터 입니다.",
                     priority: "HIGH",
                     cooldownKey: "run/ghost-change-leader",
+                };
+            }
+            case "run/distance": {
+                const prefix = "거리 " + event.distanceKM + "km";
+                const time = getRunTime(event.totalTime, "HH:MM:SS").split(":");
+                const timeText =
+                    " 시간 " +
+                    (time.length === 3
+                        ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
+                        : `${time[0]}분 ${time[1]}초`);
+                const pace = getFormattedPace(event.avgPace ?? 0).split("’");
+                const paceText =
+                    " 평균 페이스 " + pace[0] + "분 " + pace[1] + "초 ";
+                const caloriesText = event.totalCalories
+                    ? ` 소모칼로리 ${event.totalCalories} 칼로리 입니다.`
+                    : "";
+                return {
+                    text: `${prefix} ${timeText} ${paceText} ${caloriesText}`,
+                    priority: "HIGH",
+                    cooldownKey: "run/distance" + event.distanceKM,
                 };
             }
             case "custom": {

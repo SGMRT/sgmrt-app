@@ -15,7 +15,7 @@ const config = {
         },
         owner: "sgmrt",
         splash: {
-            backgroundColor: "#090A0A",
+            backgroundColor: "#111111",
         },
         ios: {
             bundleIdentifier: "com.sgmrt.ghostrunner",
@@ -64,9 +64,10 @@ const config = {
             [
                 "expo-splash-screen",
                 {
-                    image: "./assets/images/splash-icon.png",
+                    image: "./assets/icons/logo.png",
                     resizeMode: "contain",
-                    backgroundColor: "#090A0A",
+                    backgroundColor: "#111111",
+                    imageWidth: 275,
                 },
             ],
             [

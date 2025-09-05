@@ -88,7 +88,7 @@ const StyledChart = ({
         <View>
             {showLabel && (
                 <View style={styles.tooltipContainer}>
-                    <Typography variant="body3" color="gray40">
+                    <Typography variant="body3" color="gray20">
                         {label}
                     </Typography>
                 </View>
@@ -123,10 +123,10 @@ const StyledChart = ({
                                 return `${label / 1000}`;
                             },
                             axisSide: "top",
-                            labelColor: colors.gray[60],
+                            labelColor: "#676767",
                             enableRescaling: true,
                             lineWidth: 0.5,
-                            lineColor: "#2e2e2e",
+                            lineColor: "#676767",
                             labelOffset: 10,
                         }}
                         yAxis={[
@@ -194,7 +194,7 @@ function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }) {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#1B1B1B",
+        backgroundColor: "#222222",
         borderRadius: 8,
         padding: 10,
         gap: 10,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "flex-end",
         alignSelf: "flex-start",
-        backgroundColor: colors.gray[80],
+        backgroundColor: "#2D2D2D",
         borderTopLeftRadius: 6,
         borderTopRightRadius: 6,
         borderBottomLeftRadius: 1,

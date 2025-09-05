@@ -7,6 +7,7 @@ import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import { useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions } from "react-native";
 import {
@@ -16,23 +17,31 @@ import {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CourseListView from "../course/CourseListView";
+import { ActionButton } from "../ui/ActionButton";
 import BottomModal from "../ui/BottomModal";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
-import ListViewButton from "./ListViewButton";
 import MapViewWrapper from "./MapViewWrapper";
 
 interface HomeMapProps {
     courseType: "all" | "my";
+    showListView: boolean;
+    setShowListView: (showListView: boolean) => void;
+    mapBottomSheetRef: React.RefObject<BottomSheetModal | null>;
 }
 
 const ZOOM_THRESHOLD = 14.5;
 const CAMERA_LATITUDE_OFFSET = -0.0003;
-const BOTTOM_BAR_HEIGHT = 64;
-const BOTTOM_NAV_HEIGHT = 56;
-const CONTROL_PANEL_OFFSET = 116;
+const BOTTOM_BAR_HEIGHT = 82;
+const CONTROL_PANEL_OFFSET = 64;
 
-export default function HomeMap({ courseType }: HomeMapProps) {
+export default function HomeMap({
+    courseType,
+    showListView,
+    setShowListView,
+    mapBottomSheetRef,
+}: HomeMapProps) {
+    const router = useRouter();
     const [activeCourse, setActiveCourse] = useState<CourseResponse | null>(
         null
     );
@@ -41,16 +50,13 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     // const [allCourseList, setAllCourseList] = useState<CourseResponse[]>([]);
 
     const [zoomLevel, setZoomLevel] = useState(16);
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
-    const handlePresentModalPress = () => {
-        bottomSheetRef.current?.present();
-    };
 
-    const [showCourseList, setShowCourseList] = useState(false);
+    const handlePresentModalPress = () => {
+        mapBottomSheetRef.current?.present();
+    };
 
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
-        handlePresentModalPress();
         cameraRef.current?.moveTo([
             course.startLng,
             course.startLat - CAMERA_LATITUDE_OFFSET,
@@ -78,8 +84,7 @@ export default function HomeMap({ courseType }: HomeMapProps) {
 
     const heightVal = useSharedValue(0);
     const controlPannelPosition = useAnimatedStyle(() => {
-        const baseHeight =
-            deviceHeight - BOTTOM_BAR_HEIGHT - BOTTOM_NAV_HEIGHT - bottom;
+        const baseHeight = deviceHeight - BOTTOM_BAR_HEIGHT - bottom;
         if (heightVal.value === 0) {
             return { top: baseHeight - CONTROL_PANEL_OFFSET };
         }
@@ -177,9 +182,9 @@ export default function HomeMap({ courseType }: HomeMapProps) {
     }, []);
 
     useEffect(() => {
-        setShowCourseList(false);
-        bottomSheetRef.current?.dismiss();
-    }, [courseType]);
+        setShowListView(false);
+        mapBottomSheetRef.current?.dismiss();
+    }, [courseType, setShowListView, mapBottomSheetRef]);
 
     const sortedCourses = useMemo(() => {
         if (courseType === "my") {
@@ -199,14 +204,10 @@ export default function HomeMap({ courseType }: HomeMapProps) {
         }
     }, [courses, activeCourse, courseType]);
 
-    const onPressListViewButton = () => {
-        setShowCourseList(true);
-        bottomSheetRef.current?.present();
-    };
-
     const onClickCourseInfo = (course: CourseResponse) => {
-        setActiveCourse(course);
-        setShowCourseList(false);
+        onClickCourse(course);
+        setShowListView(false);
+        handlePresentModalPress();
     };
 
     return (
@@ -216,6 +217,8 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                 controlPannelPosition={controlPannelPosition}
                 onRegionDidChange={onRegionDidChange}
                 cameraRef={cameraRef}
+                logoPosition={{ bottom: 90, left: 10 }}
+                attributionPosition={{ bottom: 88, right: 0 }}
             >
                 {/* active Course가 가장 먼저 표시되도록 정렬 */}
                 {sortedCourses.map((course) => (
@@ -223,16 +226,28 @@ export default function HomeMap({ courseType }: HomeMapProps) {
                         key={course.id}
                         course={course}
                         activeCourseId={activeCourse?.id ?? -1}
-                        onClickCourse={onClickCourse}
+                        onClickCourse={onClickCourseInfo}
                         zoomLevel={zoomLevel}
                     />
                 ))}
             </MapViewWrapper>
-            <ListViewButton onPress={onPressListViewButton} />
+            <ActionButton
+                type="text"
+                text="러닝 시작"
+                style={{
+                    position: "absolute",
+                    bottom: 93,
+                    alignSelf: "center",
+                }}
+                onPress={() => {
+                    router.push("/run/solo");
+                }}
+            />
             <HomeBottomModal
-                bottomSheetRef={bottomSheetRef}
+                bottomSheetRef={mapBottomSheetRef}
                 heightVal={heightVal}
-                modalType={showCourseList ? "list" : courseType}
+                modalType={showListView ? "list" : courseType}
+                courseType={courseType}
                 activeCourse={activeCourse}
                 courses={courses ?? []}
                 onClickCourse={onClickCourse}
@@ -246,6 +261,7 @@ interface HomeBottomModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     heightVal: SharedValue<number>;
     modalType: "all" | "my" | "list";
+    courseType: "all" | "my";
     activeCourse: CourseResponse | null;
     courses: CourseResponse[];
     onClickCourse: (course: CourseResponse) => void;
@@ -255,6 +271,7 @@ interface HomeBottomModalProps {
 const HomeBottomModal = ({
     bottomSheetRef,
     heightVal,
+    courseType,
     modalType,
     activeCourse,
     courses,
@@ -271,6 +288,7 @@ const HomeBottomModal = ({
             ) : (
                 <CourseListView
                     bottomSheetRef={bottomSheetRef}
+                    courseType={courseType}
                     courses={courses ?? []}
                     selectedCourse={activeCourse}
                     onClickCourse={onClickCourse}

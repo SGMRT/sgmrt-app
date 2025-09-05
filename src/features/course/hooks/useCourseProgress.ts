@@ -8,13 +8,13 @@ import { Controls } from "../../run/hooks/useRunningSession";
 import { RunContext } from "../../run/state/context";
 import { selectUserLocation } from "../../run/state/selectors";
 import { voiceGuide } from "../../voice/VoiceGuide";
+import { CourseLeg } from "../types/courseLeg";
 import { buildCourseLegs } from "../utils/buildCourseLegs";
 import {
     nearestDistanceToPolylineM,
     remainingAlongLegM,
 } from "../utils/courseGeometry";
 import { dedupeConsecutiveByLatLng } from "../utils/dedupeConsecutiveByLatLng";
-import { CourseLeg } from "../types/courseLeg";
 
 const OFFCOURSE_TOAST_MS = 3200;
 const OFFCOURSE_NOTIFY_INTERVAL_MS = 4000;
@@ -40,11 +40,11 @@ export function useCourseProgress(props: CourseProgressProps) {
         controls,
         onStart,
         onForceStop,
-        guideAdvanceM = 40,
+        guideAdvanceM = 50,
         offEnterM = 35,
         offReturnM = 18,
         startEnterM = 25,
-        passCpM = 15,
+        passCpM = 10,
         endApproachAlertM = 50,
     } = props;
 

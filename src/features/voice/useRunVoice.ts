@@ -4,6 +4,27 @@ import { voiceGuide } from "./VoiceGuide";
 
 export function useRunVoice(context: RunContext) {
     const prevStatus = useRef(context.status);
+    const lastKmSpokenRef = useRef(0);
+
+    useEffect(() => {
+        const currentKm = Math.floor(context.stats.totalDistanceM / 1000);
+
+        if (currentKm > 0 && currentKm > lastKmSpokenRef.current) {
+            lastKmSpokenRef.current = currentKm;
+            voiceGuide.announce({
+                type: "run/distance",
+                distanceKM: String(currentKm),
+                totalTime: Math.round(context.stats.totalTimeMs / 1000),
+                totalCalories: context.stats.calories,
+                avgPace: context.stats.avgPaceSecPerKm,
+            });
+        }
+    }, [
+        context.stats.totalDistanceM,
+        context.stats.totalTimeMs,
+        context.stats.calories,
+        context.stats.avgPaceSecPerKm,
+    ]);
 
     useEffect(() => {
         const prev = prevStatus.current;
@@ -44,8 +65,10 @@ export function useRunVoice(context: RunContext) {
                         totalCalories: context.stats.calories,
                         avgPace: context.stats.avgPaceSecPerKm,
                     });
+                    voiceGuide.clearQueue();
                     break;
                 case "STOPPED":
+                    if (prevStatus.current === "COMPLETION_PENDING") return;
                     voiceGuide.announce({
                         type: "run/stop",
                         totalTime: Math.round(context.stats.totalTimeMs / 1000),
@@ -53,6 +76,7 @@ export function useRunVoice(context: RunContext) {
                         totalCalories: context.stats.calories,
                         avgPace: context.stats.avgPaceSecPerKm,
                     });
+                    voiceGuide.clearQueue();
                     break;
             }
             prevStatus.current = curr;

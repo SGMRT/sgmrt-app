@@ -188,6 +188,7 @@ export default function EditInfo() {
                     canPress={isActive}
                     onPress={onSubmit}
                     title="수정 완료"
+                    topStroke
                 />
             </KeyboardAvoidingView>
         </SafeAreaView>

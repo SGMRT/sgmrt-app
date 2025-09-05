@@ -1,8 +1,8 @@
 import { deleteRun, getRuns } from "@/src/apis";
 import { RunResponse } from "@/src/apis/types/run";
 import { HistoryWithFilter } from "@/src/components/course/HistoryWithFilter";
+import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
 import Header from "@/src/components/ui/Header";
-import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import { TabItem } from "@/src/components/ui/TabItem";
 import { Typography } from "@/src/components/ui/Typography";
@@ -10,7 +10,7 @@ import colors from "@/src/theme/colors";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { SafeAreaView, View } from "react-native";
+import { Alert, SafeAreaView, View } from "react-native";
 import Toast from "react-native-toast-message";
 
 export default function Stats() {
@@ -30,9 +30,17 @@ export default function Stats() {
 
     const handleCourseSelect = (course: RunResponse) => {
         if (selectedTab === "SOLO") {
-            setSelectedCourse(course);
+            if (selectedCourse?.runningId === course.runningId) {
+                setSelectedCourse(null);
+            } else {
+                setSelectedCourse(course);
+            }
         } else {
-            setSelectedGhost(course);
+            if (selectedGhost?.runningId === course.runningId) {
+                setSelectedGhost(null);
+            } else {
+                setSelectedGhost(course);
+            }
         }
     };
 
@@ -53,17 +61,16 @@ export default function Stats() {
 
     const onDeleteModeChange = () => {
         if (isDeleteMode) {
-            Toast.show({
-                type: "info",
-                text1: "기록 삭제 모드를 종료합니다.",
-                position: "bottom",
-            });
-            setIsDeleteMode(false);
+            if (isDeleteMode) {
+                onDeleteItems();
+                return;
+            }
         } else {
             Toast.show({
                 type: "success",
                 text1: "기록 삭제 모드를 활성화합니다",
                 position: "bottom",
+                bottomOffset: 60,
             });
             setIsDeleteMode(true);
             setSelectedDeleteItems([]);
@@ -74,23 +81,43 @@ export default function Stats() {
         if (selectedDeleteItems.length === 0) {
             Toast.show({
                 type: "info",
-                text1: "삭제할 기록을 선택해주세요.",
+                text1: "기록 삭제 모드를 종료합니다.",
                 position: "bottom",
+                bottomOffset: 60,
             });
+            setIsDeleteMode(false);
             return;
         } else {
-            Promise.all(
-                selectedDeleteItems.map((item) => deleteRun(item.runningId))
-            ).then(() => {
-                Toast.show({
-                    type: "success",
-                    text1: "선택한 기록이 삭제되었습니다.",
-                    position: "bottom",
-                });
-                setSelectedDeleteItems([]);
-                setIsDeleteMode(false);
-                setShouldRefresh(!shouldRefresh);
-            });
+            Alert.alert("기록 삭제", "선택한 기록을 삭제하시겠습니까?", [
+                {
+                    text: "취소",
+                    style: "cancel",
+                    onPress: () => {
+                        setIsDeleteMode(false);
+                    },
+                },
+                {
+                    text: "삭제",
+                    style: "destructive",
+                    onPress: () => {
+                        Promise.all(
+                            selectedDeleteItems.map((item) =>
+                                deleteRun(item.runningId)
+                            )
+                        ).then(() => {
+                            Toast.show({
+                                type: "success",
+                                text1: "선택한 기록이 삭제되었습니다.",
+                                position: "bottom",
+                                bottomOffset: 60,
+                            });
+                            setSelectedDeleteItems([]);
+                            setIsDeleteMode(false);
+                            setShouldRefresh(!shouldRefresh);
+                        });
+                    },
+                },
+            ]);
         }
     };
 
@@ -128,40 +155,36 @@ export default function Stats() {
                 />
             </View>
             <TabBar />
-            <SlideToAction
-                label={
-                    isDeleteMode
-                        ? "선택한 기록들 삭제 하기"
-                        : (selectedTab === "SOLO" && selectedCourse) ||
-                          (selectedTab === "GHOST" && selectedGhost)
-                        ? "이 코스로 러닝 시작"
-                        : "밀어서 러닝 시작"
-                }
-                onSlideSuccess={() => {
-                    if (isDeleteMode) {
-                        onDeleteItems();
-                        return;
+            {!isDeleteMode && (
+                <ActionButtonGroup
+                    initialState="single"
+                    secondaryButtonText={
+                        (selectedTab === "SOLO" && selectedCourse) ||
+                        (selectedTab === "GHOST" && selectedGhost)
+                            ? "이 코스로 러닝 시작"
+                            : "러닝 시작"
                     }
-
-                    if (
-                        selectedTab === "SOLO" &&
-                        selectedCourse?.courseInfo?.id
-                    ) {
-                        router.push(
-                            `/run/${selectedCourse!.courseInfo!.id}/-1`
-                        );
-                    } else if (
-                        selectedTab === "GHOST" &&
-                        selectedGhost?.courseInfo?.id
-                    ) {
-                        router.push(`/run/${selectedGhost!.courseInfo!.id}/-1`);
-                    } else {
-                        router.push("/run/solo");
-                    }
-                }}
-                color="green"
-                direction="left"
-            />
+                    onSecondaryPress={() => {
+                        if (
+                            selectedTab === "SOLO" &&
+                            selectedCourse?.courseInfo?.id
+                        ) {
+                            router.push(
+                                `/run/${selectedCourse!.courseInfo!.id}/-1`
+                            );
+                        } else if (
+                            selectedTab === "GHOST" &&
+                            selectedGhost?.courseInfo?.id
+                        ) {
+                            router.push(
+                                `/run/${selectedGhost!.courseInfo!.id}/-1`
+                            );
+                        } else {
+                            router.push("/run/solo");
+                        }
+                    }}
+                />
+            )}
         </SafeAreaView>
     );
 }
@@ -186,7 +209,7 @@ const UserHistory = ({
         startDate: Date;
         endDate: Date;
     }>({
-        startDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+        startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
         endDate: new Date(),
     });
 

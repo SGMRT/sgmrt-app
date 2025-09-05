@@ -1,4 +1,3 @@
-import Compass from "./compass.svg";
 import LocateMe from "./focus.svg";
 
 import BackIcon from "./back.svg";
@@ -35,6 +34,19 @@ import GhostIcon from "./g.svg";
 import LockIcon from "./lock_close.svg";
 import UnlockIcon from "./lock_open.svg";
 
+import HomeIcon from "./home.svg";
+import MapIcon from "./map.svg";
+import ProfileIcon from "./profile.svg";
+import StatsIcon from "./stats.svg";
+
+import MenuIcon from "./menu.svg";
+
+import PlayIcon from "./play.svg";
+
+import SpeakerIcon from "./volume_max.svg";
+
+import ShowIcon from "./show.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -42,17 +54,24 @@ export {
     CalendarIcon,
     CheckIcon,
     ChevronIcon,
-    Compass,
     EditIcon,
     ElipsisVerticalIcon,
     FilterIcon,
     GhostIcon,
+    HomeIcon,
     KakaoIcon,
     ListIcon,
     LocateMe,
     LockIcon,
+    MapIcon,
+    MenuIcon,
+    PlayIcon,
+    ProfileIcon,
     ScrollTopIcon,
     ShareIcon,
+    ShowIcon,
+    SpeakerIcon,
+    StatsIcon,
     ToastCheckIcon,
     ToastInfoIcon,
     TrashIcon,

@@ -1,21 +1,23 @@
 import { AlertIcon } from "@/assets/svgs/svgs";
-import { deleteUser, getUserCourses, invalidateToken } from "@/src/apis";
-import { GhostSortOption, UserCourseInfo } from "@/src/apis/types/course";
-import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
+import { deleteUser, invalidateToken } from "@/src/apis";
+import { UserCourseInfo } from "@/src/apis/types/course";
+import { CourseSection } from "@/src/components/profile/CourseSection";
 import { Info } from "@/src/components/profile/Info";
+import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
 import BottomModal from "@/src/components/ui/BottomModal";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Header from "@/src/components/ui/Header";
-import SlideToAction from "@/src/components/ui/SlideToAction";
+import ScrollButton from "@/src/components/ui/ScrollButton";
 import TabBar from "@/src/components/ui/TabBar";
 import { TabItem } from "@/src/components/ui/TabItem";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useRef, useState } from "react";
-import { Alert, SafeAreaView, View } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
@@ -30,18 +32,44 @@ export default function ProfileScreen() {
     const [selectedCourse, setSelectedCourse] = useState<UserCourseInfo | null>(
         null
     );
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    const onPressSignButton = useCallback(
+        async (modalType: "logout" | "withdraw") => {
+            bottomSheetRef.current?.close();
+            if (modalType === "logout") {
+                await invalidateToken();
+                Toast.show({
+                    type: "success",
+                    text1: "로그아웃 되었습니다.",
+                    position: "bottom",
+                });
+                logout();
+            } else {
+                Alert.alert("회원 탈퇴", "정말로 탈퇴하시겠습니까?", [
+                    {
+                        text: "취소",
+                        style: "cancel",
+                    },
+                    {
+                        text: "탈퇴",
+                        onPress: async () => {
+                            await deleteUser();
+                            logout();
+                        },
+                    },
+                ]);
+            }
+        },
+        [bottomSheetRef, logout]
+    );
     return (
-        <View style={{ flex: 1 }}>
-            <SafeAreaView
-                style={{
-                    flex: 1,
-                    backgroundColor: "#111111",
-                }}
-            >
+        <View style={styles.container}>
+            <SafeAreaView style={styles.safeAreaView}>
                 {/* Header */}
                 <View>
                     <Header titleText="마이페이지" hasBackButton={false} />
-                    <View style={{ flexDirection: "row", marginTop: 10 }}>
+                    <View style={styles.header}>
                         <TabItem
                             title="내 정보"
                             onPress={() => setSelectedTab("info")}
@@ -59,10 +87,11 @@ export default function ProfileScreen() {
                     <Info
                         setModalType={setModalType}
                         modalRef={bottomSheetRef}
+                        scrollViewRef={scrollViewRef}
                     />
                 )}
                 {selectedTab === "course" && (
-                    <Course
+                    <CourseSection
                         selectedCourse={selectedCourse}
                         setSelectedCourse={setSelectedCourse}
                     />
@@ -72,15 +101,12 @@ export default function ProfileScreen() {
             <BottomModal
                 bottomSheetRef={bottomSheetRef}
                 canClose={true}
-                handleStyle={{
-                    paddingTop: 10,
-                    paddingBottom: 30,
-                }}
+                handleStyle={styles.handle}
             >
-                <View style={{ gap: 30 }}>
-                    <View style={{ gap: 15, alignItems: "center" }}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
                         <AlertIcon color={colors.red} />
-                        <View style={{ gap: 4, alignItems: "center" }}>
+                        <View style={styles.modalText}>
                             <Typography variant="headline" color="white">
                                 {modalType === "logout"
                                     ? "로그아웃 하시겠습니까?"
@@ -93,48 +119,45 @@ export default function ProfileScreen() {
                             </Typography>
                         </View>
                     </View>
-                    <SlideToAction
-                        label={
-                            modalType === "logout"
-                                ? "밀어서 로그아웃"
-                                : "밀어서 회원 탈퇴"
-                        }
-                        onSlideSuccess={async () => {
-                            bottomSheetRef.current?.close();
-                            if (modalType === "logout") {
-                                await invalidateToken();
-                                Toast.show({
-                                    type: "success",
-                                    text1: "로그아웃 되었습니다.",
-                                    position: "bottom",
-                                });
-                                logout();
-                            } else {
-                                Alert.alert(
-                                    "회원 탈퇴",
-                                    "정말로 탈퇴하시겠습니까?",
-                                    [
-                                        {
-                                            text: "취소",
-                                            style: "cancel",
-                                        },
-                                        {
-                                            text: "탈퇴",
-                                            onPress: async () => {
-                                                await deleteUser();
-                                                logout();
-                                            },
-                                        },
-                                    ]
-                                );
-                            }
+                    <ButtonWithIcon
+                        iconType="home"
+                        onPress={() => onPressSignButton(modalType)}
+                        onPressIcon={() => {
+                            router.replace("/");
                         }}
-                        color="red"
-                        direction="left"
+                        title={
+                            modalType === "logout" ? "로그아웃" : "회원 탈퇴"
+                        }
                     />
                 </View>
             </BottomModal>
-            {selectedTab === "course" && selectedCourse && (
+            <ActionButtonGroup
+                initialState="single"
+                onSecondaryPress={() => {
+                    if (selectedCourse && selectedTab === "course") {
+                        router.push(`/run/${selectedCourse?.id}/-1`);
+                    } else {
+                        router.push("/run/solo");
+                    }
+                }}
+                secondaryButtonText={
+                    selectedCourse && selectedTab === "course"
+                        ? "이 코스로 러닝 시작"
+                        : "러닝 시작"
+                }
+            />
+            {selectedTab === "info" && (
+                <ScrollButton
+                    onPress={() => {
+                        scrollViewRef.current?.scrollTo({
+                            y: 0,
+                            animated: true,
+                        });
+                    }}
+                />
+            )}
+
+            {/* {selectedTab === "course" && selectedCourse && (
                 <SlideToAction
                     label="이 코스로 러닝 시작"
                     onSlideSuccess={() => {
@@ -143,52 +166,39 @@ export default function ProfileScreen() {
                     color="green"
                     direction="left"
                 />
-            )}
+            )} */}
         </View>
     );
 }
 
-const Course = ({
-    selectedCourse,
-    setSelectedCourse,
-}: {
-    selectedCourse: UserCourseInfo | null;
-    setSelectedCourse: (course: UserCourseInfo | null) => void;
-}) => {
-    const { data, isLoading, isError, fetchNextPage, hasNextPage } =
-        useUserCourses();
-
-    if (isLoading) {
-        return <></>;
-    }
-    if (isError) {
-        return <Typography>코스 정보를 불러오는데 실패했습니다.</Typography>;
-    }
-    return (
-        <View style={{ marginTop: 20, flex: 1 }}>
-            <CoursesWithFilter
-                data={data?.pages.flatMap((page) => page.content) ?? []}
-                selectedCourse={selectedCourse}
-                setSelectedCourse={setSelectedCourse}
-                hasNextPage={hasNextPage}
-                fetchNextPage={fetchNextPage}
-            />
-        </View>
-    );
-};
-
-export function useUserCourses(
-    size: number = 10,
-    sort: GhostSortOption = "id,asc"
-) {
-    return useInfiniteQuery({
-        queryKey: ["user-courses", size, sort],
-        queryFn: async ({ pageParam = 0 }) =>
-            getUserCourses({ page: pageParam, size, sort }),
-        getNextPageParam: (lastPage) => {
-            const { number, totalPages } = lastPage.page;
-            return number + 1 < totalPages ? number + 1 : undefined;
-        },
-        initialPageParam: 0,
-    });
-}
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#111111",
+    },
+    safeAreaView: {
+        flex: 1,
+        backgroundColor: "#111111",
+        marginBottom: 83,
+    },
+    header: {
+        marginTop: 10,
+        flexDirection: "row",
+    },
+    handle: {
+        paddingTop: 10,
+        paddingBottom: 30,
+    },
+    modalContainer: {
+        gap: 30,
+    },
+    modalContent: {
+        gap: 15,
+        alignItems: "center",
+        marginBottom: 30,
+    },
+    modalText: {
+        gap: 4,
+        alignItems: "center",
+    },
+});
