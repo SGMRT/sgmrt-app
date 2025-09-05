@@ -3,7 +3,7 @@ import { deleteUser, invalidateToken } from "@/src/apis";
 import { UserCourseInfo } from "@/src/apis/types/course";
 import { CourseSection } from "@/src/components/profile/CourseSection";
 import { Info } from "@/src/components/profile/Info";
-import { ActionButton } from "@/src/components/ui/ActionButton";
+import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
 import BottomModal from "@/src/components/ui/BottomModal";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Header from "@/src/components/ui/Header";
@@ -133,12 +133,20 @@ export default function ProfileScreen() {
                     />
                 </View>
             </BottomModal>
-            <ActionButton
-                type="active"
-                postion="bottom-left"
-                onPress={() => {
-                    router.push("/run/solo");
+            <ActionButtonGroup
+                initialState="single"
+                onSecondaryPress={() => {
+                    if (selectedCourse && selectedTab === "course") {
+                        router.push(`/run/${selectedCourse?.id}/-1`);
+                    } else {
+                        router.push("/run/solo");
+                    }
                 }}
+                secondaryButtonText={
+                    selectedCourse && selectedTab === "course"
+                        ? "이 코스로 러닝 시작"
+                        : "러닝 시작"
+                }
             />
             {selectedTab === "info" && (
                 <ScrollButton
