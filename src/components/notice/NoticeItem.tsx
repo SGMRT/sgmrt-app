@@ -1,9 +1,15 @@
+// NoticeItem.tsx
 import { CloseIcon, SpeakerIcon } from "@/assets/svgs/svgs";
 import { BlurView } from "expo-blur";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Typography } from "../ui/Typography";
 
-export const Notice = () => {
+interface NoticeProps {
+    content: string;
+    onClose: () => void;
+}
+
+export const NoticeItem = ({ content, onClose }: NoticeProps) => {
     return (
         <BlurView intensity={1} style={styles.container}>
             <View style={styles.content}>
@@ -14,11 +20,10 @@ export const Notice = () => {
                     numberOfLines={1}
                     ellipsizeMode="tail"
                 >
-                    내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용 내용
-                    내용 내용 내용 내용 내용
+                    {content}
                 </Typography>
             </View>
-            <Pressable onPress={() => {}}>
+            <Pressable onPress={onClose} hitSlop={8} style={styles.closeButton}>
                 <CloseIcon />
             </Pressable>
         </BlurView>
@@ -27,20 +32,25 @@ export const Notice = () => {
 
 const styles = StyleSheet.create({
     container: {
+        alignSelf: "stretch",
         backgroundColor: "rgba(17, 17, 17, 0.8)",
         paddingVertical: 10,
-        paddingLeft: 15,
-        paddingRight: 50,
+        paddingHorizontal: 15,
         alignItems: "center",
         justifyContent: "space-between",
         borderRadius: 200,
         flexDirection: "row",
-        width: "100%",
+        marginHorizontal: 16.5,
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },
     content: {
         flexDirection: "row",
+        alignItems: "center",
         gap: 6,
         paddingRight: 30,
+        flexShrink: 1,
+    },
+    closeButton: {
+        flexShrink: 0,
     },
 });

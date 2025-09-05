@@ -8,7 +8,7 @@ import {
     useWindowDimensions,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import { Notice } from "../notice/Notice";
+import { HomeNotices } from "../notice/HomeNotices";
 import { Typography } from "../ui/Typography";
 
 interface HomeTopBarProps {
@@ -144,7 +144,7 @@ export default function HomeTopBar({
                     </Pressable>
                 </View>
             </View>
-            <Notice />
+            <HomeNotices />
         </View>
     );
 }
@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         gap: 8,
-        marginHorizontal: 16.5,
     },
     topContainer: {
         flexDirection: "row",
