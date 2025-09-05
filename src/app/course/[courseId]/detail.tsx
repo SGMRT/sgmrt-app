@@ -5,12 +5,12 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import Section from "@/src/components/ui/Section";
 import ShareButton from "@/src/components/ui/ShareButton";
-import SlideToAction from "@/src/components/ui/SlideToAction";
 import StatRow from "@/src/components/ui/StatRow";
 import { Typography } from "@/src/components/ui/Typography";
 import { UserCount } from "@/src/components/ui/UserCount";
@@ -219,13 +219,17 @@ export default function Result() {
                             color="white"
                         />
                     </ScrollView>
-                    <SlideToAction
-                        label="이 코스로 러닝 시작"
-                        onSlideSuccess={() => {
+                    <ButtonWithIcon
+                        title="이 코스로 러닝 시작"
+                        onPress={() => {
                             router.replace(`/run/${courseId}/-1`);
                         }}
-                        color="green"
-                        direction="left"
+                        type="active"
+                        iconType="home"
+                        onPressIcon={() => {
+                            router.replace("/");
+                        }}
+                        topStroke
                     />
                     <ScrollButton
                         onPress={() => {
@@ -234,6 +238,7 @@ export default function Result() {
                                 animated: true,
                             });
                         }}
+                        bottomInset={30}
                     />
                 </SafeAreaView>
                 <RunShot
@@ -267,6 +272,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#111111",
         marginHorizontal: 16.5,
         marginTop: 20,
+        paddingBottom: 20,
         gap: 20,
     },
     titleContainer: {

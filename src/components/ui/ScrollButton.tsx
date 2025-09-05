@@ -5,11 +5,13 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 interface ScrollButtonProps {
     onPress: () => void;
     position?: "bottom-left" | "bottom-right";
+    bottomInset?: number;
 }
 
 export default function ScrollButton({
     onPress,
     position = "bottom-right",
+    bottomInset,
 }: ScrollButtonProps) {
     const globalStyles = useGlobalStyles();
     return (
@@ -17,8 +19,21 @@ export default function ScrollButton({
             onPress={onPress}
             style={[
                 styles.container,
-                position === "bottom-left" && globalStyles.bottomLeft,
-                position === "bottom-right" && globalStyles.bottomRight,
+                position === "bottom-left" && [
+                    globalStyles.bottomLeft,
+                    {
+                        bottom:
+                            globalStyles.bottomLeft.bottom + (bottomInset ?? 0),
+                    },
+                ],
+                position === "bottom-right" && [
+                    globalStyles.bottomRight,
+                    {
+                        bottom:
+                            globalStyles.bottomRight.bottom +
+                            (bottomInset ?? 0),
+                    },
+                ],
             ]}
         >
             <ScrollTopIcon />
