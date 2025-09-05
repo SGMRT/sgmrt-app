@@ -25,15 +25,8 @@ export default function NoticeDetailPage() {
     return (
         <SafeAreaView style={styles.container}>
             <Header titleText={formattedDate} hasBackButton={true} />
-            <ScrollView
-                contentContainerStyle={{
-                    gap: 20,
-                    marginTop: 20,
-                    marginHorizontal: 16,
-                    flex: 1,
-                }}
-            >
-                <View style={{ gap: 10 }}>
+            <ScrollView contentContainerStyle={styles.contentContainer}>
+                <View style={styles.titleContainer}>
                     <Typography variant="headline" color="white">
                         {data?.title}
                     </Typography>
@@ -45,12 +38,7 @@ export default function NoticeDetailPage() {
                 {data?.imageUrl && (
                     <Image
                         source={{ uri: data?.imageUrl }}
-                        style={{
-                            borderRadius: 20,
-                            width: "100%",
-                            resizeMode: "cover",
-                            flex: 1,
-                        }}
+                        style={styles.image}
                     />
                 )}
             </ScrollView>
@@ -63,5 +51,20 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#111111",
         paddingBottom: 50,
+    },
+    contentContainer: {
+        gap: 20,
+        marginTop: 20,
+        marginHorizontal: 16,
+        flex: 1,
+    },
+    titleContainer: {
+        gap: 10,
+    },
+    image: {
+        borderRadius: 20,
+        width: "100%",
+        resizeMode: "cover",
+        flex: 1,
     },
 });
