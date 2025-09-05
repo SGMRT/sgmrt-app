@@ -25,6 +25,7 @@ import {
     View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { ProfileNoticeSection } from "../notice/ui/ProfileNoticeSection";
 import { Divider } from "../ui/Divider";
 import { StyledButton } from "../ui/StyledButton";
 import { Typography, TypographyColor } from "../ui/Typography";
@@ -182,6 +183,12 @@ export const Info = ({
                     />
                 </View>
             </View>
+            {/*  공지사항 및 이벤트 */}
+            <ProfileNoticeSection
+                onPress={() => {
+                    router.push("/notice");
+                }}
+            />
             {/* 디바이스 옵션 */}
             <ProfileOptionSection>
                 <ProfileOptionItem

@@ -1,18 +1,19 @@
 // NoticeItem.tsx
 import { CloseIcon, SpeakerIcon } from "@/assets/svgs/svgs";
 import { BlurView } from "expo-blur";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Typography } from "../ui/Typography";
+import { Pressable, StyleSheet } from "react-native";
+import { Typography } from "../../ui/Typography";
 
 interface NoticeProps {
     content: string;
+    onPress: () => void;
     onClose: () => void;
 }
 
-export const NoticeItem = ({ content, onClose }: NoticeProps) => {
+export const NoticeItem = ({ content, onPress, onClose }: NoticeProps) => {
     return (
         <BlurView intensity={1} style={styles.container}>
-            <View style={styles.content}>
+            <Pressable style={styles.content} onPress={onPress}>
                 <SpeakerIcon />
                 <Typography
                     variant="caption1"
@@ -22,7 +23,7 @@ export const NoticeItem = ({ content, onClose }: NoticeProps) => {
                 >
                     {content}
                 </Typography>
-            </View>
+            </Pressable>
             <Pressable onPress={onClose} hitSlop={8} style={styles.closeButton}>
                 <CloseIcon />
             </Pressable>
