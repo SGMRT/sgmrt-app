@@ -22,9 +22,14 @@ import { CourseGalleryItem } from "./CourseListView";
 type CoursesWithFilterProps = {
     data: UserCourseInfo[];
     selectedCourse: UserCourseInfo | null;
-    setSelectedCourse: (course: UserCourseInfo | null) => void;
+    setSelectedCourse?: (course: UserCourseInfo | null) => void;
     hasNextPage: boolean;
     fetchNextPage: () => void;
+    filters: {
+        date?: boolean;
+        filter?: boolean;
+        view?: boolean;
+    };
 };
 
 type FilteredData = {
@@ -43,6 +48,7 @@ export const CoursesWithFilter = ({
     setSelectedCourse,
     hasNextPage,
     fetchNextPage,
+    filters,
 }: CoursesWithFilterProps) => {
     const [selectedFilter, setSelectedFilter] = useState<"date" | "course">(
         "date"
@@ -58,7 +64,7 @@ export const CoursesWithFilter = ({
         startDate: Date;
         endDate: Date;
     }>({
-        startDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+        startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
         endDate: new Date(),
     });
     const [bottomSheetType, setBottomSheetType] = useState<
@@ -147,6 +153,9 @@ export const CoursesWithFilter = ({
                 searchPeriod={searchPeriod}
                 setSearchPeriod={setSearchPeriod}
                 onClickFilter={onPressFilterItem}
+                selectedFilter={selectedFilter}
+                selectedView={selectedView}
+                filters={filters}
             />
             <FlashList
                 style={{ paddingHorizontal: 16.5 }}
@@ -185,9 +194,13 @@ export const CoursesWithFilter = ({
                                     duration={course.averageCompletionTime}
                                     averagePace={course.averageFinisherPace}
                                     cadence={course.averageFinisherCadence}
-                                    onPress={() => {
-                                        setSelectedCourse(course);
-                                    }}
+                                    onPress={
+                                        setSelectedCourse
+                                            ? () => {
+                                                  setSelectedCourse(course);
+                                              }
+                                            : undefined
+                                    }
                                     onClickCourseInfo={() => {
                                         router.push(
                                             `/course/${course.id}/detail`
@@ -210,9 +223,13 @@ export const CoursesWithFilter = ({
                                     isSelected={
                                         course.id === selectedCourse?.id
                                     }
-                                    onClickCourse={() => {
-                                        setSelectedCourse(course);
-                                    }}
+                                    onClickCourse={
+                                        setSelectedCourse
+                                            ? () => {
+                                                  setSelectedCourse(course);
+                                              }
+                                            : undefined
+                                    }
                                     onClickCourseInfo={() => {
                                         console.log(course.id);
                                         router.push(
@@ -237,6 +254,7 @@ export const CoursesWithFilter = ({
                 )}
                 {bottomSheetType === "filter" && (
                     <DualFilter
+                        description="정렬 방식"
                         firstLabel="날짜별"
                         secondLabel="코스별"
                         onPressFirst={() => {
@@ -253,6 +271,7 @@ export const CoursesWithFilter = ({
                 )}
                 {bottomSheetType === "view" && (
                     <DualFilter
+                        description="보기 방식"
                         firstLabel="목록"
                         secondLabel="갤러리"
                         onPressFirst={() => onPressViewType("list")}
@@ -279,7 +298,7 @@ type CourseItemProps = {
     runningId: number;
     ghostRunningId: number;
     // 이벤트 핸들러
-    onPress: () => void;
+    onPress?: () => void;
     onClickCourseInfo: () => void;
     // 선택 상태
     isSelected: boolean;
@@ -368,11 +387,13 @@ const CourseItem = ({
                     </Typography>
                 </View>
             </View>
-            <RadioButton
-                isSelected={isSelected}
-                showMyRecord={false}
-                onPress={onPress}
-            />
+            {onPress && (
+                <RadioButton
+                    isSelected={isSelected}
+                    showMyRecord={false}
+                    onPress={onPress}
+                />
+            )}
         </View>
     );
 };

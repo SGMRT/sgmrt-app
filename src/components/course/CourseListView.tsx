@@ -216,7 +216,7 @@ export const CourseGalleryItem = ({
     maxLength: number;
     isSelected: boolean;
     imageUrl: string;
-    onClickCourse: () => void;
+    onClickCourse?: () => void;
     onClickCourseInfo: () => void;
 }) => {
     return (
@@ -269,12 +269,14 @@ export const CourseGalleryItem = ({
                     >
                         {courseName}
                     </Typography>
-                    <RadioButton
-                        isSelected={isSelected}
-                        showMyRecord={false}
-                        onPress={onClickCourse}
-                        inactiveColor={colors.gray[40]}
-                    />
+                    {onClickCourse && (
+                        <RadioButton
+                            isSelected={isSelected}
+                            showMyRecord={false}
+                            onPress={onClickCourse}
+                            inactiveColor={colors.gray[40]}
+                        />
+                    )}
                 </View>
                 {/* 코스 거리, 고도 */}
                 <View>

@@ -43,6 +43,10 @@ import MenuIcon from "./menu.svg";
 
 import PlayIcon from "./play.svg";
 
+import SpeakerIcon from "./volume_max.svg";
+
+import ShowIcon from "./show.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -65,6 +69,8 @@ export {
     ProfileIcon,
     ScrollTopIcon,
     ShareIcon,
+    ShowIcon,
+    SpeakerIcon,
     StatsIcon,
     ToastCheckIcon,
     ToastInfoIcon,
