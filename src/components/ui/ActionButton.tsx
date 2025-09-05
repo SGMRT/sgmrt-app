@@ -1,5 +1,6 @@
 import { PlayIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
+import { useGlobalStyles } from "@/src/theme/useGlobalStyles";
 import { BlurView } from "expo-blur";
 import {
     Pressable,
@@ -15,18 +16,21 @@ type ActionButtonProps =
           type: "text";
           text: string;
           style?: StyleProp<ViewStyle>;
+          postion?: "bottom-left";
           onPress?: () => void;
       }
     | {
           type: "active";
           text?: never;
           style?: StyleProp<ViewStyle>;
+          postion?: "bottom-left";
           onPress?: () => void;
       }
     | {
           type: "inactive";
           text?: never;
           style?: StyleProp<ViewStyle>;
+          postion?: "bottom-left";
           onPress?: () => void;
       };
 
@@ -34,9 +38,11 @@ export const ActionButton = ({
     type,
     text,
     style,
+    postion,
     onPress,
 }: ActionButtonProps) => {
     const isText = type === "text";
+    const globalStyles = useGlobalStyles();
 
     return (
         <View
@@ -46,6 +52,7 @@ export const ActionButton = ({
                 isText ? styles.textButtonSize : styles.iconButtonSize,
                 type === "inactive" && { overflow: "hidden" },
                 style,
+                postion === "bottom-left" && globalStyles.bottomLeft,
             ]}
         >
             <BlurView

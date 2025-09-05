@@ -32,9 +32,11 @@ import { Typography, TypographyColor } from "../ui/Typography";
 export const Info = ({
     setModalType,
     modalRef,
+    scrollViewRef,
 }: {
     setModalType: (type: "logout" | "withdraw") => void;
     modalRef: React.RefObject<BottomSheetModal | null>;
+    scrollViewRef: React.RefObject<ScrollView | null>;
 }) => {
     const [userInfo, setUserInfo] = useState<GetUserInfoResponse | null>(null);
     const { setUserInfo: setUserInfoStore, setUserSettings: setUserSettings } =
@@ -149,6 +151,7 @@ export const Info = ({
 
     return (
         <ScrollView
+            ref={scrollViewRef}
             contentContainerStyle={{
                 marginHorizontal: 17,
                 marginTop: 20,

@@ -5,7 +5,7 @@ import Constants from "expo-constants";
 import * as Location from "expo-location";
 import { SplashScreen, useRouter } from "expo-router";
 import { Barometer, Pedometer } from "expo-sensors";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Linking, Platform } from "react-native";
 
 import { LOCATION_TASK } from "@/src/types/run";
@@ -129,12 +129,15 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
         []
     );
 
+    const bootedRef = useRef(false);
+
     useEffect(() => {
-        if (!loadedFonts) return;
+        if (!loadedFonts || bootedRef.current) return;
 
         let cancelled = false;
         const run = async () => {
             setStatus("running");
+            bootedRef.current = true;
 
             try {
                 // 1) 권한
