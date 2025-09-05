@@ -5,7 +5,7 @@ export type Notice = {
     title: string;
     imageUrl: string;
     content: string;
-    priority: 0;
+    priority: number;
     startAt: number;
     endAt: number;
 };

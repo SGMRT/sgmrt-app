@@ -29,8 +29,11 @@ export default function NoticePage() {
             queryKey: ["notices", selectedTab],
             initialPageParam: 0 as number,
             queryFn: ({ pageParam = 0 }) => getNoticesAll(pageParam, PAGE_SIZE),
-            getNextPageParam: (lastPage) =>
-                lastPage.page.totalPages ? undefined : lastPage.page.number + 1,
+            getNextPageParam: (lastPage) => {
+                const { number, totalPages } = lastPage!.page;
+                const next = number + 1;
+                return next < totalPages ? next : undefined;
+            },
             enabled: selectedTab === "notice",
             staleTime: 30_000,
         });
