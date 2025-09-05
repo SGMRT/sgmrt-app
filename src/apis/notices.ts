@@ -44,6 +44,8 @@ export async function getNoticesActive(): Promise<Notice[]> {
 }
 
 export async function dismissNotice(noticeId: number) {
-    const response = await server.post(`/notices/${noticeId}/dismissal`);
+    const response = await server.post(`/notices/${noticeId}/dismissal`, {
+        dismissDays: null,
+    });
     return response.data;
 }
