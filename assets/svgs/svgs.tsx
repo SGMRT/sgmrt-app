@@ -47,6 +47,8 @@ import SpeakerIcon from "./volume_max.svg";
 
 import ShowIcon from "./show.svg";
 
+import CloseIcon from "./close.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -54,6 +56,7 @@ export {
     CalendarIcon,
     CheckIcon,
     ChevronIcon,
+    CloseIcon,
     EditIcon,
     ElipsisVerticalIcon,
     FilterIcon,
