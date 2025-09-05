@@ -19,6 +19,7 @@ import { useAuthStore } from "../store/authState";
 import { LOCATION_TASK } from "../types/run";
 
 import "@features/run/task/location.task";
+import PushNotificationGate from "../features/notifications/PushNotificationGate";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -149,6 +150,7 @@ function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
             <QueryClientProvider client={queryClient}>
                 <BottomSheetModalProvider>
+                    <PushNotificationGate />
                     <Stack
                         screenOptions={{
                             headerShown: false,
