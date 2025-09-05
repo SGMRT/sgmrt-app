@@ -25,10 +25,14 @@ export const CourseSection = ({
         <View style={{ marginTop: 20, flex: 1 }}>
             <CoursesWithFilter
                 data={data?.pages.flatMap((page) => page.content) ?? []}
-                selectedCourse={selectedCourse}
-                setSelectedCourse={setSelectedCourse}
+                selectedCourse={null}
                 hasNextPage={hasNextPage}
                 fetchNextPage={fetchNextPage}
+                filters={{
+                    date: true,
+                    filter: false,
+                    view: true,
+                }}
             />
         </View>
     );

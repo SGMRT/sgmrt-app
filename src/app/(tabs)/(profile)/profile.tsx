@@ -8,7 +8,6 @@ import BottomModal from "@/src/components/ui/BottomModal";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
-import SlideToAction from "@/src/components/ui/SlideToAction";
 import TabBar from "@/src/components/ui/TabBar";
 import { TabItem } from "@/src/components/ui/TabItem";
 import { Typography } from "@/src/components/ui/Typography";
@@ -141,15 +140,18 @@ export default function ProfileScreen() {
                     router.push("/run/solo");
                 }}
             />
-            <ScrollButton
-                onPress={() => {
-                    scrollViewRef.current?.scrollTo({
-                        y: 0,
-                        animated: true,
-                    });
-                }}
-            />
-            {selectedTab === "course" && selectedCourse && (
+            {selectedTab === "info" && (
+                <ScrollButton
+                    onPress={() => {
+                        scrollViewRef.current?.scrollTo({
+                            y: 0,
+                            animated: true,
+                        });
+                    }}
+                />
+            )}
+
+            {/* {selectedTab === "course" && selectedCourse && (
                 <SlideToAction
                     label="이 코스로 러닝 시작"
                     onSlideSuccess={() => {
@@ -158,7 +160,7 @@ export default function ProfileScreen() {
                     color="green"
                     direction="left"
                 />
-            )}
+            )} */}
         </View>
     );
 }
