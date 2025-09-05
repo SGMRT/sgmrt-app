@@ -44,11 +44,19 @@ export default function NoticePage() {
     );
 
     const handleScrollToTop = useCallback(() => {
-        listRef.current?.scrollToIndex({ index: 0, animated: true });
+        listRef.current?.scrollToIndex({
+            index: 0,
+            animated: true,
+            viewPosition: 0.5,
+        });
     }, []);
 
     useEffect(() => {
-        listRef.current?.scrollToIndex({ index: 0, animated: false });
+        listRef.current?.scrollToIndex({
+            index: 0,
+            animated: false,
+            viewPosition: 0.5,
+        });
     }, [selectedTab]);
 
     const handleEndReached = useCallback(() => {
