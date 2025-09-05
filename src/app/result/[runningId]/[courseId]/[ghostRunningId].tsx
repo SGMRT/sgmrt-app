@@ -662,6 +662,7 @@ export default function Result() {
                                 [
                                     {
                                         text: "계속하기",
+                                        style: "cancel",
                                     },
                                     {
                                         text: "나가기",
