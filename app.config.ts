@@ -161,6 +161,7 @@ const config = {
                     enableBase64ShareAndroid: true,
                 },
             ],
+            "expo-notifications",
         ],
         experiments: {
             typedRoutes: true,
