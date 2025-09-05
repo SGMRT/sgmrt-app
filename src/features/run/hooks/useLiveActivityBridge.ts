@@ -1,5 +1,5 @@
-import expoLiveActivity from "@/modules/expo-live-activity";
 import { useCallback, useEffect, useRef } from "react";
+import expoLiveActivity from "../../../../modules/expo-live-activity";
 import { RunContext } from "../state/context";
 import { selectLiveActivityPayload } from "../state/selectors";
 import { mapRunType } from "../utils/mapRunType";

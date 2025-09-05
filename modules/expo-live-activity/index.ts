@@ -1,34 +1,11 @@
-import { NativeModule, requireNativeModule } from "expo";
+import { Platform } from "react-native";
 
-export type ExpoLiveActivityModuleEvents = {
-    onLiveActivityCancel: () => void;
-};
+// 플랫폼별로 적절한 모듈을 가져옴
+const expoLiveActivity = Platform.select({
+    ios: () => require("./index.ios").default,
+    android: () => require("./index.android").default,
+    default: () => require("./index.android").default, // fallback
+})();
 
-export type RunType = "SOLO" | "GHOST" | "COURSE";
-export type MessageType = "INFO" | "WARNING" | "ERROR" | "SUCCESS";
-declare class ExpoLiveActivityModule extends NativeModule<ExpoLiveActivityModuleEvents> {
-    areActivitiesEnabled(): boolean;
-    isActivityInProgress(): boolean;
-    startActivity(
-        runType: RunType,
-        sessionId: string,
-        startedAt: string,
-        recentPace: number,
-        distanceMeters: number,
-        progress?: number,
-        message?: string,
-        messageType?: MessageType
-    ): Promise<boolean>;
-    updateActivity(
-        startedAt: string,
-        recentPace: number,
-        distanceMeters: number,
-        pausedAt?: string,
-        progress?: number,
-        message?: string,
-        messageType?: MessageType
-    ): void;
-    endActivity(): void;
-}
-
-export default requireNativeModule<ExpoLiveActivityModule>("ExpoLiveActivity");
+export default expoLiveActivity;
+export * from "./types";
