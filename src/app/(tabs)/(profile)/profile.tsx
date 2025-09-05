@@ -5,6 +5,7 @@ import { CoursesWithFilter } from "@/src/components/course/CoursesWithFilter";
 import { Info } from "@/src/components/profile/Info";
 import { ActionButton } from "@/src/components/ui/ActionButton";
 import BottomModal from "@/src/components/ui/BottomModal";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import SlideToAction from "@/src/components/ui/SlideToAction";
@@ -86,7 +87,13 @@ export default function ProfileScreen() {
                 }}
             >
                 <View style={{ gap: 30 }}>
-                    <View style={{ gap: 15, alignItems: "center" }}>
+                    <View
+                        style={{
+                            gap: 15,
+                            alignItems: "center",
+                            marginBottom: 30,
+                        }}
+                    >
                         <AlertIcon color={colors.red} />
                         <View style={{ gap: 4, alignItems: "center" }}>
                             <Typography variant="headline" color="white">
@@ -101,13 +108,9 @@ export default function ProfileScreen() {
                             </Typography>
                         </View>
                     </View>
-                    <SlideToAction
-                        label={
-                            modalType === "logout"
-                                ? "밀어서 로그아웃"
-                                : "밀어서 회원 탈퇴"
-                        }
-                        onSlideSuccess={async () => {
+                    <ButtonWithIcon
+                        iconType="home"
+                        onPress={async () => {
                             bottomSheetRef.current?.close();
                             if (modalType === "logout") {
                                 await invalidateToken();
@@ -137,8 +140,12 @@ export default function ProfileScreen() {
                                 );
                             }
                         }}
-                        color="red"
-                        direction="left"
+                        onPressIcon={() => {
+                            router.replace("/");
+                        }}
+                        title={
+                            modalType === "logout" ? "로그아웃" : "회원 탈퇴"
+                        }
                     />
                 </View>
             </BottomModal>

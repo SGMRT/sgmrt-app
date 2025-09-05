@@ -10,7 +10,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import StyledChart from "../../chart/StyledChart";
-import ButtonWithMap from "../../ui/ButtonWithMap";
+import ButtonWithIcon from "../../ui/ButtonWithMap";
 import { Divider } from "../../ui/Divider";
 import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
@@ -131,8 +131,9 @@ export default function BottomCourseInfoModal({
                     onPress={onClickGhostRank}
                 />
             )}
-            <ButtonWithMap
-                onPressMapButton={() => {
+            <ButtonWithIcon
+                iconType="map"
+                onPressIcon={() => {
                     bottomSheetRef.current?.dismiss();
                 }}
                 type="active"

@@ -35,6 +35,7 @@ import LockIcon from "./lock_close.svg";
 import UnlockIcon from "./lock_open.svg";
 
 import HomeIcon from "./home.svg";
+import MapIcon from "./map.svg";
 import ProfileIcon from "./profile.svg";
 import StatsIcon from "./stats.svg";
 
@@ -58,6 +59,7 @@ export {
     ListIcon,
     LocateMe,
     LockIcon,
+    MapIcon,
     MenuIcon,
     PlayIcon,
     ProfileIcon,

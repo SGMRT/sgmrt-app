@@ -1,4 +1,4 @@
-import { HomeIcon } from "@/assets/svgs/svgs";
+import { HomeIcon, MapIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import {
     Pressable,
@@ -10,17 +10,19 @@ import {
 import { Button, ButtonProps } from "./Button";
 import { Typography } from "./Typography";
 
-interface ButtonWithMapProps extends ButtonProps {
-    onPressMapButton: () => void;
+interface ButtonWithIconProps extends ButtonProps {
+    onPressIcon: () => void;
+    iconType: "map" | "home";
     containerStyle?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
-export default function ButtonWithMap({
-    onPressMapButton,
+export default function ButtonWithIcon({
+    onPressIcon,
     containerStyle,
     topStroke,
+    iconType,
     ...props
-}: ButtonWithMapProps) {
+}: ButtonWithIconProps) {
     return (
         <View
             style={[
@@ -29,11 +31,22 @@ export default function ButtonWithMap({
                 topStroke && styles.topStroke,
             ]}
         >
-            <Pressable style={styles.button} onPress={onPressMapButton}>
-                <HomeIcon color={colors.gray[40]} />
-                <Typography variant="mini" color="gray40">
-                    지도
-                </Typography>
+            <Pressable style={styles.button} onPress={onPressIcon}>
+                {iconType === "map" ? (
+                    <>
+                        <MapIcon color={colors.gray[40]} />
+                        <Typography variant="mini" color="gray40">
+                            지도
+                        </Typography>
+                    </>
+                ) : (
+                    <>
+                        <HomeIcon color={colors.gray[40]} />
+                        <Typography variant="mini" color="gray40">
+                            메인
+                        </Typography>
+                    </>
+                )}
             </Pressable>
             <Button {...props} />
         </View>
