@@ -7,7 +7,7 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Dimensions, FlatList, Image, View } from "react-native";
-import ButtonWithMap from "../ui/ButtonWithMap";
+import ButtonWithIcon from "../ui/ButtonWithMap";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
@@ -173,7 +173,8 @@ const CourseListView = ({
                     />
                 </Section>
             </View>
-            <ButtonWithMap
+            <ButtonWithIcon
+                iconType="map"
                 title={
                     selectedCourse ? "이 코스로 러닝 시작" : "밀어서 러닝 시작"
                 }
@@ -186,7 +187,7 @@ const CourseListView = ({
                     }
                 }}
                 topStroke
-                onPressMapButton={() => {
+                onPressIcon={() => {
                     bottomSheetRef.current?.dismiss();
                 }}
                 type="active"

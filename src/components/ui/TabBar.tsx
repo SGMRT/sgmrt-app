@@ -1,4 +1,4 @@
-import { HomeIcon, ProfileIcon, StatsIcon } from "@/assets/svgs/svgs";
+import { MapIcon, ProfileIcon, StatsIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { usePathname, useRouter } from "expo-router";
 import { memo } from "react";
@@ -21,7 +21,7 @@ export default memo(function TabBar({ position, style }: TabBarProps) {
 
     const tabs = [
         { name: "stats", icon: StatsIcon, path: "/stats" },
-        { name: "home", icon: HomeIcon, path: "/home" },
+        { name: "home", icon: MapIcon, path: "/home" },
         { name: "profile", icon: ProfileIcon, path: "/profile" },
     ];
 
