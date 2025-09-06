@@ -2,7 +2,7 @@ import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
-import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import Countdown from "@/src/components/ui/Countdown";
 import EmptyListView from "@/src/components/ui/EmptyListView";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
@@ -19,12 +19,13 @@ import {
 } from "@/src/features/run/state/selectors";
 import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
+import { useRunVoice } from "@/src/features/voice/useRunVoice";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BackHandler, StyleSheet, View } from "react-native";
+import { Alert, BackHandler, StyleSheet, View } from "react-native";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
@@ -40,25 +41,27 @@ export default function Run() {
     const [isFirst, setIsFirst] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
-    const runShotRef = useRef<RunShareShotHandle>(null);
-    const [runShotUri, setRunShotUri] = useState<string | null>(null);
+    const runShotRef = useRef<RunShotHandle>(null);
+    const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
 
     const { context, controls } = useRunningSession();
+
+    useRunVoice(context);
 
     const hasSavedRef = useRef<boolean>(false);
 
     const triggerCapture = useCallback(() => {
         runShotRef.current
             ?.capture()
-            .then((uri) => setRunShotUri(uri))
-            .catch(() => setRunShotUri(""));
+            .then((uri) => setThumbnailUri(uri))
+            .catch(() => setThumbnailUri(""));
     }, []);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
             () => {
-                return false;
+                return true;
             }
         );
 
@@ -81,7 +84,7 @@ export default function Run() {
 
     const controlPannelPosition = useAnimatedStyle(() => {
         return {
-            top: heightVal.value - 116,
+            top: heightVal.value - 64,
         };
     });
 
@@ -137,7 +140,7 @@ export default function Run() {
     // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {
         if (!isSaving) return;
-        if (!runShotUri) return; // 아직 캡처 안 됨
+        if (!thumbnailUri) return; // 아직 캡처 안 됨
         if (hasSavedRef.current) return; // 중복 방지
         hasSavedRef.current = true;
 
@@ -147,7 +150,7 @@ export default function Run() {
                 const response = await saveRunning({
                     telemetries: context.telemetries,
                     rawData: extractRawData(context.mainTimeline),
-                    runShotUri,
+                    thumbnailUri,
                     userDashboardData: userRecordData,
                     runTime: Math.round(context.stats.totalTimeMs / 1000),
                     isPublic: false,
@@ -169,13 +172,13 @@ export default function Run() {
                 });
             } finally {
                 setIsSaving(false);
-                setRunShotUri(null);
+                setThumbnailUri(null);
                 setSavingTelemetries([]);
             }
         })();
     }, [
         isSaving,
-        runShotUri,
+        thumbnailUri,
         context.telemetries,
         context.mainTimeline,
         router,
@@ -208,11 +211,7 @@ export default function Run() {
                             ref={runShotRef}
                             fileName={"runImage.jpg"}
                             telemetries={savingTelemetries}
-                            isChartActive
-                            showLogo={false}
-                            chartPointIndex={0}
-                            yKey="alt"
-                            stats={[]}
+                            type="thumbnail"
                             onMapReady={triggerCapture}
                         />
                     )}
@@ -281,11 +280,37 @@ export default function Run() {
                 />
             ) : (
                 <SlideToDualAction
-                    onSlideLeft={requestSave}
+                    onSlideLeft={() => {
+                        const tooShort = context.stats.totalDistanceM < 500;
+
+                        if (tooShort) {
+                            Alert.alert(
+                                "러닝을 종료하시겠습니까?",
+                                "500m 이하의 러닝은 저장되지 않습니다.",
+                                [
+                                    { text: "계속하기", style: "cancel" },
+                                    {
+                                        text: "나가기",
+                                        style: "destructive",
+                                        onPress: () => {
+                                            controls.stop();
+                                            router.back();
+                                        },
+                                    },
+                                ]
+                            );
+                        } else {
+                            requestSave();
+                        }
+                    }}
                     onSlideRight={() => {
                         setIsRestarting(true);
                     }}
-                    leftLabel="기록 저장"
+                    leftLabel={
+                        context.stats.totalDistanceM < 500
+                            ? "나가기"
+                            : "기록 저장"
+                    }
                     rightLabel="이어서 뛰기"
                     color="red"
                 />
@@ -298,7 +323,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
-        borderRadius: 0,
+        borderTopStartRadius: 20,
+        borderTopEndRadius: 20,
     },
     timeText: {
         fontFamily: "SpoqaHanSansNeo-Bold",

@@ -1,21 +1,19 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { getPresignedUrl, signUp, uploadToS3 } from "@/src/apis";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
-import BottomModal from "@/src/components/ui/BottomModal";
 import Header from "@/src/components/ui/Header";
 import InfoItem, { InfoFieldTitle } from "@/src/components/ui/InfoItem";
-import SlideToAction from "@/src/components/ui/SlideToAction";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import { pickImage } from "@/src/utils/pickImage";
 import * as amplitude from "@amplitude/analytics-react-native";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth } from "@react-native-firebase/auth";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
     Alert,
     Image,
@@ -25,10 +23,8 @@ import {
     SafeAreaView,
     ScrollView,
     StyleSheet,
-    useWindowDimensions,
     View,
 } from "react-native";
-import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 import Toast from "react-native-toast-message";
 
 export default function Profile() {
@@ -51,10 +47,9 @@ export default function Profile() {
     );
     const { login, setUserInfo } = useAuthStore();
     const router = useRouter();
-    const { height: windowHeight, width: windowWidth } = useWindowDimensions();
+
     const [res, setRes] = useState<any>(null);
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
-    const confettiRef = useRef<ConfettiMethods | null>(null);
+
     const onPickImage = async () => {
         const image = await pickImage();
         if (image) {
@@ -123,11 +118,9 @@ export default function Profile() {
             ...data,
             idToken: idToken,
         })
-            .then((res) => {
-                console.log(res);
+            .then(async (res) => {
                 setRes(res);
-                bottomSheetRef.current?.present();
-                confettiRef.current?.restart();
+                await AsyncStorage.setItem("welcome", "true");
                 amplitude.track("Sign Up", {
                     provider: "email",
                     nickname: nickname,
@@ -136,6 +129,14 @@ export default function Profile() {
                     height: height,
                     weight: weight,
                 });
+                setUserInfo({
+                    username: nickname,
+                    gender: gender,
+                    age: age,
+                    height: height,
+                    weight: weight,
+                });
+                login(res.accessToken, res.refreshToken, res.uuid);
             })
             .catch((err) => {
                 console.log(err);
@@ -288,61 +289,10 @@ export default function Profile() {
                             ]
                         );
                     }}
-                    title="가입완료"
+                    title="가입 완료"
+                    topStroke
                 />
             </KeyboardAvoidingView>
-
-            <Confetti
-                ref={confettiRef}
-                fallDuration={4000}
-                count={100}
-                colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
-                flakeSize={{ width: 12, height: 8 }}
-                fadeOutOnEnd={true}
-                cannonsPositions={[
-                    { x: windowWidth / 2, y: windowHeight - 200 },
-                    { x: windowWidth / 2, y: windowHeight - 200 },
-                ]}
-                blastDuration={800}
-                autoplay={false}
-            />
-
-            <BottomModal bottomSheetRef={bottomSheetRef} canClose={false}>
-                <View
-                    style={{
-                        alignItems: "center",
-                        gap: 4,
-                        paddingVertical: 20,
-                    }}
-                >
-                    <Typography
-                        variant="headline"
-                        color="white"
-                        style={{ textAlign: "center" }}
-                    >
-                        반가워요 {nickname}님!{"\n"}
-                        고스트러너 가입을 환영해요
-                    </Typography>
-                    <Typography variant="body3" color="gray40">
-                        내 정보는 마이페이지의 회원 정보에서 변경 가능합니다
-                    </Typography>
-                </View>
-                <SlideToAction
-                    label="밀어서 메인으로"
-                    onSlideSuccess={() => {
-                        setUserInfo({
-                            username: nickname,
-                            height: height,
-                            weight: weight,
-                            gender: gender,
-                            age: age,
-                        });
-                        login(res.accessToken, res.refreshToken, res.uuid);
-                    }}
-                    color="green"
-                    direction="left"
-                />
-            </BottomModal>
         </SafeAreaView>
     );
 }
@@ -379,5 +329,6 @@ const styles = StyleSheet.create({
     },
     genderButton: {
         paddingHorizontal: 12,
+        paddingVertical: 7,
     },
 });

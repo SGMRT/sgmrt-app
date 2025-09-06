@@ -8,6 +8,7 @@ import {
     uploadToS3,
 } from "@/src/apis";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
+import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -24,6 +25,7 @@ import {
     View,
 } from "react-native";
 import Toast from "react-native-toast-message";
+import { ProfileNoticeSection } from "../notice/ui/ProfileNoticeSection";
 import { Divider } from "../ui/Divider";
 import { StyledButton } from "../ui/StyledButton";
 import { Typography, TypographyColor } from "../ui/Typography";
@@ -31,12 +33,15 @@ import { Typography, TypographyColor } from "../ui/Typography";
 export const Info = ({
     setModalType,
     modalRef,
+    scrollViewRef,
 }: {
     setModalType: (type: "logout" | "withdraw") => void;
     modalRef: React.RefObject<BottomSheetModal | null>;
+    scrollViewRef: React.RefObject<ScrollView | null>;
 }) => {
     const [userInfo, setUserInfo] = useState<GetUserInfoResponse | null>(null);
-    const [speechEnabled, setSpeechEnabled] = useState<boolean>(false);
+    const { setUserInfo: setUserInfoStore, setUserSettings: setUserSettings } =
+        useAuthStore();
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
 
@@ -49,13 +54,20 @@ export const Info = ({
         getUserInfo()
             .then((res) => {
                 setUserInfo(res);
+                setUserInfoStore({
+                    username: res.nickname,
+                    gender: res.gender,
+                    age: res.age,
+                    height: res.height,
+                    weight: res.weight,
+                });
             })
             .catch(() => {
                 Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
                     {
                         text: "확인",
                         onPress: () => {
-                            router.replace("/intro");
+                            router.replace("/");
                         },
                     },
                 ]);
@@ -69,6 +81,11 @@ export const Info = ({
             ...userInfo,
             pushAlarmEnabled: value ?? false,
         });
+        setUserSettings({
+            pushAlarmEnabled: value ?? false,
+            vibrationEnabled: userInfo.vibrationEnabled,
+            voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
+        });
         patchUserSettings({
             pushAlarmEnabled: value,
             vibrationEnabled: userInfo.vibrationEnabled,
@@ -81,6 +98,11 @@ export const Info = ({
             ...userInfo,
             vibrationEnabled: value ?? false,
         });
+        setUserSettings({
+            pushAlarmEnabled: userInfo.pushAlarmEnabled,
+            vibrationEnabled: value ?? false,
+            voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
+        });
         patchUserSettings({
             pushAlarmEnabled: userInfo.pushAlarmEnabled,
             vibrationEnabled: value,
@@ -91,6 +113,11 @@ export const Info = ({
         if (!userInfo) return;
         setUserInfo({
             ...userInfo,
+            voiceGuidanceEnabled: value ?? false,
+        });
+        setUserSettings({
+            pushAlarmEnabled: userInfo.pushAlarmEnabled,
+            vibrationEnabled: userInfo.vibrationEnabled,
             voiceGuidanceEnabled: value ?? false,
         });
         patchUserSettings({
@@ -125,6 +152,7 @@ export const Info = ({
 
     return (
         <ScrollView
+            ref={scrollViewRef}
             contentContainerStyle={{
                 marginHorizontal: 17,
                 marginTop: 20,
@@ -155,6 +183,12 @@ export const Info = ({
                     />
                 </View>
             </View>
+            {/*  공지사항 및 이벤트 */}
+            <ProfileNoticeSection
+                onPress={() => {
+                    router.push("/notice");
+                }}
+            />
             {/* 디바이스 옵션 */}
             <ProfileOptionSection>
                 <ProfileOptionItem

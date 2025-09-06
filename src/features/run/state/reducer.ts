@@ -10,6 +10,7 @@ const initialContext: RunContext = {
     sessionId: null,
     mode: "SOLO",
     variant: undefined,
+    courseMetadata: undefined,
     status: "IDLE",
     mainTimeline: [],
     pausedBuffer: [],
@@ -22,6 +23,8 @@ const initialContext: RunContext = {
     liveActivity: {
         startedAtMs: null,
         pausedAtMs: null,
+        message: null,
+        messageType: null,
     },
 };
 
@@ -39,6 +42,8 @@ export function routeKeyByStatus(status: RunStatus): RouteKey {
             return "mainTimeline";
         case "PAUSED_USER":
             return "pausedBuffer";
+        case "READY":
+            return "mutedBuffer";
         case "PAUSED_OFFCOURSE":
             return "mutedBuffer";
         case "COMPLETION_PENDING":
@@ -55,12 +60,13 @@ export function runReducer(
     switch (action.type) {
         // 러닝 시작 (초기화)
         case "START": {
-            const { sessionId, mode, variant } = action.payload;
+            const { sessionId, mode, variant, courseMetadata } = action.payload;
             const now = Date.now();
             return {
                 sessionId,
                 mode,
                 variant,
+                courseMetadata,
                 status: mode === "COURSE" ? "READY" : "RUNNING",
                 mainTimeline: [],
                 pausedBuffer: [],
@@ -71,8 +77,10 @@ export function runReducer(
                 segments: [],
                 _zeroNextDt: false,
                 liveActivity: {
-                    startedAtMs: now,
+                    startedAtMs: mode === "COURSE" ? null : now,
                     pausedAtMs: null,
+                    message: null,
+                    messageType: null,
                 },
             };
         }
@@ -119,8 +127,9 @@ export function runReducer(
             return {
                 ...state,
                 status: "RUNNING",
-                mutedBuffer:
-                    action.type === "ONCOURSE" ? [] : state.mutedBuffer,
+                mainTimeline: [...state.mainTimeline, ...state.pausedBuffer],
+                pausedBuffer: [],
+                mutedBuffer: [],
                 _zeroNextDt: true,
                 liveActivity: {
                     ...state.liveActivity,
@@ -178,6 +187,7 @@ export function runReducer(
                 telemetries: [...state.telemetries, ...telemetries],
                 segments,
                 liveActivity: {
+                    ...state.liveActivity,
                     startedAtMs: startedAt,
                     pausedAtMs: null,
                 },
@@ -264,6 +274,13 @@ export function runReducer(
                     postCompleteBuffer: [...state.postCompleteBuffer, sample],
                 };
             }
+        }
+
+        case "SET_LIVE_ACTIVITY_MESSAGE": {
+            return {
+                ...state,
+                liveActivity: { ...state.liveActivity, ...action.payload },
+            };
         }
 
         default:

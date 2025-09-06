@@ -1,6 +1,6 @@
 import { Telemetry } from "@/src/apis/types/run";
 import { getFormattedPace } from "@/src/utils/runUtils";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Divider } from "./Divider";
 import TextWithUnit from "./TextWithUnit";
@@ -23,9 +23,18 @@ export default function StatsIndicator({
     const distance = stats.find((stat) => stat.label === "거리");
     const cadence = stats.find((stat) => stat.label === "케이던스");
     const pace = stats.find((stat) => stat.label === "평균 페이스");
+    const prevGhostTelemetry = useRef<Telemetry | null>(null);
+    const ghostTelemetryToUse = ghostTelemetry ?? prevGhostTelemetry.current;
+
+    useEffect(() => {
+        if (ghost && ghostTelemetry) {
+            prevGhostTelemetry.current = ghostTelemetry;
+        }
+    }, [ghostTelemetry, ghost]);
+
     return (
         <View style={styles.courseInfoContainer}>
-            {ghost && ghostTelemetry && (
+            {ghost && ghostTelemetryToUse && (
                 <View style={styles.tabContainer}>
                     <Pressable
                         onPress={() => setTab("solo")}
@@ -67,7 +76,7 @@ export default function StatsIndicator({
                           style={styles.courseInfoItem}
                       />
                   ))
-                : ghostTelemetry && (
+                : ghostTelemetryToUse && (
                       <>
                           <View
                               style={{
@@ -111,9 +120,9 @@ export default function StatsIndicator({
                                   거리
                               </Typography>
                               <TextWithUnit
-                                  value={(ghostTelemetry.dist / 1000).toFixed(
-                                      2
-                                  )}
+                                  value={(
+                                      ghostTelemetryToUse.dist / 1000
+                                  ).toFixed(2)}
                                   unit={"km"}
                                   variant="display1"
                                   color={color}
@@ -144,7 +153,7 @@ export default function StatsIndicator({
                                   케이던스
                               </Typography>
                               <TextWithUnit
-                                  value={ghostTelemetry.cadence.toString()}
+                                  value={ghostTelemetryToUse.cadence.toString()}
                                   unit={"spm"}
                                   variant="display1"
                                   color={color}
@@ -175,7 +184,9 @@ export default function StatsIndicator({
                                   페이스
                               </Typography>
                               <TextWithUnit
-                                  value={getFormattedPace(ghostTelemetry.pace)}
+                                  value={getFormattedPace(
+                                      ghostTelemetryToUse.pace
+                                  )}
                                   unit={""}
                                   variant="display1"
                                   color={color}

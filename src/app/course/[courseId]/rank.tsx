@@ -156,7 +156,7 @@ export default function CourseRankScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <Header titleText="소고기마라탕" />
-            <ScrollButton onPress={onScrollToTop} bottomInset={72} />
+            <ScrollButton onPress={onScrollToTop} />
             <View style={{ flex: 1, marginHorizontal: 16.5, marginTop: 10 }}>
                 <FlashList
                     ref={flashListRef}

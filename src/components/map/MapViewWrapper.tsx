@@ -8,11 +8,13 @@ import {
     UserTrackingMode,
     Viewport,
 } from "@rnmapbox/maps";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Image as RNImage, View } from "react-native";
 
 import { Puck, Puck2, Puck3 } from "@/assets/icons/icons";
 import ControlPannel from "./ControlPannel";
+
+type TrackPhase = "idle" | "follow" | "heading";
 
 interface MapViewWrapperProps {
     children?: React.ReactNode;
@@ -50,32 +52,37 @@ export default function MapViewWrapper({
     attributionEnabled = true,
     attributionPosition = { bottom: 8, right: 0 },
 }: MapViewWrapperProps) {
-    const [isFollowing, setIsFollowing] = useState(true);
+    const [phase, setPhase] = useState<TrackPhase>("follow");
     const [followUserMode, setFollowUserMode] = useState(
         UserTrackingMode.Follow
     );
 
     const onStatusChanged = (status: any) => {
-        if (status.to.kind === "idle") {
-            setIsFollowing(false);
+        if (status?.to?.kind === "idle") {
+            setPhase("idle");
             setFollowUserMode(UserTrackingMode.Follow);
         }
     };
 
-    const onClickCompass = () => {
-        if (!isFollowing) {
-            onClickLocateMe();
-        }
-        setFollowUserMode(
-            followUserMode === UserTrackingMode.Follow
-                ? UserTrackingMode.FollowWithHeading
-                : UserTrackingMode.Follow
-        );
-    };
+    // 단일 버튼 토글: idle → follow → heading → idle
+    const onToggleTracking = useCallback(() => {
+        setPhase((prev) => {
+            if (prev === "idle") {
+                setFollowUserMode(UserTrackingMode.Follow);
+                return "follow";
+            } else if (prev === "follow") {
+                setFollowUserMode(UserTrackingMode.FollowWithHeading);
+                return "heading";
+            } else {
+                // prev === "heading"
+                setFollowUserMode(UserTrackingMode.Follow);
+                return "idle";
+            }
+        });
+    }, []);
 
-    const onClickLocateMe = () => {
-        setIsFollowing(!isFollowing);
-    };
+    const followEnabled =
+        controlEnabled && (phase === "follow" || phase === "heading");
 
     return (
         <View style={{ flex: 1, position: "relative" }}>
@@ -126,7 +133,7 @@ export default function MapViewWrapper({
                     maxZoomLevel={16}
                     followZoomLevel={16}
                     animationDuration={0}
-                    followUserLocation={controlEnabled ? isFollowing : false}
+                    followUserLocation={followEnabled}
                     followUserMode={followUserMode}
                     centerCoordinate={
                         center ? [center.longitude, center.latitude] : undefined
@@ -140,8 +147,8 @@ export default function MapViewWrapper({
             </MapView>
             {controlEnabled && (
                 <ControlPannel
-                    onClickCompass={onClickCompass}
-                    onClickLocateMe={onClickLocateMe}
+                    phase={phase}
+                    onToggleTracking={onToggleTracking}
                     controlPannelPosition={controlPannelPosition}
                 />
             )}

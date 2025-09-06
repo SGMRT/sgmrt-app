@@ -1,45 +1,39 @@
 import { getCourse, getRun } from "@/src/apis";
-import { Telemetry } from "@/src/apis/types/run";
+import { SoloRunGetResponse, Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
-import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import Countdown from "@/src/components/ui/Countdown";
-import { Divider } from "@/src/components/ui/Divider";
 import EmptyListView from "@/src/components/ui/EmptyListView";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import { Typography } from "@/src/components/ui/Typography";
-import useRunningSession from "@/src/hooks/useRunningSession";
+import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
+import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
+import { useNow } from "@/src/features/run/hooks/useNow";
+import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
+import { buildUserRecordData } from "@/src/features/run/state/record";
+import {
+    selectPolylineSegments,
+    selectStatsDisplay,
+} from "@/src/features/run/state/selectors";
+import { getElapsedMs } from "@/src/features/run/state/time";
+import { extractRawData } from "@/src/features/run/utils/extractRawData";
+import { useRunVoice } from "@/src/features/voice/useRunVoice";
 import colors from "@/src/theme/colors";
-import { RunnningStatus } from "@/src/types/run";
 import {
-    findClosest,
-    interpolateTelemetries,
-} from "@/src/utils/interpolateTelemetries";
-import {
-    getFormattedPace,
     getRunTime,
-    getTelemetriesWithoutLastFalse,
     saveRunning,
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-    Alert,
-    BackHandler,
-    Dimensions,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
-import { ConfettiMethods, PIConfetti } from "react-native-fast-confetti";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BackHandler, StyleSheet, View } from "react-native";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
@@ -48,113 +42,80 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
-export default function CourseRun() {
+export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
-    const { courseId, ghostRunningId } = useLocalSearchParams();
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
     const [isFirst, setIsFirst] = useState<boolean>(true);
-
-    const [mode, setMode] = useState<"COURSE" | "GHOST">("COURSE");
-
-    const [courseName, setCourseName] = useState<string>("");
-    const [courseTelemetries, setCourseTelemetries] = useState<Telemetry[]>([]);
-    const ghostTelemetries = useRef<Telemetry[]>([]);
-    const [courseSegment, setCourseSegment] = useState<Segment>();
-    const [ghostSegments, setGhostSegments] = useState<Segment[]>([]);
-    const [ghostCurrentPosition, setGhostCurrentPosition] = useState<{
-        lng: number;
-        lat: number;
-    }>({ lng: 0, lat: 0 });
-    const confettiRef = useRef<ConfettiMethods | null>(null);
-
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
-    const runShotRef = useRef<RunShareShotHandle>(null);
-    const [runShotUri, setRunShotUri] = useState<string | null>(null);
+    const runShotRef = useRef<RunShotHandle>(null);
+    const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
 
-    const {
-        currentRunType,
-        runSegments,
-        runTelemetries,
-        updateRunStatus,
-        runStatus,
-        runTime,
-        runUserDashboardData,
-        courseIndex,
-        updateRunType,
-        rawRunData,
-    } = useRunningSession({
-        course: courseTelemetries ?? [],
-        type: "COURSE",
+    const { courseId, ghostRunningId } = useLocalSearchParams();
+    const isGhostRunning = ghostRunningId !== "-1";
+    const [courseSegments, setCourseSegments] = useState<Segment>();
+
+    const ghostRecordRef = useRef<SoloRunGetResponse | null>(null);
+
+    const { context, controls } = useRunningSession();
+
+    useRunVoice(context);
+
+    const { initializeCourse, offcourseAnchor, legIndex, legs } =
+        useCourseProgress({
+            context,
+            controls,
+            onStart: () => {
+                if (context.status === "READY" || isFirst) {
+                    console.log("restarting");
+                    setIsRestarting(true);
+                }
+            },
+            onForceStop: () => {
+                setWithRouting(true);
+                requestSave();
+            },
+        });
+
+    const ghostCoordinator = useGhostCoordinator({
+        legs,
+        ghostTelemetry: ghostRecordRef.current?.telemetries ?? [],
+        myPoint: context.telemetries[context.telemetries.length - 1],
+        myLegIndex: legIndex,
+        timestamp: context.stats.totalTimeMs,
+        controls,
     });
 
-    // 코스와 고스트 러닝 데이터 가져오기
+    const hasSavedRef = useRef<boolean>(false);
+
+    const triggerCapture = useCallback(() => {
+        runShotRef.current
+            ?.capture()
+            .then((uri) => setThumbnailUri(uri))
+            .catch(() => setThumbnailUri(""));
+    }, []);
+
     useEffect(() => {
-        Promise.all([
-            getCourse(Number(courseId)),
-            getRun(Number(ghostRunningId)),
-        ])
-            .then(([course, ghostRunning]) => {
-                setCourseName(course.name);
-                setCourseTelemetries(course.telemetries);
-                setCourseSegment(
-                    telemetriesToSegment(course.telemetries, 0)[1]
-                );
-
-                if (ghostRunningId === "-1" || !ghostRunning) {
-                    setMode("COURSE");
-                } else {
-                    setMode("GHOST");
-                    ghostTelemetries.current = interpolateTelemetries(
-                        ghostRunning.telemetries,
-                        250
-                    );
-                }
-            })
-            .catch((error) => {
-                Alert.alert(
-                    "데이터 로딩 오류",
-                    "러닝 데이터를 불러오는데 실패했습니다",
-                    [
-                        {
-                            text: "확인",
-                            onPress: () => {
-                                router.back();
-                            },
-                        },
-                    ]
-                );
+        (async () => {
+            const response = await getCourse(Number(courseId));
+            setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
+            controls.start("COURSE", isGhostRunning ? "GHOST" : "PLAIN", {
+                distanceMeters: response.distance,
             });
-    }, [courseId, ghostRunningId, router]);
-
-    const onCompleteRestart = async (runStatus: RunnningStatus) => {
-        if (isRestarting) {
-            setIsRestarting(false);
-            if (
-                runStatus === "stop_running" ||
-                runStatus === "pause_running" ||
-                runStatus === "complete_course_running"
-            ) {
-                Toast.show({
-                    type: "success",
-                    text1: "러닝을 이어서 진행합니다",
-                    position: "bottom",
-                    bottomOffset: 60,
-                    visibilityTime: 3000,
-                });
+            initializeCourse(response.telemetries, response.courseCheckpoints);
+            if (isGhostRunning) {
+                const ghostRecord = await getRun(Number(ghostRunningId));
+                ghostRecordRef.current = ghostRecord;
             }
-            await updateRunStatus("start_running");
-            setIsFirst(false);
-        }
-    };
+        })();
+    }, [courseId, initializeCourse, controls, isGhostRunning, ghostRunningId]);
 
-    // 뒤로가기 버튼 비활성화
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
             () => {
-                return false;
+                return true;
             }
         );
 
@@ -163,6 +124,7 @@ export default function CourseRun() {
 
     useEffect(() => {
         if (isRestarting) {
+            setIsFirst(false);
             Toast.show({
                 type: "info",
                 text1: "3초 뒤 러닝이 시작됩니다.",
@@ -173,281 +135,128 @@ export default function CourseRun() {
         }
     }, [isRestarting]);
 
-    useEffect(() => {
-        if (runStatus === "ready_course_running") {
-            setIsRestarting(true);
-        }
-
-        if (runStatus === "complete_course_running") {
-            confettiRef.current?.restart();
-        }
-    }, [runStatus]);
-
-    useEffect(() => {
-        if (
-            mode !== "GHOST" ||
-            currentRunType !== "COURSE" ||
-            runStatus !== "start_running" ||
-            ghostTelemetries.current.length <= 1
-        )
-            return;
-
-        const ghostTelemetry = findClosest(
-            ghostTelemetries.current,
-            runTime * 1000,
-            (r) => r.timeStamp
-        );
-
-        if (!ghostTelemetry) return;
-
-        ghostTelemetries.current = ghostTelemetries.current.filter((t) => {
-            return t.timeStamp >= ghostTelemetry.timeStamp;
-        });
-
-        setGhostSegments((prev) => {
-            // 마지막 points
-            const lastPoints = prev.length > 0 ? prev.at(-1)!.points : [];
-            // 마지막 위치와 다를 때만 push
-            const lastPoint = lastPoints.at(-1);
-            const isNewPoint =
-                !lastPoint ||
-                lastPoint.latitude !== ghostTelemetry.lat ||
-                lastPoint.longitude !== ghostTelemetry.lng;
-
-            if (!isNewPoint) return prev;
-
-            // 새 배열/객체로 복사 (불변성 유지)
-            const newSegments = prev.length
-                ? [
-                      ...prev.slice(0, -1),
-                      {
-                          ...prev.at(-1)!,
-                          points: [
-                              ...lastPoints,
-                              {
-                                  latitude: ghostTelemetry.lat,
-                                  longitude: ghostTelemetry.lng,
-                              },
-                          ],
-                      },
-                  ]
-                : [
-                      {
-                          isRunning: true,
-                          points: [
-                              {
-                                  latitude: ghostTelemetry.lat,
-                                  longitude: ghostTelemetry.lng,
-                              },
-                          ],
-                      },
-                  ];
-            return newSegments;
-        });
-    }, [runTime, runStatus, currentRunType, mode]);
-
-    useEffect(() => {
-        if (
-            mode !== "GHOST" ||
-            currentRunType !== "COURSE" ||
-            runStatus !== "start_running"
-        )
-            return;
-
-        const currentGhostTelemetry = findClosest(
-            ghostTelemetries.current,
-            runTime * 1000,
-            (r) => r.timeStamp
-        );
-
-        if (!currentGhostTelemetry) return;
-
-        setGhostCurrentPosition({
-            lng: currentGhostTelemetry.lng,
-            lat: currentGhostTelemetry.lat,
-        });
-    }, [runTime, mode, currentRunType, runStatus]);
-
     const heightVal = useSharedValue(0);
 
     const controlPannelPosition = useAnimatedStyle(() => {
         return {
-            top: heightVal.value - 116,
+            top: heightVal.value - 64,
         };
     });
 
-    useEffect(() => {
+    const onCountdownComplete = useCallback(() => {
+        if (context.status === "READY") {
+            controls.oncourse();
+        } else if (context.status === "COMPLETION_PENDING") {
+            controls.extend();
+        } else if (context.status === "PAUSED_USER") {
+            controls.resume();
+        } else if (context.status === "PAUSED_OFFCOURSE") {
+            controls.oncourse();
+        }
+        setIsRestarting(false);
+    }, [context.status, controls]);
+
+    const segments = useMemo(
+        () => selectPolylineSegments(context),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [context.telemetries, context.segments]
+    );
+
+    const statsForUI = useMemo(
+        () => selectStatsDisplay(context),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [
+            context.stats.totalDistanceM,
+            context.stats.avgPaceSecPerKm,
+            context.stats.currentPaceSecPerKm,
+            context.stats.currentCadenceSpm,
+            context.stats.bpm,
+            context.stats.calories,
+        ]
+    );
+
+    const [withRouting, setWithRouting] = useState<boolean>(false);
+
+    const requestSave = useCallback(() => {
         if (isSaving) return;
-        if (runStatus === "stop_running") {
-            let count = 0;
-            const interval = setInterval(async () => {
-                if (count * 4 === 60 * 1000) {
-                    Toast.show({
-                        type: "info",
-                        text1: "일반 러닝으로 전환합니다",
-                        position: "bottom",
-                        bottomOffset: 60,
-                        visibilityTime: 3000,
-                    });
-                    clearInterval(interval);
-                    await updateRunType("SOLO");
-                    setIsRestarting(true);
-                    return;
-                }
-
-                if (count % 2 === 0) {
-                    Toast.show({
-                        type: "info",
-                        text1: "코스를 이탈하였습니다",
-                        position: "bottom",
-                        bottomOffset: 60,
-                        visibilityTime: 3000,
-                    });
-                } else {
-                    Toast.show({
-                        type: "info",
-                        text1: "10분 뒤 자동 종료됩니다",
-                        position: "bottom",
-                        bottomOffset: 60,
-                        visibilityTime: 3000,
-                    });
-                }
-                count++;
-            }, 4000);
-
-            return () => clearInterval(interval);
+        if (!context.telemetries.length) {
+            router.back();
         }
-    }, [runStatus, updateRunStatus, updateRunType, isSaving]);
+        hasSavedRef.current = false;
+        setSavingTelemetries(context.telemetries);
+        setIsSaving(true);
+        controls.stop();
+    }, [isSaving, context.telemetries, controls, router]);
 
+    // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {
-        if (isFirst && !isRestarting) {
-            Toast.show({
-                type: "info",
-                text1: "시작 지점으로 이동해 주세요",
-                position: "bottom",
-                bottomOffset: 60,
-                visibilityTime: 3000,
-            });
-        }
-    }, [isFirst, isRestarting]);
-
-    useEffect(() => {
-        const canSave =
-            isSaving && savingTelemetries.length > 0 && runShotUri !== null;
-        const saveMode =
-            runStatus === "complete_course_running" ? "COURSE" : "SOLO";
-
-        if (!canSave) return;
+        if (!isSaving) return;
+        if (!thumbnailUri) return; // 아직 캡처 안 됨
+        if (hasSavedRef.current) return; // 중복 방지
+        hasSavedRef.current = true;
 
         (async () => {
             try {
+                const userRecordData = buildUserRecordData(context.stats);
                 const response = await saveRunning({
-                    telemetries: savingTelemetries,
-                    rawData: rawRunData,
-                    runShotUri,
-                    userDashboardData: runUserDashboardData,
-                    runTime,
-                    isPublic: true,
-                    courseId:
-                        saveMode === "COURSE" ? Number(courseId) : undefined,
+                    telemetries: context.telemetries,
+                    rawData: extractRawData(context.mainTimeline),
+                    thumbnailUri,
+                    userDashboardData: userRecordData,
+                    runTime: Math.round(context.stats.totalTimeMs / 1000),
+                    isPublic: false,
                     ghostRunningId:
-                        saveMode === "COURSE" && ghostRunningId !== "-1"
+                        Number(ghostRunningId) !== -1
                             ? Number(ghostRunningId)
-                            : undefined,
+                            : null,
                 });
-
-                if (response) {
-                    if (
-                        runStatus === "complete_course_running" &&
-                        currentRunType === "SOLO"
-                    ) {
-                        Toast.show({
-                            type: "info",
-                            text1: "기록 저장에 성공했습니다. 러닝을 계속 진행합니다",
-                            position: "bottom",
-                            bottomOffset: 60,
-                        });
-                        setIsRestarting(true);
-                        setIsSaving(false);
-                        setSavingTelemetries([]);
-                        setRunShotUri(null);
-                        return;
-                    } else {
-                        router.replace({
-                            pathname:
-                                "/result/[runningId]/[courseId]/[ghostRunningId]",
-                            params: {
-                                runningId: response.runningId.toString(),
-                                courseId:
-                                    saveMode === "COURSE"
-                                        ? Number(courseId)
-                                        : -1,
-                                ghostRunningId:
-                                    saveMode === "COURSE"
-                                        ? Number(ghostRunningId)
-                                        : -1,
-                            },
-                        });
-                    }
-                } else {
-                    Toast.show({
-                        type: "info",
-                        text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
-                        position: "bottom",
-                        bottomOffset: 60,
+                if (withRouting) {
+                    router.replace({
+                        pathname:
+                            "/result/[runningId]/[courseId]/[ghostRunningId]",
+                        params: {
+                            runningId: response.runningId.toString(),
+                            courseId: "-1",
+                            ghostRunningId: "-1",
+                        },
                     });
                 }
-            } catch (e) {
-                console.log(e);
+            } catch {
                 Toast.show({
                     type: "info",
                     text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
                     position: "bottom",
                     bottomOffset: 60,
                 });
+            } finally {
+                setIsSaving(false);
+                setThumbnailUri(null);
+                setSavingTelemetries([]);
             }
-            setSavingTelemetries([]);
-            setRunShotUri(null);
-            setIsRestarting(true);
         })();
     }, [
+        withRouting,
         isSaving,
-        savingTelemetries,
-        runShotUri,
-        runUserDashboardData,
-        runTime,
-        rawRunData,
+        thumbnailUri,
+        context.telemetries,
+        context.mainTimeline,
         router,
-        courseId,
+        controls,
+        context.stats,
         ghostRunningId,
-        runStatus,
-        currentRunType,
     ]);
 
-    const triggerSave = useCallback(() => {
-        if (isSaving) return;
-        const truncated = getTelemetriesWithoutLastFalse(runTelemetries);
-        setSavingTelemetries(truncated);
-        setIsSaving(true);
-    }, [isSaving, runTelemetries]);
-
-    const endRun = useCallback(async () => {
-        if (runStatus === "start_running") {
-            await updateRunStatus("pause_running");
-        } else {
-            router.back();
-        }
-    }, [runStatus, updateRunStatus, router]);
-
-    const resumeRun = useCallback(() => {
-        setIsRestarting(true);
-    }, []);
-
-    const switchToSolo = useCallback(async () => {
-        await updateRunType("SOLO");
-    }, [updateRunType]);
-
-    const actionDisabled = isRestarting || isSaving;
+    const now = useNow(
+        context.status === "RUNNING" ||
+            context.status === "RUNNING_EXTENDED" ||
+            context.status === "PAUSED_USER" ||
+            context.status === "PAUSED_OFFCOURSE"
+    );
+    const elapsedMs = getElapsedMs(
+        context.liveActivity.startedAtMs ?? 0,
+        context.liveActivity.pausedAtMs ?? null,
+        now
+    );
 
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
@@ -455,164 +264,123 @@ export default function CourseRun() {
                 <>
                     <LoadingLayer
                         limitDelay={3000}
-                        onDelayed={() => {
-                            runShotRef.current
-                                ?.capture()
-                                .then((uri) => {
-                                    console.log("uri", uri);
-                                    setRunShotUri(uri);
-                                })
-                                .catch((e) => {
-                                    setRunShotUri("");
-                                });
-                        }}
+                        onDelayed={triggerCapture}
                     />
                     {savingTelemetries.length > 0 && (
                         <RunShot
                             ref={runShotRef}
                             fileName={"runImage.jpg"}
                             telemetries={savingTelemetries}
-                            isChartActive
-                            showLogo={false}
-                            chartPointIndex={0}
-                            yKey="alt"
-                            stats={[]}
-                            onMapReady={() => {
-                                console.log("onMapReady");
-                                runShotRef.current
-                                    ?.capture()
-                                    .then((uri) => {
-                                        console.log("uri", uri);
-                                        setRunShotUri(uri);
-                                    })
-                                    .catch((e) => {
-                                        setRunShotUri("");
-                                        console.log(e);
-                                    })
-                                    .finally(() => {
-                                        console.log("finally capture");
-                                    });
-                            }}
+                            type="thumbnail"
+                            onMapReady={triggerCapture}
                         />
                     )}
                 </>
             )}
             <TopBlurView>
                 <WeatherInfo />
-                {isFirst ? (
-                    isRestarting ? (
-                        <Countdown
-                            count={3}
-                            color={colors.primary}
-                            size={60}
-                            onComplete={() => onCompleteRestart(runStatus)}
-                        />
-                    ) : (
-                        <Text style={styles.timeTextRed}>3</Text>
-                    )
-                ) : isRestarting ? (
+                {isRestarting ? (
                     <Countdown
                         count={3}
                         color={colors.primary}
                         size={60}
-                        onComplete={() => onCompleteRestart(runStatus)}
+                        onComplete={onCountdownComplete}
                     />
                 ) : (
                     <Animated.Text
-                        style={[styles.timeText, { color: colors.white }]}
+                        style={[
+                            styles.timeText,
+                            {
+                                color:
+                                    context.status === "READY" ||
+                                    context.status === "PAUSED_OFFCOURSE"
+                                        ? colors.red
+                                        : context.status ===
+                                          "COMPLETION_PENDING"
+                                        ? colors.primary
+                                        : colors.white,
+                            },
+                        ]}
                         entering={FadeIn.duration(1000)}
                     >
-                        {getRunTime(runTime, "MM:SS")}
+                        {context.status === "READY"
+                            ? "3"
+                            : getRunTime(Math.round(elapsedMs / 1000), "MM:SS")}
                     </Animated.Text>
                 )}
             </TopBlurView>
             <MapViewWrapper controlPannelPosition={controlPannelPosition}>
-                {/* 현재 기록에 대한 세그먼트 렌더링 */}
-                {runSegments.map((segment, index) => (
+                {segments.map((segment, index) => (
                     <RunningLine
-                        key={index.toString()}
-                        id={"course" + index.toString()}
+                        key={segment.id ?? String(index)}
+                        id={segment.id ?? String(index)}
                         segment={segment}
-                        belowLayerID={
-                            mode === "GHOST" ? "custom-puck-layer-2" : undefined
-                        }
+                        color={segment.isRunning ? "green" : "red"}
                     />
                 ))}
-                {/* 코스에 대한 세그먼트 렌더링 */}
-                {courseSegment && currentRunType === "COURSE" && (
-                    <RunningLine id="course" segment={courseSegment} />
+                {courseSegments && (
+                    <RunningLine id="course" segment={courseSegments} />
                 )}
-                {/* 고스트에 대한 세그먼트 렌더링 */}
-                {mode === "GHOST" &&
-                    currentRunType === "COURSE" &&
-                    ghostSegments.map((segment, index) => (
-                        <RunningLine
-                            key={index.toString()}
-                            id={"ghost" + index.toString()}
-                            segment={segment}
-                            belowLayerID="custom-puck-layer-2"
-                            color="red"
-                        />
-                    ))}
-                {/* 코스 이탈 또는 일시정지 시 마지막 위치 렌더링 */}
-                {currentRunType === "COURSE" &&
-                    (runStatus === "stop_running" ||
-                        runStatus === "pause_running" ||
-                        runStatus === "before_running") &&
-                    courseTelemetries.length > 0 && (
-                        <ShapeSource
-                            id="custom-puck"
-                            shape={{
-                                type: "Point",
-                                coordinates: [
-                                    courseTelemetries[courseIndex ?? 0].lng,
-                                    courseTelemetries[courseIndex ?? 0].lat,
-                                ],
-                            }}
-                        >
-                            <SymbolLayer
-                                id="custom-puck-layer"
-                                style={{
-                                    iconImage: "puck2",
-                                    iconAllowOverlap: true,
-                                }}
-                                aboveLayerID="segment-course"
-                            />
-                        </ShapeSource>
-                    )}
-                {/* 고스트에 대한 현재 위치 렌더링 */}
-                {mode === "GHOST" && currentRunType === "COURSE" && (
+                {offcourseAnchor && (
                     <ShapeSource
-                        id="custom-puck-2"
+                        id="custom-puck"
                         shape={{
                             type: "Point",
                             coordinates: [
-                                ghostCurrentPosition.lng,
-                                ghostCurrentPosition.lat,
+                                offcourseAnchor.lng,
+                                offcourseAnchor.lat,
                             ],
                         }}
                     >
                         <SymbolLayer
-                            id="custom-puck-layer-2"
+                            id="custom-puck-layer"
+                            style={{
+                                iconImage: "puck2",
+                                iconAllowOverlap: true,
+                            }}
+                            aboveLayerID="layer-course"
+                        />
+                    </ShapeSource>
+                )}
+                {isGhostRunning && ghostCoordinator?.ghostPoint && (
+                    <ShapeSource
+                        id="ghost-puck"
+                        shape={{
+                            type: "Point",
+                            coordinates: [
+                                ghostCoordinator.ghostPoint.lng,
+                                ghostCoordinator.ghostPoint.lat,
+                            ],
+                        }}
+                    >
+                        <SymbolLayer
+                            id="ghost-puck-layer"
                             style={{
                                 iconImage: "puck3",
                                 iconAllowOverlap: true,
                             }}
-                            aboveLayerID="segment-course"
+                            aboveLayerID="layer-course"
                         />
                     </ShapeSource>
                 )}
+                {isGhostRunning &&
+                    ghostCoordinator?.ghostSegments &&
+                    ghostCoordinator.ghostSegments
+                        .filter((segment) => segment.isRunning)
+                        .map((segment, index) => (
+                            <RunningLine
+                                key={"ghost-segment-" + index}
+                                id={"ghost-segment-" + index}
+                                segment={segment}
+                                color="red"
+                                belowLayerID={
+                                    segments[0]
+                                        ? "layer-" + segments[0].id
+                                        : undefined
+                                }
+                            />
+                        ))}
             </MapViewWrapper>
-            {runStatus === "complete_course_running" && (
-                <PIConfetti
-                    ref={confettiRef}
-                    fallDuration={4000}
-                    count={100}
-                    colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
-                    fadeOutOnEnd={true}
-                    height={Dimensions.get("window").height / 2 - 100}
-                />
-            )}
             <BottomSheet
                 backgroundStyle={styles.container}
                 bottomInset={bottom + 56}
@@ -624,180 +392,105 @@ export default function CourseRun() {
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
-                        {runStatus === "complete_course_running" && (
-                            <CourseCompleteMessage courseName={courseName} />
-                        )}
                         {isFirst ? (
-                            !isRestarting ? (
-                                <EmptyListView
-                                    description={`러닝 기록을 위해\n코스 시작 지점으로 이동해 주세요`}
-                                    iconColor={colors.red}
-                                    fontSize="headline"
-                                    fontColor="white"
-                                />
-                            ) : (
-                                <EmptyListView
-                                    description={`러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`}
-                                    iconColor={colors.red}
-                                    fontSize="headline"
-                                    fontColor="white"
-                                />
-                            )
+                            <EmptyListView
+                                description={
+                                    isRestarting
+                                        ? `러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`
+                                        : `러닝 기록을 위해\n코스 시작 지점으로 이동해 주세요`
+                                }
+                                iconColor={colors.red}
+                                fontSize="headline"
+                                fontColor="white"
+                            />
                         ) : (
                             <StatsIndicator
-                                stats={[
-                                    {
-                                        label: "거리",
-                                        value: (
-                                            runUserDashboardData.totalDistance /
-                                            1000
-                                        ).toFixed(2),
-                                        unit: "km",
-                                    },
-                                    {
-                                        label: "평균 페이스",
-                                        value: getFormattedPace(
-                                            runUserDashboardData.averagePace
-                                        ),
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "최근 페이스",
-                                        value: getFormattedPace(
-                                            runUserDashboardData.recentPointsPace
-                                        ),
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "케이던스",
-                                        value: runUserDashboardData.averageCadence,
-                                        unit: "spm",
-                                    },
-                                    {
-                                        label: "심박수",
-                                        value: runUserDashboardData.bpm,
-                                        unit: "",
-                                    },
-                                    {
-                                        label: "소모 칼로리",
-                                        value: runUserDashboardData.totalCalories,
-                                        unit: "kcal",
-                                    },
-                                ]}
-                                ghost={
-                                    mode === "GHOST" &&
-                                    currentRunType === "COURSE"
-                                }
-                                ghostTelemetry={ghostTelemetries.current[0]}
+                                stats={statsForUI}
                                 color="gray20"
+                                ghost={isGhostRunning}
+                                ghostTelemetry={ghostCoordinator?.ghostPoint}
                             />
                         )}
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            <DisplaySlideToAction
-                status={runStatus}
-                disabled={actionDisabled}
-                onEndRun={endRun}
-                onSave={triggerSave}
-                onResume={resumeRun}
-                onSwitchToSolo={switchToSolo}
-            />
+            {context.status === "RUNNING" ||
+            context.status === "RUNNING_EXTENDED" ? (
+                <SlideToAction
+                    label="밀어서 러닝 종료"
+                    onSlideSuccess={() => {
+                        controls.pauseUser();
+                    }}
+                    color="red"
+                    direction="right"
+                />
+            ) : context.status === "PAUSED_OFFCOURSE" ? (
+                <SlideToDualAction
+                    leftLabel={
+                        context.stats.totalDistanceM < 500
+                            ? "나가기"
+                            : "러닝 종료"
+                    }
+                    rightLabel="일반 러닝 전환"
+                    onSlideLeft={() => {
+                        setWithRouting(true);
+                        requestSave();
+                    }}
+                    onSlideRight={() => {
+                        controls.extend();
+                        Toast.show({
+                            type: "info",
+                            text1: "일반 러닝으로 전환합니다",
+                            position: "bottom",
+                            bottomOffset: 60,
+                        });
+                    }}
+                    color="primary"
+                />
+            ) : context.status === "PAUSED_USER" ? (
+                <SlideToDualAction
+                    leftLabel={
+                        context.stats.totalDistanceM < 500
+                            ? "나가기"
+                            : "기록 저장"
+                    }
+                    rightLabel="이어서 뛰기"
+                    onSlideLeft={() => {
+                        setWithRouting(true);
+                        requestSave();
+                    }}
+                    onSlideRight={() => {
+                        controls.resume();
+                    }}
+                    color="primary"
+                />
+            ) : context.status === "COMPLETION_PENDING" ? (
+                <SlideToDualAction
+                    leftLabel="결과 및 랭킹"
+                    rightLabel="이어서 뛰기"
+                    onSlideLeft={() => {
+                        setWithRouting(true);
+                        requestSave();
+                    }}
+                    onSlideRight={() => {
+                        setWithRouting(false);
+                        requestSave();
+                        setIsRestarting(true);
+                    }}
+                    color="primary"
+                />
+            ) : (
+                <SlideToAction
+                    label="밀어서 러닝 종료"
+                    onSlideSuccess={() => {
+                        router.back();
+                    }}
+                    color="red"
+                    direction="right"
+                />
+            )}
         </View>
     );
-}
-
-const CourseCompleteMessage = ({ courseName }: { courseName: string }) => {
-    return (
-        <View style={styles.courseComplete}>
-            <View style={styles.courseCompleteText}>
-                <Typography variant="headline" color="white">
-                    {courseName} 완주에 성공했어요!
-                </Typography>
-                <Typography variant="body3" color="gray40">
-                    이어 달릴 경우 기록은 자동 저장됩니다
-                </Typography>
-            </View>
-            <Divider direction="horizontal" />
-        </View>
-    );
-};
-
-type DisplaySlideToActionProps = {
-    status: RunnningStatus;
-    disabled?: boolean;
-    onEndRun: () => void | Promise<void>;
-    onSave: () => void;
-    onResume: () => void;
-    onSwitchToSolo: () => void | Promise<void>;
-};
-
-function DisplaySlideToAction({
-    status,
-    disabled,
-    onEndRun,
-    onSave,
-    onResume,
-    onSwitchToSolo,
-}: DisplaySlideToActionProps) {
-    if (
-        status === "before_running" ||
-        status === "ready_course_running" ||
-        status === "start_running"
-    ) {
-        return (
-            <SlideToAction
-                label="밀어서 러닝 종료"
-                onSlideSuccess={onEndRun}
-                color="red"
-                direction="right"
-                disabled={disabled}
-            />
-        );
-    }
-
-    if (status === "stop_running") {
-        return (
-            <SlideToDualAction
-                leftLabel="러닝 종료"
-                rightLabel="일반 러닝 전환"
-                onSlideLeft={onSave}
-                onSlideRight={onSwitchToSolo}
-                color="red"
-            />
-        );
-    }
-
-    if (status === "pause_running") {
-        return (
-            <SlideToDualAction
-                leftLabel="기록 저장"
-                rightLabel="이어서 뛰기"
-                onSlideLeft={onSave}
-                onSlideRight={onResume}
-                color="primary"
-                disabled={disabled}
-            />
-        );
-    }
-
-    if (status === "complete_course_running") {
-        return (
-            <SlideToDualAction
-                leftLabel="결과 및 랭킹"
-                rightLabel="이어서 뛰기"
-                onSlideLeft={onSave}
-                onSlideRight={async () => {
-                    await onSwitchToSolo();
-                    onSave();
-                }}
-                color="primary"
-                disabled={disabled}
-            />
-        );
-    }
-
-    return null;
 }
 
 const styles = StyleSheet.create({
@@ -813,16 +506,8 @@ const styles = StyleSheet.create({
         lineHeight: 81.3,
         textAlign: "center",
     },
-    timeTextRed: {
-        fontFamily: "SpoqaHanSansNeo-Bold",
-        fontSize: 60,
-        color: colors.red,
-        lineHeight: 81.3,
-        textAlign: "center",
-    },
     bottomSheetContent: {
         paddingVertical: 30,
-        gap: 30,
     },
     handle: {
         paddingTop: 10,
@@ -833,17 +518,5 @@ const styles = StyleSheet.create({
         width: 50,
         height: 5,
         borderRadius: 100,
-    },
-    courseComplete: {
-        marginBottom: 30,
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 30,
-        paddingHorizontal: 17,
-    },
-    courseCompleteText: {
-        gap: 4,
-        alignItems: "center",
-        justifyContent: "center",
     },
 });

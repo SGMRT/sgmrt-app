@@ -7,6 +7,7 @@ import {
 } from "@/src/utils/mapUtils";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { MarkerView } from "@rnmapbox/maps";
+import { Link } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { Dimensions, InteractionManager, StyleSheet, View } from "react-native";
 import { SharedValue, runOnJS, useDerivedValue } from "react-native-reanimated";
@@ -23,6 +24,7 @@ interface ResultCourseMapProps {
     yKey?: "pace" | "alt";
     onReady?: () => void;
     logoPosition?: any;
+    attributionPosition?: any;
     borderRadius?: number;
     width?: number;
     height?: number;
@@ -36,6 +38,7 @@ export default function ResultCourseMap({
     yKey = "pace",
     onReady,
     logoPosition = { bottom: 10, left: 10 },
+    attributionPosition = { bottom: 10, right: 10 },
     borderRadius = 20,
     width = Dimensions.get("window").width - 34,
     height = 260,
@@ -144,9 +147,12 @@ export default function ResultCourseMap({
             <Typography
                 variant="caption1"
                 color="gray40"
-                style={styles.attribution}
+                style={[styles.attribution, attributionPosition]}
             >
-                © Mapbox, © OpenStreetMap
+                <Link href="https://www.mapbox.com/">© Mapbox</Link>{" "}
+                <Link href="https://www.openstreetmap.org/copyright">
+                    © OpenStreetMap
+                </Link>
             </Typography>
         </View>
     );
@@ -181,7 +187,5 @@ const styles = StyleSheet.create({
     },
     attribution: {
         position: "absolute",
-        bottom: 10,
-        right: 10,
     },
 });

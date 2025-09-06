@@ -145,7 +145,7 @@ interface SaveRunningProps {
     telemetries: Telemetry[];
     rawData: RawData[];
     userDashboardData: UserDashBoardData;
-    runShotUri: string | null;
+    thumbnailUri: string | null;
     runTime: number;
     isPublic: boolean;
     ghostRunningId?: number | null;
@@ -156,7 +156,7 @@ export async function saveRunning({
     telemetries,
     rawData,
     userDashboardData,
-    runShotUri,
+    thumbnailUri,
     runTime,
     isPublic,
     ghostRunningId,
@@ -188,6 +188,12 @@ export async function saveRunning({
             telemetry.pace = stablePace;
         }
     });
+
+    // 마지막 isRunning인 true인 값 뒤 isRunning이 false인 값을 모두 삭제
+    const lastTrueIndex = telemetries.findLastIndex(
+        (telemetry) => telemetry.isRunning
+    );
+    telemetries = telemetries.slice(0, lastTrueIndex + 1);
 
     const hasPaused = telemetries.some((telemetry) => !telemetry.isRunning);
 
@@ -233,9 +239,9 @@ export async function saveRunning({
             name: "interpolatedTelemetry.jsonl",
             type: "application/json",
         } as any);
-        if (runShotUri) {
+        if (thumbnailUri) {
             formData.append("screenShotImage", {
-                uri: runShotUri,
+                uri: thumbnailUri,
                 name: "screenShotImage.jpg",
                 type: "image/jpeg",
             } as any);

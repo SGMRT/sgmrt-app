@@ -14,15 +14,14 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
 import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
-import RunShot, { RunShareShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import BottomModal from "@/src/components/ui/BottomModal";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import Section from "@/src/components/ui/Section";
 import ShareButton from "@/src/components/ui/ShareButton";
-import SlideToAction from "@/src/components/ui/SlideToAction";
-import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatRow from "@/src/components/ui/StatRow";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import { Typography } from "@/src/components/ui/Typography";
@@ -35,6 +34,7 @@ import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+    Alert,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -50,7 +50,7 @@ export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
     const [isLocked, setIsLocked] = useState(false);
-    const runShotRef = useRef<RunShareShotHandle>(null);
+    const runShotRef = useRef<RunShotHandle>(null);
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -236,11 +236,6 @@ export default function Result() {
     const captureStats = useMemo(() => {
         return [
             {
-                description: "거리",
-                value: (runData?.recordInfo.distance ?? 0).toFixed(2),
-                unit: "km",
-            },
-            {
                 description: "시간",
                 value: getRunTime(
                     runData?.recordInfo.duration ?? 0,
@@ -248,8 +243,18 @@ export default function Result() {
                 ),
             },
             {
-                description: "페이스",
+                description: "평균 페이스",
                 value: getFormattedPace(runData?.recordInfo.averagePace ?? 0),
+            },
+            {
+                description: "케이던스",
+                value: runData?.recordInfo.cadence ?? 0,
+                unit: "spm",
+            },
+            {
+                description: "칼로리",
+                value: runData?.recordInfo.calories ?? 0,
+                unit: "kcal",
             },
         ];
     }, [runData]);
@@ -262,26 +267,31 @@ export default function Result() {
                 ) && !runData?.courseInfo?.isPublic;
             if (canMakeCourse) {
                 return (
-                    <SlideToDualAction
-                        leftLabel="메인으로"
-                        rightLabel="코스 등록"
-                        onSlideLeft={() => {
+                    <ButtonWithIcon
+                        type="active"
+                        title="코스 등록"
+                        onPress={handlePresentModalPress}
+                        iconType="home"
+                        onPressIcon={() => {
                             router.replace("/");
                         }}
-                        onSlideRight={handlePresentModalPress}
-                        color="primary"
+                        topStroke
                     />
                 );
             }
         }
         return (
-            <SlideToAction
-                label="메인으로"
-                onSlideSuccess={() => {
+            <ButtonWithIcon
+                type="active"
+                title="이 코스로 러닝 시작"
+                onPress={() => {
+                    router.push(`/run/${courseId}/-1`);
+                }}
+                iconType="home"
+                onPressIcon={() => {
                     router.replace("/");
                 }}
-                color="green"
-                direction="left"
+                topStroke
             />
         );
     }, [
@@ -375,8 +385,9 @@ export default function Result() {
                                         ).then(() => {
                                             Toast.show({
                                                 type: "success",
-                                                text1: "제목이 변경되었습니다",
+                                                text1: "러닝명이 변경되었습니다",
                                                 position: "bottom",
+                                                bottomOffset: 60,
                                             });
                                         });
                                     }}
@@ -596,7 +607,7 @@ export default function Result() {
                             animated: true,
                         });
                     }}
-                    bottomInset={66}
+                    bottomInset={30}
                 />
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}
@@ -614,9 +625,9 @@ export default function Result() {
                         </Typography>
                     </View>
 
-                    <SlideToAction
-                        label="등록하기"
-                        onSlideSuccess={() => {
+                    <ButtonWithIcon
+                        title="코스 등록"
+                        onPress={() => {
                             patchCourseName(
                                 runData?.courseInfo.id,
                                 courseName,
@@ -642,17 +653,35 @@ export default function Result() {
                                 });
                             });
                         }}
-                        color="green"
-                        direction="left"
+                        type="active"
+                        iconType="home"
+                        onPressIcon={() => {
+                            Alert.alert(
+                                "코스 등록을 종료하시겠습니까?",
+                                "진행 중인 내용은 저장되지 않습니다.",
+                                [
+                                    {
+                                        text: "계속하기",
+                                        style: "cancel",
+                                    },
+                                    {
+                                        text: "나가기",
+                                        style: "destructive",
+                                        onPress: () => {
+                                            router.replace("/");
+                                        },
+                                    },
+                                ]
+                            );
+                        }}
                     />
                 </BottomModal>
                 <RunShot
                     ref={runShotRef}
                     fileName={runData?.runningName + ".jpg"}
                     telemetries={runData.telemetries ?? []}
-                    isChartActive={isChartActive}
-                    chartPointIndex={chartPointIndex}
-                    yKey={displayMode === "pace" ? "pace" : "alt"}
+                    distance={runData.recordInfo.distance.toFixed(2)}
+                    type="share"
                     stats={captureStats}
                 />
             </>
@@ -678,6 +707,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 16.5,
         marginTop: 20,
         gap: 20,
+        paddingBottom: 20,
     },
     titleContainer: {
         flexDirection: "row",
@@ -692,7 +722,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
     bottomSheetContent: {
-        paddingVertical: 30,
+        paddingTop: 30,
+        paddingBottom: 50,
         alignItems: "center",
         justifyContent: "center",
         gap: 4,

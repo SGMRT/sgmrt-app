@@ -2,6 +2,7 @@ import { useAuthStore } from "../store/authState";
 import { getDataFromS3, parseJsonl } from "./common";
 import server from "./instance";
 import {
+    Checkpoint,
     CourseDetailResponse,
     CourseResponse,
     CoursesRequest,
@@ -68,17 +69,34 @@ export async function getCourse(
     try {
         const response = await server.get(`/courses/${courseId}`);
         const telemetryUrl: string | undefined = response.data?.telemetryUrl;
+        const checkpointsUrl: string | undefined =
+            response.data?.checkpointsUrl;
 
         let telemetries: Telemetry[] = [];
         if (telemetryUrl) {
             const text = await getDataFromS3(telemetryUrl);
             if (text) {
                 const parsed = await parseJsonl(text);
-                telemetries = (parsed as unknown as Telemetry[]) ?? [];
+                const arr = Array.isArray(parsed) ? parsed : [];
+                telemetries = arr as Telemetry[];
             }
         }
 
-        return { ...response.data, telemetries };
+        let checkpoints: Checkpoint[] = [];
+        if (checkpointsUrl) {
+            const text = await getDataFromS3(checkpointsUrl);
+            if (text) {
+                const parsed = await parseJsonl(text);
+                const arr = Array.isArray(parsed) ? parsed : [];
+                checkpoints = arr as Checkpoint[];
+            }
+        }
+
+        return {
+            ...response.data,
+            telemetries,
+            courseCheckpoints: checkpoints,
+        };
     } catch (error) {
         console.error(error);
         throw error;

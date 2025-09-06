@@ -36,6 +36,7 @@ type GetUserInfoResponse = {
     gender: "MALE" | "FEMALE";
     weight: number | null;
     height: number | null;
+    age: number | null;
     pushAlarmEnabled: boolean;
     vibrationEnabled: boolean;
     voiceGuidanceEnabled: boolean;

@@ -1,7 +1,6 @@
 import { Logo } from "@/assets/icons/icons";
 import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
 import { signIn } from "@/src/apis";
-import Compass from "@/src/components/Compass";
 import LoginButton from "@/src/components/sign/LoginButton";
 import { useAuthStore } from "@/src/store/authState";
 import * as amplitude from "@amplitude/analytics-react-native";
@@ -11,12 +10,15 @@ import {
     setAttributes,
     setUserId,
 } from "@react-native-firebase/crashlytics";
-import { initializeKakaoSDK } from "@react-native-kakao/core";
+import {
+    getKeyHashAndroid,
+    initializeKakaoSDK,
+} from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as Sentry from "@sentry/react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
-import { Image, StyleSheet, View } from "react-native";
+import { Image, Platform, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
@@ -30,8 +32,14 @@ export default function Login() {
     return (
         <SafeAreaView style={styles.container}>
             <Image source={Logo} style={styles.logo} resizeMode="contain" />
-            <Compass />
-            <View style={{ width: "100%", gap: 8 }}>
+            <View
+                style={{
+                    gap: 10,
+                    paddingHorizontal: 16.5,
+                    width: "100%",
+                    height: 126,
+                }}
+            >
                 <LoginButton
                     text="카카오로 시작하기"
                     backgroundColor="#fee500"
@@ -55,37 +63,39 @@ export default function Login() {
                         });
                     }}
                 />
-                <LoginButton
-                    text="애플로 시작하기"
-                    backgroundColor="#333333"
-                    textColor="white"
-                    icon={<AppleIcon />}
-                    onPress={async () => {
-                        const resp = await AppleAuthentication.signInAsync({
-                            requestedScopes: [
-                                AppleAuthentication.AppleAuthenticationScope
-                                    .FULL_NAME,
-                                AppleAuthentication.AppleAuthenticationScope
-                                    .EMAIL,
-                            ],
-                        });
-                        if (!resp.identityToken) {
-                            Toast.show({
-                                type: "info",
-                                text1: "애플 로그인 실패",
-                                position: "bottom",
+                {Platform.OS === "ios" && (
+                  <LoginButton
+                      text="애플로 시작하기"
+                      backgroundColor="#3F3F3F"
+                      textColor="white"
+                      icon={<AppleIcon />}
+                      onPress={async () => {
+                          const resp = await AppleAuthentication.signInAsync({
+                              requestedScopes: [
+                                  AppleAuthentication.AppleAuthenticationScope
+                                      .FULL_NAME,
+                                  AppleAuthentication.AppleAuthenticationScope
+                                      .EMAIL,
+                              ],
                             });
-                            return;
-                        }
-                        await handleLogin({
-                            providerId: "apple.com",
-                            token: resp.identityToken,
-                            secret: resp.authorizationCode ?? "",
-                            router,
-                            login,
-                        });
-                    }}
-                />
+                            if (!resp.identityToken) {
+                                Toast.show({
+                                    type: "info",
+                                    text1: "애플 로그인 실패",
+                                    position: "bottom",
+                                });
+                                return;
+                            }
+                            await handleLogin({
+                                providerId: "apple.com",
+                                token: resp.identityToken,
+                                secret: resp.authorizationCode ?? "",
+                                router,
+                                login,
+                            });
+                        }}
+                    />
+                )}
             </View>
         </SafeAreaView>
     );
@@ -160,9 +170,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         paddingTop: 20,
+        width: "100%",
     },
     logo: {
-        width: 360,
-        height: 156,
+        width: 274.75,
+        height: 63.44,
+        flex: 1,
     },
 });

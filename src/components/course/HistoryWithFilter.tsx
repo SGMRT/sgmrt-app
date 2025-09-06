@@ -160,6 +160,8 @@ export const HistoryWithFilter = ({
                 searchPeriod={searchPeriod}
                 setSearchPeriod={setSearchPeriod}
                 onClickFilter={onPressFilterItem}
+                selectedFilter={selectedFilter}
+                selectedView={selectedView}
             />
             <FlashList
                 data={displayData.data}
