@@ -13,6 +13,7 @@ import { toastConfig } from "../components/ui/toastConfig";
 import { useAuthStore } from "../store/authState";
 
 import "@features/run/task/location.task";
+
 import PushNotificationGate from "../features/notifications/PushNotificationGate";
 
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
@@ -42,10 +43,7 @@ function RootLayout() {
     });
 
     const { status, error } = useBootstrapApp(isLoggedIn, loaded);
-
-    // 현재 라우팅 경로 가져오기
     const pathname = usePathname();
-    console.log("pathname", pathname);
 
     useEffect(() => {
         if (status !== "idle") {

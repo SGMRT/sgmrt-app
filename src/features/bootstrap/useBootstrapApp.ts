@@ -32,6 +32,7 @@ async function requestPermissions(): Promise<boolean> {
     const pedometerGranted = pedometerPermission.status === "granted";
     const barometerGranted = barometerPermission.status === "granted";
 
+
     if (userTrackingPermission.status === PermissionStatus.UNDETERMINED) {
         await requestTrackingPermissionsAsync();
     }
@@ -198,7 +199,7 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 // 5) 스플래시 종료
                 await SplashScreen.hideAsync();
                 if (!cancelled) setStatus("done");
-
+              
                 InteractionManager.runAfterInteractions(async () => {
                     await initAds();
                 });

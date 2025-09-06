@@ -64,19 +64,19 @@ export default function Login() {
                     }}
                 />
                 {Platform.OS === "ios" && (
-                    <LoginButton
-                        text="애플로 시작하기"
-                        backgroundColor="#333333"
-                        textColor="white"
-                        icon={<AppleIcon />}
-                        onPress={async () => {
-                            const resp = await AppleAuthentication.signInAsync({
-                                requestedScopes: [
-                                    AppleAuthentication.AppleAuthenticationScope
-                                        .FULL_NAME,
-                                    AppleAuthentication.AppleAuthenticationScope
-                                        .EMAIL,
-                                ],
+                  <LoginButton
+                      text="애플로 시작하기"
+                      backgroundColor="#3F3F3F"
+                      textColor="white"
+                      icon={<AppleIcon />}
+                      onPress={async () => {
+                          const resp = await AppleAuthentication.signInAsync({
+                              requestedScopes: [
+                                  AppleAuthentication.AppleAuthenticationScope
+                                      .FULL_NAME,
+                                  AppleAuthentication.AppleAuthenticationScope
+                                      .EMAIL,
+                              ],
                             });
                             if (!resp.identityToken) {
                                 Toast.show({
