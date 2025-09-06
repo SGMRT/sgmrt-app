@@ -71,10 +71,7 @@ export default function CompactNativeAdRow({ style }: Props) {
             {/* 이미지 */}
             {ad.icon?.url && (
                 <NativeAsset assetType={NativeAssetType.ICON}>
-                    <Image
-                        source={{ uri: ad.icon?.url }}
-                        style={{ width: 20, height: 20, borderRadius: 4 }}
-                    />
+                    <Image source={{ uri: ad.icon?.url }} style={styles.icon} />
                 </NativeAsset>
             )}
 
@@ -151,5 +148,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
         borderRadius: 8,
         marginRight: 18,
+    },
+    icon: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
     },
 });
