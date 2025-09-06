@@ -78,7 +78,8 @@
     "victory-native": "^41.17.4",
     "zustand": "^5.0.5",
     "expo-notifications": "~0.31.4",
-    "expo-device": "~7.1.4"
+    "expo-device": "~7.1.4",
+    "expo-tracking-transparency": "~5.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

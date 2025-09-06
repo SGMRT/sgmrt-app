@@ -1,5 +1,7 @@
+import colors from "@/src/theme/colors";
+import { Image } from "expo-image";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View, ViewStyle } from "react-native";
+import { StyleSheet, View, ViewStyle } from "react-native";
 import {
     NativeAd,
     NativeAdChoicesPlacement,
@@ -9,12 +11,17 @@ import {
     NativeMediaAspectRatio,
     TestIds,
 } from "react-native-google-mobile-ads";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Typography } from "../ui/Typography";
 
 type Props = { style?: ViewStyle };
-const AD_UNIT_ID = __DEV__ ? TestIds.NATIVE : "ca-app-pub-xxxxxxxx/xxxxxxxx"; // ← 운영용 교체
+const AD_UNIT_ID = __DEV__
+    ? TestIds.NATIVE
+    : process.env.EXPO_PUBLIC_AD_NATIVE_BANNER_KEY || "";
 
 export default function CompactNativeAdRow({ style }: Props) {
     const [ad, setAd] = useState<NativeAd | null>(null);
+    const { bottom } = useSafeAreaInsets();
 
     useEffect(() => {
         let active = true;
@@ -32,41 +39,80 @@ export default function CompactNativeAdRow({ style }: Props) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    if (!ad) return null;
+    if (!ad) return <View style={{ height: 32 + bottom, marginTop: -10 }} />;
 
     return (
-        <NativeAdView nativeAd={ad} style={[styles.container, style]}>
+        <NativeAdView
+            nativeAd={ad}
+            style={[styles.container, style, { marginBottom: bottom }]}
+        >
             {/* AD 배지 (자산 아님) */}
             <View style={styles.badge}>
-                <Text style={styles.badgeText}>AD</Text>
+                <Typography variant="advertiser" color="white">
+                    AD
+                </Typography>
             </View>
+
+            {/* 이미지 */}
+            {ad.icon?.url && (
+                <NativeAsset assetType={NativeAssetType.ICON}>
+                    <Image
+                        source={{ uri: ad.icon?.url }}
+                        style={{ width: 20, height: 20, borderRadius: 4 }}
+                    />
+                </NativeAsset>
+            )}
 
             {/* 텍스트 라인 */}
             <View style={styles.textLine}>
                 {ad.advertiser ? (
                     <NativeAsset assetType={NativeAssetType.ADVERTISER}>
-                        <Text numberOfLines={1} style={styles.advertiser}>
+                        <Typography
+                            variant="advertiser"
+                            color="white"
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                        >
                             {ad.advertiser}
-                        </Text>
+                            {": "}
+                        </Typography>
                     </NativeAsset>
                 ) : null}
-                {ad.advertiser ? <Text style={styles.sep}>: </Text> : null}
                 <NativeAsset assetType={NativeAssetType.HEADLINE}>
-                    <Text numberOfLines={1} style={styles.headline}>
+                    <Typography
+                        variant="caption1"
+                        color="gray20"
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
                         {ad.headline}
-                    </Text>
+                        {ad.headline}
+                    </Typography>
                 </NativeAsset>
             </View>
+
+            {/* CTA */}
+            <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
+                <Typography
+                    variant="caption1"
+                    color="black"
+                    numberOfLines={1}
+                    style={styles.cta}
+                >
+                    {ad.callToAction}
+                </Typography>
+            </NativeAsset>
         </NativeAdView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        paddingLeft: 12,
+        marginTop: -10,
+        marginLeft: 8,
         flexDirection: "row",
         alignItems: "center",
-        gap: 8,
+        gap: 4,
     },
     badge: {
         width: 28,
@@ -76,17 +122,20 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    badgeText: { color: "#C7D1DA" },
     textLine: {
         flexDirection: "row",
         alignItems: "center",
         minHeight: 32,
+        overflow: "hidden",
+        flex: 1,
+        flexShrink: 1,
     },
-    advertiser: {
-        color: "#FFFFFF",
-        justifyContent: "center",
-        alignItems: "center",
+    cta: {
+        flexShrink: 0,
+        marginLeft: "auto",
+        backgroundColor: colors.gray[60],
+        paddingHorizontal: 4,
+        borderRadius: 8,
+        marginRight: 18,
     },
-    sep: { color: "#9AA0A6" },
-    headline: { color: "#C9CED6" },
 });

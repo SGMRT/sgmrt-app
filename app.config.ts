@@ -227,7 +227,7 @@ const config = {
                 "react-native-google-mobile-ads",
                 {
                     androidAppId: "ca-app-pub-3940256099942544~1458002511",
-                    iosAppId: "ca-app-pub-3940256099942544~1458002511",
+                    iosAppId: "ca-app-pub-2823475521649542~5190026466",
                     skAdNetworkItems: [
                         "cstr6suwn9.skadnetwork",
                         "4fzdc2evr5.skadnetwork",
@@ -286,6 +286,7 @@ const config = {
                 },
             ],
             "expo-notifications",
+            "expo-tracking-transparency",
         ],
         experiments: {
             typedRoutes: true,

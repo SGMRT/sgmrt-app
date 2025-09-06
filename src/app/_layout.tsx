@@ -4,7 +4,7 @@ import Mapbox from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack, usePathname } from "expo-router";
 
 import { useEffect, useMemo } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -15,7 +15,7 @@ import { useAuthStore } from "../store/authState";
 import "@features/run/task/location.task";
 import PushNotificationGate from "../features/notifications/PushNotificationGate";
 
-import mobileAds, { MaxAdContentRating } from "react-native-google-mobile-ads";
+import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
 
 SplashScreen.preventAutoHideAsync();
@@ -43,27 +43,9 @@ function RootLayout() {
 
     const { status, error } = useBootstrapApp(isLoggedIn, loaded);
 
-    useEffect(() => {
-        (async () => {
-            if (!loaded) return;
-
-            try {
-                // 전역 광고 요청 설정
-                await mobileAds().setRequestConfiguration({
-                    maxAdContentRating: MaxAdContentRating.T,
-                    tagForChildDirectedTreatment: false,
-                    tagForUnderAgeOfConsent: false,
-                    // 테스트 안전장치
-                    testDeviceIdentifiers: ["EMULATOR"],
-                });
-
-                // SDK 초기화
-                await mobileAds().initialize();
-            } catch (e) {
-                console.warn("AdMob bootstrap error:", e);
-            }
-        })();
-    }, [loaded]);
+    // 현재 라우팅 경로 가져오기
+    const pathname = usePathname();
+    console.log("pathname", pathname);
 
     useEffect(() => {
         if (status !== "idle") {
@@ -76,7 +58,7 @@ function RootLayout() {
     if (!loaded) return null;
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#111111" }}>
             <QueryClientProvider client={queryClient}>
                 <BottomSheetModalProvider>
                     <PushNotificationGate />
@@ -97,6 +79,10 @@ function RootLayout() {
                             options={{ gestureEnabled: false }}
                         />
                     </Stack>
+                    {(pathname.includes("notice") ||
+                        pathname.includes("home") ||
+                        pathname.includes("stats") ||
+                        pathname.includes("profile")) && <CompactNativeAdRow />}
                     <Toast config={toastConfig} />
                 </BottomSheetModalProvider>
             </QueryClientProvider>

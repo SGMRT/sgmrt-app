@@ -17,7 +17,8 @@ export type TypographyVariant =
     | "share_stat"
     | "share_stat_unit"
     | "share_stat_description"
-    | "mini";
+    | "mini"
+    | "advertiser";
 
 export type TypographyColor =
     | "black"
@@ -141,6 +142,12 @@ export const typographyStyles = StyleSheet.create({
         fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 8,
         lineHeight: 12,
+        letterSpacing: -0.6,
+    },
+    advertiser: {
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontSize: 12,
+        lineHeight: 18,
         letterSpacing: -0.6,
     },
 

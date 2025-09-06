@@ -6,9 +6,15 @@ import * as Location from "expo-location";
 import { SplashScreen, useRouter } from "expo-router";
 import { Barometer, Pedometer } from "expo-sensors";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Linking, Platform } from "react-native";
+import { Alert, InteractionManager, Linking, Platform } from "react-native";
 
 import { LOCATION_TASK } from "@/src/types/run";
+import {
+    getTrackingPermissionsAsync,
+    PermissionStatus,
+    requestTrackingPermissionsAsync,
+} from "expo-tracking-transparency";
+import mobileAds, { MaxAdContentRating } from "react-native-google-mobile-ads";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
 const VERSION_KEY = "version_v1";
@@ -20,10 +26,15 @@ async function requestPermissions(): Promise<boolean> {
         await Location.requestForegroundPermissionsAsync();
     const pedometerPermission = await Pedometer.requestPermissionsAsync();
     const barometerPermission = await Barometer.requestPermissionsAsync();
+    const userTrackingPermission = await getTrackingPermissionsAsync();
 
     const locationGranted = locationPermission.status === "granted";
     const pedometerGranted = pedometerPermission.status === "granted";
     const barometerGranted = barometerPermission.status === "granted";
+
+    if (userTrackingPermission.status === PermissionStatus.UNDETERMINED) {
+        await requestTrackingPermissionsAsync();
+    }
 
     if (locationGranted && pedometerGranted && barometerGranted) {
         return true;
@@ -44,6 +55,25 @@ async function requestPermissions(): Promise<boolean> {
     ]);
 
     return false;
+}
+
+let ADS_INIT_DONE = false;
+
+async function initAds() {
+    if (ADS_INIT_DONE) return;
+    try {
+        await mobileAds().setRequestConfiguration({
+            maxAdContentRating: MaxAdContentRating.T,
+            tagForChildDirectedTreatment: false,
+            tagForUnderAgeOfConsent: false,
+            testDeviceIdentifiers: __DEV__ ? ["EMULATOR"] : [],
+        });
+
+        await mobileAds().initialize();
+        ADS_INIT_DONE = true;
+    } catch (e) {
+        console.warn("AdMob init error:", e);
+    }
 }
 
 async function stopTrackingAndLiveActivity() {
@@ -168,6 +198,10 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 // 5) 스플래시 종료
                 await SplashScreen.hideAsync();
                 if (!cancelled) setStatus("done");
+
+                InteractionManager.runAfterInteractions(async () => {
+                    await initAds();
+                });
             } catch (e) {
                 console.error(e);
                 if (!cancelled) {
