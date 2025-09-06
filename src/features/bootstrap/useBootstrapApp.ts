@@ -14,7 +14,12 @@ import {
     PermissionStatus,
     requestTrackingPermissionsAsync,
 } from "expo-tracking-transparency";
-import mobileAds, { MaxAdContentRating } from "react-native-google-mobile-ads";
+import mobileAds, {
+    AdsConsent,
+    AdsConsentDebugGeography,
+    AdsConsentStatus,
+    MaxAdContentRating,
+} from "react-native-google-mobile-ads";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
 const VERSION_KEY = "version_v1";
@@ -26,16 +31,17 @@ async function requestPermissions(): Promise<boolean> {
         await Location.requestForegroundPermissionsAsync();
     const pedometerPermission = await Pedometer.requestPermissionsAsync();
     const barometerPermission = await Barometer.requestPermissionsAsync();
-    const userTrackingPermission = await getTrackingPermissionsAsync();
+
+    if (Platform.OS === "ios") {
+        const att = await getTrackingPermissionsAsync();
+        if (att.status === PermissionStatus.UNDETERMINED) {
+            await requestTrackingPermissionsAsync();
+        }
+    }
 
     const locationGranted = locationPermission.status === "granted";
     const pedometerGranted = pedometerPermission.status === "granted";
     const barometerGranted = barometerPermission.status === "granted";
-
-
-    if (userTrackingPermission.status === PermissionStatus.UNDETERMINED) {
-        await requestTrackingPermissionsAsync();
-    }
 
     if (locationGranted && pedometerGranted && barometerGranted) {
         return true;
@@ -63,6 +69,26 @@ let ADS_INIT_DONE = false;
 async function initAds() {
     if (ADS_INIT_DONE) return;
     try {
+        // UMP 동의 정보 요청
+        const consentInfo = await AdsConsent.requestInfoUpdate({
+            debugGeography: __DEV__
+                ? AdsConsentDebugGeography.EEA
+                : AdsConsentDebugGeography.DISABLED,
+            testDeviceIdentifiers: __DEV__ ? ["EMULATOR"] : [],
+        });
+
+        // 동의 폼이 필요할 경우 표시
+        if (
+            consentInfo.isConsentFormAvailable &&
+            consentInfo.status === AdsConsentStatus.REQUIRED
+        ) {
+            const { canRequestAds } =
+                await AdsConsent.loadAndShowConsentFormIfRequired();
+            if (!canRequestAds) {
+                return;
+            }
+        }
+
         await mobileAds().setRequestConfiguration({
             maxAdContentRating: MaxAdContentRating.T,
             tagForChildDirectedTreatment: false,
@@ -199,7 +225,7 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 // 5) 스플래시 종료
                 await SplashScreen.hideAsync();
                 if (!cancelled) setStatus("done");
-              
+
                 InteractionManager.runAfterInteractions(async () => {
                     await initAds();
                 });

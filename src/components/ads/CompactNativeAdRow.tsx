@@ -1,7 +1,7 @@
 import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
-import { StyleSheet, View, ViewStyle } from "react-native";
+import { Platform, StyleSheet, View, ViewStyle } from "react-native";
 import {
     NativeAd,
     NativeAdChoicesPlacement,
@@ -17,7 +17,9 @@ import { Typography } from "../ui/Typography";
 type Props = { style?: ViewStyle };
 const AD_UNIT_ID = __DEV__
     ? TestIds.NATIVE
-    : process.env.EXPO_PUBLIC_AD_NATIVE_BANNER_KEY || "";
+    : Platform.OS === "ios"
+    ? process.env.EXPO_PUBLIC_AD_IOS_NATIVE_BANNER_KEY || ""
+    : process.env.EXPO_PUBLIC_AD_ANDROID_NATIVE_BANNER_KEY || "";
 
 export default function CompactNativeAdRow({ style }: Props) {
     const [ad, setAd] = useState<NativeAd | null>(null);
@@ -25,18 +27,31 @@ export default function CompactNativeAdRow({ style }: Props) {
 
     useEffect(() => {
         let active = true;
+        let creactedAd: NativeAd | null = null;
+
+        if (!AD_UNIT_ID) return;
+
         NativeAd.createForAdRequest(AD_UNIT_ID, {
             aspectRatio: NativeMediaAspectRatio.LANDSCAPE,
             adChoicesPlacement: NativeAdChoicesPlacement.TOP_RIGHT,
             startVideoMuted: true,
         })
-            .then((a) => active && setAd(a))
-            .catch(console.error);
+            .then((a) => {
+                if (!active) {
+                    a.destroy?.();
+                    return;
+                }
+                creactedAd = a;
+                setAd(a);
+            })
+            .catch((e) => {
+                if (!active) return;
+                console.error(e);
+            });
         return () => {
             active = false;
-            ad?.destroy?.();
+            creactedAd?.destroy?.();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!ad) return <View style={{ height: 32 + bottom, marginTop: -10 }} />;
@@ -85,7 +100,6 @@ export default function CompactNativeAdRow({ style }: Props) {
                         numberOfLines={1}
                         ellipsizeMode="tail"
                     >
-                        {ad.headline}
                         {ad.headline}
                     </Typography>
                 </NativeAsset>

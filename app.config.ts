@@ -164,8 +164,8 @@ const config = {
             [
                 "react-native-google-mobile-ads",
                 {
-                    androidAppId: "ca-app-pub-3940256099942544~1458002511",
-                    iosAppId: "ca-app-pub-2823475521649542~5190026466",
+                    androidAppId: process.env.ADS_ANDROID_APP_ID,
+                    iosAppId: process.env.ADS_IOS_APP_ID,
                     skAdNetworkItems: [
                         "cstr6suwn9.skadnetwork",
                         "4fzdc2evr5.skadnetwork",
@@ -224,7 +224,13 @@ const config = {
                 },
             ],
             "expo-notifications",
-            "expo-tracking-transparency",
+            [
+                "expo-tracking-transparency",
+                {
+                    userTrackingUsageDescription:
+                        "맞춤형 광고 제공을 위해 기기 식별자를 사용할 수 있습니다.",
+                },
+            ],
         ],
         experiments: {
             typedRoutes: true,
