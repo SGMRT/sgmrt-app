@@ -41,6 +41,7 @@ export default memo(function CourseLayer({
                             ? mapboxStyles.activeLineLayer
                             : mapboxStyles.inactiveLineLayer
                     }
+                    aboveLayerID={`z-index-1`}
                 />
             </ShapeSource>
             <ShapeSource
@@ -66,6 +67,7 @@ export default memo(function CourseLayer({
                             ? mapboxStyles.activeCircle
                             : mapboxStyles.inactiveCircle
                     }
+                    aboveLayerID={`z-index-1`}
                 />
             </ShapeSource>
         </>
