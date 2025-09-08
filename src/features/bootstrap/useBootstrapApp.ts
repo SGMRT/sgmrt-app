@@ -109,7 +109,7 @@ async function stopTrackingAndLiveActivity() {
         if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)) {
             await Location.stopLocationUpdatesAsync(LOCATION_TASK);
         }
-        if (await expoLiveActivity.hasActiveAcitivites()) {
+        if (await expoLiveActivity.hasActiveActivities()) {
             await expoLiveActivity.endActivity();
         }
     } catch (e) {
