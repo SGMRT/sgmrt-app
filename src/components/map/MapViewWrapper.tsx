@@ -1,17 +1,20 @@
 import {
     Camera,
+    CircleLayer,
     Image,
     Images,
     LocationPuck,
     MapView,
+    ShapeSource,
     StyleImport,
     UserTrackingMode,
     Viewport,
 } from "@rnmapbox/maps";
 import { useCallback, useState } from "react";
-import { Image as RNImage, View } from "react-native";
+import { Image as RNImage, StyleSheet, View } from "react-native";
 
-import { Puck, Puck2, Puck3 } from "@/assets/icons/icons";
+import { Bearing, Puck2, Puck3 } from "@/assets/icons/icons";
+import colors from "@/src/theme/colors";
 import ControlPannel from "./ControlPannel";
 
 type TrackPhase = "idle" | "follow" | "heading";
@@ -105,8 +108,11 @@ export default function MapViewWrapper({
                 }}
             >
                 <Images>
-                    <Image name="puck">
-                        <RNImage source={Puck} />
+                    <Image name="topImage">
+                        <View style={styles.topImage} />
+                    </Image>
+                    <Image name="bearingImage">
+                        <RNImage source={Bearing} style={styles.bearing} />
                     </Image>
                     <Image name="puck2">
                         <RNImage source={Puck2} />
@@ -141,9 +147,39 @@ export default function MapViewWrapper({
                     zoomLevel={zoom}
                     ref={cameraRef}
                 />
+                <ShapeSource
+                    id="z-index-source"
+                    shape={{
+                        type: "FeatureCollection",
+                        features: [],
+                    }}
+                >
+                    <CircleLayer id="z-index-1" />
+                    <CircleLayer id="z-index-2" aboveLayerID="z-index-1" />
+                    <CircleLayer id="z-index-3" aboveLayerID="z-index-2" />
+                    <CircleLayer id="z-index-4" aboveLayerID="z-index-3" />
+                    <CircleLayer id="z-index-5" aboveLayerID="z-index-4" />
+                    <CircleLayer id="z-index-6" aboveLayerID="z-index-5" />
+                    <CircleLayer id="z-index-7" aboveLayerID="z-index-6" />
+                    <CircleLayer id="z-index-8" aboveLayerID="z-index-7" />
+                    <CircleLayer id="z-index-9" aboveLayerID="z-index-8" />
+                    <CircleLayer id="z-index-10" aboveLayerID="z-index-9" />
+                    <CircleLayer id="z-index-11" aboveLayerID="z-index-10" />
+                    <CircleLayer id="z-index-12" aboveLayerID="z-index-11" />
+                    <CircleLayer id="z-index-13" aboveLayerID="z-index-12" />
+                    <CircleLayer id="z-index-14" aboveLayerID="z-index-13" />
+                    <CircleLayer id="z-index-15" aboveLayerID="z-index-14" />
+                </ShapeSource>
                 {children}
                 <Viewport onStatusChanged={onStatusChanged} />
-                {showPuck && <LocationPuck visible={true} topImage="puck" />}
+                {showPuck && (
+                    <LocationPuck
+                        topImage="topImage"
+                        bearingImage="bearingImage"
+                        puckBearing="heading"
+                        puckBearingEnabled={true}
+                    />
+                )}
             </MapView>
             {controlEnabled && (
                 <ControlPannel
@@ -155,3 +191,16 @@ export default function MapViewWrapper({
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    topImage: {
+        width: 18,
+        height: 18,
+        backgroundColor: colors.primary,
+        borderRadius: 999,
+    },
+    bearing: {
+        width: 60,
+        height: 60,
+    },
+});
