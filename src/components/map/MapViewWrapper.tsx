@@ -154,21 +154,20 @@ export default function MapViewWrapper({
                         features: [],
                     }}
                 >
-                    <CircleLayer id="z-index-1" />
-                    <CircleLayer id="z-index-2" aboveLayerID="z-index-1" />
-                    <CircleLayer id="z-index-3" aboveLayerID="z-index-2" />
-                    <CircleLayer id="z-index-4" aboveLayerID="z-index-3" />
-                    <CircleLayer id="z-index-5" aboveLayerID="z-index-4" />
-                    <CircleLayer id="z-index-6" aboveLayerID="z-index-5" />
-                    <CircleLayer id="z-index-7" aboveLayerID="z-index-6" />
-                    <CircleLayer id="z-index-8" aboveLayerID="z-index-7" />
-                    <CircleLayer id="z-index-9" aboveLayerID="z-index-8" />
-                    <CircleLayer id="z-index-10" aboveLayerID="z-index-9" />
-                    <CircleLayer id="z-index-11" aboveLayerID="z-index-10" />
-                    <CircleLayer id="z-index-12" aboveLayerID="z-index-11" />
-                    <CircleLayer id="z-index-13" aboveLayerID="z-index-12" />
-                    <CircleLayer id="z-index-14" aboveLayerID="z-index-13" />
-                    <CircleLayer id="z-index-15" aboveLayerID="z-index-14" />
+                    {Array.from({ length: 15 }).map((_, index) =>
+                        index === 0 ? (
+                            <CircleLayer
+                                key={`z-index-${index + 1}`}
+                                id={`z-index-${index + 1}`}
+                            />
+                        ) : (
+                            <CircleLayer
+                                key={`z-index-${index + 1}`}
+                                id={`z-index-${index + 1}`}
+                                aboveLayerID={`z-index-${index}`}
+                            />
+                        )
+                    )}
                 </ShapeSource>
                 {children}
                 <Viewport onStatusChanged={onStatusChanged} />
