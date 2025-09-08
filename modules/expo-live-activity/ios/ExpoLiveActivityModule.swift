@@ -205,7 +205,7 @@ public class ExpoLiveActivityModule: Module {
       Name("ExpoLiveActivity")
       Events("onLiveActivityCancel")
 
-    Function("hasActiveAcitivites") { () -> Bool in
+    Function("hasActiveActivities") { () -> Bool in
         if #available(iOS 16.2, *) {
             return LiveActivityHelper.hasActiveActivities
         } else {

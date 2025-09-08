@@ -69,13 +69,16 @@ let ADS_INIT_DONE = false;
 
 async function initAds() {
     if (ADS_INIT_DONE) return;
+    const testDeviceId = process.env.EXPO_PUBLIC_AD_TEST_DEVICE_ID ?? "";
     try {
         // UMP 동의 정보 요청
         const consentInfo = await AdsConsent.requestInfoUpdate({
             debugGeography: __DEV__
                 ? AdsConsentDebugGeography.EEA
                 : AdsConsentDebugGeography.DISABLED,
-            testDeviceIdentifiers: __DEV__ ? ["EMULATOR"] : [],
+            testDeviceIdentifiers: __DEV__
+                ? ["EMULATOR", testDeviceId]
+                : [testDeviceId],
         });
 
         // 동의 폼이 필요할 경우 표시

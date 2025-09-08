@@ -33,7 +33,7 @@ interface HomeMapProps {
 const ZOOM_THRESHOLD = 14.5;
 const CAMERA_LATITUDE_OFFSET = -0.0003;
 const BOTTOM_BAR_HEIGHT = 82;
-const CONTROL_PANEL_OFFSET = 64;
+const CONTROL_PANEL_OFFSET = 86;
 
 export default function HomeMap({
     courseType,
