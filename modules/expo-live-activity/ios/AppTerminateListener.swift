@@ -5,25 +5,13 @@ public class AppTerminateListener: ExpoAppDelegateSubscriber {
   required public init() {}
 
   public func applicationWillTerminate(_ application: UIApplication) {
+    // 호출 보장 X — 호출되면 비동기로 '발사'만 하고 즉시 리턴
     print("🛑 앱 종료 시도")
-    endLiveActivitySync()
-    print("✅ Live Activity 종료 완료")
-  }
-
-  func endLiveActivitySync() {
     if #available(iOS 16.2, *) {
-      let group = DispatchGroup()
-
-      for activity in Activity<GoRunAttributes>.activities {
-        group.enter()
-        Task {
-          await activity.end(nil, dismissalPolicy: .immediate)
-          print("✅ 종료된 Live Activity: \(activity.id)")
-          group.leave()
-        }
+      Task.detached(priority: .background) {
+        await LiveActivityHelper.endAllImmediately()
+        print("✅ Live Activity 종료 완료")
       }
-
-      group.wait() // 모든 activity가 끝날 때까지 block
     }
   }
 }

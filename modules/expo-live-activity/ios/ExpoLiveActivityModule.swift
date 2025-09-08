@@ -178,72 +178,102 @@ public struct GoRunAttributes: ActivityAttributes, Sendable {
     }
 }
 
+@available(iOS 16.2, *)
+enum LiveActivityHelper {
+  static func endAllImmediately() async {
+    let activities = Array(Activity<GoRunAttributes>.activities)
+    for activity in activities {
+      await activity.end(nil, dismissalPolicy: .immediate)
+      print("✅ 종료된 Live Activity: \(activity.id)")
+    }
+  }
+
+  static func updateAll(_ state: GoRunAttributes.ContentState) async {
+    let activities = Array(Activity<GoRunAttributes>.activities)
+    for activity in activities {
+      await activity.update(using: state)
+    }
+  }
+
+  static var hasActiveActivities: Bool {
+    !Activity<GoRunAttributes>.activities.isEmpty
+  }
+}
 
 public class ExpoLiveActivityModule: Module {
   public func definition() -> ModuleDefinition {
       Name("ExpoLiveActivity")
-
       Events("onLiveActivityCancel")
 
-      Function("areActivitiesEnabled") { () -> Bool in
-          if #available(iOS 16.2, *) {
-              return !Activity<GoRunAttributes>.activities.isEmpty
-          } else {
-              return false
-          }
-      }
+    Function("hasActiveAcitivites") { () -> Bool in
+        if #available(iOS 16.2, *) {
+            return LiveActivityHelper.hasActiveActivities
+        } else {
+            return false
+        }
+    }
       
       Function("isActivityInProgress") { () -> Bool in
           if #available(iOS 16.2, *) {
-              return !Activity<GoRunAttributes>.activities.isEmpty
+              return LiveActivityHelper.hasActiveActivities
           } else {
               return false
           }
       }
-      
-      Function("startActivity") { (runType: String, sessionId: String, startedAt: Date, recentPace: Double, distanceMeters: Double, progress: Double?, message: String?, messageType: String?) -> Bool in
-          if #available(iOS 16.2, *) {
-            guard let runType = RunType(rawValue: runType) else { print("runType is invalid"); return false }
-            guard let messageType = MessageType(rawValue: messageType ?? "INFO") else { print("messageType is invalid"); return false }
-              let attributes = GoRunAttributes(runType: runType, sessionId: sessionId)
-              let contentState = GoRunAttributes.ContentState(startedAt: startedAt, recentPace: recentPace, distanceMeters: distanceMeters, progress: progress, message: message, messageType: messageType)
-              let acitivityContent = ActivityContent(state: contentState, staleDate: nil)
-              do {
-                  let activity = try Activity.request(attributes: attributes, content: acitivityContent)
-                  NotificationCenter.default.addObserver(self, selector: #selector(self.onLiveActivityCancel), name: Notification.Name("onLiveActivityCancel"), object: nil)
-                  return true
-              } catch (let error) {
-                  return false
-              }
-          } else {
-              return false
-          }
-      }
-      
+        
+    Function("startActivity") { (runType: String, sessionId: String,
+                                    startedAt: Date, recentPace: Double,
+                                    distanceMeters: Double, progress: Double?,
+                                    message: String?, messageType: String?) -> Bool in
+        if #available(iOS 16.2, *) {
+            guard let rt = RunType(rawValue: runType),
+                let mt = MessageType(rawValue: messageType ?? "INFO") else { return false }
+
+            let attributes = GoRunAttributes(runType: rt, sessionId: sessionId)
+            let state = GoRunAttributes.ContentState(
+            startedAt: startedAt,
+            recentPace: recentPace,
+            distanceMeters: distanceMeters,
+            progress: progress,
+            message: message,
+            messageType: mt
+            )
+
+            do {
+            _ = try Activity.request(attributes: attributes,
+                                    content: ActivityContent(state: state, staleDate: nil))
+            // 옵저버 등록은 idempotent 관리 권장(여러 번 등록 방지)
+            NotificationCenter.default.addObserver(self,
+                selector: #selector(self.onLiveActivityCancel),
+                name: Notification.Name("onLiveActivityCancel"),
+                object: nil)
+            return true
+            } catch {
+            print("Activity.request error: \(error)")
+            return false
+            }
+        } else { return false }
+    }
+
       Function("updateActivity") { (startedAt: Date, recentPace: Double, distanceMeters: Double, pausedAt: Date?, progress: Double?, message: String?, messageType: String?) -> Void in
           if #available(iOS 16.2, *) {
             guard let messageType = MessageType(rawValue: messageType ?? "INFO") else { print("messageType is invalid"); return }
               let contentState = GoRunAttributes.ContentState(startedAt: startedAt, pausedAt: pausedAt, recentPace: recentPace, distanceMeters: distanceMeters, progress: progress, message: message, messageType: messageType)
               
               Task {
-                  for activity in Activity<GoRunAttributes>.activities {
-                      await activity.update(using: contentState)
-                  }
+                  await LiveActivityHelper.updateAll(contentState)
               }
           }
       }
       
-      Function("endActivity") { () -> Void in
-          if #available(iOS 16.2, *) {
-              Task {
-                  for activity in Activity<GoRunAttributes>.activities {
-                      await activity.end(nil, dismissalPolicy: .immediate)
-                  }
-              }
-              
-              NotificationCenter.default.removeObserver(self, name: Notification.Name("onLiveActivityCancel"), object: nil)
-          }
+Function("endActivity") { () -> Void in
+      if #available(iOS 16.2, *) {
+        Task { await LiveActivityHelper.endAllImmediately() }
+        NotificationCenter.default.removeObserver(self,
+          name: Notification.Name("onLiveActivityCancel"),
+          object: nil)
       }
+    }
   }
     
     @objc

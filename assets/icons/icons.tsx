@@ -1,3 +1,4 @@
+import Bearing from "./bearing.png";
 import Puck from "./puck.png";
 import Puck3 from "./red-puck.png";
 import Triangle from "./triangle.png";
@@ -11,6 +12,7 @@ import Needle from "./needle.png";
 import TouchText from "./touch.png";
 
 export {
+    Bearing,
     DefaultLogo,
     DefaultProfileIcon,
     Direction,

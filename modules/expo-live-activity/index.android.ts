@@ -1,7 +1,7 @@
 import { MessageType, RunType } from "./types";
 
 const Noop = {
-    areActivitiesEnabled(): boolean {
+    hasActiveAcitivites(): boolean {
         return false;
     },
     isActivityInProgress(): boolean {

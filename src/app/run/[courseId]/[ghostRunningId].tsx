@@ -316,10 +316,15 @@ export default function Run() {
                         id={segment.id ?? String(index)}
                         segment={segment}
                         color={segment.isRunning ? "green" : "red"}
+                        aboveLayerID="z-index-3"
                     />
                 ))}
                 {courseSegments && (
-                    <RunningLine id="course" segment={courseSegments} />
+                    <RunningLine
+                        id="course"
+                        segment={courseSegments}
+                        aboveLayerID="z-index-1"
+                    />
                 )}
                 {offcourseAnchor && (
                     <ShapeSource
@@ -338,7 +343,7 @@ export default function Run() {
                                 iconImage: "puck2",
                                 iconAllowOverlap: true,
                             }}
-                            aboveLayerID="layer-course"
+                            aboveLayerID="z-index-6"
                         />
                     </ShapeSource>
                 )}
@@ -359,7 +364,7 @@ export default function Run() {
                                 iconImage: "puck3",
                                 iconAllowOverlap: true,
                             }}
-                            aboveLayerID="layer-course"
+                            aboveLayerID="z-index-5"
                         />
                     </ShapeSource>
                 )}
@@ -373,11 +378,7 @@ export default function Run() {
                                 id={"ghost-segment-" + index}
                                 segment={segment}
                                 color="red"
-                                belowLayerID={
-                                    segments[0]
-                                        ? "layer-" + segments[0].id
-                                        : undefined
-                                }
+                                aboveLayerID="z-index-2"
                             />
                         ))}
             </MapViewWrapper>

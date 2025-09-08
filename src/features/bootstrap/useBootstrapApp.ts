@@ -8,6 +8,7 @@ import { Barometer, Pedometer } from "expo-sensors";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, InteractionManager, Linking, Platform } from "react-native";
 
+import expoLiveActivity from "@/modules/expo-live-activity";
 import { LOCATION_TASK } from "@/src/types/run";
 import {
     getTrackingPermissionsAsync,
@@ -107,6 +108,9 @@ async function stopTrackingAndLiveActivity() {
     try {
         if (await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK)) {
             await Location.stopLocationUpdatesAsync(LOCATION_TASK);
+        }
+        if (await expoLiveActivity.hasActiveAcitivites()) {
+            await expoLiveActivity.endActivity();
         }
     } catch (e) {
         console.error("Cleanup error:", e);
