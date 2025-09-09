@@ -1,0 +1,204 @@
+import { AlertIcon } from "@/assets/svgs/svgs";
+import { deleteUser, invalidateToken } from "@/src/apis";
+import { UserCourseInfo } from "@/src/apis/types/course";
+import { CourseSection } from "@/src/components/profile/CourseSection";
+import { Info } from "@/src/components/profile/Info";
+import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
+import BottomModal from "@/src/components/ui/BottomModal";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
+import Header from "@/src/components/ui/Header";
+import ScrollButton from "@/src/components/ui/ScrollButton";
+import TabBar from "@/src/components/ui/TabBar";
+import { TabItem } from "@/src/components/ui/TabItem";
+import { Typography } from "@/src/components/ui/Typography";
+import { useAuthStore } from "@/src/store/authState";
+import colors from "@/src/theme/colors";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useRef, useState } from "react";
+import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
+import Toast from "react-native-toast-message";
+
+export default function ProfileScreen() {
+    const { tab } = useLocalSearchParams();
+    const [selectedTab, setSelectedTab] = useState<"info" | "course">(
+        tab === "course" ? "course" : "info"
+    );
+    const [modalType, setModalType] = useState<"logout" | "withdraw">("logout");
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const router = useRouter();
+    const { logout } = useAuthStore();
+    const [selectedCourse, setSelectedCourse] = useState<UserCourseInfo | null>(
+        null
+    );
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    const onPressSignButton = useCallback(
+        async (modalType: "logout" | "withdraw") => {
+            bottomSheetRef.current?.close();
+            if (modalType === "logout") {
+                await invalidateToken();
+                Toast.show({
+                    type: "success",
+                    text1: "로그아웃 되었습니다.",
+                    position: "bottom",
+                });
+                logout();
+            } else {
+                Alert.alert("회원 탈퇴", "정말로 탈퇴하시겠습니까?", [
+                    {
+                        text: "취소",
+                        style: "cancel",
+                    },
+                    {
+                        text: "탈퇴",
+                        onPress: async () => {
+                            await deleteUser();
+                            logout();
+                        },
+                    },
+                ]);
+            }
+        },
+        [bottomSheetRef, logout]
+    );
+    return (
+        <View style={styles.container}>
+            <SafeAreaView style={styles.safeAreaView}>
+                {/* Header */}
+                <View>
+                    <Header titleText="마이페이지" hasBackButton={false} />
+                    <View style={styles.header}>
+                        <TabItem
+                            title="내 정보"
+                            onPress={() => setSelectedTab("info")}
+                            isSelected={selectedTab === "info"}
+                        />
+                        <TabItem
+                            title="내 코스"
+                            onPress={() => setSelectedTab("course")}
+                            isSelected={selectedTab === "course"}
+                        />
+                    </View>
+                </View>
+                {/* Content */}
+                {selectedTab === "info" && (
+                    <Info
+                        setModalType={setModalType}
+                        modalRef={bottomSheetRef}
+                        scrollViewRef={scrollViewRef}
+                    />
+                )}
+                {selectedTab === "course" && (
+                    <CourseSection
+                        selectedCourse={selectedCourse}
+                        setSelectedCourse={setSelectedCourse}
+                    />
+                )}
+            </SafeAreaView>
+            <TabBar />
+            <BottomModal
+                bottomSheetRef={bottomSheetRef}
+                canClose={true}
+                handleStyle={styles.handle}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <AlertIcon color={colors.red} />
+                        <View style={styles.modalText}>
+                            <Typography variant="headline" color="white">
+                                {modalType === "logout"
+                                    ? "로그아웃 하시겠습니까?"
+                                    : "회원 탈퇴하시겠습니까?"}
+                            </Typography>
+                            <Typography variant="body3" color="gray40">
+                                {modalType === "logout"
+                                    ? "간편 로그인을 통해 다시 로그인할 수 있습니다"
+                                    : "활동 내역 및 저장된 정보는 삭제되며 복구할 수 없습니다"}
+                            </Typography>
+                        </View>
+                    </View>
+                    <ButtonWithIcon
+                        iconType="home"
+                        onPress={() => onPressSignButton(modalType)}
+                        onPressIcon={() => {
+                            router.replace("/");
+                        }}
+                        title={
+                            modalType === "logout" ? "로그아웃" : "회원 탈퇴"
+                        }
+                    />
+                </View>
+            </BottomModal>
+            <ActionButtonGroup
+                initialState="single"
+                onSecondaryPress={() => {
+                    if (selectedCourse && selectedTab === "course") {
+                        router.push(`/run/${selectedCourse?.id}/-1`);
+                    } else {
+                        router.push("/run/solo");
+                    }
+                }}
+                secondaryButtonText={
+                    selectedCourse && selectedTab === "course"
+                        ? "이 코스로 러닝 시작"
+                        : "러닝 시작"
+                }
+            />
+            {selectedTab === "info" && (
+                <ScrollButton
+                    onPress={() => {
+                        scrollViewRef.current?.scrollTo({
+                            y: 0,
+                            animated: true,
+                        });
+                    }}
+                />
+            )}
+
+            {/* {selectedTab === "course" && selectedCourse && (
+                <SlideToAction
+                    label="이 코스로 러닝 시작"
+                    onSlideSuccess={() => {
+                        router.push(`/run/${selectedCourse.id}/-1`);
+                    }}
+                    color="green"
+                    direction="left"
+                />
+            )} */}
+        </View>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#111111",
+    },
+    safeAreaView: {
+        flex: 1,
+        backgroundColor: "#111111",
+        marginBottom: 83,
+    },
+    header: {
+        marginTop: 10,
+        flexDirection: "row",
+    },
+    handle: {
+        paddingTop: 10,
+        paddingBottom: 30,
+    },
+    modalContainer: {
+        gap: 30,
+    },
+    modalContent: {
+        gap: 15,
+        alignItems: "center",
+        marginBottom: 30,
+    },
+    modalText: {
+        gap: 4,
+        alignItems: "center",
+    },
+});

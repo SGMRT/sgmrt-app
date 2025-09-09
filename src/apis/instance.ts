@@ -1,0 +1,129 @@
+import * as Sentry from "@sentry/react-native";
+import axios from "axios";
+import { useAuthStore } from "../store/authState";
+
+declare module "axios" {
+    interface AxiosRequestConfig {
+        canRetry?: boolean;
+        retryCount?: number;
+        withAuth?: boolean;
+    }
+}
+
+const server = axios.create({
+    baseURL: process.env.EXPO_PUBLIC_API_URL + "/v1/",
+    headers: {
+        "Content-Type": "application/json",
+    },
+    timeout: 30000,
+    canRetry: true,
+});
+
+server.interceptors.request.use((config) => {
+    if (config.canRetry === undefined) {
+        config.canRetry = true;
+    }
+    if (config.retryCount === undefined) {
+        config.retryCount = 0;
+    }
+    if (config.withAuth === undefined) {
+        config.withAuth = true;
+    }
+    const { accessToken } = useAuthStore.getState();
+    if (accessToken && config.withAuth) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    // FormData 전송 시에는 Axios가 boundary를 포함한 헤더를 설정할 수 있도록 강제로 제거
+    if (
+        typeof FormData !== "undefined" &&
+        config.data instanceof FormData &&
+        config.headers["Content-Type"]
+    ) {
+        delete config.headers["Content-Type"];
+    }
+    // 그 외에는 기본값을 JSON으로 설정
+    if (
+        !(typeof FormData !== "undefined" && config.data instanceof FormData) &&
+        config.headers["Content-Type"] === undefined
+    ) {
+        config.headers["Content-Type"] = "application/json";
+    }
+    return config;
+});
+
+server.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    async (error) => {
+        if (
+            error.response.status === 401 &&
+            error.config.canRetry &&
+            error.config.retryCount < 3
+        ) {
+            if (error.config.retryCount === 0) {
+                return await server
+                    .post(
+                        `auth/reissue`,
+                        {},
+                        {
+                            headers: {
+                                Authorization: `Bearer ${
+                                    useAuthStore.getState().refreshToken
+                                }`,
+                            },
+                            canRetry: false,
+                            withAuth: false,
+                        }
+                    )
+                    .then((res) => {
+                        const { uuid, accessToken, refreshToken } = res.data;
+                        useAuthStore
+                            .getState()
+                            .login(uuid, accessToken, refreshToken);
+                        error.config.retryCount = error.config.retryCount + 1;
+                        error.config.withAuth = false;
+                        error.config.headers = {
+                            Authorization: `Bearer ${accessToken}`,
+                        };
+                        return server.request(error.config);
+                    });
+            }
+        } else if (error.response.status === 401) {
+            useAuthStore.getState().logout();
+            return Promise.reject(error);
+        }
+
+        console.log(error.response.data);
+
+        Sentry.withScope((scope: Sentry.Scope) => {
+            scope.setTags({
+                api: error.config?.url,
+                "api.request.headers.Authorization":
+                    error.config?.headers.Authorization || "",
+                "api.request.method": error.config?.method?.toUpperCase(),
+                "api.request.url": error.config?.url,
+                "api.request.params": error.config?.params,
+                "api.response.status": (
+                    error.response?.status || ""
+                ).toString(),
+                "api.response.data.code": error.response?.data.code,
+                "api.response.data.message": error.response?.data.message,
+                "api.response.data.fieldErrorInfos":
+                    error.response?.data.fieldErrorInfos,
+            });
+            error.message =
+                "[" +
+                error.response?.data.code +
+                "] " +
+                error.response?.data.message;
+            Sentry.captureException(error, {
+                fingerprint: [error.response?.data.message],
+            });
+        });
+
+        return Promise.reject(error);
+    }
+);
+
+export default server;
