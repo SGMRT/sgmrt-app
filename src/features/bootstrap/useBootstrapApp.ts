@@ -97,7 +97,9 @@ async function initAds() {
             maxAdContentRating: MaxAdContentRating.T,
             tagForChildDirectedTreatment: false,
             tagForUnderAgeOfConsent: false,
-            testDeviceIdentifiers: __DEV__ ? ["EMULATOR"] : [],
+            testDeviceIdentifiers: __DEV__
+                ? ["EMULATOR", testDeviceId]
+                : [testDeviceId],
         });
 
         await mobileAds().initialize();
