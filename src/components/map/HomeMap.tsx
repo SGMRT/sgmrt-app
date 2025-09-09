@@ -32,8 +32,12 @@ interface HomeMapProps {
 
 const ZOOM_THRESHOLD = 14.5;
 const CAMERA_LATITUDE_OFFSET = -0.0003;
-const BOTTOM_BAR_HEIGHT = 82;
-const CONTROL_PANEL_OFFSET = 64;
+const BOTTOM_BAR_HEIGHT = 104;
+const TAB_BAR_HEIGHT = 82;
+
+const CONTROL_PANEL_HEIGHT = 48;
+const MARGIN_BOTTOM = 16;
+const CONTROL_PANEL_OFFSET = CONTROL_PANEL_HEIGHT + MARGIN_BOTTOM;
 
 export default function HomeMap({
     courseType,
@@ -217,8 +221,8 @@ export default function HomeMap({
                 controlPannelPosition={controlPannelPosition}
                 onRegionDidChange={onRegionDidChange}
                 cameraRef={cameraRef}
-                logoPosition={{ bottom: 90, left: 10 }}
-                attributionPosition={{ bottom: 88, right: 0 }}
+                logoPosition={{ bottom: TAB_BAR_HEIGHT + 8, left: 10 }}
+                attributionPosition={{ bottom: TAB_BAR_HEIGHT + 6, right: 0 }}
             >
                 {/* active Course가 가장 먼저 표시되도록 정렬 */}
                 {sortedCourses.map((course) => (

@@ -3,6 +3,8 @@ import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { Platform, StyleSheet, View, ViewStyle } from "react-native";
 import {
+    AdsConsent,
+    AdsConsentStatus,
     NativeAd,
     NativeAdChoicesPlacement,
     NativeAdView,
@@ -31,23 +33,29 @@ export default function CompactNativeAdRow({ style }: Props) {
 
         if (!AD_UNIT_ID) return;
 
-        NativeAd.createForAdRequest(AD_UNIT_ID, {
-            aspectRatio: NativeMediaAspectRatio.LANDSCAPE,
-            adChoicesPlacement: NativeAdChoicesPlacement.TOP_RIGHT,
-            startVideoMuted: true,
-        })
-            .then((a) => {
-                if (!active) {
-                    a.destroy?.();
-                    return;
-                }
-                creactedAd = a;
-                setAd(a);
+        AdsConsent.getConsentInfo().then((info) => {
+            const npa = info.status !== AdsConsentStatus.OBTAINED;
+
+            NativeAd.createForAdRequest(AD_UNIT_ID, {
+                aspectRatio: NativeMediaAspectRatio.LANDSCAPE,
+                adChoicesPlacement: NativeAdChoicesPlacement.TOP_RIGHT,
+                startVideoMuted: true,
+                requestNonPersonalizedAdsOnly: npa,
             })
-            .catch((e) => {
-                if (!active) return;
-                console.error(e);
-            });
+                .then((a) => {
+                    if (!active) {
+                        a.destroy?.();
+                        return;
+                    }
+                    creactedAd = a;
+                    setAd(a);
+                })
+                .catch((e) => {
+                    if (!active) return;
+                    console.error(e);
+                });
+        });
+
         return () => {
             active = false;
             creactedAd?.destroy?.();

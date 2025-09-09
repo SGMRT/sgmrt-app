@@ -2,7 +2,7 @@ import { NativeModule, requireNativeModule } from "expo";
 import { ExpoLiveActivityModuleEvents, MessageType, RunType } from "./types";
 
 declare class ExpoLiveActivityModule extends NativeModule<ExpoLiveActivityModuleEvents> {
-    hasActiveAcitivites(): boolean;
+    hasActiveActivities(): boolean;
     isActivityInProgress(): boolean;
     startActivity(
         runType: RunType,
