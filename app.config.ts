@@ -2,7 +2,7 @@ const isStaging = process.env.EAS_BUILD_PROFILE === "staging";
 
 const config = {
     expo: {
-        name: isStaging ? "GhostRunner (Staging)" : "GhostRunner",
+        name: "ghostrunner",
         slug: "ghostrunner",
         version: "1.0.0",
         orientation: "portrait",
@@ -37,7 +37,7 @@ const config = {
                 process.env.GOOGLE_SERVICES_INFO ||
                 "./GoogleService-Info.plist",
             usesAppleSignIn: true,
-            appleTeamId: "5J98U9WUGW",
+            appleTeamId: "365VK6PJ7V",
             entitlements: {
                 "com.apple.security.application-groups": [
                     "group.com.sgmrt.ghostrunner",

@@ -6,11 +6,13 @@
     "build": {
         "production": {
             "channel": "production",
-            "autoIncrement": true
+            "autoIncrement": true,
+            "environment": "production"
         },
         "staging": {
             "channel": "staging",
-            "autoIncrement": true
+            "autoIncrement": true,
+            "environment": "production"
         },
         "preview": {
             "channel": "preview",
