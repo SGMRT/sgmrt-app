@@ -11,7 +11,6 @@ import {
     NativeAsset,
     NativeAssetType,
     NativeMediaAspectRatio,
-    RequestOptions,
     TestIds,
 } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,7 +25,6 @@ const AD_UNIT_ID = __DEV__
 
 export default function CompactNativeAdRow({ style }: Props) {
     const [ad, setAd] = useState<NativeAd | null>(null);
-    const [options, setOptions] = useState<RequestOptions | null>(null);
     const { bottom } = useSafeAreaInsets();
 
     useEffect(() => {
