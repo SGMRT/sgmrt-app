@@ -1,10 +1,14 @@
+const isStaging = process.env.EAS_BUILD_PROFILE === "staging";
+
 const config = {
     expo: {
-        name: "ghostrunner",
+        name: isStaging ? "GhostRunner (Staging)" : "GhostRunner",
         slug: "ghostrunner",
         version: "1.0.0",
         orientation: "portrait",
-        icon: "./assets/images/icon.png",
+        icon: isStaging
+            ? "./assets/images/icon-staging.png"
+            : "./assets/images/icon.png",
         scheme: "ghostrunner",
         userInterfaceStyle: "automatic",
         newArchEnabled: true,

@@ -19,6 +19,13 @@ import PushNotificationGate from "../features/notifications/PushNotificationGate
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
 
+const env =
+    process.env.NODE_ENV === "development"
+        ? "DEVELOPMENT"
+        : process.env.EAS_BUILD_PROFILE === "production"
+        ? "PRODUCTION"
+        : "STAGING";
+
 SplashScreen.preventAutoHideAsync();
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
@@ -29,7 +36,7 @@ amplitude.init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || "", undefined, {
 Sentry.init({
     dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
     sendDefaultPii: true,
-    environment: process.env.NODE_ENV,
+    environment: env,
     tracesSampleRate: 1.0,
 });
 
