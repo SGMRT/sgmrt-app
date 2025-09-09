@@ -5,10 +5,12 @@
     },
     "build": {
         "production": {
-            "channel": "production"
+            "channel": "production",
+            "autoIncrement": true
         },
         "staging": {
-            "channel": "staging"
+            "channel": "staging",
+            "autoIncrement": true
         },
         "preview": {
             "channel": "preview",
