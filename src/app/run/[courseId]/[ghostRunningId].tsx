@@ -22,6 +22,7 @@ import {
 } from "@/src/features/run/state/selectors";
 import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
+import { useMetronome } from "@/src/features/voice/useMetronome";
 import { useRunVoice } from "@/src/features/voice/useRunVoice";
 import colors from "@/src/theme/colors";
 import {
@@ -86,6 +87,27 @@ export default function Run() {
         timestamp: context.stats.totalTimeMs,
         controls,
     });
+
+    // const metronome = useMetronome();
+
+    // useEffect(() => {
+    //     if (context.variant !== "GHOST") return;
+    //     if (context.status !== "RUNNING") {
+    //         metronome.stop();
+    //     } else {
+    //         if (!metronome.running) {
+    //             metronome.start();
+    //         } else {
+    //             if (Math.abs(ghostCoordinator?.deltaM ?? 0) < 10) {
+    //                 metronome.setBpm(120);
+    //             } else {
+    //                 metronome.setBpm(
+    //                     120 + Math.abs(ghostCoordinator?.deltaM ?? 0) - 10
+    //                 );
+    //             }
+    //         }
+    //     }
+    // }, [context.status, metronome, context.variant, ghostCoordinator?.deltaM]);
 
     const hasSavedRef = useRef<boolean>(false);
 

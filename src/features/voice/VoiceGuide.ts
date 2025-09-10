@@ -2,7 +2,6 @@ import { useAuthStore } from "@/src/store/authState";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as Sentry from "@sentry/react-native";
 import * as Speech from "expo-speech";
-import { initAudioModule } from "../bootstrap/useBootstrapApp";
 export type VoicePriority = "CRITICAL" | "HIGH" | "NORMAL" | "LOW";
 
 export type VoiceEvent =
@@ -86,6 +85,7 @@ class VoiceGuide {
     }
 
     announce(event: VoiceEvent) {
+        console.log("announce", event);
         if (
             !this.enabled &&
             !useAuthStore.getState().userSettings?.voiceGuidanceEnabled
@@ -141,21 +141,26 @@ class VoiceGuide {
     }
 
     private async trySpeakNext() {
+        console.log("trySpeakNext", this.speaking, this.queue.length);
         if (this.speaking || this.queue.length === 0) return;
         const next = this.queue.shift()!;
         this.speaking = true;
-        await initAudioModule();
+        console.log("speak", next.text);
         Speech.speak(next.text, {
             language: this.lang,
             rate: this.rate,
             onDone: () => {
+                console.log("done", next.text);
                 this.speaking = false;
                 this.trySpeakNext();
             },
             onStopped: () => {
+                console.log("stopped", next.text);
                 this.speaking = false;
+                this.trySpeakNext();
             },
             onError: (error) => {
+                console.log("error", next.text, error);
                 Sentry.captureException(error, {
                     extra: {
                         text: next.text,

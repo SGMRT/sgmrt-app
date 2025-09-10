@@ -2,7 +2,7 @@ import { Telemetry } from "@/src/apis/types/run";
 import { Segment } from "@/src/components/map/RunningLine";
 import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Toast from "react-native-toast-message";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { voiceGuide } from "../../voice/VoiceGuide";
@@ -43,9 +43,13 @@ export function useGhostCoordinator(
 ): GhostCompareResult | null {
     const { legs, ghostTelemetry, myPoint, myLegIndex, timestamp, controls } =
         props;
+
     const ghostLegIndexRef = useRef(0);
     const prevTimestampRef = useRef<number | null>(null);
+
+    // 리더 변경 감지용
     const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
+    const lastAnnounceAtRef = useRef<number>(0); // 스팸 방지 (ms)
 
     const ghostPoint = findClosest(
         ghostTelemetry,
@@ -62,7 +66,8 @@ export function useGhostCoordinator(
         );
     }, [ghostTelemetry, ghostPoint]);
 
-    return useMemo(() => {
+    // 1) 순수 계산만 수행 (사이드이펙트 금지)
+    const result = useMemo<GhostCompareResult | null>(() => {
         if (
             !legs.length ||
             myPoint == null ||
@@ -76,7 +81,6 @@ export function useGhostCoordinator(
             prevTimestampRef.current === timestamp
         )
             return null;
-
         prevTimestampRef.current = timestamp;
 
         const myProgressM = progressAlongCourseM(legs, myLegIndex, myPoint);
@@ -103,7 +107,7 @@ export function useGhostCoordinator(
             .sort((a, b) => a.perp - b.perp || a.remainM - b.remainM);
 
         let best = scored[0];
-        if (!Number.isFinite(best.perp) || best.perp > 1000 /* 비정상치 */) {
+        if (!Number.isFinite(best.perp) || best.perp > 1000) {
             const all = legs
                 .map((leg) => {
                     const perp = nearestDistanceToPolylineM(
@@ -127,39 +131,8 @@ export function useGhostCoordinator(
         );
 
         const deltaM = Math.round(ghostProgressM - myProgressM);
-        const leader =
+        const leader: "ME" | "GHOST" | "TIED" =
             Math.abs(deltaM) < 5 ? "TIED" : deltaM > 0 ? "GHOST" : "ME";
-
-        if (leader !== prevLeaderRef.current && leader !== "TIED") {
-            prevLeaderRef.current = leader;
-
-            if (leader === "ME" || leader === "GHOST") {
-                const text =
-                    leader === "ME"
-                        ? "고스트를 추월하였습니다. 거리 차이는 " +
-                          Math.abs(deltaM) +
-                          " 미터 입니다."
-                        : "고스트가 앞서고 있습니다. 거리 차이는 " +
-                          Math.abs(deltaM) +
-                          " 미터 입니다.";
-                controls.setLiveActivityMessage(text, "INFO");
-                voiceGuide.announce({
-                    type: "run/ghost-change-leader",
-                    leader,
-                    deltaM: Math.abs(deltaM),
-                });
-                Toast.show({
-                    text1:
-                        leader === "ME"
-                            ? "고스트를 추월하였습니다"
-                            : "고스트가 앞서고 있습니다",
-                    type: "info",
-                    position: "bottom",
-                    bottomOffset: 60,
-                    visibilityTime: 3000,
-                });
-            }
-        }
 
         const ghostStat = {
             distance: ghostPoint.dist,
@@ -168,8 +141,8 @@ export function useGhostCoordinator(
         };
 
         return {
-            ghostPoint: ghostPoint,
-            ghostSegments: ghostSegments,
+            ghostPoint,
+            ghostSegments,
             ghostStats: ghostStat,
             myProgressM,
             ghostProgressM,
@@ -186,6 +159,51 @@ export function useGhostCoordinator(
         ghostPoint,
         timestamp,
         ghostTelemetry.length,
-        controls,
     ]);
+
+    // 2) 리더 변경 시 렌더 이후에 사이드이펙트 실행
+    useEffect(() => {
+        if (!result) return;
+
+        const nowMs = Date.now();
+        const leader = result.leader;
+        const prev = prevLeaderRef.current;
+
+        // 리더가 바뀌고 TIED가 아닐 때만, 2초 쿨다운
+        if (
+            leader !== "TIED" &&
+            leader !== prev &&
+            nowMs - lastAnnounceAtRef.current > 2000
+        ) {
+            prevLeaderRef.current = leader;
+            lastAnnounceAtRef.current = nowMs;
+
+            const absDelta = Math.abs(result.deltaM);
+            const text =
+                leader === "ME"
+                    ? `고스트를 추월하였습니다. 거리 차이는 ${absDelta} 미터 입니다.`
+                    : `고스트가 앞서고 있습니다. 거리 차이는 ${absDelta} 미터 입니다.`;
+
+            // 모든 사이드이펙트를 렌더 이후로
+            // (필요 시 requestAnimationFrame으로 한 프레임 더 미룸)
+            controls.setLiveActivityMessage(text, "INFO");
+            voiceGuide.announce({
+                type: "run/ghost-change-leader",
+                leader,
+                deltaM: absDelta,
+            });
+            Toast.show({
+                text1:
+                    leader === "ME"
+                        ? "고스트를 추월하였습니다"
+                        : "고스트가 앞서고 있습니다",
+                type: "info",
+                position: "bottom",
+                bottomOffset: 60,
+                visibilityTime: 3000,
+            });
+        }
+    }, [result, controls]);
+
+    return result;
 }
