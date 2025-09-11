@@ -1,4 +1,4 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
+import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import {
     StyleProp,
@@ -18,6 +18,7 @@ interface SectionProps {
     titleColor?: TypographyColor;
     titleRightChildren?: React.ReactNode;
     shortcutTitle?: string;
+    onClickInfo?: () => void;
     onPress?: () => void;
 }
 
@@ -29,6 +30,7 @@ export default function Section({
     titleColor = "gray40",
     titleRightChildren,
     shortcutTitle,
+    onClickInfo,
     onPress,
 }: SectionProps) {
     return (
@@ -36,9 +38,16 @@ export default function Section({
             {title && (
                 <View style={styles.titleContainer}>
                     <View style={styles.title}>
-                        <Typography variant="subhead1" color={titleColor}>
-                            {title}
-                        </Typography>
+                        <View style={styles.titleLeft}>
+                            <Typography variant="subhead1" color={titleColor}>
+                                {title}
+                            </Typography>
+                            {onClickInfo && (
+                                <TouchableOpacity onPress={onClickInfo}>
+                                    <InfoIcon />
+                                </TouchableOpacity>
+                            )}
+                        </View>
                         {titleRightChildren}
                         {shortcutTitle && (
                             <TouchableOpacity
@@ -75,6 +84,11 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+    },
+    titleLeft: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
     },
     shortcutTitle: {
         flexDirection: "row",

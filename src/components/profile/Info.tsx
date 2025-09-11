@@ -20,7 +20,6 @@ import {
     Image,
     RefreshControl,
     ScrollView,
-    Switch,
     TouchableOpacity,
     View,
 } from "react-native";
@@ -28,6 +27,7 @@ import Toast from "react-native-toast-message";
 import { ProfileNoticeSection } from "../notice/ui/ProfileNoticeSection";
 import { Divider } from "../ui/Divider";
 import { StyledButton } from "../ui/StyledButton";
+import { StyledSwitch } from "../ui/StyledSwitch";
 import { Typography, TypographyColor } from "../ui/Typography";
 
 export const Info = ({
@@ -323,30 +323,6 @@ const ProfileOptionItem = ({
                 {rightElement}
             </View>
         </TouchableOpacity>
-    );
-};
-
-const StyledSwitch = ({
-    isSelected,
-    onValueChange,
-}: {
-    isSelected: boolean;
-    onValueChange: (value: boolean) => void;
-}) => {
-    return (
-        <Switch
-            trackColor={{
-                false: colors.gray[40],
-                true: colors.primary,
-            }}
-            thumbColor={colors.white}
-            ios_backgroundColor={colors.gray[40]}
-            style={{
-                transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
-            }}
-            value={isSelected}
-            onValueChange={onValueChange}
-        />
     );
 };
 

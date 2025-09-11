@@ -1,20 +1,23 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
-import { getCourse, getCourseTopRanking } from "@/src/apis";
+import { DefaultProfileIcon } from "@/assets/icons/icons";
+import { ChevronIcon, GhostIcon } from "@/assets/svgs/svgs";
+import { getCourse } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
-import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import Toast from "react-native-toast-message";
 import StyledChart from "../../chart/StyledChart";
-import ButtonWithIcon from "../../ui/ButtonWithMap";
+import { Button } from "../../ui/Button";
 import { Divider } from "../../ui/Divider";
 import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
 import StatRow, { Stat } from "../../ui/StatRow";
+import { StyledSwitch } from "../../ui/StyledSwitch";
 import { Typography, TypographyColor } from "../../ui/Typography";
 import UserStatItem from "./UserStatItem";
 
@@ -27,30 +30,20 @@ export default function BottomCourseInfoModal({
     bottomSheetRef,
     courseId,
 }: BottomCourseInfoModalProps) {
-    const [tab, setTab] = useState<"course" | "ghost">("course");
-
-    const { data: ghostList } = useQuery<HistoryResponse[]>({
-        queryKey: ["course-top-ranking", courseId],
-        queryFn: () => getCourseTopRanking({ courseId: courseId, count: 3 }),
-        enabled: courseId !== -1,
+    const [ghost, setGhost] = useState({
+        id: 1,
+        profileUrl: "",
+        time: 10000,
+        pace: 1000,
+        cadence: 100,
     });
+    const [ghostSelected, setGhostSelected] = useState(true);
 
     const { data: course } = useQuery<CourseDetailResponse>({
         queryKey: ["course", courseId],
         queryFn: () => getCourse(courseId),
         enabled: courseId !== -1,
     });
-
-    const [selectedGhostId, setSelectedGhostId] = useState<number | null>(null);
-
-    const { uuid } = useAuthStore();
-
-    useEffect(() => {
-        console.log("course: ", courseId);
-        if (ghostList && ghostList.length > 0) {
-            setSelectedGhostId(ghostList[0].runningId);
-        }
-    }, [ghostList, courseId]);
 
     const courseStats = [
         {
@@ -59,7 +52,7 @@ export default function BottomCourseInfoModal({
             unit: "km",
         },
         {
-            description: "평균 고도",
+            description: "고도",
             value: course?.elevationAverage.toString() ?? "--",
             unit: "m",
         },
@@ -76,88 +69,145 @@ export default function BottomCourseInfoModal({
     ];
 
     const ghostStats = [
+        { description: "시간", value: getRunTime(ghost.time, "HH:MM:SS") },
         {
-            description: "시간",
-            value: getRunTime(course?.averageCompletionTime ?? 0, "HH:MM:SS"),
-            unit: "",
+            description: "페이스",
+            value: getFormattedPace(ghost.pace),
         },
         {
             description: "케이던스",
-            value: course?.averageFinisherCadence ?? "--",
+            value: ghost.cadence,
             unit: "spm",
-        },
-        {
-            description: "칼로리",
-            value: course?.averageCaloriesBurned ?? "--",
-            unit: "kcal",
-        },
-        {
-            description: "페이스",
-            value: getFormattedPace(course?.averageFinisherPace ?? 0),
-            unit: "",
         },
     ];
 
     const router = useRouter();
 
-    const dummyData = Array.from({ length: 12 }, (_, i) => ({
-        dist: i,
-        alt: Math.sin(i / 10) * 100,
-    }));
-
-    const onClickGhostRank = () => {
-        bottomSheetRef.current?.dismiss();
-        router.push(`/course/${courseId}/rank`);
-    };
-
     return (
-        <>
-            <TabHeader tab={tab} setTab={setTab} />
-            {tab === "course" && (
-                <CourseInfoSection
-                    courseName={course?.name ?? ""}
-                    stats={courseStats}
-                    dummyData={dummyData}
-                    onPress={() => setTab("ghost")}
-                />
-            )}
-            {tab === "ghost" && (
-                <GhostInfoSection
-                    stats={ghostStats}
-                    uuid={uuid}
-                    ghostList={ghostList ?? []}
-                    selectedGhostId={selectedGhostId ?? -1}
-                    setSelectedGhostId={setSelectedGhostId}
-                    onPress={onClickGhostRank}
-                />
-            )}
-            <ButtonWithIcon
-                iconType="map"
-                onPressIcon={() => {
-                    bottomSheetRef.current?.dismiss();
-                }}
-                type="active"
-                title={
-                    tab === "course"
-                        ? "이 코스로 러닝 시작"
-                        : "고스트와 러닝 시작"
-                }
+        <View>
+            <CourseInfoSection
+                courseName={course?.name ?? ""}
+                stats={courseStats}
                 onPress={() => {
                     bottomSheetRef.current?.dismiss();
-                    if (
-                        tab === "course" ||
-                        !selectedGhostId ||
-                        selectedGhostId === -1
-                    ) {
-                        router.push(`/run/${course?.id}/-1`);
+                    router.push(`/course/${courseId}/detail`);
+                }}
+            />
+            <View style={{ height: ghost ? 20 : 30 }} />
+            <GhostSection
+                ghost={ghost}
+                ghostSelected={ghostSelected}
+                onSwitchChange={setGhostSelected}
+                ghostStats={ghostStats}
+            />
+            <Button
+                style={{
+                    marginTop: 12,
+                    marginHorizontal: 16.5,
+                }}
+                type="active"
+                title={ghostSelected ? "고스트 러닝" : "코스 러닝"}
+                onPress={() => {
+                    bottomSheetRef.current?.dismiss();
+                    if (ghostSelected && ghost && ghost.id === -1) {
+                        router.push(`/run/${course?.id}/${ghost.id}`);
                     } else {
-                        router.push(`/run/${course?.id}/${selectedGhostId}`);
+                        router.push(`/run/${course?.id}/-1`);
                     }
                 }}
             />
-        </>
+        </View>
     );
 }
+
+const GhostSection = ({
+    ghost,
+    ghostSelected,
+    onSwitchChange,
+    ghostStats,
+}: {
+    ghost: any;
+    ghostSelected: boolean;
+    onSwitchChange: (value: boolean) => void;
+    ghostStats: Stat[];
+}) => {
+    return (
+        <Section
+            title="내 고스트"
+            titleColor="white"
+            containerStyle={styles.ghostInfoSection}
+            onClickInfo={() => {
+                Toast.show({
+                    type: "info",
+                    text1: "내 고스트는 현재 지원하지 않아요.",
+                    position: "bottom",
+                    bottomOffset: 60,
+                });
+            }}
+            titleRightChildren={
+                <StyledSwitch
+                    isSelected={ghostSelected}
+                    onValueChange={(value) => {
+                        onSwitchChange(value);
+                    }}
+                />
+            }
+        >
+            <View style={styles.ghostRow}>
+                <View style={styles.ghostAvatarContainer}>
+                    <Image
+                        source={
+                            ghost.profileUrl
+                                ? { uri: ghost.profileUrl }
+                                : DefaultProfileIcon
+                        }
+                        style={styles.ghostAvatar}
+                    />
+                    <GhostIcon style={styles.ghostIcon} />
+                </View>
+                <Divider direction="vertical" />
+                <StatRow
+                    stats={ghostStats}
+                    color="gray20"
+                    style={styles.ghostStats}
+                />
+            </View>
+        </Section>
+    );
+};
+
+const styles = StyleSheet.create({
+    ghostInfoSection: {
+        marginBottom: 30,
+        marginHorizontal: 16.5,
+    },
+    ghostRow: {
+        paddingVertical: 10,
+        paddingLeft: 14,
+        width: "100%",
+        backgroundColor: "#222222",
+        borderRadius: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 14,
+    },
+    ghostAvatarContainer: {
+        position: "relative",
+    },
+    ghostAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 100,
+    },
+    ghostIcon: {
+        position: "absolute",
+        bottom: 0,
+        right: 0,
+    },
+    ghostStats: {
+        gap: 14,
+    },
+});
 
 export const GhostInfoSection = ({
     stats,
@@ -249,18 +299,17 @@ export const GhostInfoSection = ({
 const CourseInfoSection = ({
     courseName,
     stats,
-    dummyData,
+    data = null,
     onPress,
 }: {
     courseName: string;
     stats: Stat[];
-    dummyData: any[];
+    data?: any[] | null;
     onPress: () => void;
 }) => {
     return (
         <View
             style={{
-                marginBottom: 30,
                 marginHorizontal: 16.5,
             }}
         >
@@ -288,9 +337,9 @@ const CourseInfoSection = ({
                             onPress={onPress}
                         >
                             <Typography variant="caption1" color="gray40">
-                                고스트 선택
+                                코스 상세
                             </Typography>
-                            <ChevronIcon />
+                            <ChevronIcon color={colors.gray[40]} />
                         </Pressable>
                     </View>
                     <Divider direction="horizontal" color={colors.gray[40]} />
@@ -302,55 +351,15 @@ const CourseInfoSection = ({
                         justifyContent: "space-between",
                     }}
                 />
-                <StyledChart
-                    label="고도"
-                    data={dummyData}
-                    xKey="dist"
-                    yKeys={["alt"]}
-                />
+                {data && (
+                    <StyledChart
+                        label="고도"
+                        data={data}
+                        xKey="dist"
+                        yKeys={["alt"]}
+                    />
+                )}
             </Section>
         </View>
     );
 };
-
-const TabHeader = ({
-    tab,
-    setTab,
-}: {
-    tab: "course" | "ghost";
-    setTab: (tab: "course" | "ghost") => void;
-}) => {
-    return (
-        <View style={styles.tabContainer}>
-            <Pressable onPress={() => setTab("course")} style={styles.tab}>
-                <Typography
-                    variant="subhead2"
-                    color={tab === "course" ? "white" : "gray60"}
-                >
-                    코스 상세 정보
-                </Typography>
-            </Pressable>
-            <Divider />
-            <Pressable onPress={() => setTab("ghost")} style={styles.tab}>
-                <Typography
-                    variant="subhead2"
-                    color={tab === "ghost" ? "white" : "gray60"}
-                >
-                    고스트 선택
-                </Typography>
-            </Pressable>
-        </View>
-    );
-};
-
-const styles = StyleSheet.create({
-    tabContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 30,
-    },
-    tab: {
-        flex: 1,
-        alignItems: "center",
-    },
-});

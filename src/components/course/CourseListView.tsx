@@ -19,7 +19,6 @@ import { UserCount } from "../ui/UserCount";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
-    courseType: "all" | "my";
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     selectedCourse: CourseResponse | null;
     onClickCourse: (course: CourseResponse) => void;
@@ -28,7 +27,6 @@ interface CourseListViewProps {
 
 const CourseListView = ({
     courses,
-    courseType,
     bottomSheetRef,
     selectedCourse,
     onClickCourse,
@@ -130,7 +128,6 @@ const CourseListView = ({
         <View>
             <View style={{ marginHorizontal: 16.5 }}>
                 <Section
-                    title={courseType === "all" ? "고스트 코스" : "내 코스"}
                     titleColor="white"
                     style={{
                         maxHeight: Dimensions.get("window").height - 500,

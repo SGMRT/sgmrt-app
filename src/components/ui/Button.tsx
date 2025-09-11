@@ -1,5 +1,11 @@
 import colors from "@/src/theme/colors";
-import { Pressable, PressableProps, StyleSheet } from "react-native";
+import {
+    Pressable,
+    PressableProps,
+    StyleProp,
+    StyleSheet,
+    ViewStyle,
+} from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "./Typography";
 
 type ButtonType =
@@ -17,6 +23,7 @@ export interface ButtonProps extends PressableProps {
     variant?: TypographyVariant;
     customColor?: TypographyColor;
     customBackgroundColor?: string;
+    style?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
 
@@ -27,6 +34,7 @@ export const Button = ({
     customColor,
     icon,
     customBackgroundColor,
+    style,
     ...props
 }: ButtonProps) => {
     const resolvedType: ButtonType =
@@ -40,7 +48,7 @@ export const Button = ({
     });
 
     return (
-        <Pressable {...props} style={[styles.base, { backgroundColor }]}>
+        <Pressable {...props} style={[styles.base, { backgroundColor }, style]}>
             {icon}
             <Typography variant={variant} color={textColor as TypographyColor}>
                 {title}
