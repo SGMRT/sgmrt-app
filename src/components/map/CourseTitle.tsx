@@ -1,6 +1,8 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import { Typography } from "@/src/components/ui/Typography";
+import colors from "@/src/theme/colors";
 import { Image, Pressable, StyleSheet, View } from "react-native";
 
 interface CourseTitleProps {
@@ -20,12 +22,10 @@ export default function CourseTitle({
         <Pressable onPress={() => onClickCourse(course)}>
             <View style={styles.container}>
                 <View style={styles.titleContainer}>
-                    <Typography
-                        variant="subhead3"
-                        color={isActive ? "primary" : "white"}
-                    >
+                    <Typography variant="subhead3" color="white">
                         {course.name}
                     </Typography>
+                    <ChevronIcon color={colors.white} width={15} height={18} />
                 </View>
                 {zoomLevel > 14.5 && (
                     <View style={styles.topUsersContainer}>
@@ -71,11 +71,16 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     titleContainer: {
+        flexDirection: "row",
+        alignItems: "center",
         backgroundColor: "rgba(63, 63, 63, 0.8)",
-        height: 33,
+        height: 34,
         justifyContent: "center",
-        paddingHorizontal: 12,
-        borderRadius: 5,
+        borderRadius: 10,
+        boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
+        gap: 1,
+        paddingLeft: 12,
+        paddingRight: 7,
     },
     topUsersContainer: {
         flexDirection: "row",

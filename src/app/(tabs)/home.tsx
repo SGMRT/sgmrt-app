@@ -2,7 +2,6 @@ import { setTelemetryEnabled } from "@rnmapbox/maps";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 
 import HomeMap from "@/src/components/map/HomeMap";
-import HomeTopBar from "@/src/components/map/HomeTopFilter";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import BottomModal from "@/src/components/ui/BottomModal";
 import TabBar from "@/src/components/ui/TabBar";
@@ -50,14 +49,6 @@ export default function Home() {
         <View style={styles.container}>
             <TopBlurView>
                 <WeatherInfo />
-                <HomeTopBar
-                    type={type}
-                    setType={setType}
-                    onClickMenu={() => {
-                        setShowListView(true);
-                        mapBottomSheetRef.current?.present();
-                    }}
-                />
             </TopBlurView>
             <HomeMap
                 courseType={type}
