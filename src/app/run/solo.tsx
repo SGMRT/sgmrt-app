@@ -10,6 +10,7 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
+import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { buildUserRecordData } from "@/src/features/run/state/record";
@@ -19,7 +20,6 @@ import {
 } from "@/src/features/run/state/selectors";
 import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
-import { useRunVoice } from "@/src/features/voice/useRunVoice";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";

@@ -44,6 +44,7 @@ export const Info = ({
         useAuthStore();
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
+    const { logout } = useAuthStore();
 
     useEffect(() => {
         loadUserInfo();
@@ -67,7 +68,7 @@ export const Info = ({
                     {
                         text: "확인",
                         onPress: () => {
-                            router.replace("/");
+                            logout();
                         },
                     },
                 ]);

@@ -149,6 +149,7 @@ const config = {
                 },
             ],
             "expo-audio",
+            "react-native-audio-api",
             [
                 "react-native-share",
                 {

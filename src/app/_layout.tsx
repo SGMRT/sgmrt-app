@@ -83,11 +83,15 @@ function RootLayout() {
                             name="run"
                             options={{ gestureEnabled: false }}
                         />
+                        {/* <Stack.Screen name="test" /> */}
                     </Stack>
-                    {(pathname.includes("notice") ||
-                        pathname.includes("home") ||
-                        pathname.includes("stats") ||
-                        pathname.includes("profile")) && <CompactNativeAdRow />}
+                    {!pathname.includes("register") &&
+                        (pathname.includes("notice") ||
+                            pathname.includes("home") ||
+                            pathname.includes("stats") ||
+                            pathname.includes("profile")) && (
+                            <CompactNativeAdRow />
+                        )}
                     <Toast config={toastConfig} />
                 </BottomSheetModalProvider>
             </QueryClientProvider>

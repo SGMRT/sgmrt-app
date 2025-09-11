@@ -4,8 +4,8 @@ import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
 import { useMemo, useRef } from "react";
 import Toast from "react-native-toast-message";
+import { voiceGuide } from "../../audio/VoiceGuide";
 import { Controls } from "../../run/hooks/useRunningSession";
-import { voiceGuide } from "../../voice/VoiceGuide";
 import { CourseLeg } from "../types/courseLeg";
 import {
     nearestDistanceToPolylineM,
@@ -36,20 +36,28 @@ interface GhostCoordinatorProps {
     myLegIndex: number;
     timestamp: number; // 상대 시간 (0ms ~ )
     controls: Controls;
+    simulateSpeed?: number; // 배율
 }
 
 export function useGhostCoordinator(
     props: GhostCoordinatorProps
 ): GhostCompareResult | null {
-    const { legs, ghostTelemetry, myPoint, myLegIndex, timestamp, controls } =
-        props;
+    const {
+        legs,
+        ghostTelemetry,
+        myPoint,
+        myLegIndex,
+        timestamp,
+        controls,
+        simulateSpeed,
+    } = props;
     const ghostLegIndexRef = useRef(0);
     const prevTimestampRef = useRef<number | null>(null);
     const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
 
     const ghostPoint = findClosest(
         ghostTelemetry,
-        timestamp,
+        timestamp * (simulateSpeed ?? 1),
         (t) => t.timeStamp
     );
 
