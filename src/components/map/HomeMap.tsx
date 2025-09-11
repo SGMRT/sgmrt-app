@@ -185,6 +185,7 @@ export default function HomeMap({
                         activeCourseId={activeCourse?.id ?? -1}
                         onClickCourse={onClickCourseInfo}
                         zoomLevel={zoomLevel}
+                        logo
                     />
                 ))}
             </MapViewWrapper>

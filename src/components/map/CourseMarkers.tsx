@@ -9,6 +9,7 @@ interface CourseMarkersProps {
     activeCourseId: number;
     onClickCourse: (course: CourseResponse) => void;
     zoomLevel: number;
+    logo?: boolean;
 }
 
 export default function CourseMarkers({
@@ -16,6 +17,7 @@ export default function CourseMarkers({
     activeCourseId,
     onClickCourse,
     zoomLevel,
+    logo = false,
 }: CourseMarkersProps) {
     return (
         <View>
@@ -29,6 +31,7 @@ export default function CourseMarkers({
                     onClickCourse={onClickCourse}
                     isActive={activeCourseId === course.id}
                     zoomLevel={zoomLevel}
+                    logo={logo}
                 />
             </MarkerView>
             <CourseLayer
