@@ -2,12 +2,9 @@ import { DefaultLogo } from "@/assets/icons/icons";
 import { CourseResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getDistance } from "@/src/utils/mapUtils";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Dimensions, FlatList, Image, View } from "react-native";
-import ButtonWithIcon from "../ui/ButtonWithMap";
+import { FlatList, Image, View } from "react-native";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
@@ -19,7 +16,6 @@ import { UserCount } from "../ui/UserCount";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
-    bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     selectedCourse: CourseResponse | null;
     onClickCourse: (course: CourseResponse) => void;
     onClickCourseInfo: (course: CourseResponse) => void;
@@ -27,7 +23,6 @@ interface CourseListViewProps {
 
 const CourseListView = ({
     courses,
-    bottomSheetRef,
     selectedCourse,
     onClickCourse,
     onClickCourseInfo,
@@ -35,8 +30,6 @@ const CourseListView = ({
     const [editMode, setEditMode] = useState(false);
     const [filter, setFilter] = useState<"near" | "trend">("near");
     const [sortedCourses, setSortedCourses] = useState<CourseResponse[]>([]);
-
-    const router = useRouter();
 
     useEffect(() => {
         const sortCourses = async () => {
@@ -125,70 +118,43 @@ const CourseListView = ({
     }
 
     return (
-        <View>
-            <View style={{ marginHorizontal: 16.5 }}>
-                <Section
-                    titleColor="white"
-                    style={{
-                        maxHeight: Dimensions.get("window").height - 500,
-                    }}
-                    containerStyle={{
-                        borderBottomStartRadius: 0,
-                        borderBottomEndRadius: 0,
-                    }}
-                    titleRightChildren={
-                        <FilterButton
-                            onPress={onPressFilter}
-                            title={filter === "near" ? "가까운 순" : "인기 순"}
+        <View style={{ marginHorizontal: 16.5 }}>
+            <Section
+                titleColor="white"
+                titleRightChildren={
+                    <FilterButton
+                        onPress={onPressFilter}
+                        title={filter === "near" ? "가까운 순" : "인기 순"}
+                    />
+                }
+                title="내 주변 코스"
+            >
+                <FlatList
+                    data={sortedCourses}
+                    ListEmptyComponent={
+                        <EmptyListView
+                            description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
                         />
                     }
-                >
-                    <FlatList
-                        data={sortedCourses}
-                        ListEmptyComponent={
-                            <EmptyListView
-                                description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
-                            />
-                        }
-                        renderItem={({ item, index }) => (
-                            <CourseGalleryItem
-                                courseName={item.name}
-                                distance={item.distance / 1000}
-                                elevation={item.elevationGain}
-                                userCount={item.runnersCount}
-                                index={index}
-                                maxLength={courses.length}
-                                imageUrl={item.thumbnailUrl}
-                                isSelected={selectedCourse?.id === item.id}
-                                onClickCourse={() => onClickCourse(item)}
-                                onClickCourseInfo={() => {
-                                    onClickCourseInfo(item);
-                                }}
-                            />
-                        )}
-                        showsVerticalScrollIndicator={false}
-                    />
-                </Section>
-            </View>
-            <ButtonWithIcon
-                iconType="map"
-                title={
-                    selectedCourse ? "이 코스로 러닝 시작" : "밀어서 러닝 시작"
-                }
-                onPress={() => {
-                    bottomSheetRef.current?.dismiss();
-                    if (selectedCourse) {
-                        router.push(`/run/${selectedCourse?.id}/-1`);
-                    } else {
-                        router.push("/run/solo");
-                    }
-                }}
-                topStroke
-                onPressIcon={() => {
-                    bottomSheetRef.current?.dismiss();
-                }}
-                type="active"
-            />
+                    renderItem={({ item, index }) => (
+                        <CourseGalleryItem
+                            courseName={item.name}
+                            distance={item.distance / 1000}
+                            elevation={item.elevationGain}
+                            userCount={item.runnersCount}
+                            index={index}
+                            maxLength={courses.length}
+                            imageUrl={item.thumbnailUrl}
+                            isSelected={selectedCourse?.id === item.id}
+                            onClickCourse={() => onClickCourse(item)}
+                            onClickCourseInfo={() => {
+                                onClickCourseInfo(item);
+                            }}
+                        />
+                    )}
+                    showsVerticalScrollIndicator={false}
+                />
+            </Section>
         </View>
     );
 };

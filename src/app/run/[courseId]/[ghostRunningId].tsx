@@ -10,6 +10,7 @@ import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
+import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunMetronome } from "@/src/features/audio/useRunMetronome";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
@@ -30,7 +31,6 @@ import {
     saveRunning,
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -389,39 +389,29 @@ export default function Run() {
                             />
                         ))}
             </MapViewWrapper>
-            <BottomSheet
-                backgroundStyle={styles.container}
-                bottomInset={bottom + 56}
-                handleStyle={styles.handle}
-                handleIndicatorStyle={styles.handleIndicator}
-                snapPoints={[15]}
-                index={1}
-                animatedPosition={heightVal}
-            >
-                <BottomSheetView>
-                    <View style={styles.bottomSheetContent}>
-                        {isFirst ? (
-                            <EmptyListView
-                                description={
-                                    isRestarting
-                                        ? `러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`
-                                        : `러닝 기록을 위해\n코스 시작 지점으로 이동해 주세요`
-                                }
-                                iconColor={colors.red}
-                                fontSize="headline"
-                                fontColor="white"
-                            />
-                        ) : (
-                            <StatsIndicator
-                                stats={statsForUI}
-                                color="gray20"
-                                ghost={isGhostRunning}
-                                ghostTelemetry={ghostCoordinator?.ghostPoint}
-                            />
-                        )}
-                    </View>
-                </BottomSheetView>
-            </BottomSheet>
+            <StyledBottomSheet animatedPosition={heightVal}>
+                <View>
+                    {isFirst ? (
+                        <EmptyListView
+                            description={
+                                isRestarting
+                                    ? `러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`
+                                    : `러닝 기록을 위해\n코스 시작 지점으로 이동해 주세요`
+                            }
+                            iconColor={colors.red}
+                            fontSize="headline"
+                            fontColor="white"
+                        />
+                    ) : (
+                        <StatsIndicator
+                            stats={statsForUI}
+                            color="gray20"
+                            ghost={isGhostRunning}
+                            ghostTelemetry={ghostCoordinator?.ghostPoint}
+                        />
+                    )}
+                </View>
+            </StyledBottomSheet>
             {context.status === "RUNNING" ||
             context.status === "RUNNING_EXTENDED" ? (
                 <SlideToAction
@@ -513,18 +503,5 @@ const styles = StyleSheet.create({
         color: "white",
         lineHeight: 81.3,
         textAlign: "center",
-    },
-    bottomSheetContent: {
-        paddingVertical: 30,
-    },
-    handle: {
-        paddingTop: 10,
-        paddingBottom: 0,
-    },
-    handleIndicator: {
-        backgroundColor: colors.gray[40],
-        width: 50,
-        height: 5,
-        borderRadius: 100,
     },
 });

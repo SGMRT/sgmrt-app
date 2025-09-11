@@ -56,7 +56,7 @@ export default function Home() {
                 setShowListView={setShowListView}
                 mapBottomSheetRef={mapBottomSheetRef}
             />
-            <TabBar />
+            <TabBar topRound={false} />
             {/* <SlideToAction
                 label="밀어서 러닝 시작"
                 onSlideSuccess={() => {
