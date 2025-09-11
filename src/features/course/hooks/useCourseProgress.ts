@@ -4,10 +4,10 @@ import { Telemetry } from "@/src/apis/types/run";
 import { getDistance } from "@/src/utils/mapUtils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Toast from "react-native-toast-message";
+import { voiceGuide } from "../../audio/VoiceGuide";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { RunContext } from "../../run/state/context";
 import { selectUserLocation } from "../../run/state/selectors";
-import { voiceGuide } from "../../voice/VoiceGuide";
 import { CourseLeg } from "../types/courseLeg";
 import { buildCourseLegs } from "../utils/buildCourseLegs";
 import {

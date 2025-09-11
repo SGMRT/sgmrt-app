@@ -11,6 +11,8 @@ import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import TopBlurView from "@/src/components/ui/TopBlurView";
+import { useRunMetronome } from "@/src/features/audio/useRunMetronome";
+import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
 import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
 import { useNow } from "@/src/features/run/hooks/useNow";
@@ -22,7 +24,6 @@ import {
 } from "@/src/features/run/state/selectors";
 import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
-import { useRunVoice } from "@/src/features/voice/useRunVoice";
 import colors from "@/src/theme/colors";
 import {
     getRunTime,
@@ -85,6 +86,12 @@ export default function Run() {
         myLegIndex: legIndex,
         timestamp: context.stats.totalTimeMs,
         controls,
+    });
+
+    useRunMetronome({
+        enabled: context.variant === "GHOST" && context.status === "RUNNING",
+        baseBpm: context.stats.avgCadenceSpm ?? 120,
+        deltaM: -(ghostCoordinator?.deltaM ?? 0),
     });
 
     const hasSavedRef = useRef<boolean>(false);
