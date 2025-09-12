@@ -20,11 +20,7 @@ import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
 
 type HistoryWithFilterProps = {
-    mode: "SOLO" | "GHOST";
     data: RunResponse[];
-    isDeleteMode: boolean;
-    selectedItem: RunResponse | null;
-    selectedDeleteItem: RunResponse[];
     onClickItem: (history: RunResponse) => void;
     hasNextPage: boolean;
     fetchNextPage: () => void;
@@ -42,11 +38,7 @@ type DataGroup = {
 };
 
 export const HistoryWithFilter = ({
-    mode,
     data,
-    isDeleteMode,
-    selectedItem,
-    selectedDeleteItem,
     onClickItem,
     hasNextPage,
     fetchNextPage,
@@ -177,6 +169,7 @@ export const HistoryWithFilter = ({
                     <Section
                         key={item.label + index}
                         title={item.label}
+                        titleVariant="sectionhead"
                         titleColor="white"
                         containerStyle={
                             displayData.data.length - 1 !== index
@@ -191,7 +184,11 @@ export const HistoryWithFilter = ({
                             selectedView === "list" ? (
                                 <RunHistoryItem
                                     key={history.runningId}
-                                    mode={mode}
+                                    mode={
+                                        history.ghostRunningId
+                                            ? "GHOST"
+                                            : "SOLO"
+                                    }
                                     name={history.name}
                                     courseName={
                                         history.courseInfo?.name ?? null
@@ -212,19 +209,16 @@ export const HistoryWithFilter = ({
                                             }`
                                         );
                                     }}
-                                    isSelected={
-                                        isDeleteMode
-                                            ? selectedDeleteItem.includes(
-                                                  history
-                                              )
-                                            : history.runningId ===
-                                              selectedItem?.runningId
-                                    }
+                                    isSelected={false}
                                 />
                             ) : (
                                 <RunHistoryGalleryItem
                                     key={history.runningId}
-                                    mode={mode}
+                                    mode={
+                                        history.ghostRunningId
+                                            ? "GHOST"
+                                            : "SOLO"
+                                    }
                                     imageUrl={history.screenShotUrl ?? ""}
                                     name={history.name}
                                     courseName={
@@ -246,14 +240,7 @@ export const HistoryWithFilter = ({
                                             }`
                                         );
                                     }}
-                                    isSelected={
-                                        isDeleteMode
-                                            ? selectedDeleteItem.includes(
-                                                  history
-                                              )
-                                            : history.runningId ===
-                                              selectedItem?.runningId
-                                    }
+                                    isSelected={false}
                                     startedAt={history.startedAt}
                                 />
                             )
@@ -261,7 +248,7 @@ export const HistoryWithFilter = ({
                     </Section>
                 )}
                 showsVerticalScrollIndicator={false}
-                extraData={selectedItem?.runningId}
+                extraData={selectedFilter}
                 onEndReached={
                     hasNextPage
                         ? () => {

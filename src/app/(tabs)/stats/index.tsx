@@ -1,197 +1,42 @@
-import { deleteRun, getRuns } from "@/src/apis";
+import { getRuns } from "@/src/apis";
 import { RunResponse } from "@/src/apis/types/run";
 import { HistoryWithFilter } from "@/src/components/course/HistoryWithFilter";
-import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
 import Header from "@/src/components/ui/Header";
 import TabBar from "@/src/components/ui/TabBar";
-import { TabItem } from "@/src/components/ui/TabItem";
-import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
-import colors from "@/src/theme/colors";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, SafeAreaView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, View } from "react-native";
 
 export default function Stats() {
-    const [selectedTab, setSelectedTab] = useState<"SOLO" | "GHOST">("SOLO");
-    const [isDeleteMode, setIsDeleteMode] = useState(false);
-    const [selectedDeleteItems, setSelectedDeleteItems] = useState<
-        RunResponse[]
-    >([]);
-    const [shouldRefresh, setShouldRefresh] = useState(false);
-
-    const [selectedCourse, setSelectedCourse] = useState<RunResponse | null>(
-        null
-    );
-    const [selectedGhost, setSelectedGhost] = useState<RunResponse | null>(
-        null
-    );
-    const { bottom } = useSafeAreaInsets();
-
-    const handleCourseSelect = (course: RunResponse) => {
-        if (selectedTab === "SOLO") {
-            if (selectedCourse?.runningId === course.runningId) {
-                setSelectedCourse(null);
-            } else {
-                setSelectedCourse(course);
-            }
-        } else {
-            if (selectedGhost?.runningId === course.runningId) {
-                setSelectedGhost(null);
-            } else {
-                setSelectedGhost(course);
-            }
-        }
-    };
-
-    const handleHistoryClickWithDelete = (history: RunResponse) => {
-        if (isDeleteMode) {
-            setSelectedDeleteItems((prev) => {
-                if (prev.includes(history)) {
-                    return prev.filter(
-                        (item) => item.runningId !== history.runningId
-                    );
-                }
-                return [...prev, history];
-            });
-        } else {
-            handleCourseSelect(history);
-        }
-    };
-
-    const onDeleteModeChange = () => {
-        if (isDeleteMode) {
-            if (isDeleteMode) {
-                onDeleteItems();
-                return;
-            }
-        } else {
-            showToast("success", "기록 삭제 모드를 활성화합니다", bottom);
-            setIsDeleteMode(true);
-            setSelectedDeleteItems([]);
-        }
-    };
-
-    const onDeleteItems = () => {
-        if (selectedDeleteItems.length === 0) {
-            showToast("info", "기록 삭제 모드를 종료합니다.", bottom);
-            setIsDeleteMode(false);
-            return;
-        } else {
-            Alert.alert("기록 삭제", "선택한 기록을 삭제하시겠습니까?", [
-                {
-                    text: "취소",
-                    style: "cancel",
-                    onPress: () => {
-                        setIsDeleteMode(false);
-                    },
-                },
-                {
-                    text: "삭제",
-                    style: "destructive",
-                    onPress: () => {
-                        Promise.all(
-                            selectedDeleteItems.map((item) =>
-                                deleteRun(item.runningId)
-                            )
-                        ).then(() => {
-                            showToast(
-                                "success",
-                                "선택한 기록이 삭제되었습니다.",
-                                bottom
-                            );
-                            setSelectedDeleteItems([]);
-                            setIsDeleteMode(false);
-                            setShouldRefresh(!shouldRefresh);
-                        });
-                    },
-                },
-            ]);
-        }
-    };
-
     const router = useRouter();
+    const handleRecordClick = (record: RunResponse) => {
+        router.push(
+            `/stats/result/${record.runningId}/${record.courseInfo?.id ?? -1}/${
+                record.ghostRunningId ?? -1
+            }`
+        );
+    };
+
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "#111111" }}>
-            <Header
-                titleText="내 기록"
-                onDelete={onDeleteModeChange}
-                deleteColor={isDeleteMode ? colors.primary : colors.gray[40]}
-                hasBackButton={false}
-            />
-            <View style={{ flexDirection: "row", marginTop: 10 }}>
-                <TabItem
-                    title="개인 러닝"
-                    onPress={() => setSelectedTab("SOLO")}
-                    isSelected={selectedTab === "SOLO"}
-                />
-                <TabItem
-                    title="고스트 러닝"
-                    onPress={() => setSelectedTab("GHOST")}
-                    isSelected={selectedTab === "GHOST"}
-                />
-            </View>
+            <Header titleText="내 기록" hasBackButton={false} />
             <View style={{ flex: 1, marginTop: 20 }}>
                 <UserHistory
-                    mode={selectedTab}
-                    isDeleteMode={isDeleteMode}
-                    selectedItem={
-                        selectedTab === "SOLO" ? selectedCourse : selectedGhost
-                    }
-                    selectedDeleteItem={selectedDeleteItems}
-                    onClickItem={handleHistoryClickWithDelete}
-                    shouldRefresh={shouldRefresh}
+                    onClickItem={handleRecordClick}
+                    shouldRefresh={false}
                 />
             </View>
             <TabBar />
-            {!isDeleteMode && (
-                <ActionButtonGroup
-                    initialState="single"
-                    secondaryButtonText={
-                        (selectedTab === "SOLO" && selectedCourse) ||
-                        (selectedTab === "GHOST" && selectedGhost)
-                            ? "이 코스로 러닝 시작"
-                            : "러닝 시작"
-                    }
-                    onSecondaryPress={() => {
-                        if (
-                            selectedTab === "SOLO" &&
-                            selectedCourse?.courseInfo?.id
-                        ) {
-                            router.push(
-                                `/run/${selectedCourse!.courseInfo!.id}/-1`
-                            );
-                        } else if (
-                            selectedTab === "GHOST" &&
-                            selectedGhost?.courseInfo?.id
-                        ) {
-                            router.push(
-                                `/run/${selectedGhost!.courseInfo!.id}/-1`
-                            );
-                        } else {
-                            router.push("/run/solo");
-                        }
-                    }}
-                />
-            )}
         </SafeAreaView>
     );
 }
 
 const UserHistory = ({
-    mode,
-    isDeleteMode,
-    selectedItem,
-    selectedDeleteItem,
     onClickItem,
     shouldRefresh,
 }: {
-    mode: "SOLO" | "GHOST";
-    isDeleteMode: boolean;
-    selectedItem: RunResponse | null;
-    selectedDeleteItem: RunResponse[];
     onClickItem: (history: RunResponse) => void;
     shouldRefresh: boolean;
 }) => {
@@ -220,7 +65,7 @@ const UserHistory = ({
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-    } = useGetRuns(startEpoch, endEpoch, filteredBy, mode, shouldRefresh);
+    } = useGetRuns(startEpoch, endEpoch, filteredBy, "SOLO", shouldRefresh);
 
     if (isLoading) {
         return <></>;
@@ -234,11 +79,7 @@ const UserHistory = ({
 
     return (
         <HistoryWithFilter
-            mode={mode}
             data={flatPages}
-            isDeleteMode={isDeleteMode}
-            selectedItem={selectedItem}
-            selectedDeleteItem={selectedDeleteItem}
             onClickItem={onClickItem}
             hasNextPage={hasNextPage}
             fetchNextPage={fetchNextPage}
