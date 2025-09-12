@@ -149,7 +149,10 @@ export default function HomeMap({
         mapBottomSheetRef.current?.dismiss();
     }, [courseType, setShowListView, mapBottomSheetRef]);
 
+    const listBottomSheetRef = useRef<BottomSheetModal>(null);
+
     const onClickCourseInfo = (course: CourseResponse) => {
+        listBottomSheetRef.current?.collapse();
         onClickCourse(course);
         setShowListView(false);
         handlePresentModalPress();
@@ -188,13 +191,15 @@ export default function HomeMap({
                     router.push("/run/solo");
                 }}
             />
-            <StyledBottomSheet bottomInset={bottom + 36}>
+            <StyledBottomSheet
+                ref={listBottomSheetRef}
+                bottomInset={bottom + 36}
+            >
                 <View style={{ height: 20 }} />
                 <CourseListView
                     courses={courses ?? []}
                     selectedCourse={activeCourse}
-                    onClickCourse={onClickCourse}
-                    onClickCourseInfo={onClickCourseInfo}
+                    onShowCourseInfo={onClickCourseInfo}
                 />
             </StyledBottomSheet>
             <HomeBottomModal

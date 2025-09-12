@@ -1,15 +1,16 @@
 import { DefaultLogo } from "@/assets/icons/icons";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getDistance } from "@/src/utils/mapUtils";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
-import { FlatList, Image, View } from "react-native";
+import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterButton } from "../ui/FilterButton";
-import RadioButton from "../ui/RadioButton";
+import GhostLabel from "../ui/GhostLabel";
 import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
 import { UserCount } from "../ui/UserCount";
@@ -17,15 +18,13 @@ import { UserCount } from "../ui/UserCount";
 interface CourseListViewProps {
     courses: CourseResponse[];
     selectedCourse: CourseResponse | null;
-    onClickCourse: (course: CourseResponse) => void;
-    onClickCourseInfo: (course: CourseResponse) => void;
+    onShowCourseInfo: (course: CourseResponse) => void;
 }
 
 const CourseListView = ({
     courses,
     selectedCourse,
-    onClickCourse,
-    onClickCourseInfo,
+    onShowCourseInfo,
 }: CourseListViewProps) => {
     const [editMode, setEditMode] = useState(false);
     const [filter, setFilter] = useState<"near" | "trend">("near");
@@ -146,10 +145,7 @@ const CourseListView = ({
                             maxLength={courses.length}
                             imageUrl={item.thumbnailUrl}
                             isSelected={selectedCourse?.id === item.id}
-                            onClickCourse={() => onClickCourse(item)}
-                            onClickCourseInfo={() => {
-                                onClickCourseInfo(item);
-                            }}
+                            onClickCourse={() => onShowCourseInfo(item)}
                         />
                     )}
                     showsVerticalScrollIndicator={false}
@@ -169,7 +165,6 @@ export const CourseGalleryItem = ({
     imageUrl,
     isSelected,
     onClickCourse,
-    onClickCourseInfo,
 }: {
     courseName: string;
     distance: number;
@@ -180,77 +175,39 @@ export const CourseGalleryItem = ({
     isSelected: boolean;
     imageUrl: string;
     onClickCourse?: () => void;
-    onClickCourseInfo: () => void;
 }) => {
     return (
-        <View
-            style={{
-                marginBottom: index + 1 !== maxLength ? 20 : 0,
-                flexDirection: "row",
-                gap: 20,
-            }}
+        <Pressable
+            style={[
+                styles.galleryItem,
+                { marginBottom: index + 1 !== maxLength ? 20 : 0 },
+            ]}
+            onPress={onClickCourse}
         >
             {/* 코스 이미지 */}
-            <View
-                style={{
-                    backgroundColor: "gray",
-                    width: 120,
-                    height: 120,
-                    borderRadius: 10,
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
+            <View style={styles.imageContainer}>
+                {true && <GhostLabel style={styles.ghostLabel} />}
                 <Image
                     source={imageUrl ? { uri: imageUrl } : DefaultLogo}
-                    style={{
-                        width: 120,
-                        height: 120,
-                        borderRadius: 10,
-                    }}
+                    style={styles.image}
                 />
             </View>
             {/* 코스 정보 */}
-            <View
-                style={{
-                    marginVertical: 4,
-                    gap: 5,
-                    flex: 1,
-                }}
-            >
+            <View style={styles.contentContainer}>
                 {/* 코스 이름 */}
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                    }}
-                >
+                <View style={styles.contentHeader}>
                     <Typography
                         variant="subhead1"
                         color={isSelected ? "primary" : "gray20"}
                     >
                         {courseName}
                     </Typography>
-                    {onClickCourse && (
-                        <RadioButton
-                            isSelected={isSelected}
-                            showMyRecord={false}
-                            onPress={onClickCourse}
-                            inactiveColor={colors.gray[40]}
-                        />
-                    )}
+                    <ChevronIcon color={colors.gray[40]} />
                 </View>
                 {/* 코스 거리, 고도 */}
                 <View>
                     {/* 코스 거리 */}
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
+                    <View style={styles.distanceContainer}>
                         <Typography variant="body1" color="gray40">
                             거리
                         </Typography>
@@ -261,13 +218,7 @@ export const CourseGalleryItem = ({
                         </Typography>
                     </View>
                     {/* 코스 고도 */}
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
+                    <View style={styles.elevationContainer}>
                         <Typography variant="body1" color="gray40">
                             고도
                         </Typography>
@@ -278,10 +229,57 @@ export const CourseGalleryItem = ({
                     </View>
                 </View>
                 {/* 유저 수 */}
-                <UserCount userCount={userCount} onPress={onClickCourseInfo} />
+                <UserCount userCount={userCount} />
             </View>
-        </View>
+        </Pressable>
     );
 };
+
+const styles = StyleSheet.create({
+    galleryItem: {
+        flexDirection: "row",
+        gap: 20,
+    },
+    imageContainer: {
+        backgroundColor: "gray",
+        width: 120,
+        height: 120,
+        borderRadius: 10,
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+    image: {
+        width: 120,
+        height: 120,
+        borderRadius: 10,
+    },
+    contentContainer: {
+        marginVertical: 4,
+        gap: 5,
+        flex: 1,
+    },
+    contentHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    distanceContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    elevationContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    ghostLabel: {
+        position: "absolute",
+        top: 4,
+        left: 4,
+        zIndex: 1,
+    },
+});
 
 export default CourseListView;

@@ -1,10 +1,15 @@
 import colors from "@/src/theme/colors";
 import BottomSheet, {
+    BottomSheetModal,
     BottomSheetProps,
     BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+interface StyledBottomSheetProps extends BottomSheetProps {
+    ref: React.RefObject<BottomSheetModal | null>;
+}
 
 export default function StyledBottomSheet({
     children,
@@ -15,11 +20,13 @@ export default function StyledBottomSheet({
     snapPoints = [15],
     index = 1,
     animatedPosition,
+    ref,
     ...props
-}: BottomSheetProps) {
+}: StyledBottomSheetProps) {
     const { bottom } = useSafeAreaInsets();
     return (
         <BottomSheet
+            ref={ref}
             backgroundStyle={backgroundStyle ?? styles.container}
             bottomInset={bottomInset ?? bottom + 56}
             handleStyle={handleStyle ?? styles.handle}
@@ -37,6 +44,8 @@ export default function StyledBottomSheet({
 
 const styles = StyleSheet.create({
     container: {
+        borderWidth: 1,
+        borderTopColor: "#212121",
         borderTopStartRadius: 20,
         borderTopEndRadius: 20,
         flex: 1,

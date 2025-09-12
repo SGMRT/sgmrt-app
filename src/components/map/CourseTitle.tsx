@@ -1,10 +1,11 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
-import { ChevronIcon, GhostIcon } from "@/assets/svgs/svgs";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
+import GhostLabel from "../ui/GhostLabel";
 
 interface CourseTitleProps {
     course: CourseResponse;
@@ -27,11 +28,7 @@ export default function CourseTitle({
             onPress={() => onClickCourse(course)}
         >
             <View style={styles.titleContainer}>
-                {logo && (
-                    <View style={styles.logoContainer}>
-                        <GhostIcon width={20} height={12.5} />
-                    </View>
-                )}
+                {logo && <GhostLabel />}
                 <View style={styles.title}>
                     <Typography variant="subhead3" color="white">
                         {course.name}
@@ -98,14 +95,7 @@ const styles = StyleSheet.create({
         paddingLeft: 12,
         paddingRight: 7,
     },
-    logoContainer: {
-        width: 34,
-        height: 34,
-        borderRadius: 10,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "rgba(226, 255, 0, 0.2)",
-    },
+
     topUsersContainer: {
         flexDirection: "row",
         alignItems: "center",
