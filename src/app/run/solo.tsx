@@ -9,6 +9,7 @@ import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import SlideToAction from "@/src/components/ui/SlideToAction";
 import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
+import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useNow } from "@/src/features/run/hooks/useNow";
@@ -70,13 +71,7 @@ export default function Run() {
 
     useEffect(() => {
         if (isRestarting) {
-            Toast.show({
-                type: "info",
-                text1: "3초 뒤 러닝이 시작됩니다.",
-                position: "bottom",
-                bottomOffset: 60,
-                visibilityTime: 3000,
-            });
+            showCompactToast("3초 뒤 러닝이 시작됩니다.");
         }
     }, [isRestarting]);
 
