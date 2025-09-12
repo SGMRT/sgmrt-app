@@ -1,8 +1,8 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
-import { getCourse, getCourseTopRanking } from "@/src/apis";
-import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
+import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
+import { getCourse } from "@/src/apis";
+import { CourseDetailResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
-import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
+import { GhostRow } from "@/src/components/map/courseInfo/GhostRow";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import { Divider } from "@/src/components/ui/Divider";
@@ -33,13 +33,6 @@ export default function Result() {
     const isChartActive = useSharedValue(false);
     const chartPointIndex = useSharedValue(0);
 
-    const { data: ghostList } = useQuery<HistoryResponse[]>({
-        queryKey: ["course-top-ranking", courseId],
-        queryFn: () =>
-            getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
-        enabled: courseId !== "-1",
-    });
-
     const { data: course } = useQuery<CourseDetailResponse>({
         queryKey: ["course", courseId],
         queryFn: () => getCourse(Number(courseId)),
@@ -67,34 +60,6 @@ export default function Result() {
                 description: "하강",
                 value: Math.round(course?.elevationLoss ?? 0).toString(),
                 unit: "m",
-            },
-        ];
-    }, [course]);
-
-    const ghostAverageStats = useMemo(() => {
-        return [
-            {
-                description: "시간",
-                value: getRunTime(
-                    course?.averageCompletionTime ?? 0,
-                    "HH:MM:SS"
-                ),
-                unit: "",
-            },
-            {
-                description: "케이던스",
-                value: course?.averageFinisherCadence ?? "--",
-                unit: "spm",
-            },
-            {
-                description: "칼로리",
-                value: course?.averageCaloriesBurned ?? "--",
-                unit: "kcal",
-            },
-            {
-                description: "페이스",
-                value: getFormattedPace(course?.averageFinisherPace ?? 0),
-                unit: "",
             },
         ];
     }, [course]);
@@ -187,6 +152,7 @@ export default function Result() {
                         <Section
                             title="코스 정보"
                             titleColor="white"
+                            titleVariant="sectionhead"
                             style={{ gap: 15 }}
                         >
                             <StatRow
@@ -208,16 +174,48 @@ export default function Result() {
                             />
                         </Section>
 
-                        <GhostInfoSection
-                            stats={ghostAverageStats}
-                            uuid={null}
-                            ghostList={ghostList ?? []}
-                            selectedGhostId={0}
-                            setSelectedGhostId={() => {}}
-                            onPress={() => {}}
-                            hasMargin={false}
-                            color="white"
-                        />
+                        {/* 고스트 */}
+                        <Section
+                            title="내 고스트"
+                            titleColor="white"
+                            titleVariant="sectionhead"
+                            titleRightChildren={
+                                <TouchableOpacity
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 4,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="caption1"
+                                        color="gray40"
+                                    >
+                                        고스트
+                                    </Typography>
+                                    <InfoIcon />
+                                </TouchableOpacity>
+                            }
+                        >
+                            <GhostRow
+                                profileUrl={"https://picsum.photos/200/300  "}
+                                ghostStats={[
+                                    {
+                                        description: "시간",
+                                        value: getRunTime(10000, "HH:MM:SS"),
+                                    },
+                                    {
+                                        description: "페이스",
+                                        value: getFormattedPace(150),
+                                    },
+                                    {
+                                        description: "케이던스",
+                                        value: 150,
+                                        unit: "spm",
+                                    },
+                                ]}
+                            />
+                        </Section>
                     </ScrollView>
                     <ScrollButton
                         onPress={() => {
@@ -226,7 +224,7 @@ export default function Result() {
                                 animated: true,
                             });
                         }}
-                        bottomInset={30}
+                        bottomInset={5}
                     />
                     <TabBar />
                 </SafeAreaView>
@@ -248,6 +246,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
+        paddingBottom: 45,
     },
     titleInputContainer: {
         flexDirection: "row",

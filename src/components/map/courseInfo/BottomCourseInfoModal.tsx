@@ -1,12 +1,10 @@
-import { DefaultProfileIcon } from "@/assets/icons/icons";
-import { ChevronIcon, GhostIcon } from "@/assets/svgs/svgs";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { getCourse } from "@/src/apis";
 import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
-import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -20,6 +18,7 @@ import StatRow, { Stat } from "../../ui/StatRow";
 import { StyledSwitch } from "../../ui/StyledSwitch";
 import { showToast } from "../../ui/toastConfig";
 import { Typography, TypographyColor } from "../../ui/Typography";
+import { GhostRow } from "./GhostRow";
 import UserStatItem from "./UserStatItem";
 
 interface BottomCourseInfoModalProps {
@@ -149,25 +148,7 @@ const GhostSection = ({
                 />
             }
         >
-            <View style={styles.ghostRow}>
-                <View style={styles.ghostAvatarContainer}>
-                    <Image
-                        source={
-                            ghost.profileUrl
-                                ? { uri: ghost.profileUrl }
-                                : DefaultProfileIcon
-                        }
-                        style={styles.ghostAvatar}
-                    />
-                    <GhostIcon style={styles.ghostIcon} />
-                </View>
-                <Divider direction="vertical" />
-                <StatRow
-                    stats={ghostStats}
-                    color="gray20"
-                    style={styles.ghostStats}
-                />
-            </View>
+            <GhostRow profileUrl={ghost.profileUrl} ghostStats={ghostStats} />
         </Section>
     );
 };
@@ -176,32 +157,6 @@ const styles = StyleSheet.create({
     ghostInfoSection: {
         marginBottom: 30,
         marginHorizontal: 16.5,
-    },
-    ghostRow: {
-        paddingVertical: 10,
-        paddingLeft: 14,
-        width: "100%",
-        backgroundColor: "#222222",
-        borderRadius: 8,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 14,
-    },
-    ghostAvatarContainer: {
-        position: "relative",
-    },
-    ghostAvatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 100,
-    },
-    ghostIcon: {
-        position: "absolute",
-        bottom: 0,
-        right: 0,
-    },
-    ghostStats: {
-        gap: 14,
     },
 });
 
