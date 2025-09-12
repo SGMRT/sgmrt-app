@@ -225,7 +225,7 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 if (cancelled) return;
                 if (isLoggedIn) {
                     console.log("replace to /(tabs)/home");
-                    router.replace("/(tabs)/home");
+                    router.replace("/run/1/1");
                 } else {
                     console.log("replace to /(auth)/login");
                     router.replace("/(auth)/login");

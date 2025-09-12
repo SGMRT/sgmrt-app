@@ -7,12 +7,12 @@ import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import { Button } from "@/src/components/ui/Button";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
-import EmptyListView from "@/src/components/ui/EmptyListView";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
 import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
+import { Typography } from "@/src/components/ui/Typography";
 import { useRunMetronome } from "@/src/features/audio/useRunMetronome";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
@@ -86,6 +86,7 @@ export default function Run() {
         myLegIndex: legIndex,
         timestamp: context.stats.totalTimeMs,
         controls,
+        simulateSpeed: 1.5,
     });
 
     useRunMetronome({
@@ -168,11 +169,11 @@ export default function Run() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [
             context.stats.totalDistanceM,
-            context.stats.avgPaceSecPerKm,
             context.stats.currentPaceSecPerKm,
             context.stats.currentCadenceSpm,
-            context.stats.bpm,
+            context.stats.avgPaceSecPerKm,
             context.stats.calories,
+            context.stats.bpm,
         ]
     );
 
@@ -383,23 +384,29 @@ export default function Run() {
             <StyledBottomSheet animatedPosition={heightVal}>
                 <View>
                     {isFirst ? (
-                        <EmptyListView
-                            description={
-                                isRestarting
-                                    ? `러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`
-                                    : `러닝 기록을 위해\n코스 시작 지점으로 이동해 주세요`
-                            }
-                            iconColor={colors.red}
-                            fontSize="headline"
-                            fontColor="white"
-                        />
+                        <View
+                            style={{
+                                alignItems: "center",
+                                marginTop: 30,
+                                marginBottom: 65,
+                            }}
+                        >
+                            <Typography variant="sectionhead" color="white">
+                                러닝 기록을 위해
+                            </Typography>
+                            <Typography variant="sectionhead" color="white">
+                                코스 시작 지점으로 이동해 주세요
+                            </Typography>
+                        </View>
                     ) : (
-                        <StatsIndicator
-                            stats={statsForUI}
-                            color="gray20"
-                            ghost={isGhostRunning}
-                            ghostTelemetry={ghostCoordinator?.ghostPoint}
-                        />
+                        <View style={{ marginVertical: 30 }}>
+                            <StatsIndicator
+                                stats={statsForUI}
+                                color="gray20"
+                                ghost={isGhostRunning}
+                                ghostTelemetry={ghostCoordinator?.ghostPoint}
+                            />
+                        </View>
                     )}
                 </View>
             </StyledBottomSheet>

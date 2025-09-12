@@ -1,10 +1,8 @@
 import { Telemetry } from "@/src/apis/types/run";
 import { getFormattedPace } from "@/src/utils/runUtils";
-import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Divider } from "./Divider";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import TextWithUnit from "./TextWithUnit";
-import { Typography } from "./Typography";
 
 interface StatsIndicatorProps {
     stats: { label: string; value: string | number; unit: string }[];
@@ -19,189 +17,122 @@ export default function StatsIndicator({
     ghost,
     color = "gray40",
 }: StatsIndicatorProps) {
-    const [tab, setTab] = useState<"solo" | "comparison">("solo");
-    const distance = stats.find((stat) => stat.label === "거리");
-    const cadence = stats.find((stat) => stat.label === "케이던스");
-    const pace = stats.find((stat) => stat.label === "평균 페이스");
     const prevGhostTelemetry = useRef<Telemetry | null>(null);
     const ghostTelemetryToUse = ghostTelemetry ?? prevGhostTelemetry.current;
+
+    const [isGhostMode, setIsGhostMode] = useState(false);
 
     useEffect(() => {
         if (ghost && ghostTelemetry) {
             prevGhostTelemetry.current = ghostTelemetry;
+            setIsGhostMode(true);
         }
     }, [ghostTelemetry, ghost]);
 
+    const parsePace = useCallback((text: string) => {
+        const m = text.match(/(\d+)\s*[’']\s*(\d+)\s*[”"]/);
+        if (!m) return 0;
+        const min = Number(m[1]);
+        const sec = Number(m[2]);
+        if (!isFinite(min) || !isFinite(sec)) return null;
+        return min * 60 + sec;
+    }, []);
+
+    const signText = useCallback(
+        (num: number, display?: string) =>
+            num > 0
+                ? `+${display ?? num}`
+                : num < 0
+                ? `-${display ?? num}`
+                : `${display ?? num}`,
+        []
+    );
+
+    const renderGhostCompare = useCallback(
+        (stat: { label: string; value: string | number; unit: string }) => {
+            if (!isGhostMode || !ghostTelemetryToUse) return null;
+
+            // 안전 변환
+            const asNum = (v: string | number) =>
+                typeof v === "number" ? v : Number(v);
+
+            switch (stat.label) {
+                case "거리": {
+                    const myKm = asNum(stat.value);
+                    const ghKm = ghostTelemetryToUse.dist;
+                    if (!isFinite(myKm) || !isFinite(ghKm)) return null;
+
+                    const diffM = Number((myKm - ghKm / 1000).toFixed(2));
+                    const text = `${diffM >= 0 ? "" : ""}${diffM}`;
+                    return (
+                        <TextWithUnit
+                            value={text}
+                            unit="km"
+                            variant="subhead1"
+                            color={diffM >= 0 ? "primary" : "red"}
+                        />
+                    );
+                }
+                case "현재 페이스": {
+                    const mySec =
+                        typeof stat.value === "string"
+                            ? parsePace(stat.value)
+                            : null;
+                    const ghSec = ghostTelemetryToUse.pace;
+                    if (mySec == null || !isFinite(ghSec)) return null;
+
+                    const deltaSec = Math.round(mySec - ghSec); // 음수면 내가 더 빠름
+                    const text = signText(
+                        deltaSec,
+                        getFormattedPace(Math.abs(deltaSec))
+                    );
+                    return (
+                        <TextWithUnit
+                            value={text}
+                            variant="subhead1"
+                            color={deltaSec <= 0 ? "primary" : "red"}
+                        />
+                    );
+                }
+                case "케이던스": {
+                    const mySpm = asNum(stat.value);
+                    const ghSpm = ghostTelemetryToUse.cadence;
+                    if (!isFinite(mySpm) || !isFinite(ghSpm)) return null;
+
+                    const diff = Math.round(mySpm - ghSpm); // +면 내가 더 높음
+                    const text = signText(diff);
+                    return (
+                        <TextWithUnit
+                            value={text}
+                            unit="spm"
+                            variant="subhead1"
+                            color={diff >= 0 ? "primary" : "red"}
+                        />
+                    );
+                }
+                default:
+                    return null;
+            }
+        },
+        [isGhostMode, ghostTelemetryToUse, parsePace, signText]
+    );
+
     return (
         <View style={styles.courseInfoContainer}>
-            {ghost && ghostTelemetryToUse && (
-                <View style={styles.tabContainer}>
-                    <Pressable
-                        onPress={() => setTab("solo")}
-                        style={styles.tabItem}
-                    >
-                        <Typography
-                            variant="subhead2"
-                            color={tab === "solo" ? "white" : "gray60"}
-                            style={styles.tabItemText}
-                        >
-                            단독기록
-                        </Typography>
-                    </Pressable>
-                    <Divider direction="vertical" />
-                    <Pressable
-                        onPress={() => setTab("comparison")}
-                        style={styles.tabItem}
-                    >
-                        <Typography
-                            variant="subhead2"
-                            color={tab === "comparison" ? "white" : "gray60"}
-                            style={styles.tabItemText}
-                        >
-                            기록 비교
-                        </Typography>
-                    </Pressable>
+            {stats.map((stat) => (
+                <View key={stat.label} style={styles.courseInfoItem}>
+                    {renderGhostCompare(stat)}
+                    <TextWithUnit
+                        key={stat.label}
+                        value={stat.value.toString()}
+                        unit={stat.unit}
+                        description={stat.label}
+                        variant="display1"
+                        color={color}
+                        unitVariant="display2"
+                    />
                 </View>
-            )}
-            {tab === "solo"
-                ? stats.map((stat) => (
-                      <TextWithUnit
-                          value={stat.value.toString()}
-                          unit={stat.unit}
-                          description={stat.label}
-                          variant="display1"
-                          color={color}
-                          unitVariant="display2"
-                          key={stat.label}
-                          style={styles.courseInfoItem}
-                      />
-                  ))
-                : ghostTelemetryToUse && (
-                      <>
-                          <View
-                              style={{
-                                  flexDirection: "row",
-                                  justifyContent: "space-between",
-                                  width: "100%",
-                                  alignItems: "center",
-                                  paddingHorizontal: 17,
-                              }}
-                          >
-                              <View style={{ width: 60 }} />
-                              <Typography
-                                  variant="subhead1"
-                                  color={"red"}
-                                  style={{ textAlign: "center", width: 100 }}
-                              >
-                                  고스트
-                              </Typography>
-                              <Typography
-                                  variant="subhead1"
-                                  color={"primary"}
-                                  style={{ textAlign: "center", width: 100 }}
-                              >
-                                  나
-                              </Typography>
-                          </View>
-                          <View
-                              style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  width: "100%",
-                                  justifyContent: "space-between",
-                                  paddingHorizontal: 17,
-                              }}
-                          >
-                              <Typography
-                                  variant="body2"
-                                  color={"gray60"}
-                                  style={{ width: 60, textAlign: "center" }}
-                              >
-                                  거리
-                              </Typography>
-                              <TextWithUnit
-                                  value={(
-                                      ghostTelemetryToUse.dist / 1000
-                                  ).toFixed(2)}
-                                  unit={"km"}
-                                  variant="display1"
-                                  color={color}
-                                  unitVariant="display2"
-                              />
-                              <TextWithUnit
-                                  value={distance?.value.toString() ?? ""}
-                                  unit={distance?.unit ?? ""}
-                                  variant="display1"
-                                  color={color}
-                                  unitVariant="display2"
-                              />
-                          </View>
-                          <View
-                              style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  width: "100%",
-                                  justifyContent: "space-between",
-                                  paddingHorizontal: 17,
-                              }}
-                          >
-                              <Typography
-                                  variant="body2"
-                                  color={"gray60"}
-                                  style={{ width: 60, textAlign: "center" }}
-                              >
-                                  케이던스
-                              </Typography>
-                              <TextWithUnit
-                                  value={ghostTelemetryToUse.cadence.toString()}
-                                  unit={"spm"}
-                                  variant="display1"
-                                  color={color}
-                                  unitVariant="display2"
-                              />
-                              <TextWithUnit
-                                  value={cadence?.value.toString() ?? ""}
-                                  unit={cadence?.unit ?? ""}
-                                  variant="display1"
-                                  color={color}
-                                  unitVariant="display2"
-                              />
-                          </View>
-                          <View
-                              style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  width: "100%",
-                                  justifyContent: "space-between",
-                                  paddingHorizontal: 17,
-                              }}
-                          >
-                              <Typography
-                                  variant="body2"
-                                  color={"gray60"}
-                                  style={{ width: 60, textAlign: "center" }}
-                              >
-                                  페이스
-                              </Typography>
-                              <TextWithUnit
-                                  value={getFormattedPace(
-                                      ghostTelemetryToUse.pace
-                                  )}
-                                  unit={""}
-                                  variant="display1"
-                                  color={color}
-                                  unitVariant="display2"
-                              />
-                              <TextWithUnit
-                                  value={pace?.value.toString() ?? ""}
-                                  unit={""}
-                                  variant="display1"
-                                  color={color}
-                                  unitVariant="display2"
-                              />
-                          </View>
-                      </>
-                  )}
+            ))}
         </View>
     );
 }
