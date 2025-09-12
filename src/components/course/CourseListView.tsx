@@ -165,6 +165,7 @@ export const CourseGalleryItem = ({
     imageUrl,
     isSelected,
     onClickCourse,
+    showLogo = true,
 }: {
     courseName: string;
     distance: number;
@@ -175,6 +176,7 @@ export const CourseGalleryItem = ({
     isSelected: boolean;
     imageUrl: string;
     onClickCourse?: () => void;
+    showLogo?: boolean;
 }) => {
     return (
         <Pressable
@@ -186,7 +188,7 @@ export const CourseGalleryItem = ({
         >
             {/* 코스 이미지 */}
             <View style={styles.imageContainer}>
-                {true && <GhostLabel style={styles.ghostLabel} />}
+                {showLogo && <GhostLabel style={styles.ghostLabel} />}
                 <Image
                     source={imageUrl ? { uri: imageUrl } : DefaultLogo}
                     style={styles.image}
