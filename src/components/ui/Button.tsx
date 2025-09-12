@@ -4,6 +4,7 @@ import {
     PressableProps,
     StyleProp,
     StyleSheet,
+    View,
     ViewStyle,
 } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "./Typography";
@@ -35,6 +36,7 @@ export const Button = ({
     icon,
     customBackgroundColor,
     style,
+    topStroke = false,
     ...props
 }: ButtonProps) => {
     const resolvedType: ButtonType =
@@ -48,12 +50,20 @@ export const Button = ({
     });
 
     return (
-        <Pressable {...props} style={[styles.base, { backgroundColor }, style]}>
-            {icon}
-            <Typography variant={variant} color={textColor as TypographyColor}>
-                {title}
-            </Typography>
-        </Pressable>
+        <View style={[styles.container, topStroke && styles.topStroke]}>
+            <Pressable
+                {...props}
+                style={[styles.base, { backgroundColor }, style]}
+            >
+                {icon}
+                <Typography
+                    variant={variant}
+                    color={textColor as TypographyColor}
+                >
+                    {title}
+                </Typography>
+            </Pressable>
+        </View>
     );
 };
 
@@ -92,14 +102,23 @@ function getButtonStyle(
 }
 
 const styles = StyleSheet.create({
+    container: {
+        paddingTop: 12,
+        height: 70,
+    },
     base: {
         flex: 1,
+        maxHeight: 58,
         height: 58,
         borderRadius: 16,
-        paddingHorizontal: 16,
+        marginHorizontal: 16.5,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
         gap: 10,
+    },
+    topStroke: {
+        borderTopWidth: 1,
+        borderColor: "#212121",
     },
 });

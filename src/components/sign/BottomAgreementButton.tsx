@@ -1,4 +1,3 @@
-import { StyleSheet, View } from "react-native";
 import { Button } from "../ui/Button";
 
 interface BottomAgreementButtonProps {
@@ -17,28 +16,12 @@ export default function BottomAgreementButton({
     topStroke = false,
 }: BottomAgreementButtonProps) {
     return (
-        <>
-            {topStroke && <View style={styles.topStroke} />}
-            <View style={styles.container}>
-                <Button
-                    title={title}
-                    type={isActive ? "active" : "inactive"}
-                    onPress={onPress}
-                    disabled={!canPress}
-                />
-            </View>
-        </>
+        <Button
+            title={title}
+            type={isActive ? "active" : "inactive"}
+            onPress={onPress}
+            disabled={!canPress}
+            topStroke={topStroke}
+        />
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        marginHorizontal: 16.5,
-        height: 58,
-    },
-    topStroke: {
-        height: 1,
-        backgroundColor: "#212121",
-        marginBottom: 12,
-    },
-});

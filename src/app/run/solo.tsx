@@ -3,11 +3,9 @@ import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import { Button } from "@/src/components/ui/Button";
 import Countdown from "@/src/components/ui/Countdown";
-import EmptyListView from "@/src/components/ui/EmptyListView";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
-import SlideToAction from "@/src/components/ui/SlideToAction";
-import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
@@ -251,65 +249,38 @@ export default function Run() {
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
-                        {isFirst ? (
-                            <EmptyListView
-                                description={`러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`}
-                                iconColor={colors.red}
-                                fontSize="headline"
-                                fontColor="white"
-                            />
-                        ) : (
-                            <StatsIndicator stats={statsForUI} color="gray20" />
-                        )}
+                        <StatsIndicator stats={statsForUI} color="gray20" />
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {context.status === "RUNNING" ? (
-                <SlideToAction
-                    label="밀어서 러닝 종료"
-                    onSlideSuccess={() => {
-                        controls.pauseUser();
-                    }}
-                    color="red"
-                    direction="right"
-                />
-            ) : (
-                <SlideToDualAction
-                    onSlideLeft={() => {
-                        const tooShort = context.stats.totalDistanceM < 500;
-
-                        if (tooShort) {
-                            Alert.alert(
-                                "러닝을 종료하시겠습니까?",
-                                "500m 이하의 러닝은 저장되지 않습니다.",
-                                [
-                                    { text: "계속하기", style: "cancel" },
-                                    {
-                                        text: "나가기",
-                                        style: "destructive",
-                                        onPress: () => {
-                                            controls.stop();
-                                            router.back();
-                                        },
-                                    },
-                                ]
-                            );
-                        } else {
-                            requestSave();
-                        }
-                    }}
-                    onSlideRight={() => {
-                        setIsRestarting(true);
-                    }}
-                    leftLabel={
-                        context.stats.totalDistanceM < 500
-                            ? "나가기"
-                            : "기록 저장"
-                    }
-                    rightLabel="이어서 뛰기"
-                    color="red"
-                />
-            )}
+            <Button
+                title="러닝 종료"
+                onPress={() => {
+                    Alert.alert(
+                        "러닝을 종료하시겠습니까?",
+                        "500m 이하의 러닝은 저장되지 않습니다.",
+                        [
+                            { text: "계속하기", style: "default" },
+                            {
+                                text:
+                                    context.stats.totalDistanceM < 500
+                                        ? "나가기"
+                                        : "기록 저장",
+                                style: "destructive",
+                                onPress: () => {
+                                    if (context.stats.totalDistanceM < 500) {
+                                        controls.stop();
+                                        router.back();
+                                    } else {
+                                        requestSave();
+                                    }
+                                },
+                            },
+                        ]
+                    );
+                }}
+                type="red"
+            />
         </View>
     );
 }
