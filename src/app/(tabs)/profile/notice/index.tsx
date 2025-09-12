@@ -1,7 +1,6 @@
 import { getNoticesAll, Notice } from "@/src/apis";
 import { NoticePreviewList } from "@/src/components/notice/NoticePreviewList";
 import { NoticePageHeader } from "@/src/components/notice/ui/NoticePageHeader";
-import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import TabBar from "@/src/components/ui/TabBar";
 import { FlashListRef } from "@shopify/flash-list";
@@ -79,13 +78,6 @@ export default function NoticePage() {
                 ref={listRef}
                 onEndReached={handleEndReached}
                 isFetchingNextPage={isFetchingNextPage}
-            />
-            <ActionButtonGroup
-                initialState="single"
-                onSecondaryPress={() => {
-                    router.push("/run/solo");
-                }}
-                secondaryButtonText="러닝 시작"
             />
             <ScrollButton onPress={handleScrollToTop} />
             <TabBar />

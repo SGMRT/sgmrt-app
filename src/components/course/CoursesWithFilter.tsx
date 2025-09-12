@@ -199,13 +199,6 @@ export const CoursesWithFilter = ({
                                     duration={course.averageCompletionTime}
                                     averagePace={course.averageFinisherPace}
                                     cadence={course.averageFinisherCadence}
-                                    onPress={
-                                        setSelectedCourse
-                                            ? () => {
-                                                  setSelectedCourse(course);
-                                              }
-                                            : undefined
-                                    }
                                     onClickCourseInfo={() => {
                                         router.push(
                                             `/profile/${course.id}/detail`
@@ -229,13 +222,11 @@ export const CoursesWithFilter = ({
                                     isSelected={
                                         course.id === selectedCourse?.id
                                     }
-                                    onClickCourse={
-                                        setSelectedCourse
-                                            ? () => {
-                                                  setSelectedCourse(course);
-                                              }
-                                            : undefined
-                                    }
+                                    onClickCourse={() => {
+                                        router.push(
+                                            `/profile/${course.id}/detail`
+                                        );
+                                    }}
                                     showLogo={showLogo}
                                 />
                             )

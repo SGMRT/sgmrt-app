@@ -158,6 +158,7 @@ export const Info = ({
             contentContainerStyle={{
                 marginHorizontal: 17,
                 marginTop: 20,
+                paddingBottom: 10,
                 gap: 20,
             }}
             refreshControl={

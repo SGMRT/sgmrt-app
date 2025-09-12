@@ -3,7 +3,6 @@ import { deleteUser, invalidateToken } from "@/src/apis";
 import { UserCourseInfo } from "@/src/apis/types/course";
 import { CourseSection } from "@/src/components/profile/CourseSection";
 import { Info } from "@/src/components/profile/Info";
-import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
 import BottomModal from "@/src/components/ui/BottomModal";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Header from "@/src/components/ui/Header";
@@ -41,7 +40,7 @@ export default function ProfileScreen() {
             bottomSheetRef.current?.close();
             if (modalType === "logout") {
                 await invalidateToken();
-                showToast("success", "로그아웃 되었습니다.", bottom);
+                showToast("success", "로그아웃 되었습니다.", bottom + 60);
                 logout();
             } else {
                 Alert.alert("회원 탈퇴", "정말로 탈퇴하시겠습니까?", [
@@ -129,21 +128,7 @@ export default function ProfileScreen() {
                     />
                 </View>
             </BottomModal>
-            <ActionButtonGroup
-                initialState="single"
-                onSecondaryPress={() => {
-                    if (selectedCourse && selectedTab === "course") {
-                        router.push(`/run/${selectedCourse?.id}/-1`);
-                    } else {
-                        router.push("/run/solo");
-                    }
-                }}
-                secondaryButtonText={
-                    selectedCourse && selectedTab === "course"
-                        ? "이 코스로 러닝 시작"
-                        : "러닝 시작"
-                }
-            />
+
             {selectedTab === "info" && (
                 <ScrollButton
                     onPress={() => {
