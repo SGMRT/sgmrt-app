@@ -332,7 +332,7 @@ export default function Result() {
                                 <TouchableOpacity
                                     onPress={() => {
                                         router.push(
-                                            `/course/${courseId}/detail`
+                                            `/profile/${courseId}/detail`
                                         );
                                     }}
                                     style={{
@@ -510,7 +510,7 @@ export default function Result() {
                                 true
                             ).then(() => {
                                 router.replace({
-                                    pathname: "/(tabs)/(profile)/profile",
+                                    pathname: "/(tabs)/profile",
                                     params: {
                                         tab: "course",
                                     },

@@ -179,7 +179,7 @@ export const Info = ({
                     <StyledButton
                         title="회원 정보 변경"
                         onPress={() => {
-                            router.push("/(tabs)/(profile)/editInfo");
+                            router.push("/(tabs)/profile/editInfo");
                         }}
                         style={{ width: "50%" }}
                     />
@@ -188,7 +188,7 @@ export const Info = ({
             {/*  공지사항 및 이벤트 */}
             <ProfileNoticeSection
                 onPress={() => {
-                    router.push("/notice");
+                    router.push("/(tabs)/profile/notice");
                 }}
             />
             {/* 디바이스 옵션 */}

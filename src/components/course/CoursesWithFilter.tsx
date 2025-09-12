@@ -203,7 +203,7 @@ export const CoursesWithFilter = ({
                                     }
                                     onClickCourseInfo={() => {
                                         router.push(
-                                            `/course/${course.id}/detail`
+                                            `/profile/${course.id}/detail`
                                         );
                                     }}
                                     isSelected={
@@ -230,12 +230,6 @@ export const CoursesWithFilter = ({
                                               }
                                             : undefined
                                     }
-                                    onClickCourseInfo={() => {
-                                        console.log(course.id);
-                                        router.push(
-                                            `/course/${course.id}/rank`
-                                        );
-                                    }}
                                 />
                             )
                         )}

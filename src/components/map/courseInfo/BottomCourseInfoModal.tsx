@@ -91,7 +91,7 @@ export default function BottomCourseInfoModal({
                 stats={courseStats}
                 onPress={() => {
                     bottomSheetRef.current?.dismiss();
-                    router.push(`/course/${courseId}/detail`);
+                    router.push(`/profile/${courseId}/detail`);
                 }}
             />
             <View style={{ height: ghost ? 20 : 30 }} />
