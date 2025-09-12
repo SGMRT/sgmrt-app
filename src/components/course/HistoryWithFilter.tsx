@@ -15,7 +15,6 @@ import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterBar } from "../ui/FilterBar";
 import { GoRunCalendar } from "../ui/GoRunCalendar";
-import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
 
@@ -197,9 +196,6 @@ export const HistoryWithFilter = ({
                                     duration={history.recordInfo.duration}
                                     averagePace={history.recordInfo.averagePace}
                                     cadence={history.recordInfo.cadence}
-                                    onPress={() => {
-                                        onClickItem(history);
-                                    }}
                                     onShowHistory={() => {
                                         router.push(
                                             `/stats/result/${
@@ -228,9 +224,6 @@ export const HistoryWithFilter = ({
                                     duration={history.recordInfo.duration}
                                     averagePace={history.recordInfo.averagePace}
                                     cadence={history.recordInfo.cadence}
-                                    onPress={() => {
-                                        onClickItem(history);
-                                    }}
                                     onShowHistory={() => {
                                         router.push(
                                             `/stats/result/${
@@ -307,7 +300,6 @@ interface RunHistoryGalleryItemProps {
     duration: number;
     averagePace: number;
     cadence: number;
-    onPress: () => void;
     onShowHistory: () => void;
     isSelected: boolean;
     startedAt: number;
@@ -321,13 +313,12 @@ const RunHistoryGalleryItem = ({
     duration,
     averagePace,
     cadence,
-    onPress,
     onShowHistory,
     isSelected,
     startedAt,
 }: RunHistoryGalleryItemProps) => {
     return (
-        <View style={styles.container}>
+        <TouchableOpacity style={styles.container} onPress={onShowHistory}>
             <View style={styles.imageContainer}>
                 <Image
                     source={imageUrl ? { uri: imageUrl } : DefaultLogo}
@@ -353,14 +344,6 @@ const RunHistoryGalleryItem = ({
                             {name}
                         </Typography>
                     </View>
-
-                    <RadioButton
-                        isSelected={isSelected}
-                        showMyRecord={false}
-                        onPress={onPress}
-                        activeColor={colors.primary}
-                        inactiveColor={colors.gray[40]}
-                    />
                 </View>
                 <View>
                     <View style={styles.content}>
@@ -413,7 +396,7 @@ const RunHistoryGalleryItem = ({
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
 
@@ -425,7 +408,6 @@ interface RunHistoryItemProps {
     duration: number;
     averagePace: number;
     cadence: number;
-    onPress: () => void;
     onShowHistory: () => void;
     isSelected: boolean;
 }
@@ -438,12 +420,11 @@ const RunHistoryItem = ({
     duration,
     averagePace,
     cadence,
-    onPress,
     onShowHistory,
     isSelected,
 }: RunHistoryItemProps) => {
     return (
-        <View style={styles.itemContainer}>
+        <TouchableOpacity style={styles.itemContainer} onPress={onShowHistory}>
             <View style={{ gap: 2 }}>
                 <View style={styles.nameContainer}>
                     {mode === "GHOST" && (
@@ -515,14 +496,7 @@ const RunHistoryItem = ({
                     </Typography>
                 </View>
             </View>
-            <RadioButton
-                isSelected={isSelected}
-                showMyRecord={false}
-                onPress={onPress}
-                activeColor={colors.primary}
-                inactiveColor={colors.gray[40]}
-            />
-        </View>
+        </TouchableOpacity>
     );
 };
 
