@@ -55,7 +55,15 @@ export default function ButtonWithIcon({
                     </>
                 )}
             </Pressable>
-            <Button {...props} />
+            <Button
+                {...props}
+                containerStyle={{
+                    height: 58,
+                    paddingTop: 0,
+                    flex: 1,
+                }}
+                style={{ marginHorizontal: 0 }}
+            />
         </View>
     );
 }
@@ -71,11 +79,11 @@ const styles = StyleSheet.create({
     },
     container: {
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
         gap: 6,
-        paddingHorizontal: 16.5,
+        marginHorizontal: 16.5,
         marginBottom: 6,
+        flex: 1,
     },
     topStroke: {
         borderTopWidth: 1,

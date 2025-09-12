@@ -5,13 +5,14 @@ import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
 import Header from "@/src/components/ui/Header";
 import TabBar from "@/src/components/ui/TabBar";
 import { TabItem } from "@/src/components/ui/TabItem";
+import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Alert, SafeAreaView, View } from "react-native";
-import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Stats() {
     const [selectedTab, setSelectedTab] = useState<"SOLO" | "GHOST">("SOLO");
@@ -27,6 +28,7 @@ export default function Stats() {
     const [selectedGhost, setSelectedGhost] = useState<RunResponse | null>(
         null
     );
+    const { bottom } = useSafeAreaInsets();
 
     const handleCourseSelect = (course: RunResponse) => {
         if (selectedTab === "SOLO") {
@@ -66,12 +68,7 @@ export default function Stats() {
                 return;
             }
         } else {
-            Toast.show({
-                type: "success",
-                text1: "기록 삭제 모드를 활성화합니다",
-                position: "bottom",
-                bottomOffset: 60,
-            });
+            showToast("success", "기록 삭제 모드를 활성화합니다", bottom);
             setIsDeleteMode(true);
             setSelectedDeleteItems([]);
         }
@@ -79,12 +76,7 @@ export default function Stats() {
 
     const onDeleteItems = () => {
         if (selectedDeleteItems.length === 0) {
-            Toast.show({
-                type: "info",
-                text1: "기록 삭제 모드를 종료합니다.",
-                position: "bottom",
-                bottomOffset: 60,
-            });
+            showToast("info", "기록 삭제 모드를 종료합니다.", bottom);
             setIsDeleteMode(false);
             return;
         } else {
@@ -105,12 +97,11 @@ export default function Stats() {
                                 deleteRun(item.runningId)
                             )
                         ).then(() => {
-                            Toast.show({
-                                type: "success",
-                                text1: "선택한 기록이 삭제되었습니다.",
-                                position: "bottom",
-                                bottomOffset: 60,
-                            });
+                            showToast(
+                                "success",
+                                "선택한 기록이 삭제되었습니다.",
+                                bottom
+                            );
                             setSelectedDeleteItems([]);
                             setIsDeleteMode(false);
                             setShouldRefresh(!shouldRefresh);

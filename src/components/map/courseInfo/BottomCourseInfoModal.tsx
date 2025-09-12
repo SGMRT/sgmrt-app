@@ -10,7 +10,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StyledChart from "../../chart/StyledChart";
 import { Button } from "../../ui/Button";
 import { Divider } from "../../ui/Divider";
@@ -18,6 +18,7 @@ import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
 import StatRow, { Stat } from "../../ui/StatRow";
 import { StyledSwitch } from "../../ui/StyledSwitch";
+import { showToast } from "../../ui/toastConfig";
 import { Typography, TypographyColor } from "../../ui/Typography";
 import UserStatItem from "./UserStatItem";
 
@@ -131,18 +132,14 @@ const GhostSection = ({
     onSwitchChange: (value: boolean) => void;
     ghostStats: Stat[];
 }) => {
+    const { bottom } = useSafeAreaInsets();
     return (
         <Section
             title="내 고스트"
             titleColor="white"
             containerStyle={styles.ghostInfoSection}
             onClickInfo={() => {
-                Toast.show({
-                    type: "info",
-                    text1: "내 고스트는 현재 지원하지 않아요.",
-                    position: "bottom",
-                    bottomOffset: 60,
-                });
+                showToast("info", "내 고스트는 현재 지원하지 않아요.", bottom);
             }}
             titleRightChildren={
                 <StyledSwitch

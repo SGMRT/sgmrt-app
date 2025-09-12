@@ -10,6 +10,7 @@ import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import TabBar from "@/src/components/ui/TabBar";
 import { TabItem } from "@/src/components/ui/TabItem";
+import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
@@ -18,7 +19,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
-import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ProfileScreen() {
     const { tab } = useLocalSearchParams();
@@ -33,17 +34,14 @@ export default function ProfileScreen() {
         null
     );
     const scrollViewRef = useRef<ScrollView>(null);
+    const { bottom } = useSafeAreaInsets();
 
     const onPressSignButton = useCallback(
         async (modalType: "logout" | "withdraw") => {
             bottomSheetRef.current?.close();
             if (modalType === "logout") {
                 await invalidateToken();
-                Toast.show({
-                    type: "success",
-                    text1: "로그아웃 되었습니다.",
-                    position: "bottom",
-                });
+                showToast("success", "로그아웃 되었습니다.", bottom);
                 logout();
             } else {
                 Alert.alert("회원 탈퇴", "정말로 탈퇴하시겠습니까?", [
@@ -61,7 +59,7 @@ export default function ProfileScreen() {
                 ]);
             }
         },
-        [bottomSheetRef, logout]
+        [bottomSheetRef, logout, bottom]
     );
     return (
         <View style={styles.container}>

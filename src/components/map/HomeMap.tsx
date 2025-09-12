@@ -194,6 +194,7 @@ export default function HomeMap({
             <StyledBottomSheet
                 ref={listBottomSheetRef}
                 bottomInset={bottom + 36}
+                index={0}
             >
                 <View style={{ height: 20 }} />
                 <CourseListView
@@ -201,6 +202,7 @@ export default function HomeMap({
                     selectedCourse={activeCourse}
                     onShowCourseInfo={onClickCourseInfo}
                 />
+                <View style={{ height: 10 }} />
             </StyledBottomSheet>
             <HomeBottomModal
                 bottomSheetRef={mapBottomSheetRef}

@@ -16,6 +16,7 @@ import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import BottomModal from "@/src/components/ui/BottomModal";
+import { Button } from "@/src/components/ui/Button";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
@@ -24,6 +25,7 @@ import Section from "@/src/components/ui/Section";
 import ShareButton from "@/src/components/ui/ShareButton";
 import StatRow from "@/src/components/ui/StatRow";
 import { StyledButton } from "@/src/components/ui/StyledButton";
+import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
@@ -34,7 +36,6 @@ import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    Alert,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -42,15 +43,18 @@ import {
     View,
 } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import Share from "react-native-share";
-import Toast from "react-native-toast-message";
 
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
     const [isLocked, setIsLocked] = useState(false);
     const runShotRef = useRef<RunShotHandle>(null);
+    const { bottom } = useSafeAreaInsets();
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -267,14 +271,10 @@ export default function Result() {
                 ) && !runData?.courseInfo?.isPublic;
             if (canMakeCourse) {
                 return (
-                    <ButtonWithIcon
+                    <Button
                         type="active"
                         title="코스 등록"
                         onPress={handlePresentModalPress}
-                        iconType="home"
-                        onPressIcon={() => {
-                            router.replace("/");
-                        }}
                         topStroke
                     />
                 );
@@ -348,11 +348,11 @@ export default function Result() {
                                         patchRunIsPublic(
                                             Number(runningId)
                                         ).then(() => {
-                                            Toast.show({
-                                                type: "success",
-                                                text1: "공개 상태가 변경되었습니다",
-                                                position: "bottom",
-                                            });
+                                            showToast(
+                                                "success",
+                                                "공개 상태가 변경되었습니다",
+                                                bottom
+                                            );
                                             refetch();
                                         });
                                     }}
@@ -383,12 +383,11 @@ export default function Result() {
                                             Number(runningId),
                                             recordTitle
                                         ).then(() => {
-                                            Toast.show({
-                                                type: "success",
-                                                text1: "러닝명이 변경되었습니다",
-                                                position: "bottom",
-                                                bottomOffset: 60,
-                                            });
+                                            showToast(
+                                                "success",
+                                                "러닝명이 변경되었습니다",
+                                                bottom
+                                            );
                                         });
                                     }}
                                 />
@@ -466,6 +465,7 @@ export default function Result() {
                                     : "내 코스 정보"
                             }
                             titleColor="white"
+                            titleVariant="sectionhead"
                             titleRightChildren={
                                 <StyledButton
                                     title={
@@ -508,7 +508,11 @@ export default function Result() {
                                 expandable
                             />
                         </Section>
-                        <Section title="내 러닝 정보" titleColor="white">
+                        <Section
+                            title="내 러닝 정보"
+                            titleColor="white"
+                            titleVariant="sectionhead"
+                        >
                             <StatRow
                                 color="gray20"
                                 style={{ gap: 20 }}
@@ -607,7 +611,7 @@ export default function Result() {
                             animated: true,
                         });
                     }}
-                    bottomInset={30}
+                    bottomInset={16}
                 />
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}
@@ -625,7 +629,7 @@ export default function Result() {
                         </Typography>
                     </View>
 
-                    <ButtonWithIcon
+                    <Button
                         title="코스 등록"
                         onPress={() => {
                             patchCourseName(
@@ -646,34 +650,14 @@ export default function Result() {
                                     elevationGain:
                                         runData?.recordInfo.elevationGain,
                                 });
-                                Toast.show({
-                                    type: "success",
-                                    text1: "코스가 등록되었습니다",
-                                    position: "bottom",
-                                });
+                                showToast(
+                                    "success",
+                                    "코스가 등록되었습니다",
+                                    bottom
+                                );
                             });
                         }}
                         type="active"
-                        iconType="home"
-                        onPressIcon={() => {
-                            Alert.alert(
-                                "코스 등록을 종료하시겠습니까?",
-                                "진행 중인 내용은 저장되지 않습니다.",
-                                [
-                                    {
-                                        text: "계속하기",
-                                        style: "cancel",
-                                    },
-                                    {
-                                        text: "나가기",
-                                        style: "destructive",
-                                        onPress: () => {
-                                            router.replace("/");
-                                        },
-                                    },
-                                ]
-                            );
-                        }}
                     />
                 </BottomModal>
                 <RunShot
@@ -727,6 +711,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         gap: 4,
+        backgroundColor: "#111111",
     },
     handle: {
         paddingTop: 10,

@@ -15,7 +15,6 @@ import { useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
 export default function Home() {
-    const [type, setType] = useState<"all" | "my">("all");
     const [showListView, setShowListView] = useState(false);
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -51,7 +50,7 @@ export default function Home() {
                 <WeatherInfo />
             </TopBlurView>
             <HomeMap
-                courseType={type}
+                courseType={"all"}
                 showListView={showListView}
                 setShowListView={setShowListView}
                 mapBottomSheetRef={mapBottomSheetRef}

@@ -23,12 +23,13 @@ import {
     TouchableOpacity,
     View,
 } from "react-native";
-import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProfileNoticeSection } from "../notice/ui/ProfileNoticeSection";
 import { Divider } from "../ui/Divider";
 import { StyledButton } from "../ui/StyledButton";
 import { StyledSwitch } from "../ui/StyledSwitch";
 import { Typography, TypographyColor } from "../ui/Typography";
+import { showToast } from "../ui/toastConfig";
 
 export const Info = ({
     setModalType,
@@ -45,7 +46,7 @@ export const Info = ({
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
     const { logout } = useAuthStore();
-
+    const { bottom } = useSafeAreaInsets();
     useEffect(() => {
         loadUserInfo();
     }, []);
@@ -126,7 +127,7 @@ export const Info = ({
         });
     };
 
-    const onPickImage = async () => {
+    const onPickImage = async (bottom: number) => {
         await pickImage().then(async (image) => {
             if (!image) return;
             const imageUrl = await getPresignedUrl({
@@ -141,11 +142,11 @@ export const Info = ({
                 await patchUserInfo({
                     profileImageUrl: imageUrl.presignUrl.split("?X-Amz-")[0],
                 }).then(() => {
-                    Toast.show({
-                        type: "success",
-                        text1: "프로필 이미지가 변경되었습니다",
-                        position: "bottom",
-                    });
+                    showToast(
+                        "success",
+                        "프로필 이미지가 변경되었습니다",
+                        bottom
+                    );
                 });
             }
         });
@@ -172,7 +173,7 @@ export const Info = ({
                 <View style={{ flexDirection: "row", gap: 4 }}>
                     <StyledButton
                         title="프로필 이미지 변경"
-                        onPress={onPickImage}
+                        onPress={() => onPickImage(bottom)}
                         style={{ width: "50%" }}
                     />
                     <StyledButton

@@ -5,6 +5,7 @@ export type TypographyVariant =
     | "display1"
     | "display2"
     | "headline"
+    | "sectionhead"
     | "subhead1"
     | "subhead2"
     | "subhead3"
@@ -60,6 +61,12 @@ export const typographyStyles = StyleSheet.create({
         letterSpacing: -0.6,
     },
     headline: {
+        fontFamily: "SpoqaHanSansNeo-Medium",
+        fontSize: 20,
+        lineHeight: 30,
+        letterSpacing: -0.6,
+    },
+    sectionhead: {
         fontFamily: "SpoqaHanSansNeo-Medium",
         fontSize: 20,
         lineHeight: 30,

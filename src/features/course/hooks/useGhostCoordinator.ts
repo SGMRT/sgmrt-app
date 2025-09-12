@@ -1,9 +1,10 @@
 import { Telemetry } from "@/src/apis/types/run";
 import { Segment } from "@/src/components/map/RunningLine";
+import { showToast } from "@/src/components/ui/toastConfig";
 import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
 import { useMemo, useRef } from "react";
-import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { voiceGuide } from "../../audio/VoiceGuide";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { CourseLeg } from "../types/courseLeg";
@@ -54,7 +55,7 @@ export function useGhostCoordinator(
     const ghostLegIndexRef = useRef(0);
     const prevTimestampRef = useRef<number | null>(null);
     const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
-
+    const { bottom } = useSafeAreaInsets();
     const ghostPoint = findClosest(
         ghostTelemetry,
         timestamp * (simulateSpeed ?? 1),
@@ -156,16 +157,13 @@ export function useGhostCoordinator(
                     leader,
                     deltaM: Math.abs(deltaM),
                 });
-                Toast.show({
-                    text1:
-                        leader === "ME"
-                            ? "고스트를 추월하였습니다"
-                            : "고스트가 앞서고 있습니다",
-                    type: "info",
-                    position: "bottom",
-                    bottomOffset: 60,
-                    visibilityTime: 3000,
-                });
+                showToast(
+                    "info",
+                    leader === "ME"
+                        ? "고스트를 추월하였습니다"
+                        : "고스트가 앞서고 있습니다",
+                    bottom
+                );
             }
         }
 

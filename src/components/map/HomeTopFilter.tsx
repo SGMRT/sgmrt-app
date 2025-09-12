@@ -7,9 +7,9 @@ import {
     View,
     useWindowDimensions,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import { HomeNotices } from "../notice/HomeNotices";
 import { Typography } from "../ui/Typography";
+import { showCompactToast } from "../ui/toastConfig";
 
 interface HomeTopBarProps {
     type: "all" | "my";
@@ -123,11 +123,7 @@ export default function HomeTopBar({
 
                     <Pressable
                         onPress={() =>
-                            Toast.show({
-                                type: "info",
-                                text1: "챌린지 코스는 준비중입니다.",
-                                topOffset: 60,
-                            })
+                            showCompactToast("챌린지 코스는 준비중입니다.")
                         }
                         style={({ pressed }) => [
                             styles.button,

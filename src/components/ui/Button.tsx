@@ -24,6 +24,7 @@ export interface ButtonProps extends PressableProps {
     variant?: TypographyVariant;
     customColor?: TypographyColor;
     customBackgroundColor?: string;
+    containerStyle?: StyleProp<ViewStyle>;
     style?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
@@ -35,6 +36,7 @@ export const Button = ({
     customColor,
     icon,
     customBackgroundColor,
+    containerStyle,
     style,
     topStroke = false,
     ...props
@@ -50,7 +52,13 @@ export const Button = ({
     });
 
     return (
-        <View style={[styles.container, topStroke && styles.topStroke]}>
+        <View
+            style={[
+                styles.container,
+                topStroke && styles.topStroke,
+                containerStyle,
+            ]}
+        >
             <Pressable
                 {...props}
                 style={[styles.base, { backgroundColor }, style]}

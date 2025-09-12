@@ -8,7 +8,7 @@ import {
     ViewStyle,
 } from "react-native";
 import { Divider } from "./Divider";
-import { Typography, TypographyColor } from "./Typography";
+import { Typography, TypographyColor, TypographyVariant } from "./Typography";
 
 interface SectionProps {
     children: React.ReactNode;
@@ -16,6 +16,7 @@ interface SectionProps {
     style?: StyleProp<ViewStyle>;
     title?: string;
     titleColor?: TypographyColor;
+    titleVariant?: TypographyVariant;
     titleRightChildren?: React.ReactNode;
     shortcutTitle?: string;
     onClickInfo?: () => void;
@@ -28,6 +29,7 @@ export default function Section({
     style,
     title,
     titleColor = "gray40",
+    titleVariant = "subhead1",
     titleRightChildren,
     shortcutTitle,
     onClickInfo,
@@ -39,7 +41,10 @@ export default function Section({
                 <View style={styles.titleContainer}>
                     <View style={styles.title}>
                         <View style={styles.titleLeft}>
-                            <Typography variant="subhead1" color={titleColor}>
+                            <Typography
+                                variant={titleVariant}
+                                color={titleColor}
+                            >
                                 {title}
                             </Typography>
                             {onClickInfo && (
