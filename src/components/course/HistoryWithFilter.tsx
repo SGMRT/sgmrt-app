@@ -205,9 +205,11 @@ export const HistoryWithFilter = ({
                                     }}
                                     onShowHistory={() => {
                                         router.push(
-                                            `/result/${history.runningId}/${
-                                                history.courseInfo?.id ?? -1
-                                            }/${history.ghostRunningId ?? -1}`
+                                            `/stats/result/${
+                                                history.runningId
+                                            }/${history.courseInfo?.id ?? -1}/${
+                                                history.ghostRunningId ?? -1
+                                            }`
                                         );
                                     }}
                                     isSelected={
@@ -237,9 +239,11 @@ export const HistoryWithFilter = ({
                                     }}
                                     onShowHistory={() => {
                                         router.push(
-                                            `/result/${history.runningId}/${
-                                                history.courseInfo?.id ?? -1
-                                            }/${history.ghostRunningId ?? -1}`
+                                            `/stats/result/${
+                                                history.runningId
+                                            }/${history.courseInfo?.id ?? -1}/${
+                                                history.ghostRunningId ?? -1
+                                            }`
                                         );
                                     }}
                                     isSelected={

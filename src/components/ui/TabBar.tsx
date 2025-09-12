@@ -40,7 +40,7 @@ export default memo(function TabBar({
             ]}
         >
             {tabs.map((tab) => {
-                const isActive = pathname === tab.path;
+                const isActive = pathname.includes(tab.path);
                 return (
                     <Pressable
                         key={tab.name}

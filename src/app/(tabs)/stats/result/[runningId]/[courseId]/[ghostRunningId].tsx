@@ -1,23 +1,19 @@
-import { ChevronIcon, LockIcon, UnlockIcon } from "@/assets/svgs/svgs";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import {
     getCourse,
-    getCourseTopRanking,
     getRun,
     getRunComperison,
     patchCourseName,
-    patchRunIsPublic,
     patchRunName,
     RunComperisonResponse,
 } from "@/src/apis";
-import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
+import { CourseDetailResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
-import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
-import UserStatItem from "@/src/components/map/courseInfo/UserStatItem";
+import { RunningRecord } from "@/src/components/map/courseInfo/RunningRecord";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import BottomModal from "@/src/components/ui/BottomModal";
 import { Button } from "@/src/components/ui/Button";
-import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
 import ScrollButton from "@/src/components/ui/ScrollButton";
@@ -25,6 +21,7 @@ import Section from "@/src/components/ui/Section";
 import ShareButton from "@/src/components/ui/ShareButton";
 import StatRow from "@/src/components/ui/StatRow";
 import { StyledButton } from "@/src/components/ui/StyledButton";
+import TabBar from "@/src/components/ui/TabBar";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
@@ -34,7 +31,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
     Pressable,
     ScrollView,
@@ -52,9 +49,9 @@ import Share from "react-native-share";
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
-    const [isLocked, setIsLocked] = useState(false);
     const runShotRef = useRef<RunShotHandle>(null);
     const { bottom } = useSafeAreaInsets();
+    const [isTabBar, setIsTabBar] = useState(false);
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -92,13 +89,6 @@ export default function Result() {
         enabled: !!runningId,
     });
 
-    const { data: ghostList } = useQuery<HistoryResponse[]>({
-        queryKey: ["course-top-ranking", courseId],
-        queryFn: () =>
-            getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
-        enabled: courseId !== "-1",
-    });
-
     const { data: course } = useQuery<CourseDetailResponse>({
         queryKey: ["course", courseId],
         queryFn: () => getCourse(Number(courseId)),
@@ -109,7 +99,8 @@ export default function Result() {
         queryKey: ["match-result", runningId],
         queryFn: () =>
             getRunComperison(Number(runningId), Number(ghostRunningId)),
-        enabled: runningMode === "GHOST" && !!runningId && !!ghostRunningId,
+        enabled: false,
+        // enabled: runningMode === "GHOST" && !!runningId && !!ghostRunningId,
     });
 
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
@@ -158,62 +149,6 @@ export default function Result() {
             },
         ];
     }, [runData]);
-
-    const comparisonStats = useMemo(() => {
-        return [
-            {
-                description: "거리",
-                value: (comperison?.comparisonInfo.distance ?? 0).toFixed(2),
-                unit: "km",
-            },
-            {
-                description: "시간",
-                value: getRunTime(
-                    comperison?.comparisonInfo.duration ?? 0,
-                    "HH:MM:SS"
-                ),
-                unit: "",
-            },
-            {
-                description: "케이던스",
-                value: comperison?.comparisonInfo.cadence ?? 0,
-                unit: "spm",
-            },
-            {
-                description: "페이스",
-                value: getFormattedPace(comperison?.comparisonInfo.pace ?? 0),
-                unit: "",
-            },
-        ];
-    }, [comperison]);
-
-    const courseAverageStats = useMemo(() => {
-        return [
-            {
-                description: "시간",
-                value: getRunTime(
-                    course?.averageCompletionTime ?? 0,
-                    "HH:MM:SS"
-                ),
-                unit: "",
-            },
-            {
-                description: "케이던스",
-                value: course?.averageFinisherCadence ?? "--",
-                unit: "spm",
-            },
-            {
-                description: "칼로리",
-                value: course?.averageCaloriesBurned ?? "--",
-                unit: "kcal",
-            },
-            {
-                description: "페이스",
-                value: getFormattedPace(course?.averageFinisherPace ?? 0),
-                unit: "",
-            },
-        ];
-    }, [course]);
 
     const runningStats = useMemo(() => {
         return [
@@ -280,25 +215,12 @@ export default function Result() {
                 );
             }
         }
-        return (
-            <ButtonWithIcon
-                type="active"
-                title="이 코스로 러닝 시작"
-                onPress={() => {
-                    router.push(`/run/${courseId}/-1`);
-                }}
-                iconType="home"
-                onPressIcon={() => {
-                    router.replace("/");
-                }}
-                topStroke
-            />
-        );
+        setIsTabBar(true);
+        return <TabBar />;
     }, [
         courseId,
         ghostRunningId,
         runData?.telemetries,
-        router,
         runData?.courseInfo?.isPublic,
     ]);
 
@@ -323,10 +245,6 @@ export default function Result() {
         }
     }, [runData?.runningName]);
 
-    useEffect(() => {
-        setIsLocked(!runData?.isPublic);
-    }, [runData?.isPublic]);
-
     if (isLoading) {
         return <></>;
     }
@@ -339,33 +257,7 @@ export default function Result() {
         runData && (
             <>
                 <SafeAreaView style={styles.container}>
-                    <Header
-                        titleText={getDate(runData.startedAt)}
-                        rightComponent={
-                            courseId !== "-1" && (
-                                <Pressable
-                                    onPress={() => {
-                                        patchRunIsPublic(
-                                            Number(runningId)
-                                        ).then(() => {
-                                            showToast(
-                                                "success",
-                                                "공개 상태가 변경되었습니다",
-                                                bottom
-                                            );
-                                            refetch();
-                                        });
-                                    }}
-                                >
-                                    {isLocked ? (
-                                        <LockIcon width={20} height={20} />
-                                    ) : (
-                                        <UnlockIcon width={20} height={20} />
-                                    )}
-                                </Pressable>
-                            )
-                        }
-                    />
+                    <Header titleText={getDate(runData.startedAt)} />
                     <ScrollView
                         ref={scrollViewRef}
                         contentContainerStyle={styles.content}
@@ -508,100 +400,80 @@ export default function Result() {
                                 expandable
                             />
                         </Section>
-                        <Section
-                            title="내 러닝 정보"
-                            titleColor="white"
-                            titleVariant="sectionhead"
-                        >
-                            <StatRow
-                                color="gray20"
-                                style={{ gap: 20 }}
-                                stats={runningStats}
-                            />
-                        </Section>
+                        {runningMode !== "GHOST" && (
+                            <Section
+                                title="내 러닝 정보"
+                                titleColor="white"
+                                titleVariant="sectionhead"
+                            >
+                                <StatRow
+                                    color="gray20"
+                                    style={{ gap: 20 }}
+                                    stats={runningStats}
+                                />
+                            </Section>
+                        )}
 
                         {/* 고스트 러닝 기록 비교  (고스트 러닝) */}
                         {runningMode === "GHOST" && (
                             <Section
                                 title="기록 비교"
+                                titleVariant="sectionhead"
                                 titleColor="white"
-                                style={{ gap: 20 }}
+                                style={{ gap: 20, marginBottom: 20 }}
                             >
-                                <StatRow
-                                    color="gray20"
-                                    style={{ justifyContent: "space-between" }}
-                                    stats={comparisonStats}
+                                <RunningRecord
+                                    user={{
+                                        nickname:
+                                            comperison?.ghostRunInfo.nickname,
+                                        profileUrl:
+                                            comperison?.ghostRunInfo.profileUrl,
+                                    }}
+                                    isMine={false}
+                                    stats={[
+                                        {
+                                            description: "시간",
+                                            value: getRunTime(10000, "MM:SS"),
+                                        },
+                                        {
+                                            description: "페이스",
+                                            value: getFormattedPace(150),
+                                        },
+                                        {
+                                            description: "케이던스",
+                                            value: 150,
+                                            unit: "spm",
+                                        },
+                                    ]}
                                 />
-                                <UserStatItem
-                                    rank={"-"}
-                                    name={
-                                        comperison?.ghostRunInfo.nickname ?? ""
-                                    }
-                                    avatar={
-                                        comperison?.ghostRunInfo.profileUrl ??
-                                        ""
-                                    }
-                                    time={getRunTime(
-                                        comperison?.ghostRunInfo.recordInfo
-                                            .duration ?? 0,
-                                        "MM:SS"
-                                    )}
-                                    pace={getFormattedPace(
-                                        comperison?.ghostRunInfo.recordInfo
-                                            .averagePace ?? 0
-                                    )}
-                                    cadence={
-                                        comperison?.ghostRunInfo.recordInfo
-                                            .cadence ?? 0
-                                    }
-                                    isMyRecord={false}
-                                    isGhostSelected={false}
-                                    paddingHorizontal={false}
-                                    paddingVertical={false}
-                                />
-                                <UserStatItem
-                                    rank={"-"}
-                                    name={comperison?.myRunInfo.nickname ?? ""}
-                                    avatar={
-                                        comperison?.myRunInfo.profileUrl ?? ""
-                                    }
-                                    time={getRunTime(
-                                        comperison?.myRunInfo.recordInfo
-                                            .duration ?? 0,
-                                        "MM:SS"
-                                    )}
-                                    pace={getFormattedPace(
-                                        comperison?.myRunInfo.recordInfo
-                                            .averagePace ?? 0
-                                    )}
-                                    cadence={
-                                        comperison?.myRunInfo.recordInfo
-                                            .cadence ?? 0
-                                    }
-                                    isMyRecord={true}
-                                    isGhostSelected={true}
-                                    paddingHorizontal={false}
-                                    paddingVertical={false}
+                                <RunningRecord
+                                    user={{
+                                        nickname:
+                                            comperison?.ghostRunInfo.nickname,
+                                        profileUrl:
+                                            comperison?.ghostRunInfo.profileUrl,
+                                    }}
+                                    isMine={true}
+                                    stats={[
+                                        {
+                                            description: "시간",
+                                            value: getRunTime(10000, "MM:SS"),
+                                        },
+                                        {
+                                            description: "페이스",
+                                            value: getFormattedPace(150),
+                                        },
+                                        {
+                                            description: "케이던스",
+                                            value: 150,
+                                            unit: "spm",
+                                        },
+                                    ]}
                                 />
                             </Section>
                         )}
-
-                        {/* 코스 관련 정보 (!솔로 러닝)*/}
-                        {runningMode !== "SOLO" && (
-                            <GhostInfoSection
-                                stats={courseAverageStats}
-                                uuid={null}
-                                ghostList={ghostList ?? []}
-                                selectedGhostId={-1}
-                                setSelectedGhostId={() => {}}
-                                onPress={() => {
-                                    router.push(`/course/${courseId}/rank`);
-                                }}
-                                hasMargin={false}
-                                color="white"
-                            />
-                        )}
                     </ScrollView>
+                    {isTabBar && <View style={{ height: 50 }} />}
                     {DisplaySlideToAction}
                 </SafeAreaView>
                 <ScrollButton
@@ -611,7 +483,7 @@ export default function Result() {
                             animated: true,
                         });
                     }}
-                    bottomInset={16}
+                    bottomInset={isTabBar ? 0 : 16}
                 />
                 <BottomModal
                     bottomSheetRef={bottomSheetRef}

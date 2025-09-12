@@ -139,10 +139,11 @@ export default function Run() {
                     thumbnailUri,
                     userDashboardData: userRecordData,
                     runTime: Math.round(context.stats.totalTimeMs / 1000),
-                    isPublic: false,
+                    isPublic: true,
                 });
                 router.replace({
-                    pathname: "/result/[runningId]/[courseId]/[ghostRunningId]",
+                    pathname:
+                        "/stats/result/[runningId]/[courseId]/[ghostRunningId]",
                     params: {
                         runningId: response.runningId.toString(),
                         courseId: "-1",

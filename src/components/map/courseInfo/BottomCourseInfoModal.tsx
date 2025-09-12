@@ -103,7 +103,6 @@ export default function BottomCourseInfoModal({
             />
             <Button
                 style={{
-                    marginTop: 12,
                     marginHorizontal: 16.5,
                 }}
                 type="active"
