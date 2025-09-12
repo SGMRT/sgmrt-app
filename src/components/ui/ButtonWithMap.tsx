@@ -1,4 +1,4 @@
-import { HomeIcon, MapIcon } from "@/assets/svgs/svgs";
+import { HomeIcon, MapIcon, ShareIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import {
     Pressable,
@@ -12,7 +12,7 @@ import { Typography } from "./Typography";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;
-    iconType: "map" | "home";
+    iconType: "map" | "home" | "share";
     containerStyle?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
@@ -37,6 +37,13 @@ export default function ButtonWithIcon({
                         <MapIcon color={colors.gray[40]} />
                         <Typography variant="mini" color="gray40">
                             지도
+                        </Typography>
+                    </>
+                ) : iconType === "share" ? (
+                    <>
+                        <ShareIcon color={colors.gray[40]} />
+                        <Typography variant="mini" color="gray40">
+                            공유
                         </Typography>
                     </>
                 ) : (

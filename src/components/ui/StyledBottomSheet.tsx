@@ -8,7 +8,7 @@ import { StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface StyledBottomSheetProps extends BottomSheetProps {
-    ref: React.RefObject<BottomSheetModal | null>;
+    ref?: React.RefObject<BottomSheetModal | null>;
 }
 
 export default function StyledBottomSheet({

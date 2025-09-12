@@ -31,13 +31,11 @@ import Animated, {
     useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
-    const [isFirst, setIsFirst] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
     const runShotRef = useRef<RunShotHandle>(null);
@@ -92,7 +90,6 @@ export default function Run() {
             controls.oncourse();
         }
         setIsRestarting(false);
-        setIsFirst(false);
     }, [context.status, controls]);
 
     const segments = useMemo(
@@ -117,11 +114,7 @@ export default function Run() {
     const requestSave = useCallback(() => {
         if (isSaving) return;
         if (!context.telemetries.length) {
-            Toast.show({
-                type: "info",
-                text1: "저장할 러닝 데이터가 없어요",
-                position: "bottom",
-            });
+            showCompactToast("저장할 러닝 데이터가 없습니다");
             return;
         }
         hasSavedRef.current = false;
@@ -157,12 +150,9 @@ export default function Run() {
                     },
                 });
             } catch {
-                Toast.show({
-                    type: "info",
-                    text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
-                    position: "bottom",
-                    bottomOffset: 60,
-                });
+                showCompactToast(
+                    "기록 저장에 실패했습니다. 다시 시도해주세요."
+                );
             } finally {
                 setIsSaving(false);
                 setThumbnailUri(null);

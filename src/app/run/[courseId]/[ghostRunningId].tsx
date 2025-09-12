@@ -4,13 +4,14 @@ import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import { Button } from "@/src/components/ui/Button";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
 import EmptyListView from "@/src/components/ui/EmptyListView";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
-import SlideToAction from "@/src/components/ui/SlideToAction";
-import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
+import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunMetronome } from "@/src/features/audio/useRunMetronome";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
@@ -34,14 +35,13 @@ import {
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BackHandler, StyleSheet, View } from "react-native";
+import { Alert, BackHandler, StyleSheet, View } from "react-native";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
     useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
@@ -132,13 +132,7 @@ export default function Run() {
     useEffect(() => {
         if (isRestarting) {
             setIsFirst(false);
-            Toast.show({
-                type: "info",
-                text1: "3초 뒤 러닝이 시작됩니다.",
-                position: "bottom",
-                bottomOffset: 60,
-                visibilityTime: 3000,
-            });
+            showCompactToast("3초 뒤 러닝이 시작됩니다.");
         }
     }, [isRestarting]);
 
@@ -229,12 +223,9 @@ export default function Run() {
                     });
                 }
             } catch {
-                Toast.show({
-                    type: "info",
-                    text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
-                    position: "bottom",
-                    bottomOffset: 60,
-                });
+                showCompactToast(
+                    "기록 저장에 실패했습니다. 다시 시도해주세요."
+                );
             } finally {
                 setIsSaving(false);
                 setThumbnailUri(null);
@@ -412,79 +403,48 @@ export default function Run() {
                     )}
                 </View>
             </StyledBottomSheet>
-            {context.status === "RUNNING" ||
-            context.status === "RUNNING_EXTENDED" ? (
-                <SlideToAction
-                    label="밀어서 러닝 종료"
-                    onSlideSuccess={() => {
-                        controls.pauseUser();
+            {context.status !== "COMPLETION_PENDING" ? (
+                <Button
+                    title="러닝 종료"
+                    onPress={() => {
+                        Alert.alert(
+                            "러닝을 종료하시겠습니까?",
+                            "500m 이하의 러닝은 저장되지 않습니다.",
+                            [
+                                { text: "계속하기", style: "default" },
+                                {
+                                    text:
+                                        context.stats.totalDistanceM < 500
+                                            ? "나가기"
+                                            : "기록 저장",
+                                    style: "destructive",
+                                    onPress: () => {
+                                        if (
+                                            context.stats.totalDistanceM < 500
+                                        ) {
+                                            controls.stop();
+                                            router.back();
+                                        } else {
+                                            requestSave();
+                                        }
+                                    },
+                                },
+                            ]
+                        );
                     }}
-                    color="red"
-                    direction="right"
-                />
-            ) : context.status === "PAUSED_OFFCOURSE" ? (
-                <SlideToDualAction
-                    leftLabel={
-                        context.stats.totalDistanceM < 500
-                            ? "나가기"
-                            : "러닝 종료"
-                    }
-                    rightLabel="일반 러닝 전환"
-                    onSlideLeft={() => {
-                        setWithRouting(true);
-                        requestSave();
-                    }}
-                    onSlideRight={() => {
-                        controls.extend();
-                        Toast.show({
-                            type: "info",
-                            text1: "일반 러닝으로 전환합니다",
-                            position: "bottom",
-                            bottomOffset: 60,
-                        });
-                    }}
-                    color="primary"
-                />
-            ) : context.status === "PAUSED_USER" ? (
-                <SlideToDualAction
-                    leftLabel={
-                        context.stats.totalDistanceM < 500
-                            ? "나가기"
-                            : "기록 저장"
-                    }
-                    rightLabel="이어서 뛰기"
-                    onSlideLeft={() => {
-                        setWithRouting(true);
-                        requestSave();
-                    }}
-                    onSlideRight={() => {
-                        controls.resume();
-                    }}
-                    color="primary"
-                />
-            ) : context.status === "COMPLETION_PENDING" ? (
-                <SlideToDualAction
-                    leftLabel="결과 및 랭킹"
-                    rightLabel="이어서 뛰기"
-                    onSlideLeft={() => {
-                        setWithRouting(true);
-                        requestSave();
-                    }}
-                    onSlideRight={() => {
-                        setWithRouting(false);
-                        requestSave();
-                        setIsRestarting(true);
-                    }}
-                    color="primary"
+                    type="red"
                 />
             ) : (
-                <SlideToAction
-                    label="밀어서 러닝 종료"
-                    onSlideSuccess={() => {
-                        router.back();
+                <ButtonWithIcon
+                    iconType="share"
+                    title="러닝 종료"
+                    onPressIcon={() => {
+                        // 공유
                     }}
-                    color="red"
-                    direction="right"
+                    onPress={() => {
+                        requestSave();
+                    }}
+                    type="active"
                 />
             )}
         </View>
