@@ -43,7 +43,7 @@ export default function ButtonWithIcon({
                     <>
                         <ShareIcon color={colors.gray[40]} />
                         <Typography variant="mini" color="gray40">
-                            공유
+                            공유하기
                         </Typography>
                     </>
                 ) : (
@@ -83,11 +83,10 @@ const styles = StyleSheet.create({
         gap: 6,
         marginHorizontal: 16.5,
         marginBottom: 6,
-        flex: 1,
+        paddingTop: 12,
     },
     topStroke: {
         borderTopWidth: 1,
         borderTopColor: "#212121",
-        paddingTop: 12,
     },
 });

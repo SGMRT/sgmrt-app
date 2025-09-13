@@ -28,36 +28,59 @@ import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import {
+    getDate,
+    getFormattedPace,
+    getRunName,
     getRunTime,
     saveRunning,
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
+import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, BackHandler, StyleSheet, View } from "react-native";
+import {
+    Alert,
+    BackHandler,
+    StyleSheet,
+    useWindowDimensions,
+    View,
+} from "react-native";
+import { Confetti } from "react-native-fast-confetti";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
     useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Share from "react-native-share";
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
+    const [courseName, setCourseName] = useState<string>("");
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
     const [isFirst, setIsFirst] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
     const runShotRef = useRef<RunShotHandle>(null);
     const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
+    const [runShotType, setRunShotType] = useState<"thumbnail" | "share">(
+        "thumbnail"
+    );
+    const [runSaveResult, setRunSaveResult] = useState<{
+        runningId: number;
+        ghostRunningId: number;
+        courseId: number;
+    } | null>(null);
 
     const { courseId, ghostRunningId } = useLocalSearchParams();
     const isGhostRunning = ghostRunningId !== "-1";
     const [courseSegments, setCourseSegments] = useState<Segment>();
 
     const ghostRecordRef = useRef<SoloRunGetResponse | null>(null);
+    const hasSavedRef = useRef<boolean>(false);
+    const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
     const { context, controls } = useRunningSession();
 
@@ -95,8 +118,6 @@ export default function Run() {
         deltaM: -(ghostCoordinator?.deltaM ?? 0),
     });
 
-    const hasSavedRef = useRef<boolean>(false);
-
     const triggerCapture = useCallback(() => {
         runShotRef.current
             ?.capture()
@@ -107,6 +128,7 @@ export default function Run() {
     useEffect(() => {
         (async () => {
             const response = await getCourse(Number(courseId));
+            setCourseName(response.name);
             setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
             controls.start("COURSE", isGhostRunning ? "GHOST" : "PLAIN", {
                 distanceMeters: response.distance,
@@ -179,6 +201,30 @@ export default function Run() {
 
     const [withRouting, setWithRouting] = useState<boolean>(false);
 
+    const captureMap = useCallback(async () => {
+        try {
+            const uri = await runShotRef.current?.capture?.().then((uri) => {
+                return uri;
+            });
+
+            const filename =
+                getRunName(context.telemetries.at(-1)?.timeStamp ?? 0) + ".jpg";
+            const targetPath = `${FileSystem.cacheDirectory}${filename}`;
+
+            console.log(targetPath);
+
+            await FileSystem.copyAsync({
+                from: uri ?? "",
+                to: targetPath,
+            });
+
+            return targetPath;
+        } catch (error) {
+            console.log("captureMap error: ", error);
+            return null;
+        }
+    }, [context.telemetries]);
+
     const requestSave = useCallback(() => {
         if (isSaving) return;
         if (!context.telemetries.length) {
@@ -189,6 +235,39 @@ export default function Run() {
         setIsSaving(true);
         controls.stop();
     }, [isSaving, context.telemetries, controls, router]);
+
+    const captureStats = useMemo(() => {
+        return [
+            {
+                description: "시간",
+                value: getRunTime(
+                    Math.round(context.stats.totalTimeMs / 1000),
+                    "HH:MM:SS"
+                ),
+            },
+            {
+                description: "평균 페이스",
+                value: getFormattedPace(context.stats.avgPaceSecPerKm ?? 0),
+            },
+            {
+                description: "케이던스",
+                value: context.stats.avgCadenceSpm ?? 0,
+                unit: "spm",
+            },
+            {
+                description: "칼로리",
+                value: context.stats.calories ?? 0,
+                unit: "kcal",
+            },
+        ];
+    }, [context.stats]);
+
+    useEffect(() => {
+        if (context.status === "COMPLETION_PENDING") {
+            requestSave();
+            setWithRouting(false);
+        }
+    }, [context.status, requestSave]);
 
     // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {
@@ -212,14 +291,19 @@ export default function Run() {
                             ? Number(ghostRunningId)
                             : null,
                 });
+                setRunSaveResult({
+                    runningId: response.runningId,
+                    courseId: Number(courseId),
+                    ghostRunningId: Number(ghostRunningId),
+                });
                 if (withRouting) {
                     router.replace({
                         pathname:
                             "/stats/result/[runningId]/[courseId]/[ghostRunningId]",
                         params: {
                             runningId: response.runningId.toString(),
-                            courseId: "-1",
-                            ghostRunningId: "-1",
+                            courseId: courseId.toString(),
+                            ghostRunningId: ghostRunningId.toString(),
                         },
                     });
                 }
@@ -230,7 +314,7 @@ export default function Run() {
             } finally {
                 setIsSaving(false);
                 setThumbnailUri(null);
-                setSavingTelemetries([]);
+                setRunShotType("share");
             }
         })();
     }, [
@@ -243,6 +327,7 @@ export default function Run() {
         controls,
         context.stats,
         ghostRunningId,
+        courseId,
     ]);
 
     const now = useNow(
@@ -260,22 +345,23 @@ export default function Run() {
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             {isSaving && (
-                <>
-                    <LoadingLayer
-                        limitDelay={3000}
-                        onDelayed={triggerCapture}
-                    />
-                    {savingTelemetries.length > 0 && (
-                        <RunShot
-                            ref={runShotRef}
-                            fileName={"runImage.jpg"}
-                            telemetries={savingTelemetries}
-                            type="thumbnail"
-                            onMapReady={triggerCapture}
-                        />
-                    )}
-                </>
+                <LoadingLayer limitDelay={3000} onDelayed={triggerCapture} />
             )}
+            {(isSaving || runShotType === "share") &&
+                savingTelemetries.length > 0 && (
+                    <RunShot
+                        ref={runShotRef}
+                        fileName={"runImage.jpg"}
+                        telemetries={savingTelemetries}
+                        type={runShotType}
+                        onMapReady={triggerCapture}
+                        stats={
+                            runShotType === "share" ? captureStats : undefined
+                        }
+                        distance={context.stats.totalDistanceM.toFixed(2)}
+                    />
+                )}
+
             <TopBlurView>
                 <WeatherInfo />
                 {isRestarting ? (
@@ -381,6 +467,7 @@ export default function Run() {
                             />
                         ))}
             </MapViewWrapper>
+
             <StyledBottomSheet animatedPosition={heightVal}>
                 <View>
                     {isFirst ? (
@@ -400,17 +487,37 @@ export default function Run() {
                         </View>
                     ) : (
                         <View style={{ marginVertical: 30 }}>
+                            {runShotType === "share" && (
+                                <View
+                                    style={{
+                                        marginBottom: 30,
+                                        alignItems: "center",
+                                        gap: 4,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="sectionhead"
+                                        color="white"
+                                    >
+                                        {courseName} 완주에 성공했어요!
+                                    </Typography>
+                                    <Typography variant="body3" color="gray40">
+                                        달린 기록은 자동 저장됩니다
+                                    </Typography>
+                                </View>
+                            )}
                             <StatsIndicator
                                 stats={statsForUI}
                                 color="gray20"
                                 ghost={isGhostRunning}
                                 ghostTelemetry={ghostCoordinator?.ghostPoint}
+                                end={runShotType === "share"}
                             />
                         </View>
                     )}
                 </View>
             </StyledBottomSheet>
-            {context.status !== "COMPLETION_PENDING" ? (
+            {runShotType === "thumbnail" ? (
                 <Button
                     title="러닝 종료"
                     onPress={() => {
@@ -442,17 +549,65 @@ export default function Run() {
                     type="red"
                 />
             ) : (
-                <ButtonWithIcon
-                    iconType="share"
-                    title="러닝 종료"
-                    onPressIcon={() => {
-                        // 공유
-                    }}
-                    onPress={() => {
-                        requestSave();
-                    }}
-                    type="active"
-                />
+                <>
+                    <Confetti
+                        fallDuration={4000}
+                        count={100}
+                        colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
+                        flakeSize={{ width: 12, height: 8 }}
+                        fadeOutOnEnd={true}
+                        cannonsPositions={[
+                            { x: windowWidth / 2, y: windowHeight - 440 },
+                            { x: windowWidth / 2, y: windowHeight - 440 },
+                        ]}
+                        blastDuration={800}
+                        autoplay={true}
+                        isInfinite={false}
+                    />
+                    <ButtonWithIcon
+                        iconType="share"
+                        title="러닝 종료"
+                        onPressIcon={async () => {
+                            const uri = await captureMap();
+                            Share.open({
+                                title: getRunName(
+                                    context.telemetries.at(-1)?.timeStamp ?? 0
+                                ),
+                                message: getDate(
+                                    context.telemetries.at(-1)?.timeStamp ?? 0
+                                ).trim(),
+                                filename:
+                                    "ghostrunner_" +
+                                    runSaveResult?.runningId.toString() +
+                                    ".jpg",
+                                url: uri ?? "",
+                            })
+                                .then((res) => {
+                                    console.log(res);
+                                })
+                                .catch((err) => {
+                                    err && console.log(err);
+                                });
+                        }}
+                        onPress={() => {
+                            if (runSaveResult) {
+                                router.replace({
+                                    pathname:
+                                        "/stats/result/[runningId]/[courseId]/[ghostRunningId]",
+                                    params: {
+                                        runningId:
+                                            runSaveResult.runningId.toString(),
+                                        courseId:
+                                            runSaveResult.courseId.toString(),
+                                        ghostRunningId:
+                                            runSaveResult.ghostRunningId.toString(),
+                                    },
+                                });
+                            }
+                        }}
+                        type="active"
+                    />
+                </>
             )}
         </View>
     );

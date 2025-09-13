@@ -231,7 +231,8 @@ export default function Result() {
             });
 
             const filename = runData?.runningName + ".jpg";
-            const targetPath = `${FileSystem.cacheDirectory}/${filename}`;
+            const targetPath = `${FileSystem.cacheDirectory}${filename}`;
+            console.log(targetPath);
 
             await FileSystem.copyAsync({
                 from: uri ?? "",

@@ -9,6 +9,7 @@ interface StatsIndicatorProps {
     ghostTelemetry?: Telemetry | null;
     color?: "gray20" | "gray40";
     ghost?: boolean;
+    end?: boolean;
 }
 
 export default function StatsIndicator({
@@ -16,6 +17,7 @@ export default function StatsIndicator({
     ghostTelemetry,
     ghost,
     color = "gray40",
+    end = false,
 }: StatsIndicatorProps) {
     const prevGhostTelemetry = useRef<Telemetry | null>(null);
     const ghostTelemetryToUse = ghostTelemetry ?? prevGhostTelemetry.current;
@@ -69,7 +71,9 @@ export default function StatsIndicator({
                             value={text}
                             unit="km"
                             variant="subhead1"
-                            color={diffM >= 0 ? "primary" : "red"}
+                            color={
+                                end ? "gray40" : diffM >= 0 ? "primary" : "red"
+                            }
                         />
                     );
                 }
@@ -90,7 +94,13 @@ export default function StatsIndicator({
                         <TextWithUnit
                             value={text}
                             variant="subhead1"
-                            color={deltaSec <= 0 ? "primary" : "red"}
+                            color={
+                                end
+                                    ? "gray40"
+                                    : deltaSec <= 0
+                                    ? "primary"
+                                    : "red"
+                            }
                         />
                     );
                 }
@@ -106,7 +116,9 @@ export default function StatsIndicator({
                             value={text}
                             unit="spm"
                             variant="subhead1"
-                            color={diff >= 0 ? "primary" : "red"}
+                            color={
+                                end ? "gray40" : diff >= 0 ? "primary" : "red"
+                            }
                         />
                     );
                 }
@@ -114,7 +126,7 @@ export default function StatsIndicator({
                     return null;
             }
         },
-        [isGhostMode, ghostTelemetryToUse, parsePace, signText]
+        [isGhostMode, ghostTelemetryToUse, parsePace, signText, end]
     );
 
     return (

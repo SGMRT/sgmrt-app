@@ -1,9 +1,10 @@
 import { Telemetry } from "@/src/apis/types/run";
 import { Segment } from "@/src/components/map/RunningLine";
-import { showToast } from "@/src/components/ui/toastConfig";
+import { showCompactToast } from "@/src/components/ui/toastConfig";
 import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { InteractionManager } from "react-native"; // ✅ 추가
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { voiceGuide } from "../../audio/VoiceGuide";
 import { Controls } from "../../run/hooks/useRunningSession";
@@ -35,9 +36,9 @@ interface GhostCoordinatorProps {
     ghostTelemetry: Telemetry[];
     myPoint: Telemetry;
     myLegIndex: number;
-    timestamp: number; // 상대 시간 (0ms ~ )
+    timestamp: number;
     controls: Controls;
-    simulateSpeed?: number; // 배율
+    simulateSpeed?: number;
 }
 
 export function useGhostCoordinator(
@@ -52,10 +53,11 @@ export function useGhostCoordinator(
         controls,
         simulateSpeed,
     } = props;
+
     const ghostLegIndexRef = useRef(0);
     const prevTimestampRef = useRef<number | null>(null);
     const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
-    const { bottom } = useSafeAreaInsets();
+
     const ghostPoint = findClosest(
         ghostTelemetry,
         timestamp * (simulateSpeed ?? 1),
@@ -71,11 +73,12 @@ export function useGhostCoordinator(
         );
     }, [ghostTelemetry, ghostPoint]);
 
-    return useMemo(() => {
+    // 1) 계산만 하는 단계 (사이드이펙트 금지)
+    const result = useMemo<GhostCompareResult | null>(() => {
         if (
             !legs.length ||
-            myPoint == null ||
-            ghostPoint == null ||
+            !myPoint ||
+            !ghostPoint ||
             ghostTelemetry.length === 0
         )
             return null;
@@ -85,12 +88,11 @@ export function useGhostCoordinator(
             prevTimestampRef.current === timestamp
         )
             return null;
-
         prevTimestampRef.current = timestamp;
 
         const myProgressM = progressAlongCourseM(legs, myLegIndex, myPoint);
 
-        // 후보 window 수집
+        // 후보 window
         const startIdx = ghostLegIndexRef.current;
         const candidateIdxs = [startIdx, startIdx + 1, startIdx + 2].filter(
             (idx) => idx >= 0 && idx < legs.length
@@ -112,7 +114,7 @@ export function useGhostCoordinator(
             .sort((a, b) => a.perp - b.perp || a.remainM - b.remainM);
 
         let best = scored[0];
-        if (!Number.isFinite(best.perp) || best.perp > 1000 /* 비정상치 */) {
+        if (!Number.isFinite(best.perp) || best.perp > 1000) {
             const all = legs
                 .map((leg) => {
                     const perp = nearestDistanceToPolylineM(
@@ -139,34 +141,6 @@ export function useGhostCoordinator(
         const leader =
             Math.abs(deltaM) < 5 ? "TIED" : deltaM > 0 ? "GHOST" : "ME";
 
-        if (leader !== prevLeaderRef.current && leader !== "TIED") {
-            prevLeaderRef.current = leader;
-
-            if (leader === "ME" || leader === "GHOST") {
-                const text =
-                    leader === "ME"
-                        ? "고스트를 추월하였습니다. 거리 차이는 " +
-                          Math.abs(deltaM) +
-                          " 미터 입니다."
-                        : "고스트가 앞서고 있습니다. 거리 차이는 " +
-                          Math.abs(deltaM) +
-                          " 미터 입니다.";
-                controls.setLiveActivityMessage(text, "INFO");
-                voiceGuide.announce({
-                    type: "run/ghost-change-leader",
-                    leader,
-                    deltaM: Math.abs(deltaM),
-                });
-                showToast(
-                    "info",
-                    leader === "ME"
-                        ? "고스트를 추월하였습니다"
-                        : "고스트가 앞서고 있습니다",
-                    bottom
-                );
-            }
-        }
-
         const ghostStat = {
             distance: ghostPoint.dist,
             cadence: ghostPoint.cadence,
@@ -174,8 +148,8 @@ export function useGhostCoordinator(
         };
 
         return {
-            ghostPoint: ghostPoint,
-            ghostSegments: ghostSegments,
+            ghostPoint,
+            ghostSegments,
             ghostStats: ghostStat,
             myProgressM,
             ghostProgressM,
@@ -187,11 +161,49 @@ export function useGhostCoordinator(
     }, [
         legs,
         myPoint,
-        ghostSegments,
-        myLegIndex,
         ghostPoint,
-        timestamp,
         ghostTelemetry.length,
-        controls,
+        myLegIndex,
+        timestamp,
+        ghostSegments,
     ]);
+
+    // 2) 사이드 이펙트는 커밋 이후에만 실행
+    useEffect(() => {
+        if (!result) return;
+
+        const { leader, deltaM } = result;
+        if (leader === "TIED") return;
+        if (leader === prevLeaderRef.current) return;
+
+        prevLeaderRef.current = leader;
+
+        const text =
+            leader === "ME"
+                ? `고스트를 추월하였습니다. 거리 차이는 ${Math.abs(
+                      deltaM
+                  )} 미터 입니다.`
+                : `고스트가 앞서고 있습니다. 거리 차이는 ${Math.abs(
+                      deltaM
+                  )} 미터 입니다.`;
+
+        // 네이티브/전역 업데이트
+        controls.setLiveActivityMessage(text, "INFO");
+        voiceGuide.announce({
+            type: "run/ghost-change-leader",
+            leader,
+            deltaM: Math.abs(deltaM),
+        });
+
+        // Toast는 커밋 이후로 안전하게 예약
+        InteractionManager.runAfterInteractions(() => {
+            showCompactToast(
+                leader === "ME"
+                    ? "고스트를 추월하였습니다"
+                    : "고스트가 앞서고 있습니다"
+            );
+        });
+    }, [result, controls]);
+
+    return result;
 }
