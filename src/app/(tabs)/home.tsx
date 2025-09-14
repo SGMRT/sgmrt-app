@@ -3,6 +3,7 @@ import { StyleSheet, useWindowDimensions, View } from "react-native";
 
 import HomeMap from "@/src/components/map/HomeMap";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
+import { HomeNotices } from "@/src/components/notice/HomeNotices";
 import BottomModal from "@/src/components/ui/BottomModal";
 import TabBar from "@/src/components/ui/TabBar";
 import { SuccessToast } from "@/src/components/ui/toastConfig";
@@ -48,6 +49,7 @@ export default function Home() {
         <View style={styles.container}>
             <TopBlurView>
                 <WeatherInfo />
+                <HomeNotices />
             </TopBlurView>
             <HomeMap
                 courseType={"all"}

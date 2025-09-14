@@ -92,7 +92,17 @@ export default function Result() {
         course && (
             <>
                 <SafeAreaView style={styles.container}>
-                    <Header titleText={getDate(course?.createdAt ?? 0)} />
+                    <Header
+                        titleText={getDate(course?.createdAt ?? 0)}
+                        onBack={() =>
+                            router.replace({
+                                pathname: "/(tabs)/profile",
+                                params: {
+                                    tab: "course",
+                                },
+                            })
+                        }
+                    />
                     <ScrollView
                         ref={scrollViewRef}
                         contentContainerStyle={styles.content}

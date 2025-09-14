@@ -3,6 +3,7 @@ import server from "./instance";
 export type Notice = {
     id: number;
     title: string;
+    type: "GENERAL" | "EVENT" | null;
     imageUrl: string;
     content: string;
     priority: number;

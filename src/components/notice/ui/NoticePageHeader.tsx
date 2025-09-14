@@ -8,14 +8,15 @@ export const NoticePageHeader = ({
     selectedTab,
     onTabPress,
 }: {
-    selectedTab: "notice" | "event";
-    onTabPress: (tab: "notice" | "event") => void;
+    selectedTab: "GENERAL" | "EVENT";
+    onTabPress: (tab: "GENERAL" | "EVENT") => void;
 }) => {
     const router = useRouter();
     return (
         <View>
             <Header
                 titleText="공지사항 및 이벤트"
+                onBack={() => router.replace("/profile")}
                 hasBackButton={true}
                 rightComponent={
                     <Pressable onPress={() => router.replace("/")}>
@@ -26,13 +27,13 @@ export const NoticePageHeader = ({
             <View style={styles.header}>
                 <TabItem
                     title="공지사항"
-                    onPress={() => onTabPress("notice")}
-                    isSelected={selectedTab === "notice"}
+                    onPress={() => onTabPress("GENERAL")}
+                    isSelected={selectedTab === "GENERAL"}
                 />
                 <TabItem
                     title="이벤트"
-                    onPress={() => onTabPress("event")}
-                    isSelected={selectedTab === "event"}
+                    onPress={() => onTabPress("EVENT")}
+                    isSelected={selectedTab === "EVENT"}
                 />
             </View>
         </View>
