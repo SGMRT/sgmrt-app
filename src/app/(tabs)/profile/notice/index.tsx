@@ -1,12 +1,10 @@
 import { getNoticesAll, Notice } from "@/src/apis";
 import { NoticePreviewList } from "@/src/components/notice/NoticePreviewList";
 import { NoticePageHeader } from "@/src/components/notice/ui/NoticePageHeader";
-import { ActionButtonGroup } from "@/src/components/ui/ActionButtonGroup";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import TabBar from "@/src/components/ui/TabBar";
 import { FlashListRef } from "@shopify/flash-list";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,13 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const PAGE_SIZE = 10;
 
 export default function NoticePage() {
-    const router = useRouter();
-    const [selectedTab, setSelectedTab] = useState<"notice" | "event">(
-        "notice"
+    const [selectedTab, setSelectedTab] = useState<"GENERAL" | "EVENT">(
+        "GENERAL"
     );
     const listRef = useRef<FlashListRef<Notice>>(null);
 
-    const handleTabPress = useCallback((tab: "notice" | "event") => {
+    const handleTabPress = useCallback((tab: "GENERAL" | "EVENT") => {
         setSelectedTab(tab);
     }, []);
 
@@ -34,15 +31,15 @@ export default function NoticePage() {
                 const next = number + 1;
                 return next < totalPages ? next : undefined;
             },
-            enabled: selectedTab === "notice",
             staleTime: 30_000,
         });
 
     const items = useMemo<Notice[]>(
         () =>
-            selectedTab !== "notice"
-                ? []
-                : data?.pages.flatMap((p) => p.content ?? []) ?? [],
+            data?.pages.flatMap(
+                (p) =>
+                    p.content.filter((item) => item.type === selectedTab) ?? []
+            ) ?? [],
         [data, selectedTab]
     );
 
@@ -79,13 +76,6 @@ export default function NoticePage() {
                 ref={listRef}
                 onEndReached={handleEndReached}
                 isFetchingNextPage={isFetchingNextPage}
-            />
-            <ActionButtonGroup
-                initialState="single"
-                onSecondaryPress={() => {
-                    router.push("/run/solo");
-                }}
-                secondaryButtonText="러닝 시작"
             />
             <ScrollButton onPress={handleScrollToTop} />
             <TabBar />

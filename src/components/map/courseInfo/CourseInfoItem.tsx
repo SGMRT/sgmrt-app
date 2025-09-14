@@ -118,7 +118,7 @@ const HistoryHeader = ({
                 disabled={runningId === -1}
                 onPress={() => {
                     router.push(
-                        `/result/${runningId}/${courseId}/${ghostRunningId}`
+                        `/stats/result/${runningId}/${courseId}/${ghostRunningId}`
                     );
                 }}
             >

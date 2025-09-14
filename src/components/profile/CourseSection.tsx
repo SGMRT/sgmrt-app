@@ -40,8 +40,10 @@ export const CourseSection = ({
                 filters={{
                     date: true,
                     filter: false,
-                    view: true,
+                    view: false,
                 }}
+                defaultView="gallery"
+                showLogo={false}
             />
         </View>
     );

@@ -15,16 +15,11 @@ import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterBar } from "../ui/FilterBar";
 import { GoRunCalendar } from "../ui/GoRunCalendar";
-import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
 
 type HistoryWithFilterProps = {
-    mode: "SOLO" | "GHOST";
     data: RunResponse[];
-    isDeleteMode: boolean;
-    selectedItem: RunResponse | null;
-    selectedDeleteItem: RunResponse[];
     onClickItem: (history: RunResponse) => void;
     hasNextPage: boolean;
     fetchNextPage: () => void;
@@ -42,11 +37,7 @@ type DataGroup = {
 };
 
 export const HistoryWithFilter = ({
-    mode,
     data,
-    isDeleteMode,
-    selectedItem,
-    selectedDeleteItem,
     onClickItem,
     hasNextPage,
     fetchNextPage,
@@ -153,7 +144,6 @@ export const HistoryWithFilter = ({
     };
 
     const router = useRouter();
-
     return (
         <View style={{ flex: 1, gap: 20 }}>
             <FilterBar
@@ -177,6 +167,7 @@ export const HistoryWithFilter = ({
                     <Section
                         key={item.label + index}
                         title={item.label}
+                        titleVariant="sectionhead"
                         titleColor="white"
                         containerStyle={
                             displayData.data.length - 1 !== index
@@ -191,7 +182,11 @@ export const HistoryWithFilter = ({
                             selectedView === "list" ? (
                                 <RunHistoryItem
                                     key={history.runningId}
-                                    mode={mode}
+                                    mode={
+                                        history.ghostRunningId
+                                            ? "GHOST"
+                                            : "SOLO"
+                                    }
                                     name={history.name}
                                     courseName={
                                         history.courseInfo?.name ?? null
@@ -200,29 +195,25 @@ export const HistoryWithFilter = ({
                                     duration={history.recordInfo.duration}
                                     averagePace={history.recordInfo.averagePace}
                                     cadence={history.recordInfo.cadence}
-                                    onPress={() => {
-                                        onClickItem(history);
-                                    }}
                                     onShowHistory={() => {
                                         router.push(
-                                            `/result/${history.runningId}/${
-                                                history.courseInfo?.id ?? -1
-                                            }/${history.ghostRunningId ?? -1}`
+                                            `/stats/result/${
+                                                history.runningId
+                                            }/${history.courseInfo?.id ?? -1}/${
+                                                history.ghostRunningId ?? -1
+                                            }`
                                         );
                                     }}
-                                    isSelected={
-                                        isDeleteMode
-                                            ? selectedDeleteItem.includes(
-                                                  history
-                                              )
-                                            : history.runningId ===
-                                              selectedItem?.runningId
-                                    }
+                                    isSelected={false}
                                 />
                             ) : (
                                 <RunHistoryGalleryItem
                                     key={history.runningId}
-                                    mode={mode}
+                                    mode={
+                                        history.ghostRunningId
+                                            ? "GHOST"
+                                            : "SOLO"
+                                    }
                                     imageUrl={history.screenShotUrl ?? ""}
                                     name={history.name}
                                     courseName={
@@ -232,24 +223,16 @@ export const HistoryWithFilter = ({
                                     duration={history.recordInfo.duration}
                                     averagePace={history.recordInfo.averagePace}
                                     cadence={history.recordInfo.cadence}
-                                    onPress={() => {
-                                        onClickItem(history);
-                                    }}
                                     onShowHistory={() => {
                                         router.push(
-                                            `/result/${history.runningId}/${
-                                                history.courseInfo?.id ?? -1
-                                            }/${history.ghostRunningId ?? -1}`
+                                            `/stats/result/${
+                                                history.runningId
+                                            }/${history.courseInfo?.id ?? -1}/${
+                                                history.ghostRunningId ?? -1
+                                            }`
                                         );
                                     }}
-                                    isSelected={
-                                        isDeleteMode
-                                            ? selectedDeleteItem.includes(
-                                                  history
-                                              )
-                                            : history.runningId ===
-                                              selectedItem?.runningId
-                                    }
+                                    isSelected={false}
                                     startedAt={history.startedAt}
                                 />
                             )
@@ -257,7 +240,7 @@ export const HistoryWithFilter = ({
                     </Section>
                 )}
                 showsVerticalScrollIndicator={false}
-                extraData={selectedItem?.runningId}
+                extraData={selectedFilter}
                 onEndReached={
                     hasNextPage
                         ? () => {
@@ -316,7 +299,6 @@ interface RunHistoryGalleryItemProps {
     duration: number;
     averagePace: number;
     cadence: number;
-    onPress: () => void;
     onShowHistory: () => void;
     isSelected: boolean;
     startedAt: number;
@@ -330,13 +312,12 @@ const RunHistoryGalleryItem = ({
     duration,
     averagePace,
     cadence,
-    onPress,
     onShowHistory,
     isSelected,
     startedAt,
 }: RunHistoryGalleryItemProps) => {
     return (
-        <View style={styles.container}>
+        <TouchableOpacity style={styles.container} onPress={onShowHistory}>
             <View style={styles.imageContainer}>
                 <Image
                     source={imageUrl ? { uri: imageUrl } : DefaultLogo}
@@ -362,14 +343,6 @@ const RunHistoryGalleryItem = ({
                             {name}
                         </Typography>
                     </View>
-
-                    <RadioButton
-                        isSelected={isSelected}
-                        showMyRecord={false}
-                        onPress={onPress}
-                        activeColor={colors.primary}
-                        inactiveColor={colors.gray[40]}
-                    />
                 </View>
                 <View>
                     <View style={styles.content}>
@@ -422,7 +395,7 @@ const RunHistoryGalleryItem = ({
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </TouchableOpacity>
     );
 };
 
@@ -434,7 +407,6 @@ interface RunHistoryItemProps {
     duration: number;
     averagePace: number;
     cadence: number;
-    onPress: () => void;
     onShowHistory: () => void;
     isSelected: boolean;
 }
@@ -447,12 +419,11 @@ const RunHistoryItem = ({
     duration,
     averagePace,
     cadence,
-    onPress,
     onShowHistory,
     isSelected,
 }: RunHistoryItemProps) => {
     return (
-        <View style={styles.itemContainer}>
+        <TouchableOpacity style={styles.itemContainer} onPress={onShowHistory}>
             <View style={{ gap: 2 }}>
                 <View style={styles.nameContainer}>
                     {mode === "GHOST" && (
@@ -524,14 +495,7 @@ const RunHistoryItem = ({
                     </Typography>
                 </View>
             </View>
-            <RadioButton
-                isSelected={isSelected}
-                showMyRecord={false}
-                onPress={onPress}
-                activeColor={colors.primary}
-                inactiveColor={colors.gray[40]}
-            />
-        </View>
+        </TouchableOpacity>
     );
 };
 

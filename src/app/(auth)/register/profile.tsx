@@ -4,6 +4,7 @@ import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import Header from "@/src/components/ui/Header";
 import InfoItem, { InfoFieldTitle } from "@/src/components/ui/InfoItem";
 import { StyledButton } from "@/src/components/ui/StyledButton";
+import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
@@ -15,7 +16,6 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Alert,
     Image,
     Keyboard,
     KeyboardAvoidingView,
@@ -25,7 +25,7 @@ import {
     StyleSheet,
     View,
 } from "react-native";
-import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Profile() {
     const {
@@ -47,7 +47,7 @@ export default function Profile() {
     );
     const { login, setUserInfo } = useAuthStore();
     const router = useRouter();
-
+    const { bottom } = useSafeAreaInsets();
     const [res, setRes] = useState<any>(null);
 
     const onPickImage = async () => {
@@ -84,11 +84,7 @@ export default function Profile() {
         data.agreement.agreedAt = new Date().toISOString();
         const idToken = await getAuth().currentUser?.getIdToken();
         if (!idToken) {
-            Toast.show({
-                type: "info",
-                text1: "로그인에 실패했습니다.",
-                position: "bottom",
-            });
+            showToast("info", "로그인에 실패했습니다.", bottom);
             router.dismissAll();
             router.replace("/login");
             return;
@@ -106,11 +102,7 @@ export default function Profile() {
             if (uploadResult) {
                 data.profileImageUrl = imageUrl.presignUrl.split("?X-Amz-")[0];
             } else {
-                Toast.show({
-                    type: "info",
-                    text1: "회원가입 오류. 다시 시도해주세요.",
-                    position: "bottom",
-                });
+                showToast("info", "회원가입 오류. 다시 시도해주세요.", bottom);
                 return;
             }
         }
@@ -140,11 +132,7 @@ export default function Profile() {
             })
             .catch((err) => {
                 console.log(err);
-                Toast.show({
-                    type: "info",
-                    text1: "회원가입 오류. 다시 시도해주세요.",
-                    position: "bottom",
-                });
+                showToast("info", "회원가입 오류. 다시 시도해주세요.", bottom);
                 setIsRegistering(false);
             });
     };
@@ -267,32 +255,14 @@ export default function Profile() {
                         </View>
                     </ScrollView>
                 </View>
-
-                <BottomAgreementButton
-                    isActive={isActive}
-                    canPress={isActive}
-                    onPress={() => {
-                        Alert.alert(
-                            "회원가입",
-                            "회원가입을 진행하시겠습니까?",
-                            [
-                                {
-                                    text: "확인",
-                                    onPress: () => {
-                                        handleSubmit();
-                                    },
-                                },
-                                {
-                                    text: "취소",
-                                    style: "cancel",
-                                },
-                            ]
-                        );
-                    }}
-                    title="가입 완료"
-                    topStroke
-                />
             </KeyboardAvoidingView>
+            <BottomAgreementButton
+                isActive={isActive}
+                canPress={isActive}
+                onPress={handleSubmit}
+                title="가입 완료"
+                topStroke
+            />
         </SafeAreaView>
     );
 }

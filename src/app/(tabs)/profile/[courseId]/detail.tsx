@@ -1,17 +1,17 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
-import { getCourse, getCourseTopRanking } from "@/src/apis";
-import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
+import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
+import { getCourse } from "@/src/apis";
+import { CourseDetailResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
-import { GhostInfoSection } from "@/src/components/map/courseInfo/BottomCourseInfoModal";
+import { GhostRow } from "@/src/components/map/courseInfo/GhostRow";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
-import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import Section from "@/src/components/ui/Section";
 import ShareButton from "@/src/components/ui/ShareButton";
 import StatRow from "@/src/components/ui/StatRow";
+import TabBar from "@/src/components/ui/TabBar";
 import { Typography } from "@/src/components/ui/Typography";
 import { UserCount } from "@/src/components/ui/UserCount";
 import colors from "@/src/theme/colors";
@@ -32,13 +32,6 @@ export default function Result() {
 
     const isChartActive = useSharedValue(false);
     const chartPointIndex = useSharedValue(0);
-
-    const { data: ghostList } = useQuery<HistoryResponse[]>({
-        queryKey: ["course-top-ranking", courseId],
-        queryFn: () =>
-            getCourseTopRanking({ courseId: Number(courseId), count: 3 }),
-        enabled: courseId !== "-1",
-    });
 
     const { data: course } = useQuery<CourseDetailResponse>({
         queryKey: ["course", courseId],
@@ -71,34 +64,6 @@ export default function Result() {
         ];
     }, [course]);
 
-    const ghostAverageStats = useMemo(() => {
-        return [
-            {
-                description: "시간",
-                value: getRunTime(
-                    course?.averageCompletionTime ?? 0,
-                    "HH:MM:SS"
-                ),
-                unit: "",
-            },
-            {
-                description: "케이던스",
-                value: course?.averageFinisherCadence ?? "--",
-                unit: "spm",
-            },
-            {
-                description: "칼로리",
-                value: course?.averageCaloriesBurned ?? "--",
-                unit: "kcal",
-            },
-            {
-                description: "페이스",
-                value: getFormattedPace(course?.averageFinisherPace ?? 0),
-                unit: "",
-            },
-        ];
-    }, [course]);
-
     const runShotRef = useRef<RunShotHandle>(null);
 
     const captureMap = useCallback(async () => {
@@ -127,7 +92,17 @@ export default function Result() {
         course && (
             <>
                 <SafeAreaView style={styles.container}>
-                    <Header titleText={getDate(course?.createdAt ?? 0)} />
+                    <Header
+                        titleText={getDate(course?.createdAt ?? 0)}
+                        onBack={() =>
+                            router.replace({
+                                pathname: "/(tabs)/profile",
+                                params: {
+                                    tab: "course",
+                                },
+                            })
+                        }
+                    />
                     <ScrollView
                         ref={scrollViewRef}
                         contentContainerStyle={styles.content}
@@ -187,6 +162,7 @@ export default function Result() {
                         <Section
                             title="코스 정보"
                             titleColor="white"
+                            titleVariant="sectionhead"
                             style={{ gap: 15 }}
                         >
                             <StatRow
@@ -208,29 +184,58 @@ export default function Result() {
                             />
                         </Section>
 
-                        <GhostInfoSection
-                            stats={ghostAverageStats}
-                            uuid={null}
-                            ghostList={ghostList ?? []}
-                            selectedGhostId={0}
-                            setSelectedGhostId={() => {}}
-                            onPress={() => {}}
-                            hasMargin={false}
-                            color="white"
-                        />
+                        {/* 고스트 */}
+                        <Section
+                            title="내 고스트"
+                            titleColor="white"
+                            titleVariant="sectionhead"
+                            titleRightChildren={
+                                <TouchableOpacity
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        gap: 4,
+                                    }}
+                                >
+                                    <Typography
+                                        variant="caption1"
+                                        color="gray40"
+                                    >
+                                        고스트
+                                    </Typography>
+                                    <InfoIcon />
+                                </TouchableOpacity>
+                            }
+                        >
+                            <GhostRow
+                                profileUrl={
+                                    course?.myGhostInfo?.runnerProfileUrl ?? ""
+                                }
+                                ghostStats={[
+                                    {
+                                        description: "시간",
+                                        value: getRunTime(
+                                            course?.myGhostInfo?.duration ?? 0,
+                                            "HH:MM:SS"
+                                        ),
+                                    },
+                                    {
+                                        description: "페이스",
+                                        value: getFormattedPace(
+                                            course?.myGhostInfo?.averagePace ??
+                                                0
+                                        ),
+                                    },
+                                    {
+                                        description: "케이던스",
+                                        value:
+                                            course?.myGhostInfo?.cadence ?? 0,
+                                        unit: "spm",
+                                    },
+                                ]}
+                            />
+                        </Section>
                     </ScrollView>
-                    <ButtonWithIcon
-                        title="이 코스로 러닝 시작"
-                        onPress={() => {
-                            router.replace(`/run/${courseId}/-1`);
-                        }}
-                        type="active"
-                        iconType="home"
-                        onPressIcon={() => {
-                            router.replace("/");
-                        }}
-                        topStroke
-                    />
                     <ScrollButton
                         onPress={() => {
                             scrollViewRef.current?.scrollTo({
@@ -238,8 +243,9 @@ export default function Result() {
                                 animated: true,
                             });
                         }}
-                        bottomInset={30}
+                        bottomInset={5}
                     />
+                    <TabBar />
                 </SafeAreaView>
                 <RunShot
                     ref={runShotRef}
@@ -259,6 +265,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
+        paddingBottom: 45,
     },
     titleInputContainer: {
         flexDirection: "row",

@@ -1,5 +1,4 @@
 import * as FileSystem from "expo-file-system";
-import Toast from "react-native-toast-message";
 import { postCourseRun, postRun } from "../apis";
 import {
     BaseRunning,
@@ -9,6 +8,7 @@ import {
     Telemetry,
 } from "../apis/types/run";
 import { Segment } from "../components/map/RunningLine";
+import { showCompactToast } from "../components/ui/toastConfig";
 import { RawData, UserDashBoardData } from "../types/run";
 import { Coordinate, getDistance } from "./mapUtils";
 
@@ -44,8 +44,6 @@ function getPace(timeInSec: number, distanceInMeters: number): number {
 }
 
 function getFormattedPace(paceInSec: number): string {
-    if (paceInSec === 0) return "-'-''";
-    if (paceInSec > 1800) return "-'-''";
     const minutes = Math.floor(paceInSec / 60);
     const seconds = Math.floor(paceInSec % 60);
     return `${minutes}’${seconds.toString().padStart(2, "0")}”`;
@@ -169,12 +167,7 @@ export async function saveRunning({
         telemetries.filter((telemetry) => telemetry.isRunning).at(-1)?.pace ===
             0
     ) {
-        Toast.show({
-            type: "info",
-            text1: "러닝 거리가 너무 짧습니다.",
-            position: "bottom",
-            bottomOffset: 60,
-        });
+        showCompactToast("러닝 거리가 너무 짧습니다.");
         return;
     }
 

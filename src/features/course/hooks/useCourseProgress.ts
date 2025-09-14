@@ -1,6 +1,7 @@
 // useCourseProgress.ts
 import { Checkpoint } from "@/src/apis/types/course";
 import { Telemetry } from "@/src/apis/types/run";
+import { showCompactToast } from "@/src/components/ui/toastConfig";
 import { getDistance } from "@/src/utils/mapUtils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Toast from "react-native-toast-message";
@@ -145,14 +146,7 @@ export function useCourseProgress(props: CourseProgressProps) {
 
                 // 즉시 1회: "코스를 이탈하였습니다"
                 Toast.hide();
-                Toast.show({
-                    type: "info",
-                    text1: "코스를 이탈하였습니다",
-                    text2: "10분 뒤 자동 종료됩니다",
-                    position: "bottom",
-                    bottomOffset: 60,
-                    visibilityTime: OFFCOURSE_TOAST_MS,
-                });
+                showCompactToast("코스를 이탈하였습니다");
 
                 controls.setLiveActivityMessage(
                     "코스를 이탈하였습니다",
@@ -169,15 +163,11 @@ export function useCourseProgress(props: CourseProgressProps) {
                     const first = offcourseToggleRef.current;
 
                     Toast.hide();
-                    Toast.show({
-                        type: "info",
-                        text1: first
+                    showCompactToast(
+                        first
                             ? "코스를 이탈하였습니다"
-                            : "10분 뒤 자동 종료됩니다",
-                        position: "bottom",
-                        bottomOffset: 60,
-                        visibilityTime: OFFCOURSE_TOAST_MS,
-                    });
+                            : "10분 뒤 자동 종료됩니다"
+                    );
 
                     controls.setLiveActivityMessage(
                         first
@@ -194,13 +184,7 @@ export function useCourseProgress(props: CourseProgressProps) {
                 // 10분 뒤 자동 종료
                 offcourseTimeoutRef.current = setTimeout(() => {
                     Toast.hide();
-                    Toast.show({
-                        type: "error",
-                        text1: "러닝이 자동 종료되었습니다",
-                        position: "bottom",
-                        bottomOffset: 60,
-                        visibilityTime: OFFCOURSE_TOAST_MS,
-                    });
+                    showCompactToast("러닝이 자동 종료되었습니다");
                     controls.setLiveActivityMessage(
                         "러닝이 자동 종료되었습니다",
                         "ERROR"
@@ -306,15 +290,11 @@ export function useCourseProgress(props: CourseProgressProps) {
                     )} 미터 후 완주 지점입니다.`,
                     "INFO"
                 );
-                Toast.show({
-                    type: "info",
-                    text1: `${Math.round(
+                showCompactToast(
+                    `${Math.round(
                         Number(dEnd.toFixed(0))
-                    )} 미터 후 완주 지점입니다.`,
-                    position: "bottom",
-                    bottomOffset: 60,
-                    visibilityTime: 3000,
-                });
+                    )} 미터 후 완주 지점입니다.`
+                );
             }
             if (dEnd <= passCpM) {
                 safeComplete(); // ref로 보장: 정확히 한 번

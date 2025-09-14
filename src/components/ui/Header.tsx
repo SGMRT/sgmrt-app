@@ -9,6 +9,7 @@ interface HeaderProps {
     titleComponent?: React.ReactNode;
     hasBackButton?: boolean;
     onDelete?: () => void;
+    onBack?: () => void;
     deleteColor?: string;
     rightComponent?: React.ReactNode;
 }
@@ -18,6 +19,7 @@ export default memo(function Header({
     titleComponent,
     hasBackButton = true,
     onDelete,
+    onBack,
     deleteColor = "gray40",
     rightComponent,
 }: HeaderProps) {
@@ -27,7 +29,7 @@ export default memo(function Header({
             <View style={[styles.header]}>
                 {hasBackButton && (
                     <Pressable
-                        onPress={() => router.back()}
+                        onPress={() => (onBack ? onBack() : router.back())}
                         style={{ width: 20, height: 20 }}
                     >
                         <BackIcon />

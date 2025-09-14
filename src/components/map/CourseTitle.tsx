@@ -1,7 +1,11 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import { Typography } from "@/src/components/ui/Typography";
-import { Image, Pressable, StyleSheet, View } from "react-native";
+import colors from "@/src/theme/colors";
+import { Image } from "expo-image";
+import { Pressable, StyleSheet, View } from "react-native";
+import GhostLabel from "../ui/GhostLabel";
 
 interface CourseTitleProps {
     course: CourseResponse;
@@ -17,50 +21,52 @@ export default function CourseTitle({
     zoomLevel,
 }: CourseTitleProps) {
     return (
-        <Pressable onPress={() => onClickCourse(course)}>
-            <View style={styles.container}>
-                <View style={styles.titleContainer}>
-                    <Typography
-                        variant="subhead3"
-                        color={isActive ? "primary" : "white"}
-                    >
+        <Pressable
+            style={styles.container}
+            onPress={() => onClickCourse(course)}
+        >
+            <View style={styles.titleContainer}>
+                {course.myGhostInfo && <GhostLabel />}
+                <View style={styles.title}>
+                    <Typography variant="subhead3" color="white">
                         {course.name}
                     </Typography>
+                    <ChevronIcon color={colors.white} width={15} height={18} />
                 </View>
-                {zoomLevel > 14.5 && (
-                    <View style={styles.topUsersContainer}>
-                        {course.runners.map((user, index) => (
-                            <View
-                                key={user.uuId + index.toString()}
-                                style={{ marginLeft: index === 0 ? 0 : -14 }}
-                            >
-                                <Image
-                                    source={
-                                        user.profileUrl
-                                            ? {
-                                                  uri: user.profileUrl.split(
-                                                      "?X-Amz-"
-                                                  )[0],
-                                              }
-                                            : DefaultProfileIcon
-                                    }
-                                    style={styles.topUserImage}
-                                />
-                                {!isActive && (
-                                    <View style={styles.grayscaleOverlay} />
-                                )}
-                            </View>
-                        ))}
-                        {course.runnersCount - course.runners.length > 0 && (
-                            <View style={styles.userCountContainer}>
-                                <Typography variant="body3" color="gray40">
-                                    +{course.runnersCount}
-                                </Typography>
-                            </View>
-                        )}
-                    </View>
-                )}
             </View>
+            {zoomLevel > 14.5 && (
+                <View style={styles.topUsersContainer}>
+                    {course.runners.map((user, index) => (
+                        <View
+                            key={user.uuId + index.toString()}
+                            style={{ marginLeft: index === 0 ? 0 : -14 }}
+                        >
+                            <Image
+                                source={
+                                    user.profileUrl
+                                        ? {
+                                              uri: user.profileUrl.split(
+                                                  "?X-Amz-"
+                                              )[0],
+                                          }
+                                        : DefaultProfileIcon
+                                }
+                                style={styles.topUserImage}
+                            />
+                            {!isActive && (
+                                <View style={styles.grayscaleOverlay} />
+                            )}
+                        </View>
+                    ))}
+                    {course.runnersCount - course.runners.length > 0 && (
+                        <View style={styles.userCountContainer}>
+                            <Typography variant="body3" color="gray40">
+                                +{course.runnersCount}
+                            </Typography>
+                        </View>
+                    )}
+                </View>
+            )}
         </Pressable>
     );
 }
@@ -71,12 +77,23 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     titleContainer: {
-        backgroundColor: "rgba(63, 63, 63, 0.8)",
-        height: 33,
+        flexDirection: "row",
         justifyContent: "center",
-        paddingHorizontal: 12,
-        borderRadius: 5,
+        gap: 6,
     },
+    title: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(63, 63, 63, 0.8)",
+        height: 34,
+        justifyContent: "center",
+        borderRadius: 10,
+        boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
+        gap: 1,
+        paddingLeft: 12,
+        paddingRight: 7,
+    },
+
     topUsersContainer: {
         flexDirection: "row",
         alignItems: "center",

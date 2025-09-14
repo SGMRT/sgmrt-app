@@ -3,12 +3,12 @@ import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import { Button } from "@/src/components/ui/Button";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
-import EmptyListView from "@/src/components/ui/EmptyListView";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
-import SlideToAction from "@/src/components/ui/SlideToAction";
-import SlideToDualAction from "@/src/components/ui/SlideToDualAction";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
+import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useNow } from "@/src/features/run/hooks/useNow";
@@ -32,13 +32,11 @@ import Animated, {
     useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
-    const [isFirst, setIsFirst] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
     const runShotRef = useRef<RunShotHandle>(null);
@@ -70,13 +68,7 @@ export default function Run() {
 
     useEffect(() => {
         if (isRestarting) {
-            Toast.show({
-                type: "info",
-                text1: "3초 뒤 러닝이 시작됩니다.",
-                position: "bottom",
-                bottomOffset: 60,
-                visibilityTime: 3000,
-            });
+            showCompactToast("3초 뒤 러닝이 시작됩니다.");
         }
     }, [isRestarting]);
 
@@ -99,7 +91,6 @@ export default function Run() {
             controls.oncourse();
         }
         setIsRestarting(false);
-        setIsFirst(false);
     }, [context.status, controls]);
 
     const segments = useMemo(
@@ -124,11 +115,7 @@ export default function Run() {
     const requestSave = useCallback(() => {
         if (isSaving) return;
         if (!context.telemetries.length) {
-            Toast.show({
-                type: "info",
-                text1: "저장할 러닝 데이터가 없어요",
-                position: "bottom",
-            });
+            showCompactToast("저장할 러닝 데이터가 없습니다");
             return;
         }
         hasSavedRef.current = false;
@@ -153,10 +140,11 @@ export default function Run() {
                     thumbnailUri,
                     userDashboardData: userRecordData,
                     runTime: Math.round(context.stats.totalTimeMs / 1000),
-                    isPublic: false,
+                    isPublic: true,
                 });
                 router.replace({
-                    pathname: "/result/[runningId]/[courseId]/[ghostRunningId]",
+                    pathname:
+                        "/stats/result/[runningId]/[courseId]/[ghostRunningId]",
                     params: {
                         runningId: response.runningId.toString(),
                         courseId: "-1",
@@ -164,12 +152,9 @@ export default function Run() {
                     },
                 });
             } catch {
-                Toast.show({
-                    type: "info",
-                    text1: "기록 저장에 실패했습니다. 다시 시도해주세요.",
-                    position: "bottom",
-                    bottomOffset: 60,
-                });
+                showCompactToast(
+                    "기록 저장에 실패했습니다. 다시 시도해주세요."
+                );
             } finally {
                 setIsSaving(false);
                 setThumbnailUri(null);
@@ -247,7 +232,7 @@ export default function Run() {
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
-                bottomInset={bottom + 56}
+                bottomInset={bottom + 70}
                 handleStyle={styles.handle}
                 handleIndicatorStyle={styles.handleIndicator}
                 snapPoints={[15]}
@@ -256,63 +241,70 @@ export default function Run() {
             >
                 <BottomSheetView>
                     <View style={styles.bottomSheetContent}>
-                        {isFirst ? (
-                            <EmptyListView
-                                description={`러닝을 도중에 정지할 경우\n코스 및 러닝 기록 공개가 불가능합니다`}
-                                iconColor={colors.red}
-                                fontSize="headline"
-                                fontColor="white"
-                            />
-                        ) : (
-                            <StatsIndicator stats={statsForUI} color="gray20" />
-                        )}
+                        <StatsIndicator stats={statsForUI} color="gray20" />
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            {context.status === "RUNNING" ? (
-                <SlideToAction
-                    label="밀어서 러닝 종료"
-                    onSlideSuccess={() => {
-                        controls.pauseUser();
+            {context.status !== "PAUSED_USER" ? (
+                <Button
+                    disabled={
+                        context.status === "READY" || context.status === "IDLE"
+                    }
+                    title="일시정지"
+                    onPress={() => {
+                        Alert.alert(
+                            "러닝을 일시정지하시겠습니까?",
+                            "계속하기를 누르면 이어서 러닝이 가능합니다.",
+                            [
+                                {
+                                    text: "계속하기",
+                                    style: "default",
+                                },
+                                {
+                                    text: "일시정지",
+                                    style: "destructive",
+                                    onPress: () => {
+                                        controls.pauseUser();
+                                    },
+                                },
+                            ]
+                        );
                     }}
-                    color="red"
-                    direction="right"
+                    type="red"
                 />
             ) : (
-                <SlideToDualAction
-                    onSlideLeft={() => {
-                        const tooShort = context.stats.totalDistanceM < 500;
-
-                        if (tooShort) {
-                            Alert.alert(
-                                "러닝을 종료하시겠습니까?",
-                                "500m 이하의 러닝은 저장되지 않습니다.",
-                                [
-                                    { text: "계속하기", style: "cancel" },
-                                    {
-                                        text: "나가기",
-                                        style: "destructive",
-                                        onPress: () => {
+                <ButtonWithIcon
+                    iconType="save"
+                    onPressIcon={() => {
+                        Alert.alert(
+                            "러닝을 종료하시겠습니까?",
+                            "500m 이하의 러닝은 저장되지 않습니다.",
+                            [
+                                { text: "계속하기", style: "default" },
+                                {
+                                    text:
+                                        context.stats.totalDistanceM < 500
+                                            ? "나가기"
+                                            : "기록 저장",
+                                    style: "destructive",
+                                    onPress: () => {
+                                        if (
+                                            context.stats.totalDistanceM < 500
+                                        ) {
                                             controls.stop();
                                             router.back();
-                                        },
+                                        } else {
+                                            requestSave();
+                                        }
                                     },
-                                ]
-                            );
-                        } else {
-                            requestSave();
-                        }
+                                },
+                            ]
+                        );
                     }}
-                    onSlideRight={() => {
-                        setIsRestarting(true);
+                    title="이어서 러닝"
+                    onPress={() => {
+                        controls.resume();
                     }}
-                    leftLabel={
-                        context.stats.totalDistanceM < 500
-                            ? "나가기"
-                            : "기록 저장"
-                    }
-                    rightLabel="이어서 뛰기"
-                    color="red"
                 />
             )}
         </View>

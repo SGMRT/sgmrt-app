@@ -1,4 +1,4 @@
-import { HomeIcon, MapIcon } from "@/assets/svgs/svgs";
+import { HomeIcon, MapIcon, SaveIcon, ShareIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import {
     Pressable,
@@ -12,7 +12,7 @@ import { Typography } from "./Typography";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;
-    iconType: "map" | "home";
+    iconType: "map" | "home" | "share" | "save";
     containerStyle?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
@@ -21,6 +21,7 @@ export default function ButtonWithIcon({
     containerStyle,
     topStroke,
     iconType,
+    disabled,
     ...props
 }: ButtonWithIconProps) {
     return (
@@ -39,6 +40,20 @@ export default function ButtonWithIcon({
                             지도
                         </Typography>
                     </>
+                ) : iconType === "share" ? (
+                    <>
+                        <ShareIcon color={colors.gray[40]} />
+                        <Typography variant="mini" color="gray40">
+                            공유하기
+                        </Typography>
+                    </>
+                ) : iconType === "save" ? (
+                    <>
+                        <SaveIcon />
+                        <Typography variant="mini" color="gray40">
+                            기록 저장
+                        </Typography>
+                    </>
                 ) : (
                     <>
                         <HomeIcon color={colors.gray[40]} />
@@ -48,7 +63,16 @@ export default function ButtonWithIcon({
                     </>
                 )}
             </Pressable>
-            <Button {...props} />
+            <Button
+                disabled={disabled}
+                {...props}
+                containerStyle={{
+                    height: 58,
+                    paddingTop: 0,
+                    flex: 1,
+                }}
+                style={{ marginHorizontal: 0 }}
+            />
         </View>
     );
 }
@@ -64,15 +88,13 @@ const styles = StyleSheet.create({
     },
     container: {
         flexDirection: "row",
-        justifyContent: "space-between",
         alignItems: "center",
         gap: 6,
-        paddingHorizontal: 16.5,
-        marginBottom: 6,
+        marginHorizontal: 16.5,
+        paddingTop: 12,
     },
     topStroke: {
         borderTopWidth: 1,
         borderTopColor: "#212121",
-        paddingTop: 12,
     },
 });

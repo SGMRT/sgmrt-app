@@ -76,9 +76,6 @@ function RootLayout() {
                         <Stack.Screen name="index" />
                         <Stack.Screen name="(auth)" />
                         <Stack.Screen name="(tabs)" />
-                        <Stack.Screen name="course" />
-                        <Stack.Screen name="notice" />
-                        <Stack.Screen name="result/[runningId]/[courseId]/[ghostRunningId]" />
                         <Stack.Screen
                             name="run"
                             options={{ gestureEnabled: false }}
@@ -86,6 +83,7 @@ function RootLayout() {
                         {/* <Stack.Screen name="test" /> */}
                     </Stack>
                     {!pathname.includes("register") &&
+                        !pathname.includes("edit") &&
                         (pathname.includes("notice") ||
                             pathname.includes("home") ||
                             pathname.includes("stats") ||

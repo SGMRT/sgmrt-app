@@ -2,8 +2,8 @@ import { setTelemetryEnabled } from "@rnmapbox/maps";
 import { StyleSheet, useWindowDimensions, View } from "react-native";
 
 import HomeMap from "@/src/components/map/HomeMap";
-import HomeTopBar from "@/src/components/map/HomeTopFilter";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
+import { HomeNotices } from "@/src/components/notice/HomeNotices";
 import BottomModal from "@/src/components/ui/BottomModal";
 import TabBar from "@/src/components/ui/TabBar";
 import { SuccessToast } from "@/src/components/ui/toastConfig";
@@ -16,7 +16,6 @@ import { useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
 export default function Home() {
-    const [type, setType] = useState<"all" | "my">("all");
     const [showListView, setShowListView] = useState(false);
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -50,22 +49,15 @@ export default function Home() {
         <View style={styles.container}>
             <TopBlurView>
                 <WeatherInfo />
-                <HomeTopBar
-                    type={type}
-                    setType={setType}
-                    onClickMenu={() => {
-                        setShowListView(true);
-                        mapBottomSheetRef.current?.present();
-                    }}
-                />
+                <HomeNotices />
             </TopBlurView>
             <HomeMap
-                courseType={type}
+                courseType={"all"}
                 showListView={showListView}
                 setShowListView={setShowListView}
                 mapBottomSheetRef={mapBottomSheetRef}
             />
-            <TabBar />
+            <TabBar topRound={false} />
             {/* <SlideToAction
                 label="밀어서 러닝 시작"
                 onSlideSuccess={() => {
