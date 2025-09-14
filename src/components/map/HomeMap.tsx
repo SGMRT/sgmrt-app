@@ -175,7 +175,6 @@ export default function HomeMap({
                         activeCourseId={activeCourse?.id ?? -1}
                         onClickCourse={onClickCourseInfo}
                         zoomLevel={zoomLevel}
-                        logo
                     />
                 ))}
             </MapViewWrapper>
@@ -235,7 +234,7 @@ const HomeBottomModal = ({
         <BottomModal bottomSheetRef={bottomSheetRef} heightVal={heightVal}>
             <BottomCourseInfoModal
                 bottomSheetRef={bottomSheetRef}
-                courseId={activeCourse?.id ?? -1}
+                course={activeCourse ?? null}
             />
         </BottomModal>
     );

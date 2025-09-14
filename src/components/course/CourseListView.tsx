@@ -137,6 +137,7 @@ const CourseListView = ({
                     }
                     renderItem={({ item, index }) => (
                         <CourseGalleryItem
+                            showLogo={item.myGhostInfo ? true : false}
                             courseName={item.name}
                             distance={item.distance / 1000}
                             elevation={item.elevationGain}
@@ -165,7 +166,7 @@ export const CourseGalleryItem = ({
     imageUrl,
     isSelected,
     onClickCourse,
-    showLogo = true,
+    showLogo = false,
 }: {
     courseName: string;
     distance: number;

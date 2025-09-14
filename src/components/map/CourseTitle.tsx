@@ -12,7 +12,6 @@ interface CourseTitleProps {
     onClickCourse: (course: CourseResponse) => void;
     isActive: boolean;
     zoomLevel: number;
-    logo?: boolean;
 }
 
 export default function CourseTitle({
@@ -20,7 +19,6 @@ export default function CourseTitle({
     onClickCourse,
     isActive,
     zoomLevel,
-    logo = false,
 }: CourseTitleProps) {
     return (
         <Pressable
@@ -28,7 +26,7 @@ export default function CourseTitle({
             onPress={() => onClickCourse(course)}
         >
             <View style={styles.titleContainer}>
-                {logo && <GhostLabel />}
+                {course.myGhostInfo && <GhostLabel />}
                 <View style={styles.title}>
                     <Typography variant="subhead3" color="white">
                         {course.name}

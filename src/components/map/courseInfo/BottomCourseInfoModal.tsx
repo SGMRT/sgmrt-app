@@ -1,10 +1,8 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
-import { getCourse } from "@/src/apis";
-import { CourseDetailResponse, HistoryResponse } from "@/src/apis/types/course";
+import { CourseResponse, HistoryResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -23,27 +21,14 @@ import UserStatItem from "./UserStatItem";
 
 interface BottomCourseInfoModalProps {
     bottomSheetRef: React.RefObject<BottomSheetModal | null>;
-    courseId: number;
+    course: CourseResponse | null;
 }
 
 export default function BottomCourseInfoModal({
     bottomSheetRef,
-    courseId,
+    course,
 }: BottomCourseInfoModalProps) {
-    const [ghost, setGhost] = useState({
-        id: 1,
-        profileUrl: "",
-        time: 10000,
-        pace: 1000,
-        cadence: 100,
-    });
     const [ghostSelected, setGhostSelected] = useState(true);
-
-    const { data: course } = useQuery<CourseDetailResponse>({
-        queryKey: ["course", courseId],
-        queryFn: () => getCourse(courseId),
-        enabled: courseId !== -1,
-    });
 
     const courseStats = [
         {
@@ -69,19 +54,26 @@ export default function BottomCourseInfoModal({
     ];
 
     const ghostStats = [
-        { description: "시간", value: getRunTime(ghost.time, "HH:MM:SS") },
+        {
+            description: "시간",
+            value: getRunTime(course?.myGhostInfo?.duration ?? 0, "HH:MM:SS"),
+        },
         {
             description: "페이스",
-            value: getFormattedPace(ghost.pace),
+            value: getFormattedPace(course?.myGhostInfo?.averagePace ?? 0),
         },
         {
             description: "케이던스",
-            value: ghost.cadence,
+            value: course?.myGhostInfo?.cadence ?? 0,
             unit: "spm",
         },
     ];
 
     const router = useRouter();
+
+    if (!course) {
+        return null;
+    }
 
     return (
         <View>
@@ -90,12 +82,12 @@ export default function BottomCourseInfoModal({
                 stats={courseStats}
                 onPress={() => {
                     bottomSheetRef.current?.dismiss();
-                    router.push(`/profile/${courseId}/detail`);
+                    router.push(`/profile/${course?.id}/detail`);
                 }}
             />
-            <View style={{ height: ghost ? 20 : 30 }} />
+            <View style={{ height: course?.myGhostInfo ? 20 : 30 }} />
             <GhostSection
-                ghost={ghost}
+                ghost={course?.myGhostInfo}
                 ghostSelected={ghostSelected}
                 onSwitchChange={setGhostSelected}
                 ghostStats={ghostStats}
@@ -108,8 +100,14 @@ export default function BottomCourseInfoModal({
                 title={ghostSelected ? "고스트 러닝" : "코스 러닝"}
                 onPress={() => {
                     bottomSheetRef.current?.dismiss();
-                    if (ghostSelected && ghost && ghost.id === -1) {
-                        router.push(`/run/${course?.id}/${ghost.id}`);
+                    if (
+                        ghostSelected &&
+                        course?.myGhostInfo &&
+                        course?.myGhostInfo.runningId === -1
+                    ) {
+                        router.push(
+                            `/run/${course?.id}/${course?.myGhostInfo.runningId}`
+                        );
                     } else {
                         router.push(`/run/${course?.id}/-1`);
                     }

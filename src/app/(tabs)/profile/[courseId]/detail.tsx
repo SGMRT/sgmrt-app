@@ -198,19 +198,28 @@ export default function Result() {
                             }
                         >
                             <GhostRow
-                                profileUrl={"https://picsum.photos/200/300  "}
+                                profileUrl={
+                                    course?.myGhostInfo?.runnerProfileUrl ?? ""
+                                }
                                 ghostStats={[
                                     {
                                         description: "시간",
-                                        value: getRunTime(10000, "HH:MM:SS"),
+                                        value: getRunTime(
+                                            course?.myGhostInfo?.duration ?? 0,
+                                            "HH:MM:SS"
+                                        ),
                                     },
                                     {
                                         description: "페이스",
-                                        value: getFormattedPace(150),
+                                        value: getFormattedPace(
+                                            course?.myGhostInfo?.averagePace ??
+                                                0
+                                        ),
                                     },
                                     {
                                         description: "케이던스",
-                                        value: 150,
+                                        value:
+                                            course?.myGhostInfo?.cadence ?? 0,
                                         unit: "spm",
                                     },
                                 ]}
