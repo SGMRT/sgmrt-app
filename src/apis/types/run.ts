@@ -81,7 +81,6 @@ export interface RecordInfo {
 
 export type RunsRequest = {
     filteredBy: "DATE" | "COURSE";
-    runningMode: "SOLO" | "GHOST";
     startEpoch: number;
     endEpoch: number;
     cursorRunningId: number | null;

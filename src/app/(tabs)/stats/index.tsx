@@ -65,7 +65,7 @@ const UserHistory = ({
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-    } = useGetRuns(startEpoch, endEpoch, filteredBy, "SOLO", shouldRefresh);
+    } = useGetRuns(startEpoch, endEpoch, filteredBy, shouldRefresh);
 
     if (isLoading) {
         return <></>;
@@ -102,7 +102,6 @@ function useGetRuns(
     startEpoch: number,
     endEpoch: number,
     filteredBy: "DATE" | "COURSE",
-    runningMode: "SOLO" | "GHOST",
     shouldRefresh: boolean
 ) {
     return useInfiniteQuery<
@@ -112,18 +111,10 @@ function useGetRuns(
         (string | number | boolean)[],
         RunsPageParam
     >({
-        queryKey: [
-            "runs",
-            startEpoch,
-            endEpoch,
-            filteredBy,
-            runningMode,
-            shouldRefresh,
-        ],
+        queryKey: ["runs", startEpoch, endEpoch, filteredBy, shouldRefresh],
         queryFn: async ({ pageParam }) => {
             const request = {
                 filteredBy,
-                runningMode,
                 startEpoch,
                 endEpoch,
                 ...pageParam,

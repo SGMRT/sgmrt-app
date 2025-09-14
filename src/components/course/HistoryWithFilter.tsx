@@ -144,7 +144,6 @@ export const HistoryWithFilter = ({
     };
 
     const router = useRouter();
-
     return (
         <View style={{ flex: 1, gap: 20 }}>
             <FilterBar
