@@ -5,9 +5,7 @@ import { SignupAgreement, SignupState } from "../types/signup";
 const initialAgreement: SignupAgreement = {
     serviceTermsAgreed: false,
     privacyPolicyAgreed: false,
-    dataConsignmentAgreed: false,
-    thirdPartyDataSharingAgreed: false,
-    marketingAgreed: false,
+    personalInformationUsageConsentAgreed: false,
     agreedAt: null,
 };
 
@@ -84,10 +82,8 @@ export const useSignupStore = create<SignupStore>((set, get) => ({
             const agreementFullfilled =
                 updatedAgreement.serviceTermsAgreed &&
                 updatedAgreement.privacyPolicyAgreed &&
-                updatedAgreement.dataConsignmentAgreed &&
-                updatedAgreement.thirdPartyDataSharingAgreed;
-            const allAgreementFullfilled =
-                agreementFullfilled && updatedAgreement.marketingAgreed;
+                updatedAgreement.personalInformationUsageConsentAgreed;
+            const allAgreementFullfilled = agreementFullfilled;
 
             return {
                 agreement: updatedAgreement,
@@ -102,17 +98,13 @@ export const useSignupStore = create<SignupStore>((set, get) => ({
                 ...state.agreement,
                 serviceTermsAgreed: value,
                 privacyPolicyAgreed: value,
-                dataConsignmentAgreed: value,
-                thirdPartyDataSharingAgreed: value,
-                marketingAgreed: value,
+                personalInformationUsageConsentAgreed: value,
             };
             const agreementFullfilled =
                 updatedAgreement.serviceTermsAgreed &&
                 updatedAgreement.privacyPolicyAgreed &&
-                updatedAgreement.dataConsignmentAgreed &&
-                updatedAgreement.thirdPartyDataSharingAgreed;
-            const allAgreementFullfilled =
-                agreementFullfilled && updatedAgreement.marketingAgreed;
+                updatedAgreement.personalInformationUsageConsentAgreed;
+            const allAgreementFullfilled = agreementFullfilled;
 
             return {
                 agreement: updatedAgreement,
