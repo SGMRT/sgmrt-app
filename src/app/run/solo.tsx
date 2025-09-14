@@ -4,6 +4,7 @@ import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import { Button } from "@/src/components/ui/Button";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
@@ -231,7 +232,7 @@ export default function Run() {
             </MapViewWrapper>
             <BottomSheet
                 backgroundStyle={styles.container}
-                bottomInset={bottom + 56}
+                bottomInset={bottom + 70}
                 handleStyle={styles.handle}
                 handleIndicatorStyle={styles.handleIndicator}
                 snapPoints={[15]}
@@ -244,34 +245,68 @@ export default function Run() {
                     </View>
                 </BottomSheetView>
             </BottomSheet>
-            <Button
-                title="러닝 종료"
-                onPress={() => {
-                    Alert.alert(
-                        "러닝을 종료하시겠습니까?",
-                        "500m 이하의 러닝은 저장되지 않습니다.",
-                        [
-                            { text: "계속하기", style: "default" },
-                            {
-                                text:
-                                    context.stats.totalDistanceM < 500
-                                        ? "나가기"
-                                        : "기록 저장",
-                                style: "destructive",
-                                onPress: () => {
-                                    if (context.stats.totalDistanceM < 500) {
-                                        controls.stop();
-                                        router.back();
-                                    } else {
-                                        requestSave();
-                                    }
+            {context.status !== "PAUSED_USER" ? (
+                <Button
+                    disabled={
+                        context.status === "READY" || context.status === "IDLE"
+                    }
+                    title="일시정지"
+                    onPress={() => {
+                        Alert.alert(
+                            "러닝을 일시정지하시겠습니까?",
+                            "계속하기를 누르면 이어서 러닝이 가능합니다.",
+                            [
+                                {
+                                    text: "계속하기",
+                                    style: "default",
                                 },
-                            },
-                        ]
-                    );
-                }}
-                type="red"
-            />
+                                {
+                                    text: "일시정지",
+                                    style: "destructive",
+                                    onPress: () => {
+                                        controls.pauseUser();
+                                    },
+                                },
+                            ]
+                        );
+                    }}
+                    type="red"
+                />
+            ) : (
+                <ButtonWithIcon
+                    iconType="save"
+                    onPressIcon={() => {
+                        Alert.alert(
+                            "러닝을 종료하시겠습니까?",
+                            "500m 이하의 러닝은 저장되지 않습니다.",
+                            [
+                                { text: "계속하기", style: "default" },
+                                {
+                                    text:
+                                        context.stats.totalDistanceM < 500
+                                            ? "나가기"
+                                            : "기록 저장",
+                                    style: "destructive",
+                                    onPress: () => {
+                                        if (
+                                            context.stats.totalDistanceM < 500
+                                        ) {
+                                            controls.stop();
+                                            router.back();
+                                        } else {
+                                            requestSave();
+                                        }
+                                    },
+                                },
+                            ]
+                        );
+                    }}
+                    title="이어서 러닝"
+                    onPress={() => {
+                        controls.resume();
+                    }}
+                />
+            )}
         </View>
     );
 }

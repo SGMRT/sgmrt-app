@@ -63,6 +63,7 @@ export default function Run() {
     const [isFirst, setIsFirst] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
+    const [isClearCourse, setIsClearCourse] = useState<boolean>(false);
     const runShotRef = useRef<RunShotHandle>(null);
     const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
     const [runShotType, setRunShotType] = useState<"thumbnail" | "share">(
@@ -94,6 +95,7 @@ export default function Run() {
                 if (context.status === "READY" || isFirst) {
                     console.log("restarting");
                     setIsRestarting(true);
+                    setIsClearCourse(false);
                 }
             },
             onForceStop: () => {
@@ -264,6 +266,7 @@ export default function Run() {
 
     useEffect(() => {
         if (context.status === "COMPLETION_PENDING") {
+            setIsClearCourse(true);
             requestSave();
             setWithRouting(false);
         }
@@ -286,10 +289,11 @@ export default function Run() {
                     userDashboardData: userRecordData,
                     runTime: Math.round(context.stats.totalTimeMs / 1000),
                     isPublic: true,
-                    ghostRunningId:
-                        Number(ghostRunningId) !== -1
-                            ? Number(ghostRunningId)
-                            : null,
+                    ghostRunningId: !isClearCourse
+                        ? null
+                        : Number(ghostRunningId) !== -1
+                        ? Number(ghostRunningId)
+                        : null,
                 });
                 setRunSaveResult({
                     runningId: response.runningId,
@@ -328,6 +332,7 @@ export default function Run() {
         context.stats,
         ghostRunningId,
         courseId,
+        isClearCourse,
     ]);
 
     const now = useNow(
@@ -518,36 +523,75 @@ export default function Run() {
                 </View>
             </StyledBottomSheet>
             {runShotType === "thumbnail" ? (
-                <Button
-                    title="러닝 종료"
-                    onPress={() => {
-                        Alert.alert(
-                            "러닝을 종료하시겠습니까?",
-                            "500m 이하의 러닝은 저장되지 않습니다.",
-                            [
-                                { text: "계속하기", style: "default" },
-                                {
-                                    text:
-                                        context.stats.totalDistanceM < 500
-                                            ? "나가기"
-                                            : "기록 저장",
-                                    style: "destructive",
-                                    onPress: () => {
-                                        if (
-                                            context.stats.totalDistanceM < 500
-                                        ) {
-                                            controls.stop();
-                                            router.back();
-                                        } else {
-                                            requestSave();
-                                        }
-                                    },
-                                },
-                            ]
-                        );
-                    }}
-                    type="red"
-                />
+                <>
+                    {context.status !== "PAUSED_USER" &&
+                    context.status !== "PAUSED_OFFCOURSE" ? (
+                        <Button
+                            disabled={
+                                context.status === "READY" ||
+                                context.status === "IDLE"
+                            }
+                            title="일시정지"
+                            onPress={() => {
+                                Alert.alert(
+                                    "러닝을 일시정지하시겠습니까?",
+                                    "계속하기를 누르면 이어서 러닝이 가능합니다.",
+                                    [
+                                        {
+                                            text: "계속하기",
+                                            style: "default",
+                                        },
+                                        {
+                                            text: "일시정지",
+                                            style: "destructive",
+                                            onPress: () => {
+                                                controls.pauseUser();
+                                            },
+                                        },
+                                    ]
+                                );
+                            }}
+                            type="red"
+                        />
+                    ) : (
+                        <ButtonWithIcon
+                            iconType="save"
+                            disabled={context.status === "PAUSED_OFFCOURSE"}
+                            onPressIcon={() => {
+                                Alert.alert(
+                                    "러닝을 종료하시겠습니까?",
+                                    "500m 이하의 러닝은 저장되지 않습니다.",
+                                    [
+                                        { text: "계속하기", style: "default" },
+                                        {
+                                            text:
+                                                context.stats.totalDistanceM <
+                                                500
+                                                    ? "나가기"
+                                                    : "기록 저장",
+                                            style: "destructive",
+                                            onPress: () => {
+                                                if (
+                                                    context.stats
+                                                        .totalDistanceM < 500
+                                                ) {
+                                                    controls.stop();
+                                                    router.back();
+                                                } else {
+                                                    requestSave();
+                                                }
+                                            },
+                                        },
+                                    ]
+                                );
+                            }}
+                            title="이어서 러닝"
+                            onPress={() => {
+                                controls.resume();
+                            }}
+                        />
+                    )}
+                </>
             ) : (
                 <>
                     <Confetti

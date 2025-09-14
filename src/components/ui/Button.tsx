@@ -39,12 +39,14 @@ export const Button = ({
     containerStyle,
     style,
     topStroke = false,
+    disabled,
     ...props
 }: ButtonProps) => {
-    const resolvedType: ButtonType =
-        type === "custom" || customBackgroundColor || customColor
-            ? "custom"
-            : type;
+    const resolvedType: ButtonType = disabled
+        ? "inactive"
+        : type === "custom" || customBackgroundColor || customColor
+        ? "custom"
+        : type;
 
     const { backgroundColor, textColor } = getButtonStyle(resolvedType, {
         customBackgroundColor,
@@ -61,6 +63,7 @@ export const Button = ({
         >
             <Pressable
                 {...props}
+                disabled={disabled}
                 style={[styles.base, { backgroundColor }, style]}
             >
                 {icon}
@@ -128,5 +131,8 @@ const styles = StyleSheet.create({
     topStroke: {
         borderTopWidth: 1,
         borderColor: "#212121",
+    },
+    disabled: {
+        backgroundColor: colors.gray[80],
     },
 });

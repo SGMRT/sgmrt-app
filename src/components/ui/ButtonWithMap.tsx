@@ -1,4 +1,4 @@
-import { HomeIcon, MapIcon, ShareIcon } from "@/assets/svgs/svgs";
+import { HomeIcon, MapIcon, SaveIcon, ShareIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import {
     Pressable,
@@ -12,7 +12,7 @@ import { Typography } from "./Typography";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;
-    iconType: "map" | "home" | "share";
+    iconType: "map" | "home" | "share" | "save";
     containerStyle?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
@@ -21,6 +21,7 @@ export default function ButtonWithIcon({
     containerStyle,
     topStroke,
     iconType,
+    disabled,
     ...props
 }: ButtonWithIconProps) {
     return (
@@ -46,6 +47,13 @@ export default function ButtonWithIcon({
                             공유하기
                         </Typography>
                     </>
+                ) : iconType === "save" ? (
+                    <>
+                        <SaveIcon />
+                        <Typography variant="mini" color="gray40">
+                            기록 저장
+                        </Typography>
+                    </>
                 ) : (
                     <>
                         <HomeIcon color={colors.gray[40]} />
@@ -56,6 +64,7 @@ export default function ButtonWithIcon({
                 )}
             </Pressable>
             <Button
+                disabled={disabled}
                 {...props}
                 containerStyle={{
                     height: 58,
@@ -82,7 +91,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: 6,
         marginHorizontal: 16.5,
-        marginBottom: 6,
         paddingTop: 12,
     },
     topStroke: {

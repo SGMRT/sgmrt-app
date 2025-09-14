@@ -51,6 +51,8 @@ import CloseIcon from "./close.svg";
 
 import InfoIcon from "./info.svg";
 
+import SaveIcon from "./save.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -73,6 +75,7 @@ export {
     MenuIcon,
     PlayIcon,
     ProfileIcon,
+    SaveIcon,
     ScrollTopIcon,
     ShareIcon,
     ShowIcon,
