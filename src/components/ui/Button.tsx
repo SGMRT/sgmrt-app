@@ -1,5 +1,12 @@
 import colors from "@/src/theme/colors";
-import { Pressable, PressableProps, StyleSheet } from "react-native";
+import {
+    Pressable,
+    PressableProps,
+    StyleProp,
+    StyleSheet,
+    View,
+    ViewStyle,
+} from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "./Typography";
 
 type ButtonType =
@@ -17,6 +24,8 @@ export interface ButtonProps extends PressableProps {
     variant?: TypographyVariant;
     customColor?: TypographyColor;
     customBackgroundColor?: string;
+    containerStyle?: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
 
@@ -27,12 +36,17 @@ export const Button = ({
     customColor,
     icon,
     customBackgroundColor,
+    containerStyle,
+    style,
+    topStroke = false,
+    disabled,
     ...props
 }: ButtonProps) => {
-    const resolvedType: ButtonType =
-        type === "custom" || customBackgroundColor || customColor
-            ? "custom"
-            : type;
+    const resolvedType: ButtonType = disabled
+        ? "inactive"
+        : type === "custom" || customBackgroundColor || customColor
+        ? "custom"
+        : type;
 
     const { backgroundColor, textColor } = getButtonStyle(resolvedType, {
         customBackgroundColor,
@@ -40,12 +54,27 @@ export const Button = ({
     });
 
     return (
-        <Pressable {...props} style={[styles.base, { backgroundColor }]}>
-            {icon}
-            <Typography variant={variant} color={textColor as TypographyColor}>
-                {title}
-            </Typography>
-        </Pressable>
+        <View
+            style={[
+                styles.container,
+                topStroke && styles.topStroke,
+                containerStyle,
+            ]}
+        >
+            <Pressable
+                {...props}
+                disabled={disabled}
+                style={[styles.base, { backgroundColor }, style]}
+            >
+                {icon}
+                <Typography
+                    variant={variant}
+                    color={textColor as TypographyColor}
+                >
+                    {title}
+                </Typography>
+            </Pressable>
+        </View>
     );
 };
 
@@ -84,14 +113,26 @@ function getButtonStyle(
 }
 
 const styles = StyleSheet.create({
+    container: {
+        paddingTop: 12,
+        height: 70,
+    },
     base: {
         flex: 1,
+        maxHeight: 58,
         height: 58,
         borderRadius: 16,
-        paddingHorizontal: 16,
+        marginHorizontal: 16.5,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
         gap: 10,
+    },
+    topStroke: {
+        borderTopWidth: 1,
+        borderColor: "#212121",
+    },
+    disabled: {
+        backgroundColor: colors.gray[80],
     },
 });

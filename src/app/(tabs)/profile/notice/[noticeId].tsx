@@ -1,12 +1,13 @@
 import { getNotice } from "@/src/apis";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
+import TabBar from "@/src/components/ui/TabBar";
 import { Typography } from "@/src/components/ui/Typography";
 import { formatDate } from "@/src/utils/formatDate";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useMemo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,14 +18,31 @@ export default function NoticeDetailPage() {
         queryFn: () => getNotice(Number(noticeId)),
         enabled: !!noticeId,
     });
+    const router = useRouter();
+
+    const onBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace("/(tabs)/home");
+        }
+    };
 
     const formattedDate = useMemo(() => {
         return data?.startAt ? formatDate(new Date(data?.startAt)) : "";
     }, [data]);
 
+    const handleBack = useCallback(() => {
+        router.replace("/profile/notice");
+    }, [router]);
+
     return (
         <SafeAreaView style={styles.container}>
-            <Header titleText={formattedDate} hasBackButton={true} />
+            <Header
+                titleText={formattedDate}
+                hasBackButton={true}
+                onBack={onBack}
+            />
             <ScrollView contentContainerStyle={styles.contentContainer}>
                 <View style={styles.titleContainer}>
                     <Typography variant="headline" color="white">
@@ -42,6 +60,7 @@ export default function NoticeDetailPage() {
                     />
                 )}
             </ScrollView>
+            <TabBar />
         </SafeAreaView>
     );
 }
@@ -50,7 +69,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
-        paddingBottom: 50,
+        paddingBottom: 60,
     },
     contentContainer: {
         gap: 20,

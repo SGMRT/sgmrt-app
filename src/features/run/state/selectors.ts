@@ -69,12 +69,7 @@ export function selectStatsDisplay(context: RunContext) {
     return [
         { label: "거리", value: km.toFixed(2), unit: "km" },
         {
-            label: "평균 페이스",
-            value: formatPace(stats.avgPaceSecPerKm),
-            unit: "",
-        },
-        {
-            label: "최근 페이스",
+            label: "현재 페이스",
             value: formatPace(stats.currentPaceSecPerKm),
             unit: "",
         },
@@ -84,14 +79,19 @@ export function selectStatsDisplay(context: RunContext) {
             unit: "spm",
         },
         {
-            label: "심박수",
-            value: Math.round(stats.bpm ?? 0),
+            label: "평균 페이스",
+            value: formatPace(stats.avgPaceSecPerKm),
             unit: "",
         },
         {
-            label: "소모 칼로리",
+            label: "칼로리",
             value: Math.round(stats.calories ?? 0),
             unit: "kcal",
+        },
+        {
+            label: "BPM",
+            value: "--",
+            unit: "",
         },
     ];
 }

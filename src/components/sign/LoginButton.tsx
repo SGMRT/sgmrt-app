@@ -18,6 +18,10 @@ const LoginButton = ({
 }: LoginButtonProps) => {
     return (
         <Button
+            containerStyle={{
+                height: 58,
+                paddingTop: 0,
+            }}
             title={text}
             customColor={textColor}
             customBackgroundColor={backgroundColor}

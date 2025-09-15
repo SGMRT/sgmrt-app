@@ -31,7 +31,7 @@ export const NoticePreviewList = forwardRef<FlashListRef<Notice>, Props>(
                         content={item.content}
                         date={new Date(item.startAt)}
                         onPress={() => {
-                            router.push(`/notice/${item.id}`);
+                            router.push(`/profile/notice/${item.id}`);
                         }}
                     />
                 )}

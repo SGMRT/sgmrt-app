@@ -30,6 +30,8 @@ type CoursesWithFilterProps = {
         filter?: boolean;
         view?: boolean;
     };
+    defaultView?: "list" | "gallery";
+    showLogo?: boolean;
 };
 
 type FilteredData = {
@@ -49,12 +51,14 @@ export const CoursesWithFilter = ({
     hasNextPage,
     fetchNextPage,
     filters,
+    defaultView = "list",
+    showLogo = true,
 }: CoursesWithFilterProps) => {
     const [selectedFilter, setSelectedFilter] = useState<"date" | "course">(
         "date"
     );
     const [selectedView, setSelectedView] = useState<"list" | "gallery">(
-        "list"
+        defaultView
     );
     const [displayData, setDisplayData] = useState<FilteredData>({
         type: "date",
@@ -172,6 +176,7 @@ export const CoursesWithFilter = ({
                         key={item.label}
                         title={item.label}
                         titleColor="white"
+                        titleVariant="headline"
                         containerStyle={
                             displayData.data.length - 1 !== index
                                 ? { marginBottom: 20 }
@@ -194,21 +199,15 @@ export const CoursesWithFilter = ({
                                     duration={course.averageCompletionTime}
                                     averagePace={course.averageFinisherPace}
                                     cadence={course.averageFinisherCadence}
-                                    onPress={
-                                        setSelectedCourse
-                                            ? () => {
-                                                  setSelectedCourse(course);
-                                              }
-                                            : undefined
-                                    }
                                     onClickCourseInfo={() => {
                                         router.push(
-                                            `/course/${course.id}/detail`
+                                            `/profile/${course.id}/detail`
                                         );
                                     }}
                                     isSelected={
                                         course.id === selectedCourse?.id
                                     }
+                                    showLogo={showLogo}
                                 />
                             ) : (
                                 <CourseGalleryItem
@@ -223,19 +222,12 @@ export const CoursesWithFilter = ({
                                     isSelected={
                                         course.id === selectedCourse?.id
                                     }
-                                    onClickCourse={
-                                        setSelectedCourse
-                                            ? () => {
-                                                  setSelectedCourse(course);
-                                              }
-                                            : undefined
-                                    }
-                                    onClickCourseInfo={() => {
-                                        console.log(course.id);
+                                    onClickCourse={() => {
                                         router.push(
-                                            `/course/${course.id}/rank`
+                                            `/profile/${course.id}/detail`
                                         );
                                     }}
+                                    showLogo={showLogo}
                                 />
                             )
                         )}
@@ -302,6 +294,7 @@ type CourseItemProps = {
     onClickCourseInfo: () => void;
     // 선택 상태
     isSelected: boolean;
+    showLogo?: boolean;
 };
 
 const CourseItem = ({
@@ -317,6 +310,7 @@ const CourseItem = ({
     onClickCourseInfo,
     onPress,
     isSelected,
+    showLogo = true,
 }: CourseItemProps) => {
     return (
         <View

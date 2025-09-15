@@ -1,7 +1,8 @@
 import { Logo } from "@/assets/icons/icons";
 import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
-import { signIn } from "@/src/apis";
+import { getUserInfo, signIn } from "@/src/apis";
 import LoginButton from "@/src/components/sign/LoginButton";
+import { showToast } from "@/src/components/ui/toastConfig";
 import { useAuthStore } from "@/src/store/authState";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
@@ -10,22 +11,22 @@ import {
     setAttributes,
     setUserId,
 } from "@react-native-firebase/crashlytics";
-import {
-    getKeyHashAndroid,
-    initializeKakaoSDK,
-} from "@react-native-kakao/core";
+import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as Sentry from "@sentry/react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
 import { Image, Platform, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
+import {
+    SafeAreaView,
+    useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 export default function Login() {
     const router = useRouter();
 
     const { login } = useAuthStore();
+    const { bottom } = useSafeAreaInsets();
 
     initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_APP_KEY ?? "");
 
@@ -35,9 +36,7 @@ export default function Login() {
             <View
                 style={{
                     gap: 10,
-                    paddingHorizontal: 16.5,
                     width: "100%",
-                    height: 126,
                 }}
             >
                 <LoginButton
@@ -47,11 +46,7 @@ export default function Login() {
                     onPress={async () => {
                         const resp = await kakaoLogin();
                         if (!resp.idToken) {
-                            Toast.show({
-                                type: "info",
-                                text1: "카카오 로그인 실패",
-                                position: "bottom",
-                            });
+                            showToast("info", "카카오 로그인 실패", bottom);
                             return;
                         }
                         await handleLogin({
@@ -60,30 +55,27 @@ export default function Login() {
                             secret: resp.accessToken,
                             router,
                             login,
+                            bottom,
                         });
                     }}
                 />
                 {Platform.OS === "ios" && (
-                  <LoginButton
-                      text="애플로 시작하기"
-                      backgroundColor="#3F3F3F"
-                      textColor="white"
-                      icon={<AppleIcon />}
-                      onPress={async () => {
-                          const resp = await AppleAuthentication.signInAsync({
-                              requestedScopes: [
-                                  AppleAuthentication.AppleAuthenticationScope
-                                      .FULL_NAME,
-                                  AppleAuthentication.AppleAuthenticationScope
-                                      .EMAIL,
-                              ],
+                    <LoginButton
+                        text="애플로 시작하기"
+                        backgroundColor="#3F3F3F"
+                        textColor="white"
+                        icon={<AppleIcon />}
+                        onPress={async () => {
+                            const resp = await AppleAuthentication.signInAsync({
+                                requestedScopes: [
+                                    AppleAuthentication.AppleAuthenticationScope
+                                        .FULL_NAME,
+                                    AppleAuthentication.AppleAuthenticationScope
+                                        .EMAIL,
+                                ],
                             });
                             if (!resp.identityToken) {
-                                Toast.show({
-                                    type: "info",
-                                    text1: "애플 로그인 실패",
-                                    position: "bottom",
-                                });
+                                showToast("info", "애플 로그인 실패", bottom);
                                 return;
                             }
                             await handleLogin({
@@ -92,6 +84,7 @@ export default function Login() {
                                 secret: resp.authorizationCode ?? "",
                                 router,
                                 login,
+                                bottom,
                             });
                         }}
                     />
@@ -107,13 +100,18 @@ async function handleLogin({
     secret,
     router,
     login,
+    bottom,
 }: {
     providerId: string;
     token: string;
     secret?: string;
     router: ReturnType<typeof useRouter>;
     login: (accessToken: string, refreshToken: string, uuid: string) => void;
+    bottom: number;
 }) {
+    const { setUserInfo: setUserInfoStore } = useAuthStore.getState();
+    const { setUserSettings: setUserSettingsStore } = useAuthStore.getState();
+
     try {
         const credential = await signInWithCredential(getAuth(), {
             providerId,
@@ -143,17 +141,28 @@ async function handleLogin({
 
         login(res.accessToken, res.refreshToken, res.uuid);
 
+        await getUserInfo().then((res) => {
+            setUserInfoStore({
+                username: res.nickname,
+                gender: res.gender,
+                age: res.age,
+                height: res.height,
+                weight: res.weight,
+            });
+            setUserSettingsStore({
+                pushAlarmEnabled: res.pushAlarmEnabled,
+                vibrationEnabled: res.vibrationEnabled,
+                voiceGuidanceEnabled: res.voiceGuidanceEnabled,
+            });
+        });
+
         amplitude.track("Sign In", {
             provider: providerId,
         });
     } catch (err: any) {
         console.log(err);
         if (err?.response?.status !== 404) {
-            Toast.show({
-                type: "info",
-                text1: "로그인에 실패했습니다.",
-                position: "bottom",
-            });
+            showToast("info", "로그인에 실패했습니다.", bottom);
         } else {
             router.push("/register");
             amplitude.track("Start Sign Up", {

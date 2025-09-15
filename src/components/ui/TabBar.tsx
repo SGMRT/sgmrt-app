@@ -13,9 +13,14 @@ import {
 interface TabBarProps {
     position?: "bottom" | "top" | null;
     style?: StyleProp<ViewStyle>;
+    topRound?: boolean;
 }
 
-export default memo(function TabBar({ position, style }: TabBarProps) {
+export default memo(function TabBar({
+    position,
+    style,
+    topRound = true,
+}: TabBarProps) {
     const pathname = usePathname();
     const router = useRouter();
 
@@ -30,11 +35,12 @@ export default memo(function TabBar({ position, style }: TabBarProps) {
             style={[
                 styles.container,
                 position === "bottom" && styles.bottom,
+                topRound && styles.topRound,
                 style,
             ]}
         >
             {tabs.map((tab) => {
-                const isActive = pathname === tab.path;
+                const isActive = pathname.includes(tab.path);
                 return (
                     <Pressable
                         key={tab.name}
@@ -59,24 +65,26 @@ const styles = StyleSheet.create({
         height: 64,
         justifyContent: "center",
         alignItems: "center",
-        zIndex: 100,
     },
     container: {
-        paddingTop: 12,
         paddingBottom: 6,
         flexDirection: "row",
         width: "100%",
         backgroundColor: "#111111",
         justifyContent: "space-between",
         alignItems: "center",
-        borderColor: "#212121",
-        borderTopWidth: 1,
-        borderTopStartRadius: 20,
-        borderTopEndRadius: 20,
+
         position: "absolute",
         bottom: 0,
         left: 0,
         right: 0,
+    },
+    topRound: {
+        paddingTop: 15,
+        borderColor: "#212121",
+        borderTopWidth: 1,
+        borderTopStartRadius: 20,
+        borderTopEndRadius: 20,
     },
     bottom: {
         position: "absolute",

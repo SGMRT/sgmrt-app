@@ -8,27 +8,31 @@ import {
     uploadToS3,
 } from "@/src/apis";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
+import { useLocalNotificationPermission } from "@/src/features/notifications/useLocalNotificationPermission";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Application from "expo-application";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import * as Notifications from "expo-notifications";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
     Alert,
     Image,
+    Linking,
     RefreshControl,
     ScrollView,
-    Switch,
     TouchableOpacity,
     View,
 } from "react-native";
-import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProfileNoticeSection } from "../notice/ui/ProfileNoticeSection";
 import { Divider } from "../ui/Divider";
 import { StyledButton } from "../ui/StyledButton";
+import { StyledSwitch } from "../ui/StyledSwitch";
 import { Typography, TypographyColor } from "../ui/Typography";
+import { showToast } from "../ui/toastConfig";
 
 export const Info = ({
     setModalType,
@@ -44,52 +48,105 @@ export const Info = ({
         useAuthStore();
     const router = useRouter();
     const [refreshing, setRefreshing] = useState(false);
+    const { logout } = useAuthStore();
+    const { bottom } = useSafeAreaInsets();
+    const { granted, refresh } = useLocalNotificationPermission({
+        withActiveRetry: true,
+    });
 
     useEffect(() => {
         loadUserInfo();
     }, []);
 
+    useFocusEffect(
+        useCallback(() => {
+            refresh();
+        }, [refresh])
+    );
+
     const loadUserInfo = async () => {
         setRefreshing(true);
-        getUserInfo()
-            .then((res) => {
-                setUserInfo(res);
-                setUserInfoStore({
-                    username: res.nickname,
-                    gender: res.gender,
-                    age: res.age,
-                    height: res.height,
-                    weight: res.weight,
-                });
-            })
-            .catch(() => {
-                Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
-                    {
-                        text: "확인",
-                        onPress: () => {
-                            router.replace("/");
-                        },
-                    },
-                ]);
+        try {
+            const res = await getUserInfo();
+            setUserInfo(res);
+            setUserInfoStore({
+                username: res.nickname,
+                gender: res.gender,
+                age: res.age,
+                height: res.height,
+                weight: res.weight,
             });
-        setRefreshing(false);
+            setUserSettings({
+                pushAlarmEnabled: res.pushAlarmEnabled,
+                vibrationEnabled: res.vibrationEnabled,
+                voiceGuidanceEnabled: res.voiceGuidanceEnabled,
+            });
+        } catch {
+            Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
+                { text: "확인", onPress: logout },
+            ]);
+        } finally {
+            setRefreshing(false);
+        }
     };
 
-    const handlePushAlarmChange = (value: boolean) => {
+    const handlePushAlarmChange = async (next: boolean) => {
         if (!userInfo) return;
-        setUserInfo({
-            ...userInfo,
-            pushAlarmEnabled: value ?? false,
-        });
+
+        // 디바이스 권한 확인 & 요청 (ON으로 전환할 때)
+        if (next) {
+            const perm = await Notifications.getPermissionsAsync();
+            if (perm.status !== "granted") {
+                const req = await Notifications.requestPermissionsAsync({
+                    ios: {
+                        allowAlert: true,
+                        allowBadge: true,
+                        allowSound: true,
+                    },
+                });
+                if (req.status !== "granted") {
+                    // iOS/Android 공통으로 설정 진입 제안
+                    Alert.alert(
+                        "알림 권한이 꺼져 있어요",
+                        "설정에서 허용하시겠어요?",
+                        [
+                            { text: "취소", style: "destructive" },
+                            {
+                                text: "설정 열기",
+                                onPress: () => Linking.openSettings(),
+                            },
+                        ]
+                    );
+                    return;
+                }
+            }
+        }
+
+        // 낙관적 업데이트
+        const prev = userInfo.pushAlarmEnabled;
+        setUserInfo({ ...userInfo, pushAlarmEnabled: next });
         setUserSettings({
-            pushAlarmEnabled: value ?? false,
+            pushAlarmEnabled: next,
             vibrationEnabled: userInfo.vibrationEnabled,
             voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
         });
-        patchUserSettings({
-            pushAlarmEnabled: value,
-            vibrationEnabled: userInfo.vibrationEnabled,
-        });
+
+        try {
+            await patchUserSettings({ pushAlarmEnabled: next });
+        } catch (e) {
+            // 실패 롤백
+            setUserInfo({ ...userInfo, pushAlarmEnabled: prev });
+            setUserSettings({
+                pushAlarmEnabled: prev,
+                vibrationEnabled: userInfo.vibrationEnabled,
+                voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
+            });
+            showToast(
+                "info",
+                "서버 동기화에 실패했어요. 다시 시도해주세요.",
+                bottom
+            );
+        }
     };
 
     const handleVibrationChange = (value: boolean) => {
@@ -104,7 +161,6 @@ export const Info = ({
             voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
         });
         patchUserSettings({
-            pushAlarmEnabled: userInfo.pushAlarmEnabled,
             vibrationEnabled: value,
         });
     };
@@ -125,7 +181,7 @@ export const Info = ({
         });
     };
 
-    const onPickImage = async () => {
+    const onPickImage = async (bottom: number) => {
         await pickImage().then(async (image) => {
             if (!image) return;
             const imageUrl = await getPresignedUrl({
@@ -140,11 +196,11 @@ export const Info = ({
                 await patchUserInfo({
                     profileImageUrl: imageUrl.presignUrl.split("?X-Amz-")[0],
                 }).then(() => {
-                    Toast.show({
-                        type: "success",
-                        text1: "프로필 이미지가 변경되었습니다",
-                        position: "bottom",
-                    });
+                    showToast(
+                        "success",
+                        "프로필 이미지가 변경되었습니다",
+                        bottom
+                    );
                 });
             }
         });
@@ -156,6 +212,7 @@ export const Info = ({
             contentContainerStyle={{
                 marginHorizontal: 17,
                 marginTop: 20,
+                paddingBottom: 10,
                 gap: 20,
             }}
             refreshControl={
@@ -171,13 +228,13 @@ export const Info = ({
                 <View style={{ flexDirection: "row", gap: 4 }}>
                     <StyledButton
                         title="프로필 이미지 변경"
-                        onPress={onPickImage}
+                        onPress={() => onPickImage(bottom)}
                         style={{ width: "50%" }}
                     />
                     <StyledButton
                         title="회원 정보 변경"
                         onPress={() => {
-                            router.push("/(tabs)/(profile)/editInfo");
+                            router.push("/(tabs)/profile/editInfo");
                         }}
                         style={{ width: "50%" }}
                     />
@@ -186,7 +243,7 @@ export const Info = ({
             {/*  공지사항 및 이벤트 */}
             <ProfileNoticeSection
                 onPress={() => {
-                    router.push("/notice");
+                    router.push("/(tabs)/profile/notice");
                 }}
             />
             {/* 디바이스 옵션 */}
@@ -195,12 +252,14 @@ export const Info = ({
                     title="알림"
                     rightElement={
                         <StyledSwitch
-                            isSelected={userInfo?.pushAlarmEnabled ?? false}
+                            isSelected={
+                                (userInfo?.pushAlarmEnabled && granted) ?? false
+                            }
                             onValueChange={handlePushAlarmChange}
                         />
                     }
                 />
-                <ProfileOptionItem
+                {/* <ProfileOptionItem
                     title="진동"
                     rightElement={
                         <StyledSwitch
@@ -208,7 +267,7 @@ export const Info = ({
                             onValueChange={handleVibrationChange}
                         />
                     }
-                />
+                /> */}
                 <ProfileOptionItem
                     title="음성 안내"
                     rightElement={
@@ -226,13 +285,39 @@ export const Info = ({
                     borderBottom={true}
                 />
                 <ProfileOptionItem
-                    title="약관 및 개인정보 처리 동의"
-                    onPress={() => {}}
+                    title="서비스 이용약관"
+                    onPress={() => {
+                        router.push({
+                            pathname: "/(tabs)/profile/termDetail",
+                            params: {
+                                key: "serviceTermsAgreed",
+                            },
+                        });
+                    }}
                     rightElement={<ChevronIcon color={colors.gray[40]} />}
                 />
                 <ProfileOptionItem
                     title="개인정보 처리방침"
-                    onPress={() => {}}
+                    onPress={() => {
+                        router.push({
+                            pathname: "/(tabs)/profile/termDetail",
+                            params: {
+                                key: "privacyPolicyAgreed",
+                            },
+                        });
+                    }}
+                    rightElement={<ChevronIcon color={colors.gray[40]} />}
+                />
+                <ProfileOptionItem
+                    title="개인정보 수집 및 이용 동의"
+                    onPress={() => {
+                        router.push({
+                            pathname: "/(tabs)/profile/termDetail",
+                            params: {
+                                key: "personalInformationUsageConsentAgreed",
+                            },
+                        });
+                    }}
                     rightElement={<ChevronIcon color={colors.gray[40]} />}
                 />
             </ProfileOptionSection>
@@ -322,30 +407,6 @@ const ProfileOptionItem = ({
                 {rightElement}
             </View>
         </TouchableOpacity>
-    );
-};
-
-const StyledSwitch = ({
-    isSelected,
-    onValueChange,
-}: {
-    isSelected: boolean;
-    onValueChange: (value: boolean) => void;
-}) => {
-    return (
-        <Switch
-            trackColor={{
-                false: colors.gray[40],
-                true: colors.primary,
-            }}
-            thumbColor={colors.white}
-            ios_backgroundColor={colors.gray[40]}
-            style={{
-                transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
-            }}
-            value={isSelected}
-            onValueChange={onValueChange}
-        />
     );
 };
 

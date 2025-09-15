@@ -4,6 +4,7 @@ import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import Header from "@/src/components/ui/Header";
 import InfoItem, { InfoFieldTitle } from "@/src/components/ui/InfoItem";
 import { StyledButton } from "@/src/components/ui/StyledButton";
+import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -15,7 +16,7 @@ import {
     ScrollView,
     View,
 } from "react-native";
-import Toast from "react-native-toast-message";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function EditInfo() {
     const [userInfo, setUserInfo] = useState<PatchUserInfoRequest | null>(null);
@@ -23,7 +24,7 @@ export default function EditInfo() {
         useState<PatchUserInfoRequest | null>(null);
     const [updateUserInfo, setUpdateUserInfo] =
         useState<PatchUserInfoRequest | null>(null);
-
+    const { bottom } = useSafeAreaInsets();
     useEffect(() => {
         getUserInfo().then((res) => {
             setUserInfo(res as PatchUserInfoRequest);
@@ -57,11 +58,8 @@ export default function EditInfo() {
 
         patchUserInfo(changedFieldsObject)
             .then(() => {
-                Toast.show({
-                    type: "success",
-                    text1: "회원 정보가 변경되었습니다.",
-                    position: "bottom",
-                });
+                showToast("success", "회원 정보가 변경되었습니다.", bottom);
+
                 router.back();
             })
             .catch((err) => {

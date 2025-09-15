@@ -1,8 +1,10 @@
+import { useAuthStore } from "../store/authState";
 import server from "./instance";
 
 export type Notice = {
     id: number;
     title: string;
+    type: "GENERAL" | "EVENT" | null;
     imageUrl: string;
     content: string;
     priority: number;
@@ -46,6 +48,14 @@ export async function getNoticesActive(): Promise<Notice[]> {
 export async function dismissNotice(noticeId: number) {
     const response = await server.post(`/notices/${noticeId}/dismissal`, {
         dismissDays: null,
+    });
+    return response.data;
+}
+
+export async function postUserPushToken(pushToken: string) {
+    const { uuid } = useAuthStore.getState();
+    const response = await server.post(`/member/${uuid}/push-token`, {
+        pushToken,
     });
     return response.data;
 }

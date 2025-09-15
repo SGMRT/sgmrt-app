@@ -15,13 +15,30 @@ export interface CoursesRequest {
 export interface CourseResponse {
     id: number;
     name: string;
+    sourse: "USER" | "OFFICIAL";
     startLat: number;
     startLng: number;
     routeUrl: string;
+    checkpointsUrl: string;
     thumbnailUrl: string;
     distance: number;
+    elevationAverage: number;
     elevationGain: number;
     elevationLoss: number;
+    createdAt: Date;
+    myGhostInfo: {
+        runnerUuid: string;
+        runnerProfileUrl: string;
+        runnerNickname: string;
+        runningId: number;
+        runningName: string;
+        averagePace: number;
+        cadence: number;
+        bpm: number;
+        duration: number;
+        isPublic: boolean;
+        startedAt: Date;
+    };
     runners: [
         {
             uuId: string;
@@ -58,6 +75,19 @@ export interface CourseDetailResponse {
     myLowestPace: number;
     myAveragePace: number;
     myHighestPace: number;
+    myGhostInfo: {
+        runnerUuid: string;
+        runnerProfileUrl: string;
+        runnerNickname: string;
+        runningId: number;
+        runningName: string;
+        averagePace: number;
+        cadence: number;
+        bpm: number;
+        duration: number;
+        isPublic: boolean;
+        startedAt: Date;
+    };
     telemetries: Telemetry[];
     courseCheckpoints: Checkpoint[];
 }

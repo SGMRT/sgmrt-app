@@ -45,7 +45,7 @@ export default function AgreeList() {
                     }}
                 />
                 <AgreeItem
-                    title="[필수]  개인정보 수집 및 동의 "
+                    title="[필수]  개인정보 처리방침"
                     isAgreed={agreement.privacyPolicyAgreed}
                     onPressAgree={() => {
                         toggleAgreement("privacyPolicyAgreed");
@@ -54,56 +54,26 @@ export default function AgreeList() {
                         router.push({
                             pathname: "/register/termDetail",
                             params: {
-                                title: "[필수] 개인정보 수집 및 동의",
+                                title: "[필수] 개인정보 처리방침",
                                 key: "privacyPolicyAgreed",
                             },
                         });
                     }}
                 />
                 <AgreeItem
-                    title="[필수]  개인정보처리 위탁 동의"
-                    isAgreed={agreement.dataConsignmentAgreed}
+                    title="[필수]  개인정보 수집 및 이용 동의"
+                    isAgreed={agreement.personalInformationUsageConsentAgreed}
                     onPressAgree={() => {
-                        toggleAgreement("dataConsignmentAgreed");
+                        toggleAgreement(
+                            "personalInformationUsageConsentAgreed"
+                        );
                     }}
                     onPressDetail={() => {
                         router.push({
                             pathname: "/register/termDetail",
                             params: {
-                                title: "[필수] 개인정보처리 위탁 동의",
-                                key: "dataConsignmentAgreed",
-                            },
-                        });
-                    }}
-                />
-                <AgreeItem
-                    title="[필수] 제3자 정보 제공 동의"
-                    isAgreed={agreement.thirdPartyDataSharingAgreed}
-                    onPressAgree={() => {
-                        toggleAgreement("thirdPartyDataSharingAgreed");
-                    }}
-                    onPressDetail={() => {
-                        router.push({
-                            pathname: "/register/termDetail",
-                            params: {
-                                title: "[필수] 제3자 정보 제공 동의",
-                                key: "thirdPartyDataSharingAgreed",
-                            },
-                        });
-                    }}
-                />
-                <AgreeItem
-                    title="[선택] 마케팅 활용 동의"
-                    isAgreed={agreement.marketingAgreed}
-                    onPressAgree={() => {
-                        toggleAgreement("marketingAgreed");
-                    }}
-                    onPressDetail={() => {
-                        router.push({
-                            pathname: "/register/termDetail",
-                            params: {
-                                title: "[선택] 마케팅 활용 동의",
-                                key: "marketingAgreed",
+                                title: "[필수] 개인정보 수집 및 이용 동의",
+                                key: "personalInformationUsageConsentAgreed",
                             },
                         });
                     }}

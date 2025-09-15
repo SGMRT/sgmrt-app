@@ -19,9 +19,12 @@ export const HomeNotices = () => {
         }
     }, [data]);
 
-    const handlePress = useCallback((noticeId: number) => {
-        router.push(`/notice/${noticeId}`);
-    }, []);
+    const handlePress = useCallback(
+        (noticeId: number) => {
+            router.push(`/profile/notice/${noticeId}`);
+        },
+        [router]
+    );
 
     const handleClose = useCallback((noticeId: number) => {
         setActiveNotices((prev) =>

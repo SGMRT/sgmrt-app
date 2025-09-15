@@ -9,6 +9,7 @@ interface CourseMarkersProps {
     activeCourseId: number;
     onClickCourse: (course: CourseResponse) => void;
     zoomLevel: number;
+    logo?: boolean;
 }
 
 export default function CourseMarkers({

@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     container: {
         width: 48,
         height: 48,
-        backgroundColor: "#111111",
+        backgroundColor: "rgba(17,17,17,0.8)",
         borderWidth: 1,
         borderColor: "#3F3F3F",
         position: "absolute",
@@ -54,5 +54,6 @@ const styles = StyleSheet.create({
         borderRadius: 100,
         alignItems: "center",
         justifyContent: "center",
+        boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },
 });

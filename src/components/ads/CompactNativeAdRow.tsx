@@ -62,7 +62,16 @@ export default function CompactNativeAdRow({ style }: Props) {
         };
     }, []);
 
-    if (!ad) return <View style={{ height: 32 + bottom, marginTop: -10 }} />;
+    if (!ad)
+        return (
+            <View
+                style={{
+                    height: 32 + bottom,
+                    marginTop: -10,
+                    backgroundColor: "#111111",
+                }}
+            />
+        );
 
     return (
         <NativeAdView
@@ -132,6 +141,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 4,
+        backgroundColor: "#111111",
     },
     badge: {
         width: 28,

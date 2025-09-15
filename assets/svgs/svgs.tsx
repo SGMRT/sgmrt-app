@@ -49,6 +49,10 @@ import ShowIcon from "./show.svg";
 
 import CloseIcon from "./close.svg";
 
+import InfoIcon from "./info.svg";
+
+import SaveIcon from "./save.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -62,6 +66,7 @@ export {
     FilterIcon,
     GhostIcon,
     HomeIcon,
+    InfoIcon,
     KakaoIcon,
     ListIcon,
     LocateMe,
@@ -70,6 +75,7 @@ export {
     MenuIcon,
     PlayIcon,
     ProfileIcon,
+    SaveIcon,
     ScrollTopIcon,
     ShareIcon,
     ShowIcon,

@@ -1,44 +1,34 @@
 import { DefaultLogo } from "@/assets/icons/icons";
+import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
 import { getDistance } from "@/src/utils/mapUtils";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Dimensions, FlatList, Image, View } from "react-native";
-import ButtonWithIcon from "../ui/ButtonWithMap";
+import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterButton } from "../ui/FilterButton";
-import RadioButton from "../ui/RadioButton";
+import GhostLabel from "../ui/GhostLabel";
 import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
 import { UserCount } from "../ui/UserCount";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
-    courseType: "all" | "my";
-    bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     selectedCourse: CourseResponse | null;
-    onClickCourse: (course: CourseResponse) => void;
-    onClickCourseInfo: (course: CourseResponse) => void;
+    onShowCourseInfo: (course: CourseResponse) => void;
 }
 
 const CourseListView = ({
     courses,
-    courseType,
-    bottomSheetRef,
     selectedCourse,
-    onClickCourse,
-    onClickCourseInfo,
+    onShowCourseInfo,
 }: CourseListViewProps) => {
     const [editMode, setEditMode] = useState(false);
     const [filter, setFilter] = useState<"near" | "trend">("near");
     const [sortedCourses, setSortedCourses] = useState<CourseResponse[]>([]);
-
-    const router = useRouter();
 
     useEffect(() => {
         const sortCourses = async () => {
@@ -127,71 +117,41 @@ const CourseListView = ({
     }
 
     return (
-        <View>
-            <View style={{ marginHorizontal: 16.5 }}>
-                <Section
-                    title={courseType === "all" ? "고스트 코스" : "내 코스"}
-                    titleColor="white"
-                    style={{
-                        maxHeight: Dimensions.get("window").height - 500,
-                    }}
-                    containerStyle={{
-                        borderBottomStartRadius: 0,
-                        borderBottomEndRadius: 0,
-                    }}
-                    titleRightChildren={
-                        <FilterButton
-                            onPress={onPressFilter}
-                            title={filter === "near" ? "가까운 순" : "인기 순"}
+        <View style={{ marginHorizontal: 16.5 }}>
+            <Section
+                titleColor="white"
+                titleRightChildren={
+                    <FilterButton
+                        onPress={onPressFilter}
+                        title={filter === "near" ? "가까운 순" : "인기 순"}
+                    />
+                }
+                title="내 주변 코스"
+            >
+                <FlatList
+                    data={sortedCourses}
+                    ListEmptyComponent={
+                        <EmptyListView
+                            description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
                         />
                     }
-                >
-                    <FlatList
-                        data={sortedCourses}
-                        ListEmptyComponent={
-                            <EmptyListView
-                                description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
-                            />
-                        }
-                        renderItem={({ item, index }) => (
-                            <CourseGalleryItem
-                                courseName={item.name}
-                                distance={item.distance / 1000}
-                                elevation={item.elevationGain}
-                                userCount={item.runnersCount}
-                                index={index}
-                                maxLength={courses.length}
-                                imageUrl={item.thumbnailUrl}
-                                isSelected={selectedCourse?.id === item.id}
-                                onClickCourse={() => onClickCourse(item)}
-                                onClickCourseInfo={() => {
-                                    onClickCourseInfo(item);
-                                }}
-                            />
-                        )}
-                        showsVerticalScrollIndicator={false}
-                    />
-                </Section>
-            </View>
-            <ButtonWithIcon
-                iconType="map"
-                title={
-                    selectedCourse ? "이 코스로 러닝 시작" : "밀어서 러닝 시작"
-                }
-                onPress={() => {
-                    bottomSheetRef.current?.dismiss();
-                    if (selectedCourse) {
-                        router.push(`/run/${selectedCourse?.id}/-1`);
-                    } else {
-                        router.push("/run/solo");
-                    }
-                }}
-                topStroke
-                onPressIcon={() => {
-                    bottomSheetRef.current?.dismiss();
-                }}
-                type="active"
-            />
+                    renderItem={({ item, index }) => (
+                        <CourseGalleryItem
+                            showLogo={item.myGhostInfo ? true : false}
+                            courseName={item.name}
+                            distance={item.distance / 1000}
+                            elevation={item.elevationGain}
+                            userCount={item.runnersCount}
+                            index={index}
+                            maxLength={courses.length}
+                            imageUrl={item.thumbnailUrl}
+                            isSelected={selectedCourse?.id === item.id}
+                            onClickCourse={() => onShowCourseInfo(item)}
+                        />
+                    )}
+                    showsVerticalScrollIndicator={false}
+                />
+            </Section>
         </View>
     );
 };
@@ -206,7 +166,7 @@ export const CourseGalleryItem = ({
     imageUrl,
     isSelected,
     onClickCourse,
-    onClickCourseInfo,
+    showLogo = false,
 }: {
     courseName: string;
     distance: number;
@@ -217,77 +177,40 @@ export const CourseGalleryItem = ({
     isSelected: boolean;
     imageUrl: string;
     onClickCourse?: () => void;
-    onClickCourseInfo: () => void;
+    showLogo?: boolean;
 }) => {
     return (
-        <View
-            style={{
-                marginBottom: index + 1 !== maxLength ? 20 : 0,
-                flexDirection: "row",
-                gap: 20,
-            }}
+        <Pressable
+            style={[
+                styles.galleryItem,
+                { marginBottom: index + 1 !== maxLength ? 20 : 0 },
+            ]}
+            onPress={onClickCourse}
         >
             {/* 코스 이미지 */}
-            <View
-                style={{
-                    backgroundColor: "gray",
-                    width: 120,
-                    height: 120,
-                    borderRadius: 10,
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
+            <View style={styles.imageContainer}>
+                {showLogo && <GhostLabel style={styles.ghostLabel} />}
                 <Image
                     source={imageUrl ? { uri: imageUrl } : DefaultLogo}
-                    style={{
-                        width: 120,
-                        height: 120,
-                        borderRadius: 10,
-                    }}
+                    style={styles.image}
                 />
             </View>
             {/* 코스 정보 */}
-            <View
-                style={{
-                    marginVertical: 4,
-                    gap: 5,
-                    flex: 1,
-                }}
-            >
+            <View style={styles.contentContainer}>
                 {/* 코스 이름 */}
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                    }}
-                >
+                <View style={styles.contentHeader}>
                     <Typography
                         variant="subhead1"
                         color={isSelected ? "primary" : "gray20"}
                     >
                         {courseName}
                     </Typography>
-                    {onClickCourse && (
-                        <RadioButton
-                            isSelected={isSelected}
-                            showMyRecord={false}
-                            onPress={onClickCourse}
-                            inactiveColor={colors.gray[40]}
-                        />
-                    )}
+                    <ChevronIcon color={colors.gray[40]} />
                 </View>
                 {/* 코스 거리, 고도 */}
                 <View>
                     {/* 코스 거리 */}
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
+                    <View style={styles.distanceContainer}>
                         <Typography variant="body1" color="gray40">
                             거리
                         </Typography>
@@ -298,13 +221,7 @@ export const CourseGalleryItem = ({
                         </Typography>
                     </View>
                     {/* 코스 고도 */}
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: 10,
-                        }}
-                    >
+                    <View style={styles.elevationContainer}>
                         <Typography variant="body1" color="gray40">
                             고도
                         </Typography>
@@ -315,10 +232,57 @@ export const CourseGalleryItem = ({
                     </View>
                 </View>
                 {/* 유저 수 */}
-                <UserCount userCount={userCount} onPress={onClickCourseInfo} />
+                <UserCount userCount={userCount} />
             </View>
-        </View>
+        </Pressable>
     );
 };
+
+const styles = StyleSheet.create({
+    galleryItem: {
+        flexDirection: "row",
+        gap: 20,
+    },
+    imageContainer: {
+        backgroundColor: "gray",
+        width: 120,
+        height: 120,
+        borderRadius: 10,
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+    },
+    image: {
+        width: 120,
+        height: 120,
+        borderRadius: 10,
+    },
+    contentContainer: {
+        marginVertical: 4,
+        gap: 5,
+        flex: 1,
+    },
+    contentHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    distanceContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    elevationContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+    ghostLabel: {
+        position: "absolute",
+        top: 4,
+        left: 4,
+        zIndex: 1,
+    },
+});
 
 export default CourseListView;

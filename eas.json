@@ -6,11 +6,13 @@
     "build": {
         "production": {
             "channel": "production",
-            "autoIncrement": true
+            "autoIncrement": true,
+            "environment": "production"
         },
         "staging": {
             "channel": "staging",
-            "autoIncrement": true
+            "autoIncrement": true,
+            "environment": "production"
         },
         "preview": {
             "channel": "preview",
@@ -18,7 +20,15 @@
         }
     },
     "submit": {
-        "production": {},
-        "staging": {}
+        "production": {
+            "ios": {
+                "ascAppId": "6747737877"
+            }
+        },
+        "staging": {
+            "ios": {
+                "ascAppId": "6747737877"
+            }
+        }
     }
 }

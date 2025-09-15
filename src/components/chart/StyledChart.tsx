@@ -180,7 +180,7 @@ const StyledChart = ({
                         ]}
                         onPress={handleExpand}
                     >
-                        <ChevronIcon color={colors.gray[80]} />
+                        <ChevronIcon color={colors.gray[60]} />
                     </TouchableOpacity>
                 )}
             </View>
