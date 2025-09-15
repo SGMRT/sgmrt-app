@@ -8,14 +8,15 @@ import {
     uploadToS3,
 } from "@/src/apis";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
+import { useLocalNotificationPermission } from "@/src/features/notifications/useLocalNotificationPermission";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Application from "expo-application";
 import * as Notifications from "expo-notifications";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
     Alert,
     Image,
@@ -49,10 +50,19 @@ export const Info = ({
     const [refreshing, setRefreshing] = useState(false);
     const { logout } = useAuthStore();
     const { bottom } = useSafeAreaInsets();
-    const [devicePushAlarmEnabled, setDevicePushAlarmEnabled] = useState(false);
+    const { granted, refresh } = useLocalNotificationPermission({
+        withActiveRetry: true,
+    });
+
     useEffect(() => {
         loadUserInfo();
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            refresh();
+        }, [refresh])
+    );
 
     const loadUserInfo = async () => {
         setRefreshing(true);
@@ -71,8 +81,6 @@ export const Info = ({
                 vibrationEnabled: res.vibrationEnabled,
                 voiceGuidanceEnabled: res.voiceGuidanceEnabled,
             });
-            const { status } = await Notifications.getPermissionsAsync();
-            setDevicePushAlarmEnabled(status === "granted");
         } catch {
             Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
                 { text: "확인", onPress: logout },
@@ -111,8 +119,6 @@ export const Info = ({
                     );
                     return;
                 }
-                // 권한을 허용했으니 로컬 플래그도 갱신
-                setDevicePushAlarmEnabled(true);
             }
         }
 
@@ -247,9 +253,7 @@ export const Info = ({
                     rightElement={
                         <StyledSwitch
                             isSelected={
-                                (userInfo?.pushAlarmEnabled &&
-                                    devicePushAlarmEnabled) ??
-                                false
+                                (userInfo?.pushAlarmEnabled && granted) ?? false
                             }
                             onValueChange={handlePushAlarmChange}
                         />
