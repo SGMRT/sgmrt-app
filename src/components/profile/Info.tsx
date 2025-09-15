@@ -285,13 +285,39 @@ export const Info = ({
                     borderBottom={true}
                 />
                 <ProfileOptionItem
-                    title="약관 및 개인정보 처리 동의"
-                    onPress={() => {}}
+                    title="서비스 이용약관"
+                    onPress={() => {
+                        router.push({
+                            pathname: "/(tabs)/profile/termDetail",
+                            params: {
+                                key: "serviceTermsAgreed",
+                            },
+                        });
+                    }}
                     rightElement={<ChevronIcon color={colors.gray[40]} />}
                 />
                 <ProfileOptionItem
                     title="개인정보 처리방침"
-                    onPress={() => {}}
+                    onPress={() => {
+                        router.push({
+                            pathname: "/(tabs)/profile/termDetail",
+                            params: {
+                                key: "privacyPolicyAgreed",
+                            },
+                        });
+                    }}
+                    rightElement={<ChevronIcon color={colors.gray[40]} />}
+                />
+                <ProfileOptionItem
+                    title="개인정보 수집 및 이용 동의"
+                    onPress={() => {
+                        router.push({
+                            pathname: "/(tabs)/profile/termDetail",
+                            params: {
+                                key: "personalInformationUsageConsentAgreed",
+                            },
+                        });
+                    }}
                     rightElement={<ChevronIcon color={colors.gray[40]} />}
                 />
             </ProfileOptionSection>

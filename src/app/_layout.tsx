@@ -84,6 +84,7 @@ function RootLayout() {
                     </Stack>
                     {!pathname.includes("register") &&
                         !pathname.includes("edit") &&
+                        !pathname.includes("termDetail") &&
                         (pathname.includes("notice") ||
                             pathname.includes("home") ||
                             pathname.includes("stats") ||
