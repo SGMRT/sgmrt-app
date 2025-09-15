@@ -30,6 +30,14 @@ export default function Result() {
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
 
+    const onBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace("/(tabs)/home");
+        }
+    };
+
     const isChartActive = useSharedValue(false);
     const chartPointIndex = useSharedValue(0);
 
@@ -94,14 +102,7 @@ export default function Result() {
                 <SafeAreaView style={styles.container}>
                     <Header
                         titleText={getDate(course?.createdAt ?? 0)}
-                        onBack={() =>
-                            router.replace({
-                                pathname: "/(tabs)/profile",
-                                params: {
-                                    tab: "course",
-                                },
-                            })
-                        }
+                        onBack={onBack}
                     />
                     <ScrollView
                         ref={scrollViewRef}

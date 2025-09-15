@@ -16,7 +16,9 @@ import "@features/run/task/location.task";
 
 import PushNotificationGate from "../features/notifications/PushNotificationGate";
 
+import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
+import { useShouldShowAd } from "../components/ads/useShouldShowAd";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
 
 const env =
@@ -51,6 +53,7 @@ function RootLayout() {
 
     const { status, error } = useBootstrapApp(isLoggedIn, loaded);
     const pathname = usePathname();
+    const shouldShowAd = useShouldShowAd();
 
     useEffect(() => {
         if (status !== "idle") {
@@ -64,35 +67,39 @@ function RootLayout() {
 
     return (
         <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#111111" }}>
-            <QueryClientProvider client={queryClient}>
-                <BottomSheetModalProvider>
-                    <PushNotificationGate />
-                    <Stack
-                        screenOptions={{
-                            headerShown: false,
-                            contentStyle: { backgroundColor: "#111111" },
-                        }}
-                    >
-                        <Stack.Screen name="index" />
-                        <Stack.Screen name="(auth)" />
-                        <Stack.Screen name="(tabs)" />
-                        <Stack.Screen
-                            name="run"
-                            options={{ gestureEnabled: false }}
-                        />
-                        {/* <Stack.Screen name="test" /> */}
-                    </Stack>
-                    {!pathname.includes("register") &&
-                        !pathname.includes("edit") &&
-                        (pathname.includes("notice") ||
-                            pathname.includes("home") ||
-                            pathname.includes("stats") ||
-                            pathname.includes("profile")) && (
-                            <CompactNativeAdRow />
-                        )}
-                    <Toast config={toastConfig} />
-                </BottomSheetModalProvider>
-            </QueryClientProvider>
+            <ThemeProvider
+                value={{
+                    ...DarkTheme,
+                    colors: {
+                        ...DarkTheme.colors,
+                        background: "#111111",
+                    },
+                }}
+            >
+                <QueryClientProvider client={queryClient}>
+                    <BottomSheetModalProvider>
+                        <PushNotificationGate />
+                        <Stack
+                            screenOptions={{
+                                headerShown: false,
+                                contentStyle: { backgroundColor: "#111111" },
+                                animation: "fade",
+                            }}
+                        >
+                            <Stack.Screen name="index" />
+                            <Stack.Screen name="(auth)" />
+                            <Stack.Screen name="(tabs)" />
+                            <Stack.Screen
+                                name="run"
+                                options={{ gestureEnabled: false }}
+                            />
+                            {/* <Stack.Screen name="test" /> */}
+                        </Stack>
+                        {shouldShowAd && <CompactNativeAdRow />}
+                        <Toast config={toastConfig} />
+                    </BottomSheetModalProvider>
+                </QueryClientProvider>
+            </ThemeProvider>
         </GestureHandlerRootView>
     );
 }
