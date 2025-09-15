@@ -22,49 +22,62 @@
  */
 
 export class KalmanFilter1D {
-    private minAccuracy = 1; // 최소 측정 정확도 (1m) - 낮을 수록 측정이 믿을 수 있음
+    private minAccuracy = 1e-7; // 최소 측정 정확도 '도' 기준
     private variance = -1; // 추정값의 분산 P
     private timestamp = 0; // 마지막 업데이트 시간
     private value = 0; // 현재 추정값
 
-    private computeQ(speed: number): number {
-        if (speed < 1 || Number.isNaN(speed)) return 1;
+    // 튜닝 파라미터
+    private WARMUP_MS = 3000; // 시작 3초간 부스트
+    private INIT_P_MULTIPLIER = 50; // 초기 P를 크게 → 측정을 더 빨리 신뢰
+    private BASE_Q = 1e-9; // 도^2 / s 기준의 베이스 공정잡음 (아주 작게)
+    private SPEED_Q_GAIN = 5e-8; // 속도에 따른 Q 증가량 계수
+    private lastStartTs = 0;
 
-        return Math.pow(speed, 1.5);
+    private computeQ(speedMps: number, nowMs: number): number {
+        // 초반 워밍업에선 Q를 강하게
+        const warmupBoost = nowMs - this.lastStartTs < this.WARMUP_MS ? 50 : 1;
+        // 속도가 빠를수록 Q 증가(선형 ~ 약간의 초과 증가)
+        const dynamic =
+            this.BASE_Q +
+            this.SPEED_Q_GAIN * Math.pow(Math.max(0, speedMps), 1.2);
+        return dynamic * warmupBoost;
     }
 
     process(
-        mesuredValue: number,
-        accuracy: number,
-        timestamp: number,
-        speed: number
+        measuredDeg: number,
+        accuracyDeg: number,
+        timestampMs: number,
+        speedMps: number
     ): number {
-        const dynamicQ = this.computeQ(speed);
+        if (accuracyDeg < this.minAccuracy) accuracyDeg = this.minAccuracy;
 
-        if (accuracy < this.minAccuracy) accuracy = this.minAccuracy;
-
-        // 초기화 (최초 입력값으로 상태 세팅)
+        // 초기화
         if (this.variance < 0) {
-            this.timestamp = timestamp;
-            this.value = mesuredValue;
-            this.variance = accuracy * accuracy;
+            this.timestamp = timestampMs;
+            this.lastStartTs = timestampMs;
+            this.value = measuredDeg;
+            // 초기 분산을 크게 → 초기 K ≈ 1에 가깝게 만들어 첫 구간 민첩
+            this.variance = accuracyDeg * accuracyDeg * this.INIT_P_MULTIPLIER;
             return this.value;
         }
 
-        // 예측 단계: 시간 경과에 따른 분산 증가
-        const timeDelta = timestamp - this.timestamp;
-        if (timeDelta > 0) {
-            this.variance += (timeDelta * dynamicQ * dynamicQ) / 1000;
-            this.timestamp = timestamp;
+        // 예측 단계 (시간 단위: s로 변환)
+        const dtMs = timestampMs - this.timestamp;
+        if (dtMs > 0) {
+            const dtSec = dtMs / 1000;
+            const Q = this.computeQ(speedMps, timestampMs);
+            // P = P + Q*dt
+            this.variance += Q * dtSec;
+            this.timestamp = timestampMs;
         }
 
-        // 예측과 측정 값 중 어느 값을 더 신뢰할 것인가?
-        const K = this.variance / (this.variance + accuracy * accuracy);
+        // 칼만 게인
+        const R = accuracyDeg * accuracyDeg;
+        const K = this.variance / (this.variance + R);
 
-        // 보정 단계: 측정값과 예측값을 결합하여 최적의 추정값 계산
-        this.value += K * (mesuredValue - this.value);
-
-        // 분산 업데이트
+        // 업데이트
+        this.value += K * (measuredDeg - this.value);
         this.variance = (1 - K) * this.variance;
 
         return this.value;
@@ -73,7 +86,6 @@ export class KalmanFilter1D {
     getEstimate(): number {
         return this.value;
     }
-
     reset() {
         this.variance = -1;
         this.timestamp = 0;
@@ -86,29 +98,47 @@ class KalmanFilter2D {
     private latitudeKalmanFilter = new KalmanFilter1D();
     private longitudeKalmanFilter = new KalmanFilter1D();
 
+    private static metersToLatDeg(m: number) {
+        // 1 deg lat ≈ 111,320 m
+        return m / 111_320;
+    }
+
+    // 경도는 위도에 따라 "수평으로 퍼지는 거리"가 다름
+    private static metersToLonDeg(m: number, latDeg: number) {
+        // 1 deg lon ≈ 111,320 * cos(lat) m
+        const cosLat = Math.max(0.000001, Math.cos((latDeg * Math.PI) / 180));
+        return m / (111_320 * cosLat);
+    }
+
     /**
      * GPS 좌표 필터링
      * @param latitude 위도
      * @param longitude 경도
-     * @param locationAccuracy 위치 정확도
+     * @param locationAccuracyM 위치 정확도(오차 범위)
      * @param timestamp 시간
      * @param speed 속도
      */
     process(
         latitude: number,
         longitude: number,
-        locationAccuracy: number,
+        locationAccuracyM: number,
         timestamp: number,
         speed: number
     ) {
+        const accLatDeg = KalmanFilter2D.metersToLatDeg(locationAccuracyM);
+        const accLonDeg = KalmanFilter2D.metersToLonDeg(
+            locationAccuracyM,
+            latitude
+        );
+
         const filteredLatitude = Number(
             this.latitudeKalmanFilter
-                .process(latitude, locationAccuracy, timestamp, speed)
+                .process(latitude, accLatDeg, timestamp, speed)
                 .toFixed(6)
         );
         const filteredLongitude = Number(
             this.longitudeKalmanFilter
-                .process(longitude, locationAccuracy, timestamp, speed)
+                .process(longitude, accLonDeg, timestamp, speed)
                 .toFixed(6)
         );
 
