@@ -13,11 +13,13 @@ import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import * as Application from "expo-application";
+import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
     Alert,
     Image,
+    Linking,
     RefreshControl,
     ScrollView,
     TouchableOpacity,
@@ -47,51 +49,98 @@ export const Info = ({
     const [refreshing, setRefreshing] = useState(false);
     const { logout } = useAuthStore();
     const { bottom } = useSafeAreaInsets();
+    const [devicePushAlarmEnabled, setDevicePushAlarmEnabled] = useState(false);
     useEffect(() => {
         loadUserInfo();
     }, []);
 
     const loadUserInfo = async () => {
         setRefreshing(true);
-        getUserInfo()
-            .then((res) => {
-                setUserInfo(res);
-                setUserInfoStore({
-                    username: res.nickname,
-                    gender: res.gender,
-                    age: res.age,
-                    height: res.height,
-                    weight: res.weight,
-                });
-            })
-            .catch(() => {
-                Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
-                    {
-                        text: "확인",
-                        onPress: () => {
-                            logout();
-                        },
-                    },
-                ]);
+        try {
+            const res = await getUserInfo();
+            setUserInfo(res);
+            setUserInfoStore({
+                username: res.nickname,
+                gender: res.gender,
+                age: res.age,
+                height: res.height,
+                weight: res.weight,
             });
-        setRefreshing(false);
+            setUserSettings({
+                pushAlarmEnabled: res.pushAlarmEnabled,
+                vibrationEnabled: res.vibrationEnabled,
+                voiceGuidanceEnabled: res.voiceGuidanceEnabled,
+            });
+            const { status } = await Notifications.getPermissionsAsync();
+            setDevicePushAlarmEnabled(status === "granted");
+        } catch {
+            Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
+                { text: "확인", onPress: logout },
+            ]);
+        } finally {
+            setRefreshing(false);
+        }
     };
 
-    const handlePushAlarmChange = (value: boolean) => {
+    const handlePushAlarmChange = async (next: boolean) => {
         if (!userInfo) return;
-        setUserInfo({
-            ...userInfo,
-            pushAlarmEnabled: value ?? false,
-        });
+
+        // 디바이스 권한 확인 & 요청 (ON으로 전환할 때)
+        if (next) {
+            const perm = await Notifications.getPermissionsAsync();
+            if (perm.status !== "granted") {
+                const req = await Notifications.requestPermissionsAsync({
+                    ios: {
+                        allowAlert: true,
+                        allowBadge: true,
+                        allowSound: true,
+                    },
+                });
+                if (req.status !== "granted") {
+                    // iOS/Android 공통으로 설정 진입 제안
+                    Alert.alert(
+                        "알림 권한이 꺼져 있어요",
+                        "설정에서 허용하시겠어요?",
+                        [
+                            { text: "취소", style: "destructive" },
+                            {
+                                text: "설정 열기",
+                                onPress: () => Linking.openSettings(),
+                            },
+                        ]
+                    );
+                    return;
+                }
+                // 권한을 허용했으니 로컬 플래그도 갱신
+                setDevicePushAlarmEnabled(true);
+            }
+        }
+
+        // 낙관적 업데이트
+        const prev = userInfo.pushAlarmEnabled;
+        setUserInfo({ ...userInfo, pushAlarmEnabled: next });
         setUserSettings({
-            pushAlarmEnabled: value ?? false,
+            pushAlarmEnabled: next,
             vibrationEnabled: userInfo.vibrationEnabled,
             voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
         });
-        patchUserSettings({
-            pushAlarmEnabled: value,
-            vibrationEnabled: userInfo.vibrationEnabled,
-        });
+
+        try {
+            await patchUserSettings({ pushAlarmEnabled: next });
+        } catch (e) {
+            // 실패 롤백
+            setUserInfo({ ...userInfo, pushAlarmEnabled: prev });
+            setUserSettings({
+                pushAlarmEnabled: prev,
+                vibrationEnabled: userInfo.vibrationEnabled,
+                voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
+            });
+            showToast(
+                "info",
+                "서버 동기화에 실패했어요. 다시 시도해주세요.",
+                bottom
+            );
+        }
     };
 
     const handleVibrationChange = (value: boolean) => {
@@ -106,7 +155,6 @@ export const Info = ({
             voiceGuidanceEnabled: userInfo.voiceGuidanceEnabled,
         });
         patchUserSettings({
-            pushAlarmEnabled: userInfo.pushAlarmEnabled,
             vibrationEnabled: value,
         });
     };
@@ -198,7 +246,11 @@ export const Info = ({
                     title="알림"
                     rightElement={
                         <StyledSwitch
-                            isSelected={userInfo?.pushAlarmEnabled ?? false}
+                            isSelected={
+                                (userInfo?.pushAlarmEnabled &&
+                                    devicePushAlarmEnabled) ??
+                                false
+                            }
                             onValueChange={handlePushAlarmChange}
                         />
                     }

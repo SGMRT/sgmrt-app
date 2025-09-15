@@ -85,7 +85,7 @@ struct GoRunActivity: Widget {
           Spacer()
           Image(.logo)
             .resizable()
-            .frame(width: 20, height: 18)
+            .frame(width: 20, height: 13)
         }
       }
       .padding(EdgeInsets(top: 12, leading: 13, bottom: 12, trailing: 13))
@@ -164,7 +164,7 @@ struct GoRunActivity: Widget {
               Spacer()
               Image(.logo)
                 .resizable()
-                .frame(width: 20, height: 18)
+                .frame(width: 20, height: 13)
                 .padding(.bottom, 8)
             }
           }
@@ -173,7 +173,7 @@ struct GoRunActivity: Widget {
       } compactLeading: {
         Image(.logo)
           .resizable()
-          .frame(width: 20, height: 18)
+          .frame(width: 20, height: 13)
       } compactTrailing: {
         Text(context.state.formattedDistanceKm())
           .font(.system(size: 12, weight: .black))
@@ -181,7 +181,7 @@ struct GoRunActivity: Widget {
       } minimal: {
         Image(.logo)
           .resizable()
-          .frame(width: 20, height: 18)
+          .frame(width: 20, height: 13)
       }
       .keylineTint(Color(hex: "#E2FF00"))
     }
