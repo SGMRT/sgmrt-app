@@ -1,6 +1,6 @@
 import { Logo } from "@/assets/icons/icons";
 import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
-import { signIn } from "@/src/apis";
+import { getUserInfo, signIn } from "@/src/apis";
 import LoginButton from "@/src/components/sign/LoginButton";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { useAuthStore } from "@/src/store/authState";
@@ -109,6 +109,9 @@ async function handleLogin({
     login: (accessToken: string, refreshToken: string, uuid: string) => void;
     bottom: number;
 }) {
+    const { setUserInfo: setUserInfoStore } = useAuthStore.getState();
+    const { setUserSettings: setUserSettingsStore } = useAuthStore.getState();
+
     try {
         const credential = await signInWithCredential(getAuth(), {
             providerId,
@@ -137,6 +140,21 @@ async function handleLogin({
         });
 
         login(res.accessToken, res.refreshToken, res.uuid);
+
+        await getUserInfo().then((res) => {
+            setUserInfoStore({
+                username: res.nickname,
+                gender: res.gender,
+                age: res.age,
+                height: res.height,
+                weight: res.weight,
+            });
+            setUserSettingsStore({
+                pushAlarmEnabled: res.pushAlarmEnabled,
+                vibrationEnabled: res.vibrationEnabled,
+                voiceGuidanceEnabled: res.voiceGuidanceEnabled,
+            });
+        });
 
         amplitude.track("Sign In", {
             provider: providerId,

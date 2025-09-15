@@ -259,7 +259,7 @@ export const Info = ({
                         />
                     }
                 />
-                <ProfileOptionItem
+                {/* <ProfileOptionItem
                     title="진동"
                     rightElement={
                         <StyledSwitch
@@ -267,7 +267,7 @@ export const Info = ({
                             onValueChange={handleVibrationChange}
                         />
                     }
-                />
+                /> */}
                 <ProfileOptionItem
                     title="음성 안내"
                     rightElement={
