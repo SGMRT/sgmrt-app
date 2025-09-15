@@ -7,7 +7,7 @@ import { formatDate } from "@/src/utils/formatDate";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -31,10 +31,6 @@ export default function NoticeDetailPage() {
     const formattedDate = useMemo(() => {
         return data?.startAt ? formatDate(new Date(data?.startAt)) : "";
     }, [data]);
-
-    const handleBack = useCallback(() => {
-        router.replace("/profile/notice");
-    }, [router]);
 
     return (
         <SafeAreaView style={styles.container}>

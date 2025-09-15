@@ -196,6 +196,11 @@ export const Info = ({
                 await patchUserInfo({
                     profileImageUrl: imageUrl.presignUrl.split("?X-Amz-")[0],
                 }).then(() => {
+                    setUserInfo({
+                        ...userInfo!,
+                        profilePictureUrl:
+                            imageUrl.presignUrl.split("?X-Amz-")[0],
+                    });
                     showToast(
                         "success",
                         "프로필 이미지가 변경되었습니다",
