@@ -20,6 +20,14 @@ export default function NoticeDetailPage() {
     });
     const router = useRouter();
 
+    const onBack = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace("/(tabs)/home");
+        }
+    };
+
     const formattedDate = useMemo(() => {
         return data?.startAt ? formatDate(new Date(data?.startAt)) : "";
     }, [data]);
@@ -33,7 +41,7 @@ export default function NoticeDetailPage() {
             <Header
                 titleText={formattedDate}
                 hasBackButton={true}
-                onBack={handleBack}
+                onBack={onBack}
             />
             <ScrollView contentContainerStyle={styles.contentContainer}>
                 <View style={styles.titleContainer}>
