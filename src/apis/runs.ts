@@ -7,6 +7,7 @@ import {
     SoloRunGetResponse,
     Telemetry,
 } from "./types/run";
+import { decodeTelemetries } from "./utils";
 
 export async function postRun(data: FormData) {
     try {
@@ -64,7 +65,7 @@ export async function getRun(
             if (text) {
                 const parsed = await parseJsonl(text);
                 const arr = Array.isArray(parsed) ? parsed : [];
-                telemetries = arr as Telemetry[];
+                telemetries = decodeTelemetries(arr);
             }
         }
 
