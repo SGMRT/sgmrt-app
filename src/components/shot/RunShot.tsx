@@ -1,7 +1,6 @@
 import { GhostIcon } from "@/assets/svgs/svgs";
 import { Telemetry } from "@/src/apis/types/run";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
-import { getRunName } from "@/src/utils/runUtils";
 import { forwardRef, memo, useImperativeHandle, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import ViewShot from "react-native-view-shot";
@@ -14,7 +13,7 @@ type RunShotProps = {
     type: "share" | "thumbnail";
     onMapReady?: () => void;
 
-    title?: string;
+    title: string;
     distance?: string | number;
     stats?: Stat[];
 
@@ -37,7 +36,7 @@ const RunShot = forwardRef<RunShotHandle, RunShotProps>(
             fileName,
             telemetries,
             type,
-            title = getRunName(Date.now()),
+            title,
             distance = "0.00",
             stats = [] as Stat[],
             onMapReady,
