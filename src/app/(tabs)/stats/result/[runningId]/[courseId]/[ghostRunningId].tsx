@@ -535,6 +535,7 @@ export default function Result() {
                 </BottomModal>
                 <RunShot
                     ref={runShotRef}
+                    title={runData?.runningName}
                     fileName={runData?.runningName + ".jpg"}
                     telemetries={runData.telemetries ?? []}
                     distance={runData.recordInfo.distance.toFixed(2)}

@@ -356,6 +356,9 @@ export default function Run() {
                 savingTelemetries.length > 0 && (
                     <RunShot
                         ref={runShotRef}
+                        title={getRunName(
+                            savingTelemetries.at(0)?.timeStamp ?? 0
+                        )}
                         fileName={"runImage.jpg"}
                         telemetries={savingTelemetries}
                         type={runShotType}
