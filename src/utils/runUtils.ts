@@ -7,6 +7,7 @@ import {
     RunRecord,
     Telemetry,
 } from "../apis/types/run";
+import { encodeTelemetries } from "../apis/utils";
 import { Segment } from "../components/map/RunningLine";
 import { showCompactToast } from "../components/ui/toastConfig";
 import { RawData, UserDashBoardData } from "../types/run";
@@ -210,7 +211,7 @@ export async function saveRunning({
 
     try {
         const rawJsonl = rawData.map((item) => JSON.stringify(item)).join("\n");
-        const interpolatedJsonl = telemetries
+        const interpolatedJsonl = encodeTelemetries(telemetries)
             .map((item) => JSON.stringify(item))
             .join("\n");
 
