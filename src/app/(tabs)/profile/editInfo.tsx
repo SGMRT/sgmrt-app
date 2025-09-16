@@ -59,15 +59,26 @@ export default function EditInfo() {
 
     // 변경된 부분만 전송
     const diff = (next: PatchUserInfoRequest, prev: GetUserInfoResponse) => {
+        const toNum = (v: unknown) => {
+            if (typeof v !== "string") return v as number | null | undefined;
+            const s = v.trim();
+            if (s === "") return undefined;
+            const n = Number(s);
+            return Number.isFinite(n) ? n : undefined;
+        };
         const changed: Partial<PatchUserInfoRequest> = {};
-        (["nickname", "gender", "age", "height", "weight"] as const).forEach(
-            (k) => {
-                if (next[k] !== (prev as any)[k]) changed[k] = next[k] as any;
-            }
-        );
+        const nextNickname = (next.nickname ?? "").trim();
+        if (nextNickname !== (prev.nickname ?? ""))
+            changed.nickname = nextNickname;
+        if (next.gender !== prev.gender) changed.gender = next.gender;
+        (["age", "height", "weight"] as const).forEach((k) => {
+            const nv = toNum((next as any)[k]);
+            const pv = (prev as any)[k];
+            if (nv === undefined) return; // 빈값/잘못된 값은 전송하지 않음
+            if (nv !== pv) (changed as any)[k] = nv;
+        });
         return changed;
     };
-
     // 회원 정보 변경 뮤테이션
     const saveMutation = useMutation({
         mutationFn: async (payload: Partial<PatchUserInfoRequest>) =>
@@ -112,13 +123,6 @@ export default function EditInfo() {
             Alert.alert("회원 정보 변경 실패", "변경된 정보가 없습니다.");
             return;
         }
-        // 숫자 필드 문자열 입력을 숫자로 정제 (필요 시)
-        if (typeof payload.age === "string")
-            payload.age = Number(payload.age) as any;
-        if (typeof payload.height === "string")
-            payload.height = Number(payload.height) as any;
-        if (typeof payload.weight === "string")
-            payload.weight = Number(payload.weight) as any;
 
         saveMutation.mutate(payload);
     };
