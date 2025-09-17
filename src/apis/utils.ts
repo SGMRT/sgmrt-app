@@ -27,7 +27,11 @@ export async function attachTelemetries(
                     return;
                 }
                 const parsed = await parseJsonl(text); // any
-                course.telemetries = normalizeTelemetries(parsed);
+                console.log(parsed);
+                course.telemetries = decodeTelemetries(
+                    normalizeTelemetries(parsed)
+                );
+                console.log(course.telemetries);
             } catch (err) {
                 console.error("Failed to load telemetries for", course.id, err);
                 course.telemetries = [];
@@ -38,7 +42,7 @@ export async function attachTelemetries(
     return filteredResponseData;
 }
 
-function normalizeTelemetries(parsed: any): Telemetry[] {
+function normalizeTelemetries(parsed: any): TelemetryCompact[] {
     if (!Array.isArray(parsed)) return [];
 
     // [[...]] 또는 [[[...]]] 같은 케이스를 1레벨씩 풀어서
@@ -50,7 +54,7 @@ function normalizeTelemetries(parsed: any): Telemetry[] {
 
     // lat/lng 유효한 것만 필터
     return arr.filter(
-        (p) => p && typeof p.lat === "number" && typeof p.lng === "number"
+        (p) => p && typeof p.x === "number" && typeof p.y === "number"
     );
 }
 
@@ -64,8 +68,8 @@ const roundOrKeep = (value: number, decimals: number) => {
 export function encodeTelemetry(t: Telemetry): TelemetryCompact {
     return {
         t: t.timeStamp,
-        x: roundOrKeep(t.lat, 6),
-        y: roundOrKeep(t.lng, 6),
+        x: roundOrKeep(t.lng, 6),
+        y: roundOrKeep(t.lat, 6),
         d: roundOrKeep(t.dist, 3),
         p: roundOrKeep(t.pace, 1),
         e: roundOrKeep(t.alt, 1),
@@ -78,8 +82,8 @@ export function encodeTelemetry(t: Telemetry): TelemetryCompact {
 export function decodeTelemetry(t: TelemetryCompact): Telemetry {
     return {
         timeStamp: t.t,
-        lat: t.x,
-        lng: t.y,
+        lat: t.y,
+        lng: t.x,
         dist: t.d,
         pace: t.p,
         alt: t.e,

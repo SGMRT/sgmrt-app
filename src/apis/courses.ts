@@ -49,7 +49,6 @@ export async function getCourses(
     request: CoursesRequest
 ): Promise<CourseResponse[]> {
     try {
-        console.log("getCourses", request);
         const response = await server.get("/courses", {
             params: request,
         });

@@ -215,6 +215,9 @@ export async function saveRunning({
             .map((item) => JSON.stringify(item))
             .join("\n");
 
+        console.log(rawJsonl);
+        console.log(interpolatedJsonl);
+
         await FileSystem.writeAsStringAsync(rawTelemetryFileUri, rawJsonl);
         await FileSystem.writeAsStringAsync(
             interpolatedTelemetryFileUri,

@@ -60,8 +60,8 @@ export interface Telemetry {
 
 export interface TelemetryCompact {
     t: number; // timeStamp
-    x: number; // lat // 소수점 6자리까지
-    y: number; // lng // 소수점 6자리까지
+    x: number; // lng // 소수점 6자리까지
+    y: number; // lat // 소수점 6자리까지
     d: number; // dist // 소수점 3자리까지
     p: number; // pace // 소수점 1자리까지
     e: number; // alt(elevation) // 소수점 1자리 까지
