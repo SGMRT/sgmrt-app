@@ -27,11 +27,9 @@ export async function attachTelemetries(
                     return;
                 }
                 const parsed = await parseJsonl(text); // any
-                console.log(parsed);
                 course.telemetries = decodeTelemetries(
                     normalizeTelemetries(parsed)
                 );
-                console.log(course.telemetries);
             } catch (err) {
                 console.error("Failed to load telemetries for", course.id, err);
                 course.telemetries = [];
