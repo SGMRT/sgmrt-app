@@ -15,6 +15,7 @@ import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterBar } from "../ui/FilterBar";
 import { GoRunCalendar } from "../ui/GoRunCalendar";
+import ScrollButton from "../ui/ScrollButton";
 import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
 
@@ -63,6 +64,7 @@ export const HistoryWithFilter = ({
         "date" | "filter" | "view"
     >("date");
     const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const scrollViewRef = useRef<any>(null);
 
     const dateGroups: FilteredData = useMemo(() => {
         const groups = new Map<string, RunResponse[]>();
@@ -154,8 +156,12 @@ export const HistoryWithFilter = ({
                 selectedView={selectedView}
             />
             <FlashList
+                ref={scrollViewRef}
                 data={displayData.data}
                 style={{ paddingHorizontal: 16.5 }}
+                contentContainerStyle={{
+                    paddingBottom: 200,
+                }}
                 ListEmptyComponent={
                     <Section>
                         <EmptyListView
@@ -251,6 +257,14 @@ export const HistoryWithFilter = ({
                         : undefined
                 }
                 onEndReachedThreshold={0.5}
+            />
+            <ScrollButton
+                onPress={() => {
+                    scrollViewRef.current?.scrollTo({
+                        y: 0,
+                        animated: true,
+                    });
+                }}
             />
             <BottomModal bottomSheetRef={bottomSheetRef}>
                 {bottomSheetType === "date" && (

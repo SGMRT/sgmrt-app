@@ -510,6 +510,7 @@ export default function Result() {
                                 courseName,
                                 true
                             ).then(() => {
+                                bottomSheetRef.current?.dismiss();
                                 router.replace({
                                     pathname: "/(tabs)/profile",
                                     params: {
@@ -535,6 +536,7 @@ export default function Result() {
                 </BottomModal>
                 <RunShot
                     ref={runShotRef}
+                    title={runData?.runningName}
                     fileName={runData?.runningName + ".jpg"}
                     telemetries={runData.telemetries ?? []}
                     distance={runData.recordInfo.distance.toFixed(2)}

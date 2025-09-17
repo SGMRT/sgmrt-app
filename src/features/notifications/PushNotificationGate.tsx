@@ -9,7 +9,7 @@ export default function PushNotificationGate() {
     const { isLoggedIn } = useAuthStore();
 
     useEffect(() => {
-        if (isLoggedIn && expoPushToken) {
+        if (isLoggedIn && expoPushToken && expoPushToken !== "") {
             postUserPushToken(expoPushToken).then(() => {
                 console.log("postUserPushToken");
             });

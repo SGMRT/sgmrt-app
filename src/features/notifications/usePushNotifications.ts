@@ -16,7 +16,7 @@ export function usePushNotifications() {
                 if (isMounted) setExpoPushToken(token ?? "");
             })
             .catch((error) => {
-                if (isMounted) setExpoPushToken(String(error));
+                if (isMounted) setExpoPushToken("");
             });
 
         const receivedSub = Notifications.addNotificationReceivedListener(

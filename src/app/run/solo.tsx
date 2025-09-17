@@ -193,6 +193,7 @@ export default function Run() {
                     />
                     {savingTelemetries.length > 0 && (
                         <RunShot
+                            title={""}
                             ref={runShotRef}
                             fileName={"runImage.jpg"}
                             telemetries={savingTelemetries}
