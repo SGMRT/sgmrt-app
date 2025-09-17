@@ -66,11 +66,22 @@ export default function CompactNativeAdRow({ style }: Props) {
         return (
             <View
                 style={{
-                    height: 32 + bottom,
+                    height: 32,
                     marginTop: -10,
-                    backgroundColor: "#111111",
+                    marginBottom: bottom,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 4,
                 }}
-            />
+            >
+                <Typography variant="advertiser" color="gray20">
+                    GhostRunner
+                </Typography>
+                <Typography variant="caption1" color="gray20">
+                    바로 지금 어제의 나를 뛰어넘어보세요!
+                </Typography>
+            </View>
         );
 
     return (
