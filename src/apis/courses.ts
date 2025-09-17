@@ -49,9 +49,11 @@ export async function getCourses(
     request: CoursesRequest
 ): Promise<CourseResponse[]> {
     try {
+        console.log("getCourses", request);
         const response = await server.get("/courses", {
             params: request,
         });
+        console.log("getCourses response", response.data);
         const responseData = response.data as CourseResponse[];
         const filteredResponseData = responseData.filter(
             (course) => course.routeUrl !== null

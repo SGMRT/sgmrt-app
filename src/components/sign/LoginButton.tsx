@@ -6,6 +6,7 @@ interface LoginButtonProps {
     textColor?: TypographyColor;
     backgroundColor: string;
     icon: React.ReactNode;
+    disabled?: boolean;
     onPress: () => void;
 }
 
@@ -14,6 +15,7 @@ const LoginButton = ({
     textColor = "black",
     backgroundColor,
     icon,
+    disabled,
     onPress,
 }: LoginButtonProps) => {
     return (
@@ -27,6 +29,7 @@ const LoginButton = ({
             customBackgroundColor={backgroundColor}
             icon={icon}
             onPress={onPress}
+            disabled={disabled}
         />
     );
 };
