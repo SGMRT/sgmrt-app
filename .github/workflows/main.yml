@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                profile: ["staging", "production"]
+                profile: ["production"]
 
         steps:
             - name: 🏗️ Checkout repository
