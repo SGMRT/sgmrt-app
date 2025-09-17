@@ -11,7 +11,7 @@ import {
     UserCourseInfo,
 } from "./types/course";
 import { Telemetry } from "./types/run";
-import { attachTelemetries, getUpdateAttrs } from "./utils";
+import { attachTelemetries, decodeTelemetries, getUpdateAttrs } from "./utils";
 
 export async function deleteCourse(courseId: number) {
     try {
@@ -78,7 +78,7 @@ export async function getCourse(
             if (text) {
                 const parsed = await parseJsonl(text);
                 const arr = Array.isArray(parsed) ? parsed : [];
-                telemetries = arr as Telemetry[];
+                telemetries = decodeTelemetries(arr);
             }
         }
 

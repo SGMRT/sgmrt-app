@@ -2,6 +2,7 @@ import { Logo } from "@/assets/icons/icons";
 import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
 import { getUserInfo, signIn } from "@/src/apis";
 import LoginButton from "@/src/components/sign/LoginButton";
+import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { useAuthStore } from "@/src/store/authState";
 import * as amplitude from "@amplitude/analytics-react-native";
@@ -16,81 +17,142 @@ import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as Sentry from "@sentry/react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import {
     SafeAreaView,
     useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
+let loginInFlight = false;
+
 export default function Login() {
     const router = useRouter();
-
     const { login } = useAuthStore();
     const { bottom } = useSafeAreaInsets();
 
-    initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_APP_KEY ?? "");
+    const [loadingProvider, setLoadingProvider] = useState<
+        null | "kakao" | "apple"
+    >(null);
+
+    useEffect(() => {
+        initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_APP_KEY ?? "");
+    }, []);
+
+    const doLogin = async (args: {
+        providerId: string;
+        token: string;
+        secret: string;
+    }) => {
+        if (loginInFlight) return;
+        loginInFlight = true;
+        try {
+            await handleLogin({
+                ...args,
+                login,
+                bottom,
+            }).catch((err) => {
+                if (err.needsSignup) {
+                    router.push("/(auth)/register");
+                }
+            });
+        } finally {
+            loginInFlight = false;
+        }
+    };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <Image source={Logo} style={styles.logo} resizeMode="contain" />
-            <View
-                style={{
-                    gap: 10,
-                    width: "100%",
-                }}
-            >
-                <LoginButton
-                    text="카카오로 시작하기"
-                    backgroundColor="#fee500"
-                    icon={<KakaoIcon />}
-                    onPress={async () => {
-                        const resp = await kakaoLogin();
-                        if (!resp.idToken) {
-                            showToast("info", "카카오 로그인 실패", bottom);
-                            return;
-                        }
-                        await handleLogin({
-                            providerId: "oidc.kakao",
-                            token: resp.idToken,
-                            secret: resp.accessToken,
-                            router,
-                            login,
-                            bottom,
-                        });
+        <>
+            {loadingProvider && <LoadingLayer />}
+            <SafeAreaView style={styles.container}>
+                <Image source={Logo} style={styles.logo} resizeMode="contain" />
+                <View
+                    style={{
+                        gap: 10,
+                        width: "100%",
                     }}
-                />
-                {Platform.OS === "ios" && (
+                >
                     <LoginButton
-                        text="애플로 시작하기"
-                        backgroundColor="#3F3F3F"
-                        textColor="white"
-                        icon={<AppleIcon />}
+                        text="카카오로 시작하기"
+                        backgroundColor="#fee500"
+                        icon={<KakaoIcon />}
                         onPress={async () => {
-                            const resp = await AppleAuthentication.signInAsync({
-                                requestedScopes: [
-                                    AppleAuthentication.AppleAuthenticationScope
-                                        .FULL_NAME,
-                                    AppleAuthentication.AppleAuthenticationScope
-                                        .EMAIL,
-                                ],
-                            });
-                            if (!resp.identityToken) {
-                                showToast("info", "애플 로그인 실패", bottom);
-                                return;
+                            if (loadingProvider) return;
+
+                            try {
+                                const resp = await kakaoLogin();
+                                setLoadingProvider("kakao");
+                                if (!resp.idToken) {
+                                    showToast(
+                                        "info",
+                                        "카카오 로그인 실패",
+                                        bottom
+                                    );
+                                    return;
+                                }
+                                await doLogin({
+                                    providerId: "oidc.kakao",
+                                    token: resp.idToken,
+                                    secret: resp.accessToken,
+                                });
+                            } catch (e) {
+                                showToast("info", "카카오 로그인 실패", bottom);
+                            } finally {
+                                setLoadingProvider(null);
                             }
-                            await handleLogin({
-                                providerId: "apple.com",
-                                token: resp.identityToken,
-                                secret: resp.authorizationCode ?? "",
-                                router,
-                                login,
-                                bottom,
-                            });
                         }}
                     />
-                )}
-            </View>
-        </SafeAreaView>
+                    {Platform.OS === "ios" && (
+                        <LoginButton
+                            text="애플로 시작하기"
+                            backgroundColor="#3F3F3F"
+                            textColor="white"
+                            icon={<AppleIcon />}
+                            disabled={loadingProvider !== null}
+                            onPress={async () => {
+                                if (loadingProvider) return;
+
+                                try {
+                                    const resp =
+                                        await AppleAuthentication.signInAsync({
+                                            requestedScopes: [
+                                                AppleAuthentication
+                                                    .AppleAuthenticationScope
+                                                    .FULL_NAME,
+                                                AppleAuthentication
+                                                    .AppleAuthenticationScope
+                                                    .EMAIL,
+                                            ],
+                                        });
+                                    setLoadingProvider("apple");
+                                    if (!resp.identityToken) {
+                                        showToast(
+                                            "info",
+                                            "애플 로그인 실패",
+                                            bottom
+                                        );
+                                        return;
+                                    }
+                                    await doLogin({
+                                        providerId: "apple.com",
+                                        token: resp.identityToken,
+                                        secret: resp.authorizationCode ?? "",
+                                    });
+                                } catch (e: any) {
+                                    showToast(
+                                        "info",
+                                        "애플 로그인 실패",
+                                        bottom
+                                    );
+                                } finally {
+                                    setLoadingProvider(null);
+                                }
+                            }}
+                        />
+                    )}
+                </View>
+            </SafeAreaView>
+        </>
     );
 }
 
@@ -98,14 +160,12 @@ async function handleLogin({
     providerId,
     token,
     secret,
-    router,
     login,
     bottom,
 }: {
     providerId: string;
     token: string;
     secret?: string;
-    router: ReturnType<typeof useRouter>;
     login: (accessToken: string, refreshToken: string, uuid: string) => void;
     bottom: number;
 }) {
@@ -141,33 +201,29 @@ async function handleLogin({
 
         login(res.accessToken, res.refreshToken, res.uuid);
 
-        await getUserInfo().then((res) => {
-            setUserInfoStore({
-                username: res.nickname,
-                gender: res.gender,
-                age: res.age,
-                height: res.height,
-                weight: res.weight,
-            });
-            setUserSettingsStore({
-                pushAlarmEnabled: res.pushAlarmEnabled,
-                vibrationEnabled: res.vibrationEnabled,
-                voiceGuidanceEnabled: res.voiceGuidanceEnabled,
-            });
+        const ui = await getUserInfo();
+        setUserInfoStore({
+            username: ui.nickname,
+            gender: ui.gender,
+            age: ui.age,
+            height: ui.height,
+            weight: ui.weight,
+        });
+        setUserSettingsStore({
+            pushAlarmEnabled: ui.pushAlarmEnabled,
+            vibrationEnabled: ui.vibrationEnabled,
+            voiceGuidanceEnabled: ui.voiceGuidanceEnabled,
         });
 
-        amplitude.track("Sign In", {
-            provider: providerId,
-        });
+        amplitude.track("Sign In", { provider: providerId });
     } catch (err: any) {
         console.log(err);
         if (err?.response?.status !== 404) {
             showToast("info", "로그인에 실패했습니다.", bottom);
+            throw err;
         } else {
-            router.push("/register");
-            amplitude.track("Start Sign Up", {
-                provider: providerId,
-            });
+            amplitude.track("Start Sign Up", { provider: providerId });
+            throw { needsSignup: true };
         }
     }
 }

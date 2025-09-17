@@ -1,6 +1,6 @@
 import { getDataFromS3, parseJsonl } from "./common";
 import { CourseResponse } from "./types/course";
-import { Telemetry } from "./types/run";
+import { Telemetry, TelemetryCompact } from "./types/run";
 
 export function camelToSnakeCase(str: string) {
     return str.replace(/([A-Z])/g, "_$1").toUpperCase();
@@ -27,7 +27,9 @@ export async function attachTelemetries(
                     return;
                 }
                 const parsed = await parseJsonl(text); // any
-                course.telemetries = normalizeTelemetries(parsed);
+                course.telemetries = decodeTelemetries(
+                    normalizeTelemetries(parsed)
+                );
             } catch (err) {
                 console.error("Failed to load telemetries for", course.id, err);
                 course.telemetries = [];
@@ -38,7 +40,7 @@ export async function attachTelemetries(
     return filteredResponseData;
 }
 
-function normalizeTelemetries(parsed: any): Telemetry[] {
+function normalizeTelemetries(parsed: any): TelemetryCompact[] {
     if (!Array.isArray(parsed)) return [];
 
     // [[...]] 또는 [[[...]]] 같은 케이스를 1레벨씩 풀어서
@@ -50,6 +52,45 @@ function normalizeTelemetries(parsed: any): Telemetry[] {
 
     // lat/lng 유효한 것만 필터
     return arr.filter(
-        (p) => p && typeof p.lat === "number" && typeof p.lng === "number"
+        (p) => p && typeof p.x === "number" && typeof p.y === "number"
     );
 }
+
+// 소수점 n 자리수까지 표현, 현재 소수점 자리수가 그것보다 적으면 유지
+const roundOrKeep = (value: number, decimals: number) => {
+    const currentDecimals = value.toString().split(".")[1]?.length ?? 0;
+    if (currentDecimals <= decimals) return value;
+    return Number(value.toFixed(decimals));
+};
+
+export function encodeTelemetry(t: Telemetry): TelemetryCompact {
+    return {
+        t: t.timeStamp,
+        x: roundOrKeep(t.lng, 6),
+        y: roundOrKeep(t.lat, 6),
+        d: roundOrKeep(t.dist, 3),
+        p: roundOrKeep(t.pace, 1),
+        e: roundOrKeep(t.alt, 1),
+        c: roundOrKeep(t.cadence, 0),
+        b: roundOrKeep(t.bpm, 0),
+        r: t.isRunning,
+    };
+}
+
+export function decodeTelemetry(t: TelemetryCompact): Telemetry {
+    return {
+        timeStamp: t.t,
+        lat: t.y,
+        lng: t.x,
+        dist: t.d,
+        pace: t.p,
+        alt: t.e,
+        cadence: t.c,
+        bpm: t.b,
+        isRunning: t.r,
+    };
+}
+
+export const encodeTelemetries = (arr: Telemetry[]) => arr.map(encodeTelemetry);
+export const decodeTelemetries = (arr: TelemetryCompact[]) =>
+    arr.map(decodeTelemetry);

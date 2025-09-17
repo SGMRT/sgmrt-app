@@ -510,6 +510,7 @@ export default function Result() {
                                 courseName,
                                 true
                             ).then(() => {
+                                bottomSheetRef.current?.dismiss();
                                 router.replace({
                                     pathname: "/(tabs)/profile",
                                     params: {
