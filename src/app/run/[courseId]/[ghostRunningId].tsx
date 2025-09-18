@@ -111,7 +111,7 @@ export default function Run() {
         myLegIndex: legIndex,
         timestamp: context.stats.totalTimeMs,
         controls,
-        simulateSpeed: 1.5,
+        simulateSpeed: 1.0,
     });
 
     useRunMetronome({
@@ -402,7 +402,10 @@ export default function Run() {
                     </Animated.Text>
                 )}
             </TopBlurView>
-            <MapViewWrapper controlPannelPosition={controlPannelPosition}>
+            <MapViewWrapper
+                controlPannelPosition={controlPannelPosition}
+                zoom={16}
+            >
                 {segments.map((segment, index) => (
                     <RunningLine
                         key={segment.id ?? String(index)}

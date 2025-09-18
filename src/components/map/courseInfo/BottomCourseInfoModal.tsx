@@ -111,7 +111,7 @@ export default function BottomCourseInfoModal({
                     if (
                         ghostSelected &&
                         course?.myGhostInfo &&
-                        course?.myGhostInfo.runningId === -1
+                        course?.myGhostInfo.runningId !== -1
                     ) {
                         router.push(
                             `/run/${course?.id}/${course?.myGhostInfo.runningId}`

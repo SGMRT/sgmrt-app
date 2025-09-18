@@ -88,7 +88,12 @@ export async function getCourse(
             if (text) {
                 const parsed = await parseJsonl(text);
                 const arr = Array.isArray(parsed) ? parsed : [];
-                checkpoints = arr as Checkpoint[];
+                // x를 lng, y를 lat로 변경
+                checkpoints = arr.map((checkpoint) => ({
+                    lat: checkpoint.y,
+                    lng: checkpoint.x,
+                    angle: checkpoint.angle,
+                }));
             }
         }
 
