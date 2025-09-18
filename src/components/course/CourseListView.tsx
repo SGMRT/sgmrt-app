@@ -19,12 +19,14 @@ interface CourseListViewProps {
     courses: CourseResponse[];
     selectedCourse: CourseResponse | null;
     onShowCourseInfo: (course: CourseResponse) => void;
+    maxHeight: number;
 }
 
 const CourseListView = ({
     courses,
     selectedCourse,
     onShowCourseInfo,
+    maxHeight,
 }: CourseListViewProps) => {
     const [editMode, setEditMode] = useState(false);
     const [filter, setFilter] = useState<"near" | "trend">("near");
@@ -117,7 +119,12 @@ const CourseListView = ({
     }
 
     return (
-        <View style={{ marginHorizontal: 16.5 }}>
+        <View
+            style={{
+                marginHorizontal: 16.5,
+                maxHeight: maxHeight,
+            }}
+        >
             <Section
                 titleColor="white"
                 titleRightChildren={
