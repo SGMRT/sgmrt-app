@@ -171,18 +171,22 @@ export default function Result() {
                                 style={{ gap: 20 }}
                                 stats={courseAverageStats}
                             />
-                            <StyledChart
-                                label={"고도"}
-                                data={course?.telemetries ?? []}
-                                xKey="dist"
-                                yKeys={["alt"]}
-                                showToolTip={true}
-                                onPointChange={(payload) => {
-                                    isChartActive.value = payload.isActive;
-                                    chartPointIndex.value = payload.index;
-                                }}
-                                expandable
-                            />
+                            {course?.telemetries.filter(
+                                (telemetry) => telemetry.alt
+                            ).length > 0 && (
+                                <StyledChart
+                                    label={"고도"}
+                                    data={course?.telemetries ?? []}
+                                    xKey="dist"
+                                    yKeys={["alt"]}
+                                    showToolTip={true}
+                                    onPointChange={(payload) => {
+                                        isChartActive.value = payload.isActive;
+                                        chartPointIndex.value = payload.index;
+                                    }}
+                                    expandable
+                                />
+                            )}
                         </Section>
 
                         {/* 고스트 */}
