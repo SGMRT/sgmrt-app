@@ -45,7 +45,7 @@ export default function MapViewWrapper({
     controlPannelPosition,
     controlEnabled = true,
     center,
-    zoom = 16,
+    zoom = 12,
     showPuck = true,
     onRegionDidChange,
     ref,
@@ -137,7 +137,7 @@ export default function MapViewWrapper({
                 <Camera
                     minZoomLevel={12}
                     maxZoomLevel={16}
-                    followZoomLevel={16}
+                    followZoomLevel={zoom}
                     animationDuration={0}
                     followUserLocation={followEnabled}
                     followUserMode={followUserMode}

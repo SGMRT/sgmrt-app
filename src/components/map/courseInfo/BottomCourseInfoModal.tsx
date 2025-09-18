@@ -4,7 +4,7 @@ import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StyledChart from "../../chart/StyledChart";
@@ -28,7 +28,13 @@ export default function BottomCourseInfoModal({
     bottomSheetRef,
     course,
 }: BottomCourseInfoModalProps) {
-    const [ghostSelected, setGhostSelected] = useState(true);
+    const [ghostSelected, setGhostSelected] = useState(false);
+
+    useEffect(() => {
+        if (course?.myGhostInfo) {
+            setGhostSelected(true);
+        }
+    }, [course]);
 
     const courseStats = [
         {
@@ -86,12 +92,14 @@ export default function BottomCourseInfoModal({
                 }}
             />
             <View style={{ height: course?.myGhostInfo ? 20 : 30 }} />
-            <GhostSection
-                ghost={course?.myGhostInfo}
-                ghostSelected={ghostSelected}
-                onSwitchChange={setGhostSelected}
-                ghostStats={ghostStats}
-            />
+            {course?.myGhostInfo && (
+                <GhostSection
+                    ghost={course?.myGhostInfo}
+                    ghostSelected={ghostSelected}
+                    onSwitchChange={setGhostSelected}
+                    ghostStats={ghostStats}
+                />
+            )}
             <Button
                 style={{
                     marginHorizontal: 16.5,
@@ -103,7 +111,7 @@ export default function BottomCourseInfoModal({
                     if (
                         ghostSelected &&
                         course?.myGhostInfo &&
-                        course?.myGhostInfo.runningId === -1
+                        course?.myGhostInfo.runningId !== -1
                     ) {
                         router.push(
                             `/run/${course?.id}/${course?.myGhostInfo.runningId}`

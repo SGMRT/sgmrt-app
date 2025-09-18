@@ -1,4 +1,4 @@
-import { dismissNotice, getNoticesActive, Notice } from "@/src/apis";
+import { dismiss, getNoticesActive, Notice } from "@/src/apis";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -30,7 +30,7 @@ export const HomeNotices = () => {
         setActiveNotices((prev) =>
             prev.filter((notice) => notice.id !== noticeId)
         );
-        dismissNotice(noticeId);
+        dismiss(noticeId);
     }, []);
 
     if (!data || activeNotices.length === 0) {
@@ -40,7 +40,7 @@ export const HomeNotices = () => {
     return (
         <NoticeItem
             key={activeNotices[0].id}
-            content={activeNotices[0].content}
+            content={activeNotices[0].title}
             onPress={() => handlePress(activeNotices[0].id)}
             onClose={() => handleClose(activeNotices[0].id)}
         />

@@ -193,6 +193,7 @@ export default function HomeMap({
             <StyledBottomSheet
                 ref={listBottomSheetRef}
                 bottomInset={bottom + 36}
+                snapPoints={[15, "32%", "48%", "66%"]}
                 index={0}
             >
                 <View style={{ height: 20 }} />
@@ -200,6 +201,7 @@ export default function HomeMap({
                     courses={courses ?? []}
                     selectedCourse={activeCourse}
                     onShowCourseInfo={onClickCourseInfo}
+                    maxHeight={Dimensions.get("window").height - 500}
                 />
                 <View style={{ height: 10 }} />
             </StyledBottomSheet>

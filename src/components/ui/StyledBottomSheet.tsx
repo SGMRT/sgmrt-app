@@ -20,6 +20,7 @@ export default function StyledBottomSheet({
     snapPoints = [15],
     index = 1,
     animatedPosition,
+    topInset,
     ref,
     ...props
 }: StyledBottomSheetProps) {

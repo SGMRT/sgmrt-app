@@ -5,7 +5,6 @@ import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
 import { useEffect, useMemo, useRef } from "react";
 import { InteractionManager } from "react-native"; // ✅ 추가
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { voiceGuide } from "../../audio/VoiceGuide";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { CourseLeg } from "../types/courseLeg";
