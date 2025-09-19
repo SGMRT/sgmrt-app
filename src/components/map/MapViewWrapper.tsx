@@ -10,7 +10,7 @@ import {
     UserTrackingMode,
     Viewport,
 } from "@rnmapbox/maps";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Image as RNImage, StyleSheet, View } from "react-native";
 
 import { Bearing, Puck2, Puck3 } from "@/assets/icons/icons";
@@ -59,6 +59,7 @@ export default function MapViewWrapper({
     const [followUserMode, setFollowUserMode] = useState(
         UserTrackingMode.Follow
     );
+    const lastZoomRef = useRef<number | null>(null);
 
     const onStatusChanged = (status: any) => {
         if (status?.to?.kind === "idle") {
@@ -98,12 +99,16 @@ export default function MapViewWrapper({
                 attributionPosition={attributionPosition}
                 attributionEnabled={attributionEnabled}
                 styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
-                onCameraChanged={(event) => {
-                    onZoomLevelChanged?.(event.properties.zoom);
-                }}
                 scrollEnabled={controlEnabled}
                 zoomEnabled={controlEnabled}
-                onRegionDidChange={(event) => {
+                onCameraChanged={(event) => {
+                    const currentZoom = event.properties.zoom;
+                    if (currentZoom !== lastZoomRef.current) {
+                        lastZoomRef.current = currentZoom;
+                        onZoomLevelChanged?.(currentZoom);
+                    }
+                }}
+                onMapIdle={(event) => {
                     onRegionDidChange?.(event);
                 }}
             >

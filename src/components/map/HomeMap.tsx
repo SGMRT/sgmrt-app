@@ -4,10 +4,10 @@ import { getDistance } from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Dimensions, View } from "react-native";
 import { SharedValue, useAnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -45,7 +45,6 @@ export default function HomeMap({
     const [activeCourse, setActiveCourse] = useState<CourseResponse | null>(
         null
     );
-
     const [zoomLevel, setZoomLevel] = useState(16);
 
     const handlePresentModalPress = () => {
@@ -60,20 +59,28 @@ export default function HomeMap({
         ]);
     };
 
-    const [bounds, setBounds] = useState<Position[]>([]);
+    type VisibleBounds = {
+        sw: Position;
+        ne: Position;
+    };
+
+    const [bounds, setBounds] = useState<VisibleBounds | null>(null);
     const [center, setCenter] = useState<Position | null>(null);
     const [distance, setDistance] = useState(10);
     const cameraRef = useRef<Camera>(null);
 
-    const onZoomLevelChanged = (currentZoomLevel: number) => {
-        const isHighZoom = zoomLevel > ZOOM_THRESHOLD;
-        const isCurrentHighZoom = currentZoomLevel > ZOOM_THRESHOLD;
+    const onZoomLevelChanged = useCallback(
+        (currentZoomLevel: number) => {
+            const isHighZoom = zoomLevel > ZOOM_THRESHOLD;
+            const isCurrentHighZoom = currentZoomLevel > ZOOM_THRESHOLD;
 
-        // 줌 레벨의 '상태' (고배율/저배율)가 변경되었을 때만 업데이트
-        if (isHighZoom !== isCurrentHighZoom) {
-            setZoomLevel(currentZoomLevel);
-        }
-    };
+            // 줌 레벨의 '상태' (고배율/저배율)가 변경되었을 때만 업데이트
+            if (isHighZoom !== isCurrentHighZoom) {
+                setZoomLevel(currentZoomLevel);
+            }
+        },
+        [zoomLevel]
+    );
 
     const deviceHeight = Dimensions.get("window").height;
     const { bottom } = useSafeAreaInsets();
@@ -84,18 +91,16 @@ export default function HomeMap({
     });
 
     const onRegionDidChange = (event: any) => {
-        const newCenter = event.geometry.coordinates;
-        const visibleBounds = event.properties.visibleBounds;
+        const newCenter = event.properties.center;
+        const visibleBounds = event.properties.bounds;
 
-        if (bounds.length === 0) {
-            setBounds(visibleBounds);
-        } else {
-            const [[lng1, lat1], [lng2, lat2]] = bounds;
+        const { sw, ne } = bounds ?? visibleBounds;
 
-            const leftBound = Math.min(lng1, lng2);
-            const rightBound = Math.max(lng1, lng2);
-            const bottomBound = Math.min(lat1, lat2);
-            const topBound = Math.max(lat1, lat2);
+        if (bounds !== null) {
+            const leftBound = sw[0];
+            const rightBound = ne[0];
+            const bottomBound = sw[1];
+            const topBound = ne[1];
 
             const [centerLng, centerLat] = newCenter;
 
@@ -115,24 +120,29 @@ export default function HomeMap({
                 1
             );
 
-            setDistance(dist);
-
             if (!isCenterInsideBounds) {
-                setBounds(visibleBounds);
+                console.log("dist", dist);
+                setDistance(dist);
                 setCenter(newCenter);
+                setBounds(visibleBounds);
             }
+        } else {
+            setBounds(visibleBounds);
+            setCenter(newCenter);
         }
     };
 
     const { data: courses } = useQuery({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
+            console.log("getCourses", center, distance);
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
                 radiusM: distance * 1000,
             });
         },
+        placeholderData: keepPreviousData,
         enabled: !!center && !!distance,
     });
 
