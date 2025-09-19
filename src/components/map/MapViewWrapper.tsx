@@ -10,7 +10,7 @@ import {
     UserTrackingMode,
     Viewport,
 } from "@rnmapbox/maps";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Image as RNImage, StyleSheet, View } from "react-native";
 
 import { Bearing, Puck2, Puck3 } from "@/assets/icons/icons";
@@ -37,6 +37,7 @@ interface MapViewWrapperProps {
     logoPosition?: any;
     attributionEnabled?: boolean;
     attributionPosition?: any;
+    onTap?: () => void;
 }
 
 export default function MapViewWrapper({
@@ -54,11 +55,13 @@ export default function MapViewWrapper({
     logoPosition = { bottom: 10, left: 10 },
     attributionEnabled = true,
     attributionPosition = { bottom: 8, right: 0 },
+    onTap,
 }: MapViewWrapperProps) {
     const [phase, setPhase] = useState<TrackPhase>("follow");
     const [followUserMode, setFollowUserMode] = useState(
         UserTrackingMode.Follow
     );
+    const lastZoomRef = useRef<number | null>(null);
 
     const onStatusChanged = (status: any) => {
         if (status?.to?.kind === "idle") {
@@ -87,6 +90,8 @@ export default function MapViewWrapper({
     const followEnabled =
         controlEnabled && (phase === "follow" || phase === "heading");
 
+    const touchCapturedRef = useRef(false);
+
     return (
         <View style={{ flex: 1, position: "relative" }}>
             <MapView
@@ -98,13 +103,28 @@ export default function MapViewWrapper({
                 attributionPosition={attributionPosition}
                 attributionEnabled={attributionEnabled}
                 styleURL="mapbox://styles/sgmrt/cmbx0w1xy002701sod2z821zr"
-                onCameraChanged={(event) => {
-                    onZoomLevelChanged?.(event.properties.zoom);
-                }}
                 scrollEnabled={controlEnabled}
                 zoomEnabled={controlEnabled}
-                onRegionDidChange={(event) => {
+                onCameraChanged={(event) => {
+                    const currentZoom = event.properties.zoom;
+                    if (currentZoom !== lastZoomRef.current) {
+                        lastZoomRef.current = currentZoom;
+                        onZoomLevelChanged?.(currentZoom);
+                    }
+                }}
+                onMapIdle={(event) => {
                     onRegionDidChange?.(event);
+                }}
+                onTouchStart={() => {
+                    touchCapturedRef.current = true;
+                }}
+                onTouchEnd={() => {
+                    if (touchCapturedRef.current) {
+                        onTap?.();
+                    }
+                }}
+                onTouchMove={() => {
+                    touchCapturedRef.current = false;
                 }}
             >
                 <Images>
