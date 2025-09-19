@@ -136,6 +136,9 @@ const CourseListView = ({
                 title="내 주변 코스"
             >
                 <FlatList
+                    style={{
+                        maxHeight: maxHeight - 20,
+                    }}
                     data={sortedCourses}
                     ListEmptyComponent={
                         <EmptyListView
