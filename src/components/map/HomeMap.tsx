@@ -1,6 +1,11 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
-import { getDistance } from "@/src/utils/mapUtils";
+import {
+    calculateCenter,
+    calculateZoomLevelFromSize,
+    Coordinate,
+    getDistance,
+} from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
@@ -27,7 +32,7 @@ interface HomeMapProps {
 }
 
 const ZOOM_THRESHOLD = 14.5;
-const CAMERA_LATITUDE_OFFSET = 0.0015;
+const CAMERA_LATITUDE_OFFSET = 0.01;
 const BOTTOM_BAR_HEIGHT = 104;
 const TAB_BAR_HEIGHT = 82;
 
@@ -55,10 +60,26 @@ export default function HomeMap({
 
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
-        cameraRef.current?.moveTo([
-            course.startLng,
-            course.startLat - CAMERA_LATITUDE_OFFSET,
-        ]);
+
+        const coordinates: Coordinate[] = [];
+
+        course.telemetries.forEach((telemetry) => {
+            coordinates.push({ lat: telemetry.lat, lng: telemetry.lng });
+        });
+
+        const center = calculateCenter(coordinates);
+        const zoomLevel = calculateZoomLevelFromSize(
+            center.size,
+            center.latitude - CAMERA_LATITUDE_OFFSET
+        );
+
+        cameraRef.current?.setCamera({
+            centerCoordinate: [
+                center.longitude,
+                center.latitude - CAMERA_LATITUDE_OFFSET,
+            ],
+            zoomLevel: zoomLevel,
+        });
     };
 
     type VisibleBounds = {
@@ -186,6 +207,7 @@ export default function HomeMap({
                 attributionPosition={{ bottom: TAB_BAR_HEIGHT + 6, right: 0 }}
                 onTap={() => {
                     setActiveCourse(null);
+                    mapBottomSheetRef.current?.dismiss();
                 }}
             >
                 {courses?.map((course) => (
@@ -232,6 +254,7 @@ export default function HomeMap({
                 courses={courses ?? []}
                 onClickCourse={onClickCourse}
                 onClickCourseInfo={onClickCourseInfo}
+                backdrop={false}
             />
         </>
     );
@@ -246,6 +269,7 @@ interface HomeBottomModalProps {
     onClickCourse: (course: CourseResponse) => void;
     onClickCourseInfo: (course: CourseResponse) => void;
     onClose?: () => void;
+    backdrop?: boolean;
 }
 
 const HomeBottomModal = ({
@@ -253,12 +277,14 @@ const HomeBottomModal = ({
     heightVal = undefined,
     activeCourse,
     onClose = () => {},
+    backdrop = true,
 }: HomeBottomModalProps) => {
     return (
         <BottomModal
             bottomSheetRef={bottomSheetRef}
             heightVal={heightVal}
             onDismiss={onClose}
+            backdrop={backdrop}
         >
             <BottomCourseInfoModal
                 bottomSheetRef={bottomSheetRef}
