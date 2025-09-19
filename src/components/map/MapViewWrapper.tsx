@@ -37,6 +37,7 @@ interface MapViewWrapperProps {
     logoPosition?: any;
     attributionEnabled?: boolean;
     attributionPosition?: any;
+    onTap?: () => void;
 }
 
 export default function MapViewWrapper({
@@ -54,6 +55,7 @@ export default function MapViewWrapper({
     logoPosition = { bottom: 10, left: 10 },
     attributionEnabled = true,
     attributionPosition = { bottom: 8, right: 0 },
+    onTap,
 }: MapViewWrapperProps) {
     const [phase, setPhase] = useState<TrackPhase>("follow");
     const [followUserMode, setFollowUserMode] = useState(
@@ -88,6 +90,8 @@ export default function MapViewWrapper({
     const followEnabled =
         controlEnabled && (phase === "follow" || phase === "heading");
 
+    const touchCapturedRef = useRef(false);
+
     return (
         <View style={{ flex: 1, position: "relative" }}>
             <MapView
@@ -110,6 +114,17 @@ export default function MapViewWrapper({
                 }}
                 onMapIdle={(event) => {
                     onRegionDidChange?.(event);
+                }}
+                onTouchStart={() => {
+                    touchCapturedRef.current = true;
+                }}
+                onTouchEnd={() => {
+                    if (touchCapturedRef.current) {
+                        onTap?.();
+                    }
+                }}
+                onTouchMove={() => {
+                    touchCapturedRef.current = false;
                 }}
             >
                 <Images>

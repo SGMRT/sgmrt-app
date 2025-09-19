@@ -47,6 +47,8 @@ export default function HomeMap({
     );
     const [zoomLevel, setZoomLevel] = useState(16);
 
+    const firstRenderRef = useRef(true);
+
     const handlePresentModalPress = () => {
         mapBottomSheetRef.current?.present();
     };
@@ -121,7 +123,6 @@ export default function HomeMap({
             );
 
             if (!isCenterInsideBounds) {
-                console.log("dist", dist);
                 setDistance(dist);
                 setCenter(newCenter);
                 setBounds(visibleBounds);
@@ -135,7 +136,6 @@ export default function HomeMap({
     const { data: courses } = useQuery({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
-            console.log("getCourses", center, distance);
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
@@ -145,6 +145,13 @@ export default function HomeMap({
         placeholderData: keepPreviousData,
         enabled: !!center && !!distance,
     });
+
+    useEffect(() => {
+        if (firstRenderRef.current && courses) {
+            firstRenderRef.current = false;
+            setActiveCourse(courses[0]);
+        }
+    }, [courses]);
 
     useEffect(() => {
         Location.getCurrentPositionAsync({
@@ -177,6 +184,9 @@ export default function HomeMap({
                 cameraRef={cameraRef}
                 logoPosition={{ bottom: TAB_BAR_HEIGHT + 8, left: 10 }}
                 attributionPosition={{ bottom: TAB_BAR_HEIGHT + 6, right: 0 }}
+                onTap={() => {
+                    setActiveCourse(null);
+                }}
             >
                 {courses?.map((course) => (
                     <CourseMarkers
@@ -235,15 +245,21 @@ interface HomeBottomModalProps {
     courses: CourseResponse[];
     onClickCourse: (course: CourseResponse) => void;
     onClickCourseInfo: (course: CourseResponse) => void;
+    onClose?: () => void;
 }
 
 const HomeBottomModal = ({
     bottomSheetRef,
     heightVal = undefined,
     activeCourse,
+    onClose = () => {},
 }: HomeBottomModalProps) => {
     return (
-        <BottomModal bottomSheetRef={bottomSheetRef} heightVal={heightVal}>
+        <BottomModal
+            bottomSheetRef={bottomSheetRef}
+            heightVal={heightVal}
+            onDismiss={onClose}
+        >
             <BottomCourseInfoModal
                 bottomSheetRef={bottomSheetRef}
                 course={activeCourse ?? null}
