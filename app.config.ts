@@ -75,7 +75,7 @@ const config = {
                 "expo-location",
                 {
                     locationAlwaysAndWhenInUsePermission:
-                        "러닝 경로를 추적하고 지도에 표시하기 위해 위치 권한이 필요합니다.",
+                        "러닝 중 경로 추적과 페이스 계산을 위해 기기의 위치 정보를 사용합니다. 백그라운드에서도 기록을 이어서 저장합니다.",
                     isIosBackgroundLocationEnabled: true,
                     isAndroidBackgroundLocationEnabled: true,
                 },
@@ -92,7 +92,7 @@ const config = {
                 "expo-sensors",
                 {
                     motionPermission:
-                        "정확한 고도 측정과 활동 추적을 위해 모션 권한이 필요합니다.",
+                        "보폭·케이던스 등 활동 분석과 고도 보정을 위해 모션·피트니스 데이터를 사용합니다.",
                 },
             ],
             [
@@ -136,7 +136,7 @@ const config = {
                 "expo-image-picker",
                 {
                     photosPermission:
-                        "프로필 사진을 설정하거나 공유하기 위해 사진첩 접근 권한이 필요합니다.",
+                        "프로필 사진 설정과 러닝 기록 공유를 위해 사진첩에 접근합니다.",
                 },
             ],
             "@bacons/apple-targets",
@@ -222,7 +222,7 @@ const config = {
 
                     // iOS: ATT 권한 문구
                     userTrackingUsageDescription:
-                        "맞춤형 광고 제공을 위해 기기 식별자를 사용할 수 있습니다.",
+                        "앱 이용 통계를 기반으로 한 맞춤형 광고를 제공하기 위해 기기 식별자 사용에 동의할 수 있습니다. 동의 여부와 관계없이 기본 기능은 이용할 수 있습니다.",
                 },
             ],
             "expo-notifications",
@@ -230,7 +230,17 @@ const config = {
                 "expo-tracking-transparency",
                 {
                     userTrackingUsageDescription:
-                        "맞춤형 광고 제공을 위해 기기 식별자를 사용할 수 있습니다.",
+                        "앱 이용 통계를 기반으로 한 맞춤형 광고를 제공하기 위해 기기 식별자 사용에 동의할 수 있습니다. 동의 여부와 관계없이 기본 기능은 이용할 수 있습니다.",
+                },
+            ],
+            [
+                "@kingstinct/react-native-healthkit",
+                {
+                    NSHealthShareUsageDescription:
+                        "운동 거리와 심박수 등의 기록을 애플 건강 앱에서 확인할 수 있도록 건강 데이터를 불러옵니다.",
+                    NSHealthUpdateUsageDescription:
+                        "고스트러너에서 측정한 운동 기록을 애플 건강 앱에 저장하여 다른 앱에서도 확인할 수 있습니다.",
+                    background: true,
                 },
             ],
         ],
