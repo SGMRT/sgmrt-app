@@ -155,7 +155,7 @@ export default function MapViewWrapper({
                     existing={true}
                 />
                 <Camera
-                    minZoomLevel={12}
+                    minZoomLevel={10}
                     maxZoomLevel={16}
                     followZoomLevel={zoom}
                     animationDuration={0}

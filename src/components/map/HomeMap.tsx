@@ -160,7 +160,7 @@ export default function HomeMap({
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
-                radiusM: distance * 1000,
+                radiusM: distance * 1000 > 10000 ? 10000 : distance * 1000,
             });
         },
         placeholderData: keepPreviousData,
@@ -206,6 +206,7 @@ export default function HomeMap({
                 logoPosition={{ bottom: TAB_BAR_HEIGHT + 8, left: 10 }}
                 attributionPosition={{ bottom: TAB_BAR_HEIGHT + 6, right: 0 }}
                 onTap={() => {
+                    console.log("onTap");
                     setActiveCourse(null);
                     mapBottomSheetRef.current?.dismiss();
                 }}
