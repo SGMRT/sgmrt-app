@@ -378,6 +378,13 @@ export const Info = ({
                     }
                 />
                 <ProfileOptionItem
+                    title="의견 보내기"
+                    onPress={() => {
+                        Linking.openURL("https://forms.gle/YhnuYBBqBD8beV4L6");
+                    }}
+                    rightElement={<ChevronIcon color={colors.gray[60]} />}
+                />
+                <ProfileOptionItem
                     title="로그아웃"
                     titleColor="red"
                     onPress={() => {
