@@ -1,3 +1,12 @@
+import {
+    AuthorizationStatus,
+    authorizationStatusFor,
+    isHealthDataAvailableAsync,
+    ObjectTypeIdentifier,
+    QuantitySampleForSaving,
+    saveWorkoutSample,
+    WorkoutActivityType,
+} from "@kingstinct/react-native-healthkit";
 import * as FileSystem from "expo-file-system";
 import { postCourseRun, postRun } from "../apis";
 import {
@@ -12,6 +21,18 @@ import { Segment } from "../components/map/RunningLine";
 import { showCompactToast } from "../components/ui/toastConfig";
 import { RawData, UserDashBoardData } from "../types/run";
 import { Coordinate, getDistance } from "./mapUtils";
+
+const canShare = (objectType: string) => {
+    try {
+        return (
+            authorizationStatusFor(objectType as ObjectTypeIdentifier) ===
+            AuthorizationStatus.sharingAuthorized
+        );
+    } catch {
+        // 일부 타입이 버전/정의에 따라 던질 수 있으니 방어
+        return false;
+    }
+};
 
 const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
     let isNegative = false;
@@ -172,6 +193,8 @@ export async function saveRunning({
         return;
     }
 
+    const isHealthDataAvailable = await isHealthDataAvailableAsync();
+
     const stablePace =
         telemetries.length > 10
             ? telemetries.at(10)!.pace
@@ -192,6 +215,7 @@ export async function saveRunning({
     const hasPaused = telemetries.some((telemetry) => !telemetry.isRunning);
 
     const startTime = telemetries.at(0)?.timeStamp;
+    const endTime = telemetries.at(-1)?.timeStamp;
 
     const record: RunRecord = {
         distance: userDashboardData.totalDistance / 1000,
@@ -209,14 +233,97 @@ export async function saveRunning({
     const interpolatedTelemetryFileUri =
         FileSystem.cacheDirectory + "interpolatedTelemetry.jsonl";
 
+    if (isHealthDataAvailable) {
+        const canWriteWorkout = canShare("HKWorkoutTypeIdentifier");
+        const canWriteDistance = canShare(
+            "HKQuantityTypeIdentifierDistanceWalkingRunning"
+        );
+        const canwWriteEnergy = canShare(
+            "HKQuantityTypeIdentifierActiveEnergyBurned"
+        );
+        const canWriteRoute = canShare("HKWorkoutRouteTypeIdentifier");
+
+        console.log("canWriteWorkout", canWriteWorkout);
+        console.log("canWriteDistance", canWriteDistance);
+        console.log("canwWriteEnergy", canwWriteEnergy);
+        console.log("canWriteRoute", canWriteRoute);
+
+        if (!canWriteWorkout) {
+            // no-op
+        } else {
+            const start = startTime ? new Date(startTime) : new Date();
+            const end = endTime ? new Date(endTime) : new Date();
+
+            const quantities: QuantitySampleForSaving[] = [];
+
+            if (canWriteDistance) {
+                quantities.push({
+                    startDate: start,
+                    endDate: end,
+                    quantityType:
+                        "HKQuantityTypeIdentifierDistanceWalkingRunning",
+                    quantity: userDashboardData.totalDistance,
+                    unit: "m",
+                    metadata: {
+                        HKExternalUUID: String(Date.now()),
+                        source: "GhostRunner",
+                    },
+                });
+            }
+
+            if (canwWriteEnergy) {
+                quantities.push({
+                    startDate: start,
+                    endDate: end,
+                    quantityType: "HKQuantityTypeIdentifierActiveEnergyBurned",
+                    quantity: userDashboardData.totalCalories,
+                    unit: "kcal",
+                    metadata: {
+                        HKExternalUUID: String(Date.now()),
+                        source: "GhostRunner",
+                    },
+                });
+            }
+
+            if (quantities.length > 0) {
+                const workout = await saveWorkoutSample(
+                    WorkoutActivityType.running,
+                    quantities,
+                    start,
+                    end,
+                    {
+                        distance: userDashboardData.totalDistance,
+                        energyBurned: userDashboardData.totalCalories,
+                    },
+                    {
+                        HKExternalUUID: String(Date.now()),
+                        source: "GhostRunner",
+                    }
+                );
+
+                if (canWriteRoute) {
+                    await workout.saveWorkoutRoute(
+                        rawData.map((item) => ({
+                            altitude: item.altitude,
+                            date: new Date(item.timestamp),
+                            horizontalAccuracy: item.accuracy,
+                            latitude: item.latitude,
+                            longitude: item.longitude,
+                            speed: item.speed,
+                            verticalAccuracy: item.altitudeAccuracy,
+                            course: item.course,
+                        }))
+                    );
+                }
+            }
+        }
+    }
+
     try {
         const rawJsonl = rawData.map((item) => JSON.stringify(item)).join("\n");
         const interpolatedJsonl = encodeTelemetries(telemetries)
             .map((item) => JSON.stringify(item))
             .join("\n");
-
-        console.log(rawJsonl);
-        console.log(interpolatedJsonl);
 
         await FileSystem.writeAsStringAsync(rawTelemetryFileUri, rawJsonl);
         await FileSystem.writeAsStringAsync(

@@ -33,6 +33,7 @@ export class SensorStore {
             altitude: raw.coords.altitude,
             altitudeAccuracy: raw.coords.altitudeAccuracy,
             speed: raw.coords.speed,
+            course: raw.coords.heading,
             timestamp: ensureTs(raw.timestamp),
         };
         this.locations.push(sample);

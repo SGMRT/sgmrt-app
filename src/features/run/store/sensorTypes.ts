@@ -7,6 +7,7 @@ export interface LocationSample {
     altitude: number | null;
     altitudeAccuracy: number | null;
     speed: number | null;
+    course: number | null;
     timestamp: Ms;
 }
 
