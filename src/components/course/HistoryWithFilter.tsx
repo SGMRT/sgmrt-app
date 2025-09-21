@@ -160,7 +160,7 @@ export const HistoryWithFilter = ({
                 data={displayData.data}
                 style={{ paddingHorizontal: 16.5 }}
                 contentContainerStyle={{
-                    paddingBottom: 200,
+                    paddingBottom: 100,
                 }}
                 ListEmptyComponent={
                     <Section>

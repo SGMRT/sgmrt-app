@@ -39,6 +39,7 @@ export function extractRawData(
             accuracy: toNum(s.raw?.accuracy, undefined),
             altitudeAccuracy: toNum(s.raw?.altitudeAccuracy, undefined),
             pressure: toNum(s.raw?.pressure, s.pressure),
+            course: toNum(s.raw?.course, s.raw.course),
         };
 
         if (opts.strict) {

@@ -20,18 +20,20 @@ export default function CourseMarkers({
 }: CourseMarkersProps) {
     return (
         <View>
-            <MarkerView
-                id={`marker-view-${course.id}`}
-                coordinate={[course.startLng, course.startLat]}
-                anchor={{ x: 0.5, y: 1.0 }}
-            >
-                <CourseTitle
-                    course={course}
-                    onClickCourse={onClickCourse}
-                    isActive={activeCourseId === course.id}
-                    zoomLevel={zoomLevel}
-                />
-            </MarkerView>
+            {(activeCourseId === -1 || course.id === activeCourseId) && (
+                <MarkerView
+                    id={`marker-view-${course.id}`}
+                    coordinate={[course.startLng, course.startLat]}
+                    anchor={{ x: 0.5, y: 1.0 }}
+                >
+                    <CourseTitle
+                        course={course}
+                        onClickCourse={onClickCourse}
+                        isActive={activeCourseId === course.id}
+                        zoomLevel={zoomLevel}
+                    />
+                </MarkerView>
+            )}
             <CourseLayer
                 course={course}
                 isActive={activeCourseId === course.id}

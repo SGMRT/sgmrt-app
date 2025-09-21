@@ -20,6 +20,7 @@ interface BottomModalProps {
     bottomInset?: number;
     onDismiss?: () => void;
     backdrop?: boolean;
+    backdropOpacity?: number;
 }
 
 export default function BottomModal({
@@ -33,6 +34,7 @@ export default function BottomModal({
     bottomInset,
     onDismiss,
     backdrop = true,
+    backdropOpacity = 0.4,
 }: BottomModalProps) {
     const { bottom } = useSafeAreaInsets();
     const renderBackdrop = useCallback(
@@ -42,11 +44,11 @@ export default function BottomModal({
                 appearsOnIndex={0}
                 disappearsOnIndex={-1}
                 pressBehavior="close"
-                opacity={0.4}
+                opacity={backdropOpacity}
                 style={{ marginBottom: bottom }}
             />
         ),
-        [bottom]
+        [bottom, backdropOpacity]
     );
     return (
         <>

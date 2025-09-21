@@ -190,56 +190,61 @@ export default function Result() {
                         </Section>
 
                         {/* 고스트 */}
-                        <Section
-                            title="내 고스트"
-                            titleColor="white"
-                            titleVariant="sectionhead"
-                            titleRightChildren={
-                                <TouchableOpacity
-                                    style={{
-                                        flexDirection: "row",
-                                        alignItems: "center",
-                                        gap: 4,
-                                    }}
-                                >
-                                    <Typography
-                                        variant="caption1"
-                                        color="gray40"
+                        {course?.myGhostInfo && (
+                            <Section
+                                title="내 고스트"
+                                titleColor="white"
+                                titleVariant="sectionhead"
+                                titleRightChildren={
+                                    <TouchableOpacity
+                                        style={{
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            gap: 4,
+                                        }}
                                     >
-                                        고스트
-                                    </Typography>
-                                    <InfoIcon />
-                                </TouchableOpacity>
-                            }
-                        >
-                            <GhostRow
-                                profileUrl={
-                                    course?.myGhostInfo?.runnerProfileUrl ?? ""
+                                        <Typography
+                                            variant="caption1"
+                                            color="gray40"
+                                        >
+                                            고스트
+                                        </Typography>
+                                        <InfoIcon />
+                                    </TouchableOpacity>
                                 }
-                                ghostStats={[
-                                    {
-                                        description: "시간",
-                                        value: getRunTime(
-                                            course?.myGhostInfo?.duration ?? 0,
-                                            "HH:MM:SS"
-                                        ),
-                                    },
-                                    {
-                                        description: "페이스",
-                                        value: getFormattedPace(
-                                            course?.myGhostInfo?.averagePace ??
-                                                0
-                                        ),
-                                    },
-                                    {
-                                        description: "케이던스",
-                                        value:
-                                            course?.myGhostInfo?.cadence ?? 0,
-                                        unit: "spm",
-                                    },
-                                ]}
-                            />
-                        </Section>
+                            >
+                                <GhostRow
+                                    profileUrl={
+                                        course?.myGhostInfo?.runnerProfileUrl ??
+                                        ""
+                                    }
+                                    ghostStats={[
+                                        {
+                                            description: "시간",
+                                            value: getRunTime(
+                                                course?.myGhostInfo?.duration ??
+                                                    0,
+                                                "HH:MM:SS"
+                                            ),
+                                        },
+                                        {
+                                            description: "페이스",
+                                            value: getFormattedPace(
+                                                course?.myGhostInfo
+                                                    ?.averagePace ?? 0
+                                            ),
+                                        },
+                                        {
+                                            description: "케이던스",
+                                            value:
+                                                course?.myGhostInfo?.cadence ??
+                                                0,
+                                            unit: "spm",
+                                        },
+                                    ]}
+                                />
+                            </Section>
+                        )}
                     </ScrollView>
                     <ScrollButton
                         onPress={() => {

@@ -78,7 +78,7 @@ const calculateZoomLevelFromSize = (
 
     const zoomLevel = Math.log2((metersPerPixelAtZoom0 * screenWidth) / meters);
 
-    return zoomLevel - 2.5;
+    return zoomLevel - 2;
 };
 
 export {

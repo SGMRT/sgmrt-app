@@ -16,6 +16,7 @@ export interface RunData {
         altitude: number;
         altitudeAccuracy: number;
         pressure: number;
+        course: number;
     };
 }
 
@@ -28,6 +29,7 @@ export interface RawData {
     accuracy: number;
     altitudeAccuracy: number;
     pressure: number;
+    course: number;
 }
 
 export type RunnningStatus =

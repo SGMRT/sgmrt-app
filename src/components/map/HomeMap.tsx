@@ -1,13 +1,18 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
-import { getDistance } from "@/src/utils/mapUtils";
+import {
+    calculateCenter,
+    calculateZoomLevelFromSize,
+    Coordinate,
+    getDistance,
+} from "@/src/utils/mapUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Dimensions, View } from "react-native";
 import { SharedValue, useAnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -27,7 +32,7 @@ interface HomeMapProps {
 }
 
 const ZOOM_THRESHOLD = 14.5;
-const CAMERA_LATITUDE_OFFSET = 0.0015;
+const CAMERA_LATITUDE_OFFSET = 0.01;
 const BOTTOM_BAR_HEIGHT = 104;
 const TAB_BAR_HEIGHT = 82;
 
@@ -45,8 +50,9 @@ export default function HomeMap({
     const [activeCourse, setActiveCourse] = useState<CourseResponse | null>(
         null
     );
-
     const [zoomLevel, setZoomLevel] = useState(16);
+
+    const firstRenderRef = useRef(true);
 
     const handlePresentModalPress = () => {
         mapBottomSheetRef.current?.present();
@@ -54,26 +60,50 @@ export default function HomeMap({
 
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
-        cameraRef.current?.moveTo([
-            course.startLng,
-            course.startLat - CAMERA_LATITUDE_OFFSET,
-        ]);
+
+        const coordinates: Coordinate[] = [];
+
+        course.telemetries.forEach((telemetry) => {
+            coordinates.push({ lat: telemetry.lat, lng: telemetry.lng });
+        });
+
+        const center = calculateCenter(coordinates);
+        const zoomLevel = calculateZoomLevelFromSize(
+            center.size,
+            center.latitude - CAMERA_LATITUDE_OFFSET
+        );
+
+        cameraRef.current?.setCamera({
+            centerCoordinate: [
+                center.longitude,
+                center.latitude - CAMERA_LATITUDE_OFFSET,
+            ],
+            zoomLevel: zoomLevel,
+        });
     };
 
-    const [bounds, setBounds] = useState<Position[]>([]);
+    type VisibleBounds = {
+        sw: Position;
+        ne: Position;
+    };
+
+    const [bounds, setBounds] = useState<VisibleBounds | null>(null);
     const [center, setCenter] = useState<Position | null>(null);
     const [distance, setDistance] = useState(10);
     const cameraRef = useRef<Camera>(null);
 
-    const onZoomLevelChanged = (currentZoomLevel: number) => {
-        const isHighZoom = zoomLevel > ZOOM_THRESHOLD;
-        const isCurrentHighZoom = currentZoomLevel > ZOOM_THRESHOLD;
+    const onZoomLevelChanged = useCallback(
+        (currentZoomLevel: number) => {
+            const isHighZoom = zoomLevel > ZOOM_THRESHOLD;
+            const isCurrentHighZoom = currentZoomLevel > ZOOM_THRESHOLD;
 
-        // 줌 레벨의 '상태' (고배율/저배율)가 변경되었을 때만 업데이트
-        if (isHighZoom !== isCurrentHighZoom) {
-            setZoomLevel(currentZoomLevel);
-        }
-    };
+            // 줌 레벨의 '상태' (고배율/저배율)가 변경되었을 때만 업데이트
+            if (isHighZoom !== isCurrentHighZoom) {
+                setZoomLevel(currentZoomLevel);
+            }
+        },
+        [zoomLevel]
+    );
 
     const deviceHeight = Dimensions.get("window").height;
     const { bottom } = useSafeAreaInsets();
@@ -84,18 +114,16 @@ export default function HomeMap({
     });
 
     const onRegionDidChange = (event: any) => {
-        const newCenter = event.geometry.coordinates;
-        const visibleBounds = event.properties.visibleBounds;
+        const newCenter = event.properties.center;
+        const visibleBounds = event.properties.bounds;
 
-        if (bounds.length === 0) {
-            setBounds(visibleBounds);
-        } else {
-            const [[lng1, lat1], [lng2, lat2]] = bounds;
+        const { sw, ne } = bounds ?? visibleBounds;
 
-            const leftBound = Math.min(lng1, lng2);
-            const rightBound = Math.max(lng1, lng2);
-            const bottomBound = Math.min(lat1, lat2);
-            const topBound = Math.max(lat1, lat2);
+        if (bounds !== null) {
+            const leftBound = sw[0];
+            const rightBound = ne[0];
+            const bottomBound = sw[1];
+            const topBound = ne[1];
 
             const [centerLng, centerLat] = newCenter;
 
@@ -115,12 +143,14 @@ export default function HomeMap({
                 1
             );
 
-            setDistance(dist);
-
             if (!isCenterInsideBounds) {
-                setBounds(visibleBounds);
+                setDistance(dist);
                 setCenter(newCenter);
+                setBounds(visibleBounds);
             }
+        } else {
+            setBounds(visibleBounds);
+            setCenter(newCenter);
         }
     };
 
@@ -130,11 +160,19 @@ export default function HomeMap({
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
-                radiusM: distance * 1000,
+                radiusM: distance * 1000 > 10000 ? 10000 : distance * 1000,
             });
         },
+        placeholderData: keepPreviousData,
         enabled: !!center && !!distance,
     });
+
+    useEffect(() => {
+        if (firstRenderRef.current && courses) {
+            firstRenderRef.current = false;
+            setActiveCourse(courses[0]);
+        }
+    }, [courses]);
 
     useEffect(() => {
         Location.getCurrentPositionAsync({
@@ -167,6 +205,11 @@ export default function HomeMap({
                 cameraRef={cameraRef}
                 logoPosition={{ bottom: TAB_BAR_HEIGHT + 8, left: 10 }}
                 attributionPosition={{ bottom: TAB_BAR_HEIGHT + 6, right: 0 }}
+                onTap={() => {
+                    console.log("onTap");
+                    setActiveCourse(null);
+                    mapBottomSheetRef.current?.dismiss();
+                }}
             >
                 {courses?.map((course) => (
                     <CourseMarkers
@@ -212,6 +255,7 @@ export default function HomeMap({
                 courses={courses ?? []}
                 onClickCourse={onClickCourse}
                 onClickCourseInfo={onClickCourseInfo}
+                backdropOpacity={0.1}
             />
         </>
     );
@@ -225,15 +269,27 @@ interface HomeBottomModalProps {
     courses: CourseResponse[];
     onClickCourse: (course: CourseResponse) => void;
     onClickCourseInfo: (course: CourseResponse) => void;
+    onClose?: () => void;
+    backdrop?: boolean;
+    backdropOpacity?: number;
 }
 
 const HomeBottomModal = ({
     bottomSheetRef,
     heightVal = undefined,
     activeCourse,
+    onClose = () => {},
+    backdrop = true,
+    backdropOpacity = 0.4,
 }: HomeBottomModalProps) => {
     return (
-        <BottomModal bottomSheetRef={bottomSheetRef} heightVal={heightVal}>
+        <BottomModal
+            bottomSheetRef={bottomSheetRef}
+            heightVal={heightVal}
+            onDismiss={onClose}
+            backdrop={backdrop}
+            backdropOpacity={backdropOpacity}
+        >
             <BottomCourseInfoModal
                 bottomSheetRef={bottomSheetRef}
                 course={activeCourse ?? null}
