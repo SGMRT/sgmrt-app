@@ -255,7 +255,7 @@ export default function HomeMap({
                 courses={courses ?? []}
                 onClickCourse={onClickCourse}
                 onClickCourseInfo={onClickCourseInfo}
-                backdrop={false}
+                backdropOpacity={0.1}
             />
         </>
     );
@@ -271,6 +271,7 @@ interface HomeBottomModalProps {
     onClickCourseInfo: (course: CourseResponse) => void;
     onClose?: () => void;
     backdrop?: boolean;
+    backdropOpacity?: number;
 }
 
 const HomeBottomModal = ({
@@ -279,6 +280,7 @@ const HomeBottomModal = ({
     activeCourse,
     onClose = () => {},
     backdrop = true,
+    backdropOpacity = 0.4,
 }: HomeBottomModalProps) => {
     return (
         <BottomModal
@@ -286,6 +288,7 @@ const HomeBottomModal = ({
             heightVal={heightVal}
             onDismiss={onClose}
             backdrop={backdrop}
+            backdropOpacity={backdropOpacity}
         >
             <BottomCourseInfoModal
                 bottomSheetRef={bottomSheetRef}

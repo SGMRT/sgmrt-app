@@ -106,6 +106,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
                 altitude,
                 altitudeAccuracy: joined.location.altitudeAccuracy,
                 speed: joined.location.speed,
+                course: joined.location.course,
                 pressure: joined.pressure?.pressure ?? null,
             },
         });

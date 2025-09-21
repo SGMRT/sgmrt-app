@@ -15,6 +15,7 @@ export type RawRunData = {
         altitude: number | null;
         altitudeAccuracy: number | null;
         speed: number | null;
+        course: number | null;
         pressure: number | null;
     };
 };
