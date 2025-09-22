@@ -37,6 +37,7 @@ const PACE_WINDOW_MS = 30_000;
 const MAX_SPEED_MPS = 15;
 const MIN_VALID_DIST_M = 0.3;
 const ALT_THRESHOLD_M = 0;
+const MAX_VALID_PACE_SEC_PER_KM = 1200;
 
 function clampGlitch(distM: number, dtSec: number): number {
     if (dtSec <= 0) return 0;
@@ -50,7 +51,9 @@ function secPerKmFrom(distM: number, dtSec: number): number | null {
     if (distM <= 0 || dtSec <= 0) return null;
     const v = distM / dtSec;
     if (v <= 0) return null;
-    return 1000 / v;
+    const pace = 1000 / v;
+    if (pace > MAX_VALID_PACE_SEC_PER_KM) return null; // 너무 느리면 무효
+    return pace;
 }
 
 export function updateStats(
