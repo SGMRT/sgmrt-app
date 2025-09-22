@@ -7,7 +7,6 @@ import { initialRunContext, runReducer } from "../state/reducer";
 import { joinedState } from "../store/joinedState";
 import { RunMode } from "../types";
 import { CourseMetadata, CourseVariant } from "../types/status";
-import { anchoredBaroAlt } from "../utils/anchoredBaroAlt";
 import { geoFilter } from "../utils/geoFilter";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useRunAnalytics } from "./useRunAnalytics";
@@ -49,7 +48,6 @@ export function useRunningSession() {
                 variant?: CourseVariant,
                 courseMetadata?: CourseMetadata
             ) => {
-                anchoredBaroAlt.reset();
                 geoFilter.reset();
 
                 dispatch({
@@ -84,12 +82,10 @@ export function useRunningSession() {
                 dispatch({ type: "EXTEND" });
             },
             stop: () => {
-                anchoredBaroAlt.reset();
                 geoFilter.reset();
                 dispatch({ type: "STOP" });
             },
             reset: () => {
-                anchoredBaroAlt.reset();
                 geoFilter.reset();
                 dispatch({ type: "RESET" });
             },
