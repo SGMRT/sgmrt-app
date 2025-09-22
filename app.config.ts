@@ -29,6 +29,7 @@ const config = {
                 NSAppTransportSecurity: {
                     NSAllowsArbitraryLoads: true,
                 },
+                CFBundleDisplayName: "GhostRunner",
             },
             config: {
                 usesNonExemptEncryption: false,

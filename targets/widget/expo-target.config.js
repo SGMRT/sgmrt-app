@@ -3,7 +3,7 @@ module.exports = (config) => ({
     type: "widget",
     icon: "../../assets/images/icon.png",
     colors: { $accent: "#e2ff00", $widgetBackground: "#111111" },
-    name: "GhostRunner Widget",
+    name: "GhostRunnerWidget",
     entitlements: {
         "com.apple.security.application-groups":
             config.ios.entitlements["com.apple.security.application-groups"],
