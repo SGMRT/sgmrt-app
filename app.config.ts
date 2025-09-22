@@ -2,7 +2,7 @@ const isStaging = process.env.EAS_BUILD_PROFILE === "staging";
 
 const config = {
     expo: {
-        name: "ghostrunner",
+        name: "GhostRunner",
         slug: "ghostrunner",
         version: "1.0.0",
         orientation: "portrait",
@@ -29,7 +29,6 @@ const config = {
                 NSAppTransportSecurity: {
                     NSAllowsArbitraryLoads: true,
                 },
-                CFBundleDisplayName: "GhostRunner",
             },
             config: {
                 usesNonExemptEncryption: false,
@@ -43,6 +42,8 @@ const config = {
                 "com.apple.security.application-groups": [
                     "group.com.sgmrt.ghostrunner",
                 ],
+                "com.apple.developer.healthkit": true,
+                "com.apple.developer.healthkit.background-delivery": true,
             },
         },
         android: {
@@ -75,6 +76,8 @@ const config = {
             [
                 "expo-location",
                 {
+                    locationWhenInUsePermission:
+                        "러닝 중 경로 추적과 페이스 계산을 위해 기기의 위치 정보를 사용합니다. 백그라운드에서도 기록을 이어서 저장합니다.",
                     locationAlwaysAndWhenInUsePermission:
                         "러닝 중 경로 추적과 페이스 계산을 위해 기기의 위치 정보를 사용합니다. 백그라운드에서도 기록을 이어서 저장합니다.",
                     isIosBackgroundLocationEnabled: true,
