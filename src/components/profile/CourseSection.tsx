@@ -27,7 +27,15 @@ export const CourseSection = ({
         return <></>;
     }
     if (isError) {
-        return <Typography>코스 정보를 불러오는데 실패했습니다.</Typography>;
+        return (
+            <Typography
+                color="white"
+                variant="body2"
+                style={{ alignSelf: "center", marginTop: 20 }}
+            >
+                코스 정보를 불러오는데 실패했습니다.
+            </Typography>
+        );
     }
     return (
         <View style={{ marginTop: 20, flex: 1 }}>
