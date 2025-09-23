@@ -1,7 +1,7 @@
 import colors from "@/src/theme/colors";
-import { Image } from "expo-image";
+import { errorLog } from "@/src/utils/devLog";
 import { useEffect, useState } from "react";
-import { Platform, StyleSheet, View, ViewStyle } from "react-native";
+import { Image, Platform, StyleSheet, View, ViewStyle } from "react-native";
 import {
     AdsConsent,
     AdsConsentStatus,
@@ -15,7 +15,6 @@ import {
 } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Typography } from "../ui/Typography";
-import { errorLog } from "@/src/utils/devLog";
 
 type Props = { style?: ViewStyle };
 const AD_UNIT_ID = __DEV__
@@ -62,6 +61,13 @@ export default function CompactNativeAdRow({ style }: Props) {
             creactedAd?.destroy?.();
         };
     }, []);
+
+    useEffect(() => {
+        if (!ad) return;
+        return () => {
+            ad.destroy();
+        };
+    }, [ad]);
 
     if (!ad)
         return (
