@@ -29,6 +29,7 @@ const config = {
                 NSAppTransportSecurity: {
                     NSAllowsArbitraryLoads: true,
                 },
+                UIDesignRequiresCompatibility: true,
             },
             config: {
                 usesNonExemptEncryption: false,
