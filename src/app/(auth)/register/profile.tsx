@@ -8,6 +8,7 @@ import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
+import { devLog } from "@/src/utils/devLog";
 import { pickImage } from "@/src/utils/pickImage";
 import * as amplitude from "@amplitude/analytics-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -131,7 +132,7 @@ export default function Profile() {
                 login(res.accessToken, res.refreshToken, res.uuid);
             })
             .catch((err) => {
-                console.log(err);
+                devLog(err);
                 showToast("info", "회원가입 오류. 다시 시도해주세요.", bottom);
                 setIsRegistering(false);
             });

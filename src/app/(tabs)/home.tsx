@@ -10,6 +10,7 @@ import { SuccessToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
+import { devLog } from "@/src/utils/devLog";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
     AuthorizationRequestStatus,
@@ -34,7 +35,7 @@ export default function Home() {
 
     useEffect(() => {
         const checkAuthorization = async () => {
-            console.log("authorizationStatus", authorizationStatus);
+            devLog("authorizationStatus", authorizationStatus);
             if (
                 authorizationStatus === AuthorizationRequestStatus.shouldRequest
             ) {

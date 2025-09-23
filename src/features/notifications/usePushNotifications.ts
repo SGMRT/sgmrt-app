@@ -1,3 +1,4 @@
+import { devLog } from "@/src/utils/devLog";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
 import { registerForPushNotificationsAsync } from "./notifications";
@@ -28,7 +29,7 @@ export function usePushNotifications() {
         const responseSub =
             Notifications.addNotificationResponseReceivedListener(
                 (response) => {
-                    console.log("response", response);
+                    devLog("response", response);
                     // TODO: 라우팅 처리 등 필요
                 }
             );

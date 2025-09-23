@@ -1,7 +1,7 @@
 import colors from "@/src/theme/colors";
-import { Image } from "expo-image";
+import { errorLog } from "@/src/utils/devLog";
 import { useEffect, useState } from "react";
-import { Platform, StyleSheet, View, ViewStyle } from "react-native";
+import { Image, Platform, StyleSheet, View, ViewStyle } from "react-native";
 import {
     AdsConsent,
     AdsConsentStatus,
@@ -52,7 +52,7 @@ export default function CompactNativeAdRow({ style }: Props) {
                 })
                 .catch((e) => {
                     if (!active) return;
-                    console.error(e);
+                    errorLog(e);
                 });
         });
 
@@ -61,6 +61,13 @@ export default function CompactNativeAdRow({ style }: Props) {
             creactedAd?.destroy?.();
         };
     }, []);
+
+    useEffect(() => {
+        if (!ad) return;
+        return () => {
+            ad.destroy();
+        };
+    }, [ad]);
 
     if (!ad)
         return (

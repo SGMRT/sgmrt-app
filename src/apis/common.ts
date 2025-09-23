@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/react-native";
+import { errorLog } from "../utils/devLog";
 import server from "./instance";
 import {
     GetPresignedUrlRequest,
@@ -14,7 +15,7 @@ export async function getPresignedUrl(
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -40,7 +41,7 @@ export async function getDataFromS3(url: string) {
         return await res.text();
     } catch {
         Sentry.captureException(new Error("S3 데이터 가져오기 실패: " + url));
-        console.error("S3 데이터 가져오기 실패: " + url);
+        errorLog("S3 데이터 가져오기 실패: " + url);
         return undefined;
     }
 }
@@ -54,7 +55,7 @@ export async function parseJsonl(data: string) {
                 return JSON.parse(line);
             } catch {
                 Sentry.captureException(new Error("JSONL 파싱 실패: " + line));
-                console.error("JSONL 파싱 실패: " + line);
+                errorLog("JSONL 파싱 실패: " + line);
                 return null;
             }
         })

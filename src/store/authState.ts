@@ -6,6 +6,7 @@ import {
     persist,
     subscribeWithSelector,
 } from "zustand/middleware";
+import { errorLog } from "../utils/devLog";
 
 const secureStorage: PersistStorage<AuthState> = {
     getItem: async (name) => {
@@ -15,7 +16,7 @@ const secureStorage: PersistStorage<AuthState> = {
         try {
             return JSON.parse(raw);
         } catch (e) {
-            console.warn("SecureStore parse error:", e);
+            errorLog("SecureStore parse error:", e);
             return null;
         }
     },

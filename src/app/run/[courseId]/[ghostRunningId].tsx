@@ -27,6 +27,7 @@ import {
 import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
+import { devLog } from "@/src/utils/devLog";
 import {
     getDate,
     getFormattedPace,
@@ -93,7 +94,7 @@ export default function Run() {
             controls,
             onStart: () => {
                 if (context.status === "READY" || isFirst) {
-                    console.log("restarting");
+                    devLog("restarting");
                     setIsRestarting(true);
                     setIsClearCourse(false);
                 }
@@ -213,7 +214,7 @@ export default function Run() {
                 getRunName(context.telemetries.at(-1)?.timeStamp ?? 0) + ".jpg";
             const targetPath = `${FileSystem.cacheDirectory}${filename}`;
 
-            console.log(targetPath);
+            devLog(targetPath);
 
             await FileSystem.copyAsync({
                 from: uri ?? "",
@@ -222,7 +223,7 @@ export default function Run() {
 
             return targetPath;
         } catch (error) {
-            console.log("captureMap error: ", error);
+            devLog("captureMap error: ", error);
             return null;
         }
     }, [context.telemetries]);
@@ -633,10 +634,10 @@ export default function Run() {
                                 url: uri ?? "",
                             })
                                 .then((res) => {
-                                    console.log(res);
+                                    devLog(res);
                                 })
                                 .catch((err) => {
-                                    err && console.log(err);
+                                    err && devLog(err);
                                 });
                         }}
                         onPress={() => {

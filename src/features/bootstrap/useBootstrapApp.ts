@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, InteractionManager, Linking, Platform } from "react-native";
 
 import expoLiveActivity from "@/modules/expo-live-activity";
-import { LOCATION_TASK } from "@/src/types/run";
+import { devLog, errorLog } from "@/src/utils/devLog";
 import {
     getTrackingPermissionsAsync,
     PermissionStatus,
@@ -21,6 +21,7 @@ import mobileAds, {
     AdsConsentStatus,
     MaxAdContentRating,
 } from "react-native-google-mobile-ads";
+import { LOCATION_TASK } from "../run/constants";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
 const VERSION_KEY = "version_v1";
@@ -105,7 +106,7 @@ async function initAds() {
         await mobileAds().initialize();
         ADS_INIT_DONE = true;
     } catch (e) {
-        console.warn("AdMob init error:", e);
+        errorLog("AdMob init error:", e);
     }
 }
 
@@ -118,7 +119,7 @@ async function stopTrackingAndLiveActivity() {
             await expoLiveActivity.endActivity();
         }
     } catch (e) {
-        console.error("Cleanup error:", e);
+        errorLog("Cleanup error:", e);
     }
 }
 
@@ -130,7 +131,7 @@ export async function initAudioModule() {
             shouldPlayInBackground: true,
         } as any);
     } catch (e) {
-        console.error("Audio module init error:", e);
+        errorLog("Audio module init error:", e);
     }
 }
 
@@ -179,7 +180,7 @@ async function bootstrapAnalytics({
         }
         await AsyncStorage.setItem(VERSION_KEY, version ?? "");
     } catch (e) {
-        console.warn("Analytics bootstrap error:", e);
+        errorLog("Analytics bootstrap error:", e);
     }
 }
 
@@ -224,10 +225,10 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 // 4) 라우팅
                 if (cancelled) return;
                 if (isLoggedIn) {
-                    console.log("replace to /(tabs)/home");
+                    devLog("replace to /(tabs)/home");
                     router.replace("/(tabs)/home");
                 } else {
-                    console.log("replace to /(auth)/login");
+                    devLog("replace to /(auth)/login");
                     router.replace("/(auth)/login");
                 }
 
@@ -239,7 +240,7 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                     await initAds();
                 });
             } catch (e) {
-                console.error(e);
+                errorLog(e);
                 if (!cancelled) {
                     setError(e);
                     setStatus("error");

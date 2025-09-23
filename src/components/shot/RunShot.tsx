@@ -1,6 +1,7 @@
 import { GhostIcon } from "@/assets/svgs/svgs";
 import { Telemetry } from "@/src/apis/types/run";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
+import { devLog } from "@/src/utils/devLog";
 import { forwardRef, memo, useImperativeHandle, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import ViewShot from "react-native-view-shot";
@@ -55,7 +56,7 @@ const RunShot = forwardRef<RunShotHandle, RunShotProps>(
                     if (!uri) return null;
                     return uri.startsWith("file://") ? uri : "file://" + uri;
                 } catch (e) {
-                    console.log("RunShot.capture error:", e);
+                    devLog("RunShot.capture error:", e);
                     return null;
                 }
             },

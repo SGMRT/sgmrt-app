@@ -1,4 +1,5 @@
 import { useAuthStore } from "../store/authState";
+import { errorLog } from "../utils/devLog";
 import { getDataFromS3, parseJsonl } from "./common";
 import server from "./instance";
 import {
@@ -18,7 +19,7 @@ export async function deleteCourse(courseId: number) {
         const response = await server.delete(`courses/${courseId}`);
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -40,7 +41,7 @@ export async function patchCourseName(
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -58,7 +59,7 @@ export async function getCourses(
         );
         return await attachTelemetries(filteredResponseData);
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -103,7 +104,7 @@ export async function getCourse(
             courseCheckpoints: checkpoints,
         };
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -121,7 +122,7 @@ export async function getCourseTopRanking({
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -139,7 +140,7 @@ export async function getCourseUserRank({
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -165,7 +166,7 @@ export async function getCourseGhosts({
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -197,7 +198,7 @@ export async function getUserCourses(
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }

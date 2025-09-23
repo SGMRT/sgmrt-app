@@ -2,6 +2,7 @@ import { DefaultLogo } from "@/assets/icons/icons";
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
+import { errorLog } from "@/src/utils/devLog";
 import { getDistance } from "@/src/utils/mapUtils";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
@@ -39,9 +40,7 @@ const CourseListView = ({
                     const { status } =
                         await Location.requestForegroundPermissionsAsync();
                     if (status !== "granted") {
-                        console.error(
-                            "Permission to access location was denied"
-                        );
+                        errorLog("Permission to access location was denied");
                         // 권한이 없으면 인기순으로 대체하거나 사용자에게 알림
                         setSortedCourses(
                             [...courses].sort(
@@ -72,10 +71,7 @@ const CourseListView = ({
                     });
                     setSortedCourses(newSorted);
                 } catch (error) {
-                    console.error(
-                        "Failed to get location or sort courses:",
-                        error
-                    );
+                    errorLog("Failed to get location or sort courses:", error);
                     // 에러 발생 시 기본 정렬 또는 다른 처리
                     setSortedCourses(courses);
                 }

@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/src/store/authState";
+import { devLog } from "@/src/utils/devLog";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as Sentry from "@sentry/react-native";
 import * as Speech from "expo-speech";
@@ -100,7 +101,7 @@ class VoiceGuide {
             const now = Date.now();
             const cool = this.cooldownMs[utter.cooldownKey] ?? 1000;
 
-            console.log("cooldown", utter.cooldownKey, now - last, cool);
+            devLog("cooldown", utter.cooldownKey, now - last, cool);
 
             if (now - last < cool) return;
 
@@ -216,7 +217,7 @@ class VoiceGuide {
                 const timeText =
                     "시간 " +
                     (time.length === 3
-                        ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
+                        ? `${time[0]}시간 ${time[1]}분 ${time[2]}초 `
                         : `${time[0]}분 ${time[1]}초 `);
                 const distanceKm = (event.totalDistance / 1000).toFixed(2);
                 const distanceText = "거리 " + distanceKm + "km ";
@@ -232,7 +233,8 @@ class VoiceGuide {
                         timeText +
                         distanceText +
                         paceText +
-                        caloriesText,
+                        caloriesText +
+                        "입니다.",
                     priority: "CRITICAL",
                     cooldownKey: "run/complete",
                 };
@@ -256,8 +258,8 @@ class VoiceGuide {
                 const timeText =
                     "시간 " +
                     (time.length === 3
-                        ? `${time[0]}시간 ${time[1]}분 ${time[2]}초`
-                        : `${time[0]}분 ${time[1]}초`);
+                        ? `${time[0]}시간 ${time[1]}분 ${time[2]}초 `
+                        : `${time[0]}분 ${time[1]}초 `);
                 const distanceKm = (event.totalDistance / 1000).toFixed(2);
                 const distanceText = "거리 " + distanceKm + "km ";
                 const caloriesText = event.totalCalories
@@ -272,7 +274,8 @@ class VoiceGuide {
                         timeText +
                         distanceText +
                         paceText +
-                        caloriesText,
+                        caloriesText +
+                        "입니다.",
                     priority: "CRITICAL",
                     cooldownKey: "run/stop",
                 };

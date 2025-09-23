@@ -20,6 +20,7 @@ import { encodeTelemetries } from "../apis/utils";
 import { Segment } from "../components/map/RunningLine";
 import { showCompactToast } from "../components/ui/toastConfig";
 import { RawData, UserDashBoardData } from "../types/run";
+import { devLog, errorLog } from "./devLog";
 import { Coordinate, getDistance } from "./mapUtils";
 
 const canShare = (objectType: string) => {
@@ -243,10 +244,10 @@ export async function saveRunning({
         );
         const canWriteRoute = canShare("HKWorkoutRouteTypeIdentifier");
 
-        console.log("canWriteWorkout", canWriteWorkout);
-        console.log("canWriteDistance", canWriteDistance);
-        console.log("canwWriteEnergy", canwWriteEnergy);
-        console.log("canWriteRoute", canWriteRoute);
+        devLog("canWriteWorkout", canWriteWorkout);
+        devLog("canWriteDistance", canWriteDistance);
+        devLog("canwWriteEnergy", canwWriteEnergy);
+        devLog("canWriteRoute", canWriteRoute);
 
         if (!canWriteWorkout) {
             // no-op
@@ -429,7 +430,7 @@ export async function saveRunning({
             return response;
         }
     } catch (error) {
-        console.error(error);
+        errorLog(error);
     }
 }
 

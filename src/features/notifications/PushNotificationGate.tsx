@@ -1,5 +1,6 @@
 import { postUserPushToken } from "@/src/apis";
 import { useAuthStore } from "@/src/store/authState";
+import { devLog } from "@/src/utils/devLog";
 import { useEffect } from "react";
 import { View } from "react-native";
 import { usePushNotifications } from "./usePushNotifications";
@@ -11,7 +12,7 @@ export default function PushNotificationGate() {
     useEffect(() => {
         if (isLoggedIn && expoPushToken && expoPushToken !== "") {
             postUserPushToken(expoPushToken).then(() => {
-                console.log("postUserPushToken");
+                devLog("postUserPushToken");
             });
         }
     }, [expoPushToken, notification, isLoggedIn]);

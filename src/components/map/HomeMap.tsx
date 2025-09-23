@@ -1,5 +1,6 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
+import { devLog } from "@/src/utils/devLog";
 import {
     calculateCenter,
     calculateZoomLevelFromSize,
@@ -206,7 +207,7 @@ export default function HomeMap({
                 logoPosition={{ bottom: TAB_BAR_HEIGHT + 8, left: 10 }}
                 attributionPosition={{ bottom: TAB_BAR_HEIGHT + 6, right: 0 }}
                 onTap={() => {
-                    console.log("onTap");
+                    devLog("onTap");
                     setActiveCourse(null);
                     mapBottomSheetRef.current?.dismiss();
                 }}

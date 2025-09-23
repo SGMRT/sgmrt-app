@@ -1,4 +1,5 @@
 import colors from "@/src/theme/colors";
+import { devLog } from "@/src/utils/devLog";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 
@@ -14,7 +15,7 @@ export default function LoadingLayer({
     useEffect(() => {
         if (limitDelay) {
             setTimeout(() => {
-                console.log("[Delayed] LoadingLayer");
+                devLog("[Delayed] LoadingLayer");
                 onDelayed?.();
             }, limitDelay);
         }

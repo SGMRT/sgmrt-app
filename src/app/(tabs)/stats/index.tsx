@@ -72,7 +72,15 @@ const UserHistory = ({
     }
 
     if (isError) {
-        return <Typography>에러가 발생했습니다.</Typography>;
+        return (
+            <Typography
+                color="white"
+                variant="body2"
+                style={{ alignSelf: "center", marginTop: 20 }}
+            >
+                에러가 발생했습니다.
+            </Typography>
+        );
     }
 
     const flatPages: RunResponse[] = data ?? [];

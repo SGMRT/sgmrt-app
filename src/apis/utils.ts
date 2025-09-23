@@ -1,3 +1,4 @@
+import { errorLog } from "../utils/devLog";
 import { getDataFromS3, parseJsonl } from "./common";
 import { CourseResponse } from "./types/course";
 import { Telemetry, TelemetryCompact } from "./types/run";
@@ -31,7 +32,7 @@ export async function attachTelemetries(
                     normalizeTelemetries(parsed)
                 );
             } catch (err) {
-                console.error("Failed to load telemetries for", course.id, err);
+                errorLog("Failed to load telemetries for", course.id, err);
                 course.telemetries = [];
             }
         })

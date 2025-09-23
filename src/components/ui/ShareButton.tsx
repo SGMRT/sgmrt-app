@@ -1,4 +1,5 @@
 import { ShareIcon } from "@/assets/svgs/svgs";
+import { devLog } from "@/src/utils/devLog";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { Pressable, StyleSheet } from "react-native";
 import Share from "react-native-share";
@@ -27,13 +28,13 @@ export default function ShareButton({
                     url: uri ?? "",
                 })
                     .then((res) => {
-                        console.log(res);
+                        devLog(res);
                         if (res.success) {
                             amplitude.track("Run Shared");
                         }
                     })
                     .catch((err) => {
-                        err && console.log(err);
+                        err && devLog(err);
                     });
             }}
         >

@@ -17,7 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Application from "expo-application";
 import * as Notifications from "expo-notifications";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
     Alert,
     Image,
@@ -67,12 +67,16 @@ export const Info = ({
     const { bottom } = useSafeAreaInsets();
     const queryClient = useQueryClient();
 
-    const { setUserInfo: setUserInfoStore, setUserSettings: setUserSettings } =
-        useAuthStore();
+    const {
+        setUserInfo: setUserInfoStore,
+        setUserSettings: setUserSettings,
+        userSettings: userSettingsStore,
+    } = useAuthStore();
     const { logout } = useAuthStore();
     const { granted, refresh } = useLocalNotificationPermission({
         withActiveRetry: true,
     });
+    const [refreshing, setRefreshing] = useState(false);
 
     const {
         data: userInfo,
@@ -114,6 +118,10 @@ export const Info = ({
             >
         ) => patchUserSettings(payload),
         onMutate: async (payload) => {
+            setUserSettings({
+                ...userSettingsStore!,
+                ...payload,
+            });
             await queryClient.cancelQueries({ queryKey: ["user", "info"] });
             const prev = queryClient.getQueryData<GetUserInfoResponse>([
                 "user",
@@ -250,8 +258,6 @@ export const Info = ({
         patchProfileMutation.mutate(image.uri);
     };
 
-    const refreshing = isFetching || isRefetching;
-
     return (
         <ScrollView
             ref={scrollViewRef}
@@ -264,7 +270,12 @@ export const Info = ({
             refreshControl={
                 <RefreshControl
                     refreshing={!!refreshing}
-                    onRefresh={() => refetch()}
+                    onRefresh={() => {
+                        setRefreshing(true);
+                        refetch().finally(() => {
+                            setRefreshing(false);
+                        });
+                    }}
                 />
             }
         >
@@ -299,9 +310,13 @@ export const Info = ({
                     rightElement={
                         <StyledSwitch
                             isSelected={
-                                (userInfo?.pushAlarmEnabled && granted) ?? false
+                                (userSettingsStore?.pushAlarmEnabled &&
+                                    granted) ??
+                                false
                             }
-                            onValueChange={handlePushAlarmChange}
+                            onValueChange={(value) => {
+                                handlePushAlarmChange(value);
+                            }}
                         />
                     }
                 />
@@ -318,7 +333,9 @@ export const Info = ({
                     title="음성 안내"
                     rightElement={
                         <StyledSwitch
-                            isSelected={userInfo?.voiceGuidanceEnabled ?? false}
+                            isSelected={
+                                userSettingsStore?.voiceGuidanceEnabled ?? false
+                            }
                             onValueChange={handleSpeechChange}
                         />
                     }
