@@ -534,29 +534,34 @@ export default function Run() {
                     {context.status !== "PAUSED_USER" &&
                     context.status !== "PAUSED_OFFCOURSE" ? (
                         <Button
-                            disabled={
-                                context.status === "READY" ||
-                                context.status === "IDLE"
+                            disabled={context.status === "IDLE"}
+                            title={
+                                context.status === "READY"
+                                    ? "나가기"
+                                    : "일시정지"
                             }
-                            title="일시정지"
                             onPress={() => {
-                                Alert.alert(
-                                    "러닝을 일시정지하시겠습니까?",
-                                    "계속하기를 누르면 이어서 러닝이 가능합니다.",
-                                    [
-                                        {
-                                            text: "계속하기",
-                                            style: "default",
-                                        },
-                                        {
-                                            text: "일시정지",
-                                            style: "destructive",
-                                            onPress: () => {
-                                                controls.pauseUser();
+                                if (context.status === "READY") {
+                                    router.back();
+                                } else {
+                                    Alert.alert(
+                                        "러닝을 일시정지하시겠습니까?",
+                                        "계속하기를 누르면 이어서 러닝이 가능합니다.",
+                                        [
+                                            {
+                                                text: "계속하기",
+                                                style: "default",
                                             },
-                                        },
-                                    ]
-                                );
+                                            {
+                                                text: "일시정지",
+                                                style: "destructive",
+                                                onPress: () => {
+                                                    controls.pauseUser();
+                                                },
+                                            },
+                                        ]
+                                    );
+                                }
                             }}
                             type="red"
                         />
