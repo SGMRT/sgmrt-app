@@ -9,7 +9,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Alert, InteractionManager, Linking, Platform } from "react-native";
 
 import expoLiveActivity from "@/modules/expo-live-activity";
-import { LOCATION_TASK } from "@/src/types/run";
 import { devLog, errorLog } from "@/src/utils/devLog";
 import {
     getTrackingPermissionsAsync,
@@ -22,6 +21,7 @@ import mobileAds, {
     AdsConsentStatus,
     MaxAdContentRating,
 } from "react-native-google-mobile-ads";
+import { LOCATION_TASK } from "../run/constants";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
 const VERSION_KEY = "version_v1";
