@@ -1,3 +1,4 @@
+import { devLog } from "@/src/utils/devLog";
 import { useEffect, useRef } from "react";
 import { RunContext } from "../run/state/context";
 import { voiceGuide } from "./VoiceGuide";
@@ -31,7 +32,7 @@ export function useRunVoice(context: RunContext) {
         const curr = context.status;
 
         if (prev !== curr) {
-            console.log("useRunVoice", prev, curr);
+            devLog("useRunVoice", prev, curr);
             switch (curr) {
                 case "RUNNING": {
                     if (prev === "IDLE" || prev == null || prev === "READY") {

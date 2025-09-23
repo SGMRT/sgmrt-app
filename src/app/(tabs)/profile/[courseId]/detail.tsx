@@ -15,6 +15,7 @@ import TabBar from "@/src/components/ui/TabBar";
 import { Typography } from "@/src/components/ui/Typography";
 import { UserCount } from "@/src/components/ui/UserCount";
 import colors from "@/src/theme/colors";
+import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
@@ -91,7 +92,7 @@ export default function Result() {
 
             return targetPath;
         } catch (error) {
-            console.log("captureMap error: ", error);
+            devLog("captureMap error: ", error);
             return null;
         }
     }, [course?.name]);

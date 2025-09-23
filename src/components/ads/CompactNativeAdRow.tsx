@@ -15,6 +15,7 @@ import {
 } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Typography } from "../ui/Typography";
+import { errorLog } from "@/src/utils/devLog";
 
 type Props = { style?: ViewStyle };
 const AD_UNIT_ID = __DEV__
@@ -52,7 +53,7 @@ export default function CompactNativeAdRow({ style }: Props) {
                 })
                 .catch((e) => {
                     if (!active) return;
-                    console.error(e);
+                    errorLog(e);
                 });
         });
 

@@ -5,6 +5,7 @@ import LoginButton from "@/src/components/sign/LoginButton";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { useAuthStore } from "@/src/store/authState";
+import { devLog } from "@/src/utils/devLog";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
 import {
@@ -217,7 +218,7 @@ async function handleLogin({
 
         amplitude.track("Sign In", { provider: providerId });
     } catch (err: any) {
-        console.log(err);
+        devLog(err);
         if (err?.response?.status !== 404) {
             showToast("info", "로그인에 실패했습니다.", bottom);
             throw err;

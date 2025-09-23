@@ -25,6 +25,7 @@ import TabBar from "@/src/components/ui/TabBar";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
+import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -232,7 +233,7 @@ export default function Result() {
 
             const filename = runData?.runningName + ".jpg";
             const targetPath = `${FileSystem.cacheDirectory}${filename}`;
-            console.log(targetPath);
+            devLog(targetPath);
 
             await FileSystem.copyAsync({
                 from: uri ?? "",
@@ -241,7 +242,7 @@ export default function Result() {
 
             return targetPath;
         } catch (error) {
-            console.log("captureMap error: ", error);
+            devLog("captureMap error: ", error);
             return null;
         }
     }, [runData?.runningName]);
@@ -298,10 +299,10 @@ export default function Result() {
                                         url: uri ?? "",
                                     })
                                         .then((res) => {
-                                            console.log(res);
+                                            devLog(res);
                                         })
                                         .catch((err) => {
-                                            err && console.log(err);
+                                            err && devLog(err);
                                         });
                                 }}
                             >

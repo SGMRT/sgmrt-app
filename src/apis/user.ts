@@ -1,5 +1,6 @@
 import { useAuthStore } from "../store/authState";
 import { SignupAgreement } from "../types/signup";
+import { devLog, errorLog } from "../utils/devLog";
 import server from "./instance";
 import {
     GetUserInfoResponse,
@@ -12,7 +13,7 @@ import {
 import { getUpdateAttrs } from "./utils";
 
 export async function signIn(data: SignInRequest): Promise<SignResponse> {
-    console.log("signIn", data);
+    devLog("signIn", data);
     try {
         const response = await server.post(
             `auth/firebase-signin`,
@@ -26,7 +27,7 @@ export async function signIn(data: SignInRequest): Promise<SignResponse> {
         );
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -41,7 +42,7 @@ export async function signUp(data: SignUpRequest): Promise<SignResponse> {
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -65,7 +66,7 @@ export async function reIssueToken() {
         useAuthStore.getState().login(uuid, accessToken, refreshToken);
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -88,7 +89,7 @@ export async function invalidateToken() {
         useAuthStore.getState().logout();
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -102,7 +103,7 @@ export async function postTermsAgreement(termsAgreement: SignupAgreement) {
         );
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -113,7 +114,7 @@ export async function getUserInfo(): Promise<GetUserInfoResponse> {
         const response = await server.get(`members/${uuid}`);
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -124,7 +125,7 @@ export async function deleteUser() {
         const response = await server.delete(`members/${uuid}`);
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -139,7 +140,7 @@ export async function patchUserInfo(data: PatchUserInfoRequest) {
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -150,7 +151,7 @@ export async function patchUserSettings(data: PatchUserSettingsRequest) {
         const response = await server.patch(`members/${uuid}/settings`, data);
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }

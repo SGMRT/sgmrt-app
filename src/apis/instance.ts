@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/react-native";
 import axios from "axios";
 import { useAuthStore } from "../store/authState";
+import { devLog } from "../utils/devLog";
 
 declare module "axios" {
     interface AxiosRequestConfig {
@@ -94,7 +95,7 @@ server.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        console.log(error.response.data);
+        devLog(error.response.data);
 
         Sentry.withScope((scope: Sentry.Scope) => {
             scope.setTags({

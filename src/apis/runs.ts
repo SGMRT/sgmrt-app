@@ -1,3 +1,4 @@
+import { errorLog } from "../utils/devLog";
 import { getDataFromS3, parseJsonl } from "./common";
 import server from "./instance";
 import {
@@ -14,7 +15,7 @@ export async function postRun(data: FormData) {
         const response = await server.post(`runs`, data, {});
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -24,7 +25,7 @@ export async function postCourseRun(data: FormData, courseId: number) {
         const response = await server.post(`runs/courses/${courseId}`, data);
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -36,7 +37,7 @@ export async function patchRunName(runningId: number, name: string) {
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -46,7 +47,7 @@ export async function patchRunIsPublic(runningId: number) {
         const response = await server.patch(`runs/${runningId}/isPublic`);
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -71,7 +72,7 @@ export async function getRun(
 
         return { ...response.data, telemetries } as SoloRunGetResponse;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -111,7 +112,7 @@ export async function getRunComperison(
         );
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -121,7 +122,7 @@ export async function toggleRunPublicStatus(runningId: number) {
         const response = await server.patch(`runs/${runningId}/public`);
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -135,7 +136,7 @@ export async function deleteRun(runningId: number) {
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }
@@ -147,7 +148,7 @@ export async function getRuns(request: RunsRequest): Promise<RunResponse[]> {
         });
         return response.data;
     } catch (error) {
-        console.error(error);
+        errorLog(error);
         throw error;
     }
 }

@@ -1,4 +1,5 @@
 import { useLocationInfoStore } from "@/src/store/locationInfo";
+import { devLog } from "@/src/utils/devLog";
 import axios from "axios";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useState } from "react";
@@ -30,7 +31,7 @@ export default function WeatherInfo() {
                 return;
             }
 
-            console.log("기상 정보 요청");
+            devLog("기상 정보 요청");
 
             const [address, temperature] = await Promise.all([
                 Location.reverseGeocodeAsync({
