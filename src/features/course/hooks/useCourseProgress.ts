@@ -240,12 +240,23 @@ export function useCourseProgress(props: CourseProgressProps) {
             }
         } else if (context.status === "PAUSED_OFFCOURSE") {
             if (Date.now() < onRearmAtRef.current) return;
-            const n = nearestPointOnPolylineMeters(leg.points, current);
-            if (n.distanceM <= offReturnM) {
-                offRef.current = false;
-                offAnchorRef.current = null;
-                offRearmAtRef.current = Date.now() + OFFCOURSE_REARM_MS;
-                controls.oncourse();
+            const anchor = offAnchorRef.current;
+            if (anchor) {
+                const dToAnchor = getDistance(current, anchor);
+                if (dToAnchor <= offReturnM) {
+                    offRef.current = false;
+                    offAnchorRef.current = null;
+                    offRearmAtRef.current = Date.now() + OFFCOURSE_REARM_MS;
+                    controls.oncourse();
+                }
+            } else {
+                const n = nearestPointOnPolylineMeters(leg.points, current);
+                if (n.distanceM <= offReturnM) {
+                    offRef.current = false;
+                    offAnchorRef.current = null;
+                    offRearmAtRef.current = Date.now() + OFFCOURSE_REARM_MS;
+                    controls.oncourse();
+                }
             }
         }
 
