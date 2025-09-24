@@ -12,12 +12,12 @@ import { selectUserLocation } from "../../run/state/selectors";
 import { CourseLeg } from "../types/courseLeg";
 import { buildCourseLegs } from "../utils/buildCourseLegs";
 import {
-    nearestDistanceToPolylineM,
+    nearestPointOnPolylineMeters,
     remainingAlongLegM,
 } from "../utils/courseGeometry";
 import { dedupeConsecutiveByLatLng } from "../utils/dedupeConsecutiveByLatLng";
 
-const OFFCOURSE_TOAST_MS = 3200;
+const OFFCOURSE_REARM_MS = 10000;
 const OFFCOURSE_NOTIFY_INTERVAL_MS = 4000;
 const OFFCOURSE_AUTO_STOP_MS = 10 * 60 * 1000;
 
@@ -52,6 +52,9 @@ export function useCourseProgress(props: CourseProgressProps) {
     const [checkpoints, setCheckpoints] = useState<Checkpoint[]>([]);
     const [legs, setLegs] = useState<CourseLeg[]>([]);
     const [legIndex, setLegIndex] = useState<number>(0);
+
+    const offRearmAtRef = useRef<number>(0); // 다음 "오프코스 진입" 판정을 허용하는 시각
+    const onRearmAtRef = useRef<number>(0); // 다음 "온코스 복귀" 판정을 허용하는 시각
 
     // 내부 상태
     const startedRef = useRef(false);
@@ -89,6 +92,8 @@ export function useCourseProgress(props: CourseProgressProps) {
             offRef.current = false;
             offAnchorRef.current = course[0];
             approachFiredRef.current.clear();
+            offRearmAtRef.current = 0;
+            onRearmAtRef.current = 0;
         },
         []
     );
@@ -116,24 +121,10 @@ export function useCourseProgress(props: CourseProgressProps) {
             if (offRef.current) return;
             offRef.current = true;
             offAnchorRef.current = anchor;
+            onRearmAtRef.current = Date.now() + OFFCOURSE_REARM_MS;
             controls.offcourse();
         },
         [controls]
-    );
-
-    const tryReturnOncourse = useCallback(
-        (cur: Telemetry) => {
-            if (!offRef.current) return;
-            const anchor = offAnchorRef.current;
-            if (!anchor) return;
-            const d = getDistance(cur, anchor);
-            if (d <= offReturnM) {
-                offRef.current = false;
-                offAnchorRef.current = null;
-                controls.oncourse();
-            }
-        },
-        [controls, offReturnM]
     );
 
     useEffect(() => {
@@ -242,12 +233,31 @@ export function useCourseProgress(props: CourseProgressProps) {
 
         // 2) 오프코스 진입/복귀 (앵커 기반 복귀)
         if (context.status === "RUNNING") {
-            const distToLine = nearestDistanceToPolylineM(leg.points, current);
-            if (distToLine > offEnterM) {
-                enterOffcourse(current);
+            if (Date.now() < offRearmAtRef.current) return;
+            const n = nearestPointOnPolylineMeters(leg.points, current);
+            if (n.distanceM > offEnterM) {
+                enterOffcourse(n.closestPoint as Telemetry);
             }
         } else if (context.status === "PAUSED_OFFCOURSE") {
-            tryReturnOncourse(current);
+            if (Date.now() < onRearmAtRef.current) return;
+            const anchor = offAnchorRef.current;
+            if (anchor) {
+                const dToAnchor = getDistance(current, anchor);
+                if (dToAnchor <= offReturnM) {
+                    offRef.current = false;
+                    offAnchorRef.current = null;
+                    offRearmAtRef.current = Date.now() + OFFCOURSE_REARM_MS;
+                    controls.oncourse();
+                }
+            } else {
+                const n = nearestPointOnPolylineMeters(leg.points, current);
+                if (n.distanceM <= offReturnM) {
+                    offRef.current = false;
+                    offAnchorRef.current = null;
+                    offRearmAtRef.current = Date.now() + OFFCOURSE_REARM_MS;
+                    controls.oncourse();
+                }
+            }
         }
 
         if (context.status !== "RUNNING") return;
@@ -327,7 +337,7 @@ export function useCourseProgress(props: CourseProgressProps) {
         guideAdvanceM,
         offEnterM,
         enterOffcourse,
-        tryReturnOncourse,
+        offReturnM,
         safeComplete,
         startEnterM,
         passCpM,

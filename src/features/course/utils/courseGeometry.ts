@@ -54,40 +54,81 @@ export function progressAlongCourseM(
 export const nearestDistanceToPolylineM = (
     poly: Telemetry[],
     p: Telemetry
-): number => {
-    if (poly.length === 0) return Infinity;
-    if (poly.length === 1) return getDistance(poly[0], p);
+): number => nearestPointOnPolylineMeters(poly, p).distanceM;
+export interface NearestPointResult {
+    distanceM: number; // p와 폴리라인 사이 최소 거리(m)
+    segmentIndex: number; // 가까운 점이 속한 세그먼트 시작 인덱스 (i-1)
+    t: number; // 세그먼트 내 보간값 [0..1]
+    closestPoint: { lat: number; lng: number }; // 폴리라인 위 스냅된 지점(lat,lng)
+}
+
+export function nearestPointOnPolylineMeters(
+    poly: Telemetry[],
+    p: Telemetry
+): NearestPointResult {
+    if (poly.length === 0) {
+        return { distanceM: Infinity, segmentIndex: -1, t: 0, closestPoint: p };
+    }
+    if (poly.length === 1) {
+        return {
+            distanceM: getDistance(poly[0], p),
+            segmentIndex: 0,
+            t: 0,
+            closestPoint: poly[0],
+        };
+    }
 
     const R = 6371000; // m
-    const toRad = (d: number) => (Math.PI / 180) * d;
-    const lat0 = toRad(p.lat);
-    const k = (Math.PI / 180) * R;
-    const toXY = (a: { lat: number; lng: number }) => {
-        const x = (a.lng - p.lng) * Math.cos(lat0) * k;
-        const y = (a.lat - p.lat) * k;
-        return { x, y };
-    };
+    const DEG = Math.PI / 180;
+    const lat0 = p.lat * DEG;
+    const k = DEG * R;
+    const toXY = (a: Telemetry) => ({
+        x: (a.lng - p.lng) * Math.cos(lat0) * k,
+        y: (a.lat - p.lat) * k,
+    });
+    const toLL = (x: number, y: number): { lat: number; lng: number } => ({
+        lat: p.lat + y / k,
+        lng: p.lng + x / (k * Math.cos(lat0)),
+    });
 
     let best = Infinity;
+    let bestSeg = 0;
+    let bestT = 0;
+    let bestX = 0;
+    let bestY = 0;
+
     let prev = toXY(poly[0]);
     for (let i = 1; i < poly.length; i++) {
         const cur = toXY(poly[i]);
 
         const vx = cur.x - prev.x;
         const vy = cur.y - prev.y;
-        const wx = 0 - prev.x;
-        const wy = 0 - prev.y;
         const vv = vx * vx + vy * vy;
-        let t = vv === 0 ? 0 : (wx * vx + wy * vy) / vv;
+
+        // 원점(=p)을 선분(prev->cur)에 투영
+        let t = vv === 0 ? 0 : (-prev.x * vx + -prev.y * vy) / vv;
         if (t < 0) t = 0;
         else if (t > 1) t = 1;
 
-        const projX = prev.x + t * vx;
-        const projY = prev.y + t * vy;
-        const dist = Math.hypot(projX, projY);
-        if (dist < best) best = dist;
+        const px = prev.x + t * vx;
+        const py = prev.y + t * vy;
+        const d = Math.hypot(px, py);
+
+        if (d < best) {
+            best = d;
+            bestSeg = i - 1;
+            bestT = t;
+            bestX = px;
+            bestY = py;
+        }
 
         prev = cur;
     }
-    return best;
-};
+
+    return {
+        distanceM: best,
+        segmentIndex: bestSeg,
+        t: bestT,
+        closestPoint: toLL(bestX, bestY),
+    };
+}
