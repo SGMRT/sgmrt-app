@@ -1,6 +1,11 @@
 import { CourseResponse } from "@/src/apis/types/course";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
-import { CircleLayer, LineLayer, ShapeSource } from "@rnmapbox/maps";
+import {
+    CircleLayer,
+    LineLayer,
+    ShapeSource,
+    SymbolLayer,
+} from "@rnmapbox/maps";
 import { memo } from "react";
 
 interface CourseProps {
@@ -42,6 +47,20 @@ export default memo(function CourseLayer({
                             : mapboxStyles.inactiveLineLayer
                     }
                     aboveLayerID={isActive ? `z-index-5` : `z-index-2`}
+                />
+
+                <SymbolLayer
+                    id={`arrow-layer-${course.id}`}
+                    aboveLayerID={`line-layer-${course.id}`}
+                    style={{
+                        symbolPlacement: "line", // 핵심!
+                        symbolSpacing: 80,
+                        iconImage: isActive ? "arrow-p" : "",
+                        iconSize: 1.0,
+                        iconAllowOverlap: true,
+                        iconIgnorePlacement: true,
+                        iconRotationAlignment: "map", // 지도의 각도 기준 회전
+                    }}
                 />
             </ShapeSource>
             <ShapeSource

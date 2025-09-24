@@ -13,7 +13,7 @@ import {
 import { useCallback, useRef, useState } from "react";
 import { Image as RNImage, StyleSheet, View } from "react-native";
 
-import { Bearing, Puck2, Puck3 } from "@/assets/icons/icons";
+import { ArrowP, ArrowW, Bearing, Puck2, Puck3 } from "@/assets/icons/icons";
 import colors from "@/src/theme/colors";
 import ControlPannel from "./ControlPannel";
 
@@ -139,6 +139,12 @@ export default function MapViewWrapper({
                     </Image>
                     <Image name="puck3">
                         <RNImage source={Puck3} />
+                    </Image>
+                    <Image name="arrow-p">
+                        <RNImage source={ArrowP} />
+                    </Image>
+                    <Image name="arrow-w">
+                        <RNImage source={ArrowW} />
                     </Image>
                 </Images>
                 <StyleImport

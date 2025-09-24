@@ -307,7 +307,20 @@ export default function Run() {
                     }}
                     title="이어서 러닝"
                     onPress={() => {
-                        controls.resume();
+                        Alert.alert(
+                            "러닝을 이어서 시작하시겠습니까?",
+                            "일시정지 후 재개한 러닝은 고스트를 생성할 수 없습니다.",
+                            [
+                                { text: "취소", style: "cancel" },
+                                {
+                                    text: "계속하기",
+                                    style: "default",
+                                    onPress: () => {
+                                        controls.resume();
+                                    },
+                                },
+                            ]
+                        );
                     }}
                 />
             )}

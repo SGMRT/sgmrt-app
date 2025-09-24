@@ -55,7 +55,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     for (const loc of locations) {
         const { latitude, longitude, accuracy, altitude } = loc.coords;
 
-        if (accuracy != null && accuracy > MAX_ACCURACY_METERS) {
+        if (accuracy != null && accuracy > MAX_ACCURACY_METERS && !__DEV__) {
             devLog("[LOCATION] 위치 불확실성 높음", accuracy);
             continue;
         }
