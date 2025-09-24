@@ -54,7 +54,7 @@ export default memo(function CourseLayer({
                     aboveLayerID={`line-layer-${course.id}`}
                     style={{
                         symbolPlacement: "line", // 핵심!
-                        symbolSpacing: 30,
+                        symbolSpacing: 80,
                         iconImage: isActive ? "arrow-p" : "",
                         iconSize: 1.0,
                         iconAllowOverlap: true,
