@@ -11,7 +11,12 @@ import Logo from "./logo.png";
 import Needle from "./needle.png";
 import TouchText from "./touch.png";
 
+import ArrowP from "./arrow-p.png";
+import ArrowW from "./arrow-w.png";
+
 export {
+    ArrowP,
+    ArrowW,
     Bearing,
     DefaultLogo,
     DefaultProfileIcon,
