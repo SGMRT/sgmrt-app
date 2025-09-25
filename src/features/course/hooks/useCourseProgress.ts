@@ -94,6 +94,7 @@ export function useCourseProgress(props: CourseProgressProps) {
             approachFiredRef.current.clear();
             offRearmAtRef.current = 0;
             onRearmAtRef.current = 0;
+            endApproachAlertRef.current = false;
         },
         []
     );
@@ -111,6 +112,7 @@ export function useCourseProgress(props: CourseProgressProps) {
 
     // 안전 래퍼
     const safeComplete = useCallback(() => {
+        console.log("호출");
         if (completedRef.current) return;
         completedRef.current = true;
         controls.complete();
