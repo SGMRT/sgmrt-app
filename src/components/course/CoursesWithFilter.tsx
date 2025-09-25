@@ -1,6 +1,6 @@
 import { UserCourseInfo } from "@/src/apis/types/course";
 import colors from "@/src/theme/colors";
-import { formatDate } from "@/src/utils/formatDate";
+import { endOfDay, formatDate, startOfDay } from "@/src/utils/formatDate";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
@@ -68,8 +68,10 @@ export const CoursesWithFilter = ({
         startDate: Date;
         endDate: Date;
     }>({
-        startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
-        endDate: new Date(),
+        startDate: startOfDay(
+            new Date(new Date().setDate(new Date().getDate() - 30))
+        ),
+        endDate: endOfDay(new Date()),
     });
     const [bottomSheetType, setBottomSheetType] = useState<
         "date" | "filter" | "view"

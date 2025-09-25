@@ -1,5 +1,6 @@
 import { BackIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
+import { endOfDay, startOfDay } from "@/src/utils/formatDate";
 import { useMemo } from "react";
 import { Pressable, View } from "react-native";
 import { Calendar } from "react-native-calendars";
@@ -25,8 +26,8 @@ export const GoRunCalendar = ({
             period.startDate < period.endDate
         ) {
             setPeriod({
-                startDate: selectedDateObj,
-                endDate: selectedDateObj,
+                startDate: startOfDay(selectedDateObj),
+                endDate: endOfDay(selectedDateObj),
             });
             return;
         }

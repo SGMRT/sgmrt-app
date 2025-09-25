@@ -56,7 +56,7 @@ export default memo(function CourseLayer({
                         symbolPlacement: "line", // 핵심!
                         symbolSpacing: 80,
                         iconImage: isActive ? "arrow-p" : "",
-                        iconSize: 1.0,
+                        iconSize: 0.25,
                         iconAllowOverlap: true,
                         iconIgnorePlacement: true,
                         iconRotationAlignment: "map", // 지도의 각도 기준 회전
