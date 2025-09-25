@@ -37,6 +37,7 @@ import {
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
+import { useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -273,6 +274,8 @@ export default function Run() {
         }
     }, [context.status, requestSave]);
 
+    const queryClient = useQueryClient();
+
     // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {
         if (!isSaving) return;
@@ -317,6 +320,9 @@ export default function Run() {
                     "기록 저장에 실패했습니다. 다시 시도해주세요."
                 );
             } finally {
+                queryClient.invalidateQueries({
+                    queryKey: ["runs"],
+                });
                 setIsSaving(false);
                 setThumbnailUri(null);
                 setRunShotType("share");
@@ -334,6 +340,7 @@ export default function Run() {
         ghostRunningId,
         courseId,
         isClearCourse,
+        queryClient,
     ]);
 
     const now = useNow(

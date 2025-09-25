@@ -29,7 +29,7 @@ import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -79,9 +79,10 @@ export default function Result() {
 
     const router = useRouter();
 
+    const queryClient = useQueryClient();
+
     const {
         data: runData,
-        refetch,
         isLoading,
         isError,
     } = useQuery({
@@ -510,27 +511,39 @@ export default function Result() {
                                 runData?.courseInfo.id,
                                 courseName,
                                 true
-                            ).then(() => {
-                                bottomSheetRef.current?.dismiss();
-                                router.replace({
-                                    pathname: "/(tabs)/profile",
-                                    params: {
-                                        tab: "course",
-                                    },
+                            )
+                                .then(() => {
+                                    bottomSheetRef.current?.dismiss();
+                                    router.replace({
+                                        pathname: "/(tabs)/profile",
+                                        params: {
+                                            tab: "course",
+                                        },
+                                    });
+                                    amplitude.track("Course Created", {
+                                        courseId: runData?.courseInfo.id,
+                                        courseName: courseName,
+                                        distance: runData?.recordInfo.distance,
+                                        elevationGain:
+                                            runData?.recordInfo.elevationGain,
+                                    });
+                                    showToast(
+                                        "success",
+                                        "코스가 등록되었습니다",
+                                        bottom
+                                    );
+                                })
+                                .finally(() => {
+                                    queryClient.invalidateQueries({
+                                        queryKey: ["courses"],
+                                    });
+                                    queryClient.invalidateQueries({
+                                        queryKey: ["course", courseId],
+                                    });
+                                    queryClient.invalidateQueries({
+                                        queryKey: ["user-courses"],
+                                    });
                                 });
-                                amplitude.track("Course Created", {
-                                    courseId: runData?.courseInfo.id,
-                                    courseName: courseName,
-                                    distance: runData?.recordInfo.distance,
-                                    elevationGain:
-                                        runData?.recordInfo.elevationGain,
-                                });
-                                showToast(
-                                    "success",
-                                    "코스가 등록되었습니다",
-                                    bottom
-                                );
-                            });
                         }}
                         type="active"
                     />
