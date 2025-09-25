@@ -4,6 +4,7 @@ import { HistoryWithFilter } from "@/src/components/course/HistoryWithFilter";
 import Header from "@/src/components/ui/Header";
 import TabBar from "@/src/components/ui/TabBar";
 import { Typography } from "@/src/components/ui/Typography";
+import { endOfDay, startOfDay } from "@/src/utils/formatDate";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -41,12 +42,16 @@ const UserHistory = ({
     shouldRefresh: boolean;
 }) => {
     // 검색 기간과 필터 타입을 상위에서 관리하여 서버 요청에 반영
+    // 시작 날 00시 00분
+    // 종료 날 23시 59분 59초
     const [searchPeriod, setSearchPeriod] = useState<{
         startDate: Date;
         endDate: Date;
     }>({
-        startDate: new Date(new Date().setDate(new Date().getDate() - 30)),
-        endDate: new Date(),
+        startDate: startOfDay(
+            new Date(new Date().setDate(new Date().getDate() - 30))
+        ),
+        endDate: endOfDay(new Date()),
     });
 
     const [selectedFilter, setSelectedFilter] = useState<"date" | "course">(

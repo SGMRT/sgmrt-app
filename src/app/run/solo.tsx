@@ -23,6 +23,7 @@ import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, BackHandler, StyleSheet, View } from "react-native";
@@ -124,6 +125,8 @@ export default function Run() {
         controls.stop();
     }, [isSaving, context.telemetries, controls]);
 
+    const queryClient = useQueryClient();
+
     // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {
         if (!isSaving) return;
@@ -156,6 +159,9 @@ export default function Run() {
                     "기록 저장에 실패했습니다. 다시 시도해주세요."
                 );
             } finally {
+                queryClient.invalidateQueries({
+                    queryKey: ["runs"],
+                });
                 setIsSaving(false);
                 setThumbnailUri(null);
                 setSavingTelemetries([]);
@@ -167,6 +173,7 @@ export default function Run() {
         context.telemetries,
         context.mainTimeline,
         router,
+        queryClient,
         controls,
         context.stats,
     ]);

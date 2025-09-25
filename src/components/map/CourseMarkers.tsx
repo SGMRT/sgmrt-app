@@ -38,6 +38,7 @@ export default function CourseMarkers({
                 course={course}
                 isActive={activeCourseId === course.id}
                 onClickCourse={onClickCourse}
+                displayArrow={true}
             />
         </View>
     );

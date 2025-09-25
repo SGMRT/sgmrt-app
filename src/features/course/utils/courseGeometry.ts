@@ -132,3 +132,41 @@ export function nearestPointOnPolylineMeters(
         closestPoint: toLL(bestX, bestY),
     };
 }
+
+export function remainingAlongLegM_projected(
+    polyline: Telemetry[],
+    point: Telemetry
+): number {
+    if (polyline.length === 0) return Infinity;
+    if (polyline.length === 1) return getDistance(point, polyline[0]);
+
+    const { segmentIndex, t, closestPoint } = nearestPointOnPolylineMeters(
+        polyline,
+        point
+    );
+
+    // 1) 투영점 → 해당 세그먼트의 끝점까지
+    let rest = getDistance(
+        { lat: closestPoint.lat, lng: closestPoint.lng },
+        polyline[segmentIndex + 1]
+    );
+
+    // 2) 그 다음 세그먼트들 전부
+    for (let i = segmentIndex + 1; i < polyline.length - 1; i++) {
+        rest += getDistance(polyline[i], polyline[i + 1]);
+    }
+
+    return rest;
+}
+
+export function progressAlongCourseM_projected(
+    legs: CourseLeg[],
+    legIndex: number,
+    point: Telemetry
+) {
+    const leg = legs[legIndex];
+    if (!leg) return 0;
+
+    const remaining = remainingAlongLegM_projected(leg.points, point);
+    return Math.max(0, leg.cumDistance - remaining);
+}

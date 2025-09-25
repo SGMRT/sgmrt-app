@@ -13,13 +13,18 @@ import { useAuthStore, UserInfo, UserSettings } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import {
+    AuthorizationStatus,
+    authorizationStatusFor,
+} from "@kingstinct/react-native-healthkit";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Application from "expo-application";
 import * as Notifications from "expo-notifications";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
     Alert,
+    AppState,
     Image,
     Linking,
     RefreshControl,
@@ -34,6 +39,23 @@ import { StyledButton } from "../ui/StyledButton";
 import { StyledSwitch } from "../ui/StyledSwitch";
 import { Typography, TypographyColor } from "../ui/Typography";
 import { showToast } from "../ui/toastConfig";
+
+const HK = {
+    writeWorkout: "HKWorkoutTypeIdentifier",
+    writeWR: "HKQuantityTypeIdentifierDistanceWalkingRunning",
+    writeRoute: "HKWorkoutRouteTypeIdentifier",
+    writeEnergy: "HKQuantityTypeIdentifierActiveEnergyBurned",
+    readHeartRate: "HKQuantityTypeIdentifierHeartRate",
+} as const;
+
+const WRITE_TYPES = [
+    HK.writeWorkout,
+    HK.writeWR,
+    HK.writeRoute,
+    HK.writeEnergy,
+];
+
+const READ_TYPES = [HK.readHeartRate];
 
 function applyUserInfoToStore(
     res: GetUserInfoResponse,
@@ -66,6 +88,44 @@ export const Info = ({
     const router = useRouter();
     const { bottom } = useSafeAreaInsets();
     const queryClient = useQueryClient();
+    const [healthKitAuth, setHealthKitAuth] = useState<{
+        writeWRAuth: AuthorizationStatus;
+        writeWorkoutAuth: AuthorizationStatus;
+        writeRouteAuth: AuthorizationStatus;
+        writeEnergyAuth: AuthorizationStatus;
+        readHeartRateAuth: AuthorizationStatus;
+    }>({
+        writeWRAuth: AuthorizationStatus.notDetermined,
+        writeWorkoutAuth: AuthorizationStatus.notDetermined,
+        writeRouteAuth: AuthorizationStatus.notDetermined,
+        writeEnergyAuth: AuthorizationStatus.notDetermined,
+        readHeartRateAuth: AuthorizationStatus.notDetermined,
+    });
+
+    const updateHealthKitAuth = useCallback(() => {
+        const writeWRAuth = authorizationStatusFor(HK.writeWR);
+        const writeWorkoutAuth = authorizationStatusFor(HK.writeWorkout);
+        const writeRouteAuth = authorizationStatusFor(HK.writeRoute);
+        const writeEnergyAuth = authorizationStatusFor(HK.writeEnergy);
+        const readHeartRateAuth = authorizationStatusFor(HK.readHeartRate);
+        setHealthKitAuth({
+            writeWRAuth,
+            writeWorkoutAuth,
+            writeRouteAuth,
+            writeEnergyAuth,
+            readHeartRateAuth,
+        });
+    }, []);
+
+    useEffect(() => {
+        // event listener
+        const sub = AppState.addEventListener("change", async (next) => {
+            if (next === "active") {
+                updateHealthKitAuth();
+            }
+        });
+        return () => sub.remove();
+    }, [updateHealthKitAuth]);
 
     const {
         setUserInfo: setUserInfoStore,
@@ -103,7 +163,8 @@ export const Info = ({
     useFocusEffect(
         useCallback(() => {
             refresh();
-        }, [refresh])
+            updateHealthKitAuth();
+        }, [refresh, updateHealthKitAuth])
     );
 
     const patchSettingsMutation = useMutation({
@@ -209,6 +270,17 @@ export const Info = ({
 
     const handleSpeechChange = (value: boolean) => {
         patchSettingsMutation.mutate({ voiceGuidanceEnabled: value ?? false });
+    };
+
+    const handleHealthKitChange = () => {
+        Alert.alert(
+            "애플 건강 연동",
+            "건강 앱을 선택하여 건강 권한을 설정해주세요.",
+            [
+                { text: "취소", style: "destructive" },
+                { text: "설정 열기", onPress: () => Linking.openSettings() },
+            ]
+        );
     };
 
     const patchProfileMutation = useMutation({
@@ -337,6 +409,70 @@ export const Info = ({
                                 userSettingsStore?.voiceGuidanceEnabled ?? false
                             }
                             onValueChange={handleSpeechChange}
+                        />
+                    }
+                />
+            </ProfileOptionSection>
+            {/* 건강 권한 */}
+            <ProfileOptionSection>
+                <ProfileOptionItem title="애플 건강 연동" />
+                <ProfileOptionItem
+                    title="쓰기: 운동"
+                    rightElement={
+                        <StyledSwitch
+                            isSelected={
+                                healthKitAuth.writeWorkoutAuth ===
+                                AuthorizationStatus.sharingAuthorized
+                            }
+                            onValueChange={handleHealthKitChange}
+                        />
+                    }
+                />
+                <ProfileOptionItem
+                    title="쓰기: 걷기 + 달리기"
+                    rightElement={
+                        <StyledSwitch
+                            isSelected={
+                                healthKitAuth.writeWRAuth ===
+                                AuthorizationStatus.sharingAuthorized
+                            }
+                            onValueChange={handleHealthKitChange}
+                        />
+                    }
+                />
+                <ProfileOptionItem
+                    title="쓰기: 운동 경로"
+                    rightElement={
+                        <StyledSwitch
+                            isSelected={
+                                healthKitAuth.writeRouteAuth ===
+                                AuthorizationStatus.sharingAuthorized
+                            }
+                            onValueChange={handleHealthKitChange}
+                        />
+                    }
+                />
+                <ProfileOptionItem
+                    title="쓰기: 활동 에너지"
+                    rightElement={
+                        <StyledSwitch
+                            isSelected={
+                                healthKitAuth.writeEnergyAuth ===
+                                AuthorizationStatus.sharingAuthorized
+                            }
+                            onValueChange={handleHealthKitChange}
+                        />
+                    }
+                />
+                <ProfileOptionItem
+                    title="읽기: 심박수"
+                    rightElement={
+                        <StyledSwitch
+                            isSelected={
+                                healthKitAuth.readHeartRateAuth ===
+                                AuthorizationStatus.sharingAuthorized
+                            }
+                            onValueChange={handleHealthKitChange}
                         />
                     }
                 />

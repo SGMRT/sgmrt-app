@@ -29,7 +29,7 @@ import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -79,9 +79,10 @@ export default function Result() {
 
     const router = useRouter();
 
+    const queryClient = useQueryClient();
+
     const {
         data: runData,
-        refetch,
         isLoading,
         isError,
     } = useQuery({
@@ -435,15 +436,24 @@ export default function Result() {
                                     stats={[
                                         {
                                             description: "시간",
-                                            value: getRunTime(10000, "MM:SS"),
+                                            value: getRunTime(
+                                                comperison?.ghostRunInfo
+                                                    .recordInfo.duration ?? 0,
+                                                "MM:SS"
+                                            ),
                                         },
                                         {
                                             description: "페이스",
-                                            value: getFormattedPace(150),
+                                            value: getFormattedPace(
+                                                comperison?.ghostRunInfo
+                                                    .recordInfo.averagePace ?? 0
+                                            ),
                                         },
                                         {
                                             description: "케이던스",
-                                            value: 150,
+                                            value:
+                                                comperison?.ghostRunInfo
+                                                    .recordInfo.cadence ?? 0,
                                             unit: "spm",
                                         },
                                     ]}
@@ -451,23 +461,32 @@ export default function Result() {
                                 <RunningRecord
                                     user={{
                                         nickname:
-                                            comperison?.ghostRunInfo.nickname,
+                                            comperison?.myRunInfo.nickname,
                                         profileUrl:
-                                            comperison?.ghostRunInfo.profileUrl,
+                                            comperison?.myRunInfo.profileUrl,
                                     }}
                                     isMine={true}
                                     stats={[
                                         {
                                             description: "시간",
-                                            value: getRunTime(10000, "MM:SS"),
+                                            value: getRunTime(
+                                                comperison?.myRunInfo.recordInfo
+                                                    .duration ?? 0,
+                                                "MM:SS"
+                                            ),
                                         },
                                         {
                                             description: "페이스",
-                                            value: getFormattedPace(150),
+                                            value: getFormattedPace(
+                                                comperison?.myRunInfo.recordInfo
+                                                    .averagePace ?? 0
+                                            ),
                                         },
                                         {
                                             description: "케이던스",
-                                            value: 150,
+                                            value:
+                                                comperison?.myRunInfo.recordInfo
+                                                    .cadence ?? 0,
                                             unit: "spm",
                                         },
                                     ]}
@@ -510,27 +529,39 @@ export default function Result() {
                                 runData?.courseInfo.id,
                                 courseName,
                                 true
-                            ).then(() => {
-                                bottomSheetRef.current?.dismiss();
-                                router.replace({
-                                    pathname: "/(tabs)/profile",
-                                    params: {
-                                        tab: "course",
-                                    },
+                            )
+                                .then(() => {
+                                    bottomSheetRef.current?.dismiss();
+                                    router.replace({
+                                        pathname: "/(tabs)/profile",
+                                        params: {
+                                            tab: "course",
+                                        },
+                                    });
+                                    amplitude.track("Course Created", {
+                                        courseId: runData?.courseInfo.id,
+                                        courseName: courseName,
+                                        distance: runData?.recordInfo.distance,
+                                        elevationGain:
+                                            runData?.recordInfo.elevationGain,
+                                    });
+                                    showToast(
+                                        "success",
+                                        "코스가 등록되었습니다",
+                                        bottom
+                                    );
+                                })
+                                .finally(() => {
+                                    queryClient.invalidateQueries({
+                                        queryKey: ["courses"],
+                                    });
+                                    queryClient.invalidateQueries({
+                                        queryKey: ["course", courseId],
+                                    });
+                                    queryClient.invalidateQueries({
+                                        queryKey: ["user-courses"],
+                                    });
                                 });
-                                amplitude.track("Course Created", {
-                                    courseId: runData?.courseInfo.id,
-                                    courseName: courseName,
-                                    distance: runData?.recordInfo.distance,
-                                    elevationGain:
-                                        runData?.recordInfo.elevationGain,
-                                });
-                                showToast(
-                                    "success",
-                                    "코스가 등록되었습니다",
-                                    bottom
-                                );
-                            });
                         }}
                         type="active"
                     />
