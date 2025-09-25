@@ -436,15 +436,24 @@ export default function Result() {
                                     stats={[
                                         {
                                             description: "시간",
-                                            value: getRunTime(10000, "MM:SS"),
+                                            value: getRunTime(
+                                                comperison?.ghostRunInfo
+                                                    .recordInfo.duration ?? 0,
+                                                "MM:SS"
+                                            ),
                                         },
                                         {
                                             description: "페이스",
-                                            value: getFormattedPace(150),
+                                            value: getFormattedPace(
+                                                comperison?.ghostRunInfo
+                                                    .recordInfo.averagePace ?? 0
+                                            ),
                                         },
                                         {
                                             description: "케이던스",
-                                            value: 150,
+                                            value:
+                                                comperison?.ghostRunInfo
+                                                    .recordInfo.cadence ?? 0,
                                             unit: "spm",
                                         },
                                     ]}
@@ -452,23 +461,32 @@ export default function Result() {
                                 <RunningRecord
                                     user={{
                                         nickname:
-                                            comperison?.ghostRunInfo.nickname,
+                                            comperison?.myRunInfo.nickname,
                                         profileUrl:
-                                            comperison?.ghostRunInfo.profileUrl,
+                                            comperison?.myRunInfo.profileUrl,
                                     }}
                                     isMine={true}
                                     stats={[
                                         {
                                             description: "시간",
-                                            value: getRunTime(10000, "MM:SS"),
+                                            value: getRunTime(
+                                                comperison?.myRunInfo.recordInfo
+                                                    .duration ?? 0,
+                                                "MM:SS"
+                                            ),
                                         },
                                         {
                                             description: "페이스",
-                                            value: getFormattedPace(150),
+                                            value: getFormattedPace(
+                                                comperison?.myRunInfo.recordInfo
+                                                    .averagePace ?? 0
+                                            ),
                                         },
                                         {
                                             description: "케이던스",
-                                            value: 150,
+                                            value:
+                                                comperison?.myRunInfo.recordInfo
+                                                    .cadence ?? 0,
                                             unit: "spm",
                                         },
                                     ]}
