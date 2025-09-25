@@ -14,6 +14,7 @@ import { buildCourseLegs } from "../utils/buildCourseLegs";
 import {
     nearestPointOnPolylineMeters,
     remainingAlongLegM,
+    remainingAlongLegM_projected,
 } from "../utils/courseGeometry";
 import { dedupeConsecutiveByLatLng } from "../utils/dedupeConsecutiveByLatLng";
 
@@ -112,7 +113,6 @@ export function useCourseProgress(props: CourseProgressProps) {
 
     // 안전 래퍼
     const safeComplete = useCallback(() => {
-        console.log("호출");
         if (completedRef.current) return;
         completedRef.current = true;
         controls.complete();
@@ -308,7 +308,14 @@ export function useCourseProgress(props: CourseProgressProps) {
                     )} 미터 후 완주 지점입니다.`
                 );
             }
-            if (dEnd <= passCpM) {
+
+            const lastLeg = legs.at(-1)!;
+            const isNearEnd = getDistance(current, lastLeg.end) <= passCpM;
+            const remainOk =
+                remainingAlongLegM_projected(lastLeg.points, current) <=
+                passCpM;
+
+            if (dEnd <= passCpM && isNearEnd && remainOk) {
                 safeComplete(); // ref로 보장: 정확히 한 번
                 return; // 이후 아무 것도 하지 않음
             }
