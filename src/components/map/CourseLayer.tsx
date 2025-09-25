@@ -12,12 +12,14 @@ interface CourseProps {
     course: CourseResponse;
     isActive: boolean;
     onClickCourse?: (course: CourseResponse) => void;
+    displayArrow?: boolean;
 }
 
 export default memo(function CourseLayer({
     course,
     isActive,
     onClickCourse,
+    displayArrow = false,
 }: CourseProps) {
     return (
         <>
@@ -55,7 +57,7 @@ export default memo(function CourseLayer({
                     style={{
                         symbolPlacement: "line", // 핵심!
                         symbolSpacing: 80,
-                        iconImage: isActive ? "arrow-p" : "",
+                        iconImage: displayArrow && isActive ? "arrow-p" : "",
                         iconSize: 0.25,
                         iconAllowOverlap: true,
                         iconIgnorePlacement: true,
