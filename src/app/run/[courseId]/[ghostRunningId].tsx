@@ -13,7 +13,6 @@ import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
 import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
-import { useRunMetronome } from "@/src/features/audio/useRunMetronome";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
 import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
@@ -114,12 +113,6 @@ export default function Run() {
         timestamp: context.stats.totalTimeMs,
         controls,
         simulateSpeed: 1.0,
-    });
-
-    useRunMetronome({
-        enabled: context.variant === "GHOST" && context.status === "RUNNING",
-        baseBpm: context.stats.avgCadenceSpm ?? 120,
-        deltaM: -(ghostCoordinator?.deltaM ?? 0),
     });
 
     const triggerCapture = useCallback(() => {
