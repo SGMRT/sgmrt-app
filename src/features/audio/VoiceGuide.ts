@@ -40,6 +40,12 @@ export type VoiceEvent =
           deltaM: number;
       }
     | {
+          type: "run/ghost-periodic";
+          leader: "ME" | "GHOST" | "TIED";
+          deltaM: number;
+          progressM: number;
+      }
+    | {
           type: "run/distance";
           distanceKM: string;
           totalTime: number;
@@ -72,6 +78,7 @@ class VoiceGuide {
         "nav/approach-leg": 3000,
         "run/offcourse-warning": 5000,
         "run/ghost-change-leader": 5000,
+        "run/ghost-periodic": 5000,
     };
 
     setEnabled(enabled: boolean) {
@@ -292,6 +299,19 @@ class VoiceGuide {
                               " 미터 입니다.",
                     priority: "HIGH",
                     cooldownKey: "run/ghost-change-leader",
+                };
+            }
+            case "run/ghost-periodic": {
+                return {
+                    text:
+                        "코스 진행거리 " +
+                        event.progressM +
+                        " 미터 입니다. " +
+                        " 고스트와의 거리 차이는 " +
+                        event.deltaM +
+                        " 미터 입니다.",
+                    priority: "HIGH",
+                    cooldownKey: "run/ghost-periodic",
                 };
             }
             case "run/distance": {
