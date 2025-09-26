@@ -2,7 +2,7 @@ const isStaging = process.env.EAS_BUILD_PROFILE === "staging";
 
 const config = {
     expo: {
-        name: "GhostRunner",
+        name: "고스트러너",
         slug: "ghostrunner",
         version: "1.0.1",
         orientation: "portrait",
