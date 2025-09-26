@@ -1,7 +1,9 @@
 import { MessageType } from "@/modules/expo-live-activity";
+import { useLocalPrefs } from "@/src/store/localPrefs";
 import { useEffect, useMemo, useReducer, useRef } from "react";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
+import { useRunMetronome } from "../../audio/useRunMetronome";
 import { RunAction } from "../state/actions";
 import { initialRunContext, runReducer } from "../state/reducer";
 import { joinedState } from "../store/joinedState";
@@ -21,6 +23,18 @@ export function useRunningSession() {
         context.status !== "IDLE" && context.status !== "STOPPED";
     useSensors(sensorsEnabled);
     useRunAnalytics(context);
+
+    const isCadenceAssistEnabled = useLocalPrefs((s) => s.cadenceAssistEnabled);
+    const cadenceTarget = useLocalPrefs((s) => s.cadenceTarget);
+
+    useRunMetronome({
+        enabled:
+            isCadenceAssistEnabled &&
+            (context.status === "RUNNING" ||
+                context.status === "RUNNING_EXTENDED"),
+        baseBpm: cadenceTarget,
+        deltaM: 0,
+    });
 
     const unsubRef = useRef<null | (() => void)>(null);
 

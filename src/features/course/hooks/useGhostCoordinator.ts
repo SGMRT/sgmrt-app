@@ -57,6 +57,8 @@ export function useGhostCoordinator(
     const prevTimestampRef = useRef<number | null>(null);
     const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
 
+    const lastProgressBucketRef = useRef<number>(0);
+
     const ghostPoint = findClosest(
         ghostTelemetry,
         timestamp * (simulateSpeed ?? 1),
@@ -175,6 +177,9 @@ export function useGhostCoordinator(
         if (leader === "TIED") return;
         if (leader === prevLeaderRef.current) return;
 
+        const bucket = Math.floor(deltaM / 500);
+        lastProgressBucketRef.current = bucket;
+
         prevLeaderRef.current = leader;
 
         const text =
@@ -203,6 +208,21 @@ export function useGhostCoordinator(
             );
         });
     }, [result, controls]);
+
+    useEffect(() => {
+        if (!result) return;
+        const { myProgressM, leader, deltaM } = result;
+        if (myProgressM < 500) return;
+        const bucket = Math.floor(myProgressM / 500);
+        if (bucket <= lastProgressBucketRef.current) return;
+        lastProgressBucketRef.current = bucket;
+        voiceGuide.announce({
+            type: "run/ghost-periodic",
+            leader,
+            deltaM: Math.abs(deltaM),
+            progressM: myProgressM,
+        });
+    }, [result]);
 
     return result;
 }
