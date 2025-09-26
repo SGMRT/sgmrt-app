@@ -30,10 +30,14 @@ export const useLocalPrefs = create<LocalPrefsState>()(
                 cadenceTarget: 180, // 기본값
                 setCadenceAssistEnabled: (v) =>
                     set({ cadenceAssistEnabled: v }),
-                setCadenceTarget: (spm) =>
+                setCadenceTarget: (spm) => {
+                    const rounded = Number.isFinite(spm)
+                        ? Math.round(spm)
+                        : get().cadenceTarget;
                     set({
-                        cadenceTarget: clamp(Math.round(spm), MIN_SPM, MAX_SPM),
-                    }),
+                        cadenceTarget: clamp(rounded, MIN_SPM, MAX_SPM),
+                    });
+                },
                 incCadenceTarget: (delta = 10) => {
                     const next = clamp(
                         get().cadenceTarget + delta,

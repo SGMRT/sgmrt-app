@@ -421,11 +421,7 @@ export const Info = ({
                         />
                     }
                 />
-                {isCadenceAssistEnabled && (
-                    <CadenceAssistControl
-                        initialValue={useLocalPrefs.getState().cadenceTarget}
-                    />
-                )}
+                {isCadenceAssistEnabled && <CadenceAssistControl />}
             </ProfileOptionSection>
             {/* 건강 권한 */}
             <ProfileOptionSection>
@@ -580,18 +576,12 @@ export const Info = ({
     );
 };
 
-const CadenceAssistControl = ({ initialValue }: { initialValue: number }) => {
-    const [value, setValue] = useState(initialValue);
-
-    const handleDecCadenceTarget = () => {
-        setValue(value - 10);
-        useLocalPrefs.getState().decCadenceTarget(10);
-    };
-
-    const handleIncCadenceTarget = () => {
-        setValue(value + 10);
-        useLocalPrefs.getState().incCadenceTarget(10);
-    };
+const CadenceAssistControl = () => {
+    const {
+        cadenceTarget: value,
+        decCadenceTarget,
+        incCadenceTarget,
+    } = useLocalPrefs();
     return (
         <View
             style={{
@@ -609,8 +599,8 @@ const CadenceAssistControl = ({ initialValue }: { initialValue: number }) => {
             >
                 {/* -10 버튼 */}
                 <TouchableOpacity
-                    onPress={() => handleDecCadenceTarget()}
-                    onLongPress={() => handleDecCadenceTarget()}
+                    onPress={() => decCadenceTarget(10)}
+                    onLongPress={() => decCadenceTarget(10)}
                     style={{
                         height: 28,
                         paddingHorizontal: 16,
@@ -645,8 +635,8 @@ const CadenceAssistControl = ({ initialValue }: { initialValue: number }) => {
 
                 {/* +10 버튼 */}
                 <TouchableOpacity
-                    onPress={() => handleIncCadenceTarget()}
-                    onLongPress={() => handleIncCadenceTarget()}
+                    onPress={() => incCadenceTarget(10)}
+                    onLongPress={() => incCadenceTarget(10)}
                     style={{
                         height: 28,
                         paddingHorizontal: 16,
