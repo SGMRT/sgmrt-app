@@ -310,12 +310,12 @@ export function useCourseProgress(props: CourseProgressProps) {
             }
 
             const lastLeg = legs.at(-1)!;
-            const isNearEnd = getDistance(current, lastLeg.end) <= passCpM;
+            const isLastLeg = leg.end === lastLeg.end;
+            const isNearEnd = getDistance(current, leg.end) <= passCpM;
             const remainOk =
-                remainingAlongLegM_projected(lastLeg.points, current) <=
-                passCpM;
+                remainingAlongLegM_projected(leg.points, current) <= passCpM;
 
-            if (dEnd <= passCpM && isNearEnd && remainOk) {
+            if (isLastLeg && isNearEnd && remainOk) {
                 safeComplete(); // ref로 보장: 정확히 한 번
                 return; // 이후 아무 것도 하지 않음
             }
@@ -335,6 +335,7 @@ export function useCourseProgress(props: CourseProgressProps) {
                 });
                 return next;
             });
+            return;
         }
     }, [
         current,

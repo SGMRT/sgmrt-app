@@ -352,7 +352,7 @@ export async function saveRunning({
             } as any);
         }
 
-        if (ghostRunningId) {
+        if (ghostRunningId && courseId) {
             const request: CourseGhostRunning = {
                 runningName: getRunName(startTime ?? 0),
                 startedAt: startTime ?? 0,
@@ -374,7 +374,7 @@ export async function saveRunning({
                 type: "application/json",
             } as any);
 
-            const response = await postCourseRun(formData, courseId!);
+            const response = await postCourseRun(formData, courseId);
             return {
                 runningId: response,
                 courseId: courseId,

@@ -298,6 +298,7 @@ export default function Run() {
                         : Number(ghostRunningId) !== -1
                         ? Number(ghostRunningId)
                         : null,
+                    courseId: Number(courseId),
                 });
                 setRunSaveResult({
                     runningId: response.runningId,
