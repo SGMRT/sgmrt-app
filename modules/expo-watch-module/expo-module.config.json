@@ -1,0 +1,9 @@
+{
+    "platforms": ["apple"],
+    "apple": {
+        "modules": ["ExpoWatchModule"]
+    },
+    "android": {
+        "modules": ["expo.modules.watchmodule.ExpoWatchModule"]
+    }
+}
