@@ -8,6 +8,8 @@ module.exports = (config) => ({
     entitlements: {
         "com.apple.security.application-groups":
             config.ios.entitlements["com.apple.security.application-groups"],
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.background-delivery": true,
     },
     images: {
         logo: {
