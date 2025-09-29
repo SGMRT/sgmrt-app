@@ -1,28 +1,141 @@
 import ExpoModulesCore
+import HealthKit
+import WatchConnectivity
+import os
 
+// 브리지: NSObject 상속 + WCSessionDelegate 구현
+fileprivate final class WCBridge: NSObject, WCSessionDelegate {
+  weak var module: ExpoWatchModule?
+  private let logger = Logger(subsystem: "ExpoWatchModule", category: "WC")
 
-public class ExpoWatchModule: Module {
-    public func definition() -> ModuleDefinition {
-        Name("ExpoWatchModule")
-        
-        
-        Events("watchMessage", "phoneMessage", "activationStateChanged")
-        
-        
-        Function("start") { () in
-            try WatchConnectivityManager.shared.start(module: self)
-        }
-        
-        
-        // PHONE → WATCH 즉시 전송
-        Function("sendToWatch") { (dict: [String: Any]) in
-            try WatchConnectivityManager.shared.sendToWatch(dict)
-        }
-        
-        
-        // PHONE → WATCH 백그라운드 큐 전송
-        Function("queueToWatch") { (dict: [String: Any]) in
-            try WatchConnectivityManager.shared.queueToWatch(dict)
+  func activate() {
+    guard WCSession.isSupported() else { return }
+    let s = WCSession.default
+    s.delegate = self
+    s.activate()
+  }
+
+  // 워치로 명령 전송
+  func sendCommand(_ dict: [String: Any]) async throws {
+    activate()
+    let s = WCSession.default
+    let data = try JSONSerialization.data(withJSONObject: dict)
+    if s.isReachable {
+      try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+        s.sendMessageData(data, replyHandler: { _ in cont.resume() },
+                          errorHandler: { err in cont.resume(throwing: err) })
+      }
+    } else {
+      s.transferUserInfo(dict) // 지연 전송
+    }
+  }
+
+  // MARK: - WCSessionDelegate
+  func session(_ session: WCSession,
+               activationDidCompleteWith activationState: WCSessionActivationState,
+               error: Error?) {
+    module?.emit("watchState", [
+      "state": "\(activationState.rawValue)",
+      "error": error?.localizedDescription ?? NSNull()
+    ])
+  }
+
+  func sessionDidBecomeInactive(_ session: WCSession) {}
+  func sessionDidDeactivate(_ session: WCSession) { WCSession.default.activate() }
+
+  func session(_ session: WCSession, didReceiveMessageData messageData: Data) {
+    guard let obj = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any] else { return }
+    if let bpm = obj["bpm"] as? Double {
+      module?.emit("heartRate", ["bpm": bpm])
+    } else if let state = obj["state"] as? String {
+      module?.emit("watchState", ["state": state])
+    }
+  }
+
+  func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
+    if let bpm = userInfo["bpm"] as? Double {
+      module?.emit("heartRate", ["bpm": bpm])
+    } else if let state = userInfo["state"] as? String {
+      module?.emit("watchState", ["state": state])
+    }
+  }
+}
+
+// 실제 Expo 모듈: BaseModule만 상속 (NSObject 상속 금지)
+public final class ExpoWatchModule: Module {
+  private let healthStore = HKHealthStore()
+  private let logger = Logger(subsystem: "ExpoWatchModule", category: "HK")
+  private var hasListeners = false
+  private let wc = WCBridge() // 델리게이트 보유
+
+  public func definition() -> ModuleDefinition {
+    Name("ExpoWatchModule")
+
+    // 브리지에 역참조 연결
+    OnCreate {
+      self.wc.module = self
+    }
+
+    Events("heartRate", "watchState")
+
+    OnStartObserving { self.hasListeners = true }
+    OnStopObserving  { self.hasListeners = false }
+
+    // 권한 요청
+    AsyncFunction("requestAuthorization") { () -> Bool in
+      let toShare: Set = [HKQuantityType.workoutType()]
+      let toRead: Set  = [HKQuantityType(.heartRate), HKQuantityType.workoutType()]
+      do {
+        try await self.healthStore.requestAuthorization(toShare: toShare, read: toRead)
+        return true
+      } catch {
+        self.logger.error("HK auth failed: \(error.localizedDescription)")
+        return false
+      }
+    }
+    
+
+    // 워치 앱 띄우고(실제으론 WC 활성화) → 즉시 start 명령
+    AsyncFunction("startWatchApp") { () -> Bool in
+        do {
+            // 1) 워치 앱을 "운동 처리 모드"로 실행
+            let config = HKWorkoutConfiguration()
+            config.activityType = .running       // 필요시 JS에서 파라미터로 받도록 확장
+            config.locationType = .outdoor
+
+            // 권한은 사전에 requestAuthorization 호출로 받아둔 상태여야 함
+            try await self.healthStore.startWatchApp(toHandle: config)
+
+            // 2) WC 활성화 후, 바로 측정 시작 명령도 보내줌(확실히 스타트)
+            self.wc.activate()
+            try await self.wc.sendCommand(["cmd": "start", "activity": "running"])
+            return true
+        } catch {
+            self.logger.error("startWatchApp failed: \(error.localizedDescription)")
+            return false
         }
     }
+
+    // 측정 중지
+    AsyncFunction("stopWatch") { () -> Bool in
+      do {
+        try await self.wc.sendCommand(["cmd": "stop"])
+        return true
+      } catch {
+        self.logger.error("stopWatch failed: \(error.localizedDescription)")
+        return false
+      }
+    }
+
+    // 수동 WC 활성화(옵션)
+    Function("activateWC") {
+      self.wc.activate()
+    }
+  }
+
+  // JS 이벤트 내보내기 (리스너 있을 때만)
+  fileprivate func emit(_ name: String, _ body: [String: Any]) {
+    guard hasListeners else { return }
+    sendEvent(name, body)
+  }
 }

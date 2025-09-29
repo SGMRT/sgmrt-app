@@ -1,54 +1,39 @@
-import Watch, { sendToWatch, start } from "@/modules/expo-watch-module";
 import {
-    startWatchApp,
-    WorkoutActivityType,
-    WorkoutSessionLocationType,
-} from "@kingstinct/react-native-healthkit";
-import { useEffect, useState } from "react";
+    onHeartRate,
+    onWatchState,
+    start,
+    stop,
+} from "@/modules/expo-watch-module";
+import { useEffect, useRef, useState } from "react";
 import { Button, Text, View } from "react-native";
 
-export default function WatchTest() {
-    const [message, setMessage] = useState("");
+export default function HeartRateScreen() {
+    const [bpm, setBpm] = useState<number | null>(null);
+    const subHR = useRef<{ remove: () => void } | null>(null);
+
     useEffect(() => {
-        startWatchApp({
-            activityType: WorkoutActivityType.running,
-            locationType: WorkoutSessionLocationType.outdoor,
-        })
-            .then((success) => {
-                console.log("startWatchApp", success);
-                start(); // WCSession.activate()
-                const sub = Watch.addListener("watchMessage", (p) => {
-                    console.log("WATCH → PHONE", p);
-                    setMessage("from watch: " + (p.text ?? ""));
-                });
-                return () => sub.remove();
-            })
-            .catch((error) => {
-                console.log("startWatchApp", error);
-            })
-            .finally(() => {
-                console.log("startWatchApp finished");
-            });
+        subHR.current = onHeartRate(setBpm);
+        const subState = onWatchState((s) => console.log("watchState:", s));
+        return () => {
+            subHR.current?.remove();
+            subState.remove();
+        };
     }, []);
+
     return (
         <View
             style={{
                 flex: 1,
-                justifyContent: "center",
                 alignItems: "center",
-                backgroundColor: "white",
+                justifyContent: "center",
+                gap: 16,
             }}
         >
-            <Text>Watch Test</Text>
-            <Text>{message}</Text>
-            <Button
-                title="Send to Watch"
-                onPress={() => {
-                    sendToWatch({
-                        text: "Hello from Phone",
-                    });
-                }}
-            />
+            <Button title="Start" onPress={start} />
+            <Button title="Stop" onPress={stop} />
+            <Text style={{ fontSize: 22 }}>
+                {bpm ? `❤️ ${Math.round(bpm)} bpm` : "Waiting for BPM…"}
+            </Text>
         </View>
     );
 }
