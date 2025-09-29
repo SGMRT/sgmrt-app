@@ -30,8 +30,7 @@
       let now = Date()
       DispatchQueue.main.async {
         self.ui.state = state
-        self.ui.reason = reason
-
+        
         switch state {
           case "started":
             self.ui.startedAt = now
@@ -111,15 +110,9 @@
     // MARK: - WCSessionDelegate
     func session(_ session: WCSession,
                  activationDidCompleteWith activationState: WCSessionActivationState,
-                 error: Error?) {
-      // 활성화 결과를 상태로 보낼 수도 있음
-      sendState(activationState == .activated ? "reachable" : "unreachable",
-                reason: error?.localizedDescription)
-    }
+                 error: Error?) {}
 
-    func sessionReachabilityDidChange(_ session: WCSession) {
-      sendState(session.isReachable ? "reachable" : "unreachable", reason: "reachability")
-    }
+    func sessionReachabilityDidChange(_ session: WCSession) {}
 
     // iPhone → 워치 (실시간)
     func session(_ session: WCSession, didReceiveMessageData messageData: Data) {

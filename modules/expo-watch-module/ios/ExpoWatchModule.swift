@@ -112,7 +112,7 @@ public final class ExpoWatchModule: Module {
     }
     
 
-    // 워치 앱 띄우고(실제으론 WC 활성화) → 즉시 start 명령
+    // 워치 앱 띄우고 → 즉시 start 명령
     AsyncFunction("startWatchApp") { () -> Bool in
       do {
           // 1) 워치 앱을 "운동 처리 모드"로 실행
