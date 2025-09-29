@@ -12,7 +12,7 @@ export function useHeartRate(context: RunContext) {
 
         if ((prev === "IDLE" || prev === "READY") && curr === "RUNNING") {
             start();
-        } else if (curr === "RUNNING") {
+        } else if (curr === "RUNNING" || curr === "RUNNING_EXTENDED") {
             resume();
         } else if (curr === "PAUSED_USER" || curr === "PAUSED_OFFCOURSE") {
             pause();

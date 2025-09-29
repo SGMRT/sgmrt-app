@@ -38,7 +38,6 @@ declare class ExpoWatchModule extends NativeModule<WatchEventMap> {
     resumeWatch(): Promise<boolean>;
     activateWC(): void;
 
-    // RN 표준 시그니처 그대로 (리스너 함수 넣지 않음!)
     addListener(eventName: keyof WatchEventMap): EventSubscription;
     removeListeners(count: number): void;
 }
