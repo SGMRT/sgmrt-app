@@ -7,6 +7,7 @@ export type RawRunData = {
     steps: number | null;
     distance: number;
     isRunning: boolean | null;
+    bpm: number | null;
     raw: {
         timestamp: number;
         latitude: number;

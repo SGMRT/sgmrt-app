@@ -20,10 +20,10 @@ fileprivate final class WCBridge: NSObject, WCSessionDelegate {
     activate()
     let s = WCSession.default
     let data = try JSONSerialization.data(withJSONObject: dict)
+
     if s.isReachable {
-      try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-        s.sendMessageData(data, replyHandler: { _ in cont.resume() },
-                          errorHandler: { err in cont.resume(throwing: err) })
+      s.sendMessageData(data, replyHandler: nil) { err in
+        self.logger.error("sendMessageData failed: \(err.localizedDescription)")
       }
     } else {
       s.transferUserInfo(dict) // 지연 전송
@@ -45,19 +45,36 @@ fileprivate final class WCBridge: NSObject, WCSessionDelegate {
 
   func session(_ session: WCSession, didReceiveMessageData messageData: Data) {
     guard let obj = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any] else { return }
-    if let bpm = obj["bpm"] as? Double {
-      module?.emit("heartRate", ["bpm": bpm])
-    } else if let state = obj["state"] as? String {
-      module?.emit("watchState", ["state": state])
-    }
+    forward(obj)
   }
 
   func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
-    if let bpm = userInfo["bpm"] as? Double {
-      module?.emit("heartRate", ["bpm": bpm])
-    } else if let state = userInfo["state"] as? String {
-      module?.emit("watchState", ["state": state])
+    forward(userInfo)
+  }
+
+  private func forward(_ obj: [String: Any]) {
+    let type = (obj["type"] as? String) ?? inferTypeFallback(obj)
+    switch type {
+      case "bpm":
+        if let bpm = obj["bpm"] as? Double {
+          module?.emit("heartRate", ["bpm": bpm, "ts": obj["ts"] ?? NSNull()])
+        }
+      case "state":
+        // 상태 이벤트는 그대로 내보내되, 원본 필드를 유지
+        module?.emit("watchState", [
+          "state": obj["state"] ?? NSNull(),
+          "reason": obj["reason"] ?? NSNull(),
+          "ts": obj["ts"] ?? NSNull()
+        ])
+      default:
+        break
     }
+  }
+
+  private func inferTypeFallback(_ obj: [String: Any]) -> String {
+    if obj["bpm"] != nil { return "bpm" }
+    if obj["state"] != nil { return "state" }
+    return "unknown"
   }
 }
 
@@ -71,9 +88,9 @@ public final class ExpoWatchModule: Module {
   public func definition() -> ModuleDefinition {
     Name("ExpoWatchModule")
 
-    // 브리지에 역참조 연결
     OnCreate {
       self.wc.module = self
+      self.wc.activate() // ← 추가
     }
 
     Events("heartRate", "watchState")
@@ -97,23 +114,30 @@ public final class ExpoWatchModule: Module {
 
     // 워치 앱 띄우고(실제으론 WC 활성화) → 즉시 start 명령
     AsyncFunction("startWatchApp") { () -> Bool in
-        do {
-            // 1) 워치 앱을 "운동 처리 모드"로 실행
-            let config = HKWorkoutConfiguration()
-            config.activityType = .running       // 필요시 JS에서 파라미터로 받도록 확장
-            config.locationType = .outdoor
+      do {
+          // 1) 워치 앱을 "운동 처리 모드"로 실행
+          let config = HKWorkoutConfiguration()
+          config.activityType = .running       // 필요시 JS에서 파라미터로 받도록 확장
+          config.locationType = .outdoor
 
-            // 권한은 사전에 requestAuthorization 호출로 받아둔 상태여야 함
-            try await self.healthStore.startWatchApp(toHandle: config)
+          // 권한은 사전에 requestAuthorization 호출로 받아둔 상태여야 함
+          try await self.healthStore.startWatchApp(toHandle: config)
+          
+          return true
+      } catch {
+          self.logger.error("startWatchApp failed: \(error.localizedDescription)")
+          return false
+      }
+    }
 
-            // 2) WC 활성화 후, 바로 측정 시작 명령도 보내줌(확실히 스타트)
-            self.wc.activate()
-            try await self.wc.sendCommand(["cmd": "start", "activity": "running"])
-            return true
-        } catch {
-            self.logger.error("startWatchApp failed: \(error.localizedDescription)")
-            return false
-        }
+    AsyncFunction("pauseWatch") { () -> Bool in
+      do { try await self.wc.sendCommand(["cmd": "pause"]); return true }
+      catch { self.logger.error("pauseWatch failed: \(error.localizedDescription)"); return false }
+    }
+
+    AsyncFunction("resumeWatch") { () -> Bool in
+      do { try await self.wc.sendCommand(["cmd": "resume"]); return true }
+      catch { self.logger.error("resumeWatch failed: \(error.localizedDescription)"); return false }
     }
 
     // 측정 중지

@@ -49,12 +49,12 @@ extension WatchConnectivityManager: WCSessionDelegate {
     }
     
     
-#if os(iOS)
-    func sessionDidBecomeInactive(_ session: WCSession) {}
-    func sessionDidDeactivate(_ session: WCSession) {
-        session.activate()
-    }
-#endif
+    #if os(iOS)
+        func sessionDidBecomeInactive(_ session: WCSession) {}
+        func sessionDidDeactivate(_ session: WCSession) {
+            session.activate()
+        }
+    #endif
     
     
     // 워치 → 폰 메시지 (포그라운드)

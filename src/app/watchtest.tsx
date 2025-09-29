@@ -1,6 +1,8 @@
 import {
     onHeartRate,
     onWatchState,
+    pause,
+    resume,
     start,
     stop,
 } from "@/modules/expo-watch-module";
@@ -12,7 +14,10 @@ export default function HeartRateScreen() {
     const subHR = useRef<{ remove: () => void } | null>(null);
 
     useEffect(() => {
-        subHR.current = onHeartRate(setBpm);
+        subHR.current = onHeartRate((bpm) => {
+            setBpm(bpm);
+            console.log("heartRate:", bpm);
+        });
         const subState = onWatchState((s) => console.log("watchState:", s));
         return () => {
             subHR.current?.remove();
@@ -30,6 +35,8 @@ export default function HeartRateScreen() {
             }}
         >
             <Button title="Start" onPress={start} />
+            <Button title="Pause" onPress={pause} />
+            <Button title="Resume" onPress={resume} />
             <Button title="Stop" onPress={stop} />
             <Text style={{ fontSize: 22 }}>
                 {bpm ? `❤️ ${Math.round(bpm)} bpm` : "Waiting for BPM…"}

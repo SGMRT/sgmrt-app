@@ -134,7 +134,7 @@ export function updateStats(
     // sticky: 유효값이 아니면 이전 값을 유지
     next.currentPaceSecPerKm = rawPace ?? prev.currentPaceSecPerKm ?? null;
     next.currentCadenceSpm = rawCadence ?? prev.currentCadenceSpm ?? null;
-    next.bpm = 0;
+    next.bpm = sample.bpm ?? prev.bpm ?? null;
 
     // 평균 페이스(전체)
     next.avgPaceSecPerKm = secPerKmFrom(

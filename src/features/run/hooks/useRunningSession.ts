@@ -10,6 +10,7 @@ import { joinedState } from "../store/joinedState";
 import { RunMode } from "../types";
 import { CourseMetadata, CourseVariant } from "../types/status";
 import { geoFilter } from "../utils/geoFilter";
+import { useHeartRate } from "./useHeartRate";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useRunAnalytics } from "./useRunAnalytics";
 import { useSensors } from "./useSensors";
@@ -21,6 +22,7 @@ export function useRunningSession() {
 
     const sensorsEnabled =
         context.status !== "IDLE" && context.status !== "STOPPED";
+    useHeartRate(context);
     useSensors(sensorsEnabled);
     useRunAnalytics(context);
 
