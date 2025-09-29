@@ -73,7 +73,7 @@ class VoiceGuide {
 
     // 전역 설정
     private lang = "ko-KR";
-    private rate = 1.0;
+    private rate = 0.85;
     private cooldownMs: Record<string, number> = {
         "nav/approach-leg": 3000,
         "run/offcourse-warning": 5000,

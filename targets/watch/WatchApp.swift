@@ -25,7 +25,7 @@ struct ContentView: View {
       Color.widgetBackground.ignoresSafeArea()
 
       VStack(spacing: 10) {
-        Text("GhostRunner")
+        Text("고스트러너")
           .font(.footnote.weight(.semibold))
           .foregroundStyle(.brand)
 
