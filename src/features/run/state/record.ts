@@ -31,7 +31,7 @@ export function buildUserRecordData(
     );
     const bpm = Math.max(0, d(stats.bpm));
     const totalElevationGain = Math.max(0, d(stats.gainM));
-    const totalElevationLoss = Math.max(0, d(stats.lossM)); // lossM은 이미 양수 누적이라면 그대로
+    const totalElevationLoss = Math.min(0, d(stats.lossM));
 
     let out: UserDashBoardData = {
         totalDistance,

@@ -94,6 +94,7 @@ function RootLayout() {
                                 options={{ gestureEnabled: false }}
                             />
                             {/* <Stack.Screen name="test" /> */}
+                            <Stack.Screen name="watchtest" />
                         </Stack>
                         {shouldShowAd && <CompactNativeAdRow />}
                         <Toast config={toastConfig} />

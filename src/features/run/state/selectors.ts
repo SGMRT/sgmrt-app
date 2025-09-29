@@ -90,7 +90,7 @@ export function selectStatsDisplay(context: RunContext) {
         },
         {
             label: "BPM",
-            value: "--",
+            value: stats.bpm ?? "--",
             unit: "",
         },
     ];

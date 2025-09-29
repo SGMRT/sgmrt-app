@@ -139,6 +139,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             steps: deltaSteps,
             distance: deltaDistance,
             isRunning: null,
+            bpm: joined.heartRate?.bpm ?? null,
             raw: {
                 timestamp: joined.timestamp,
                 latitude,

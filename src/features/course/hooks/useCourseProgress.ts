@@ -46,7 +46,7 @@ export function useCourseProgress(props: CourseProgressProps) {
         offEnterM = 35,
         offReturnM = 18,
         startEnterM = 25,
-        passCpM = 10,
+        passCpM = 8,
         endApproachAlertM = 50,
     } = props;
 
@@ -285,7 +285,12 @@ export function useCourseProgress(props: CourseProgressProps) {
         }
 
         // 4) 레그 종료/완주 판정
-        const dEnd = getDistance(current, leg.end);
+        const projectedCurrent = nearestPointOnPolylineMeters(
+            leg.points,
+            current
+        ).closestPoint;
+
+        const dEnd = getDistance(projectedCurrent, leg.end);
 
         // 마지막 레그: 모든 레그 완료 시 단 한 번만 complete
         if (legIndex === legs.length - 1) {
@@ -311,7 +316,7 @@ export function useCourseProgress(props: CourseProgressProps) {
 
             const lastLeg = legs.at(-1)!;
             const isLastLeg = leg.end === lastLeg.end;
-            const isNearEnd = getDistance(current, leg.end) <= passCpM;
+            const isNearEnd = getDistance(projectedCurrent, leg.end) <= passCpM;
             const remainOk =
                 remainingAlongLegM_projected(leg.points, current) <= passCpM;
 
