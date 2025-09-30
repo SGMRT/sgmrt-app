@@ -17,13 +17,6 @@ let lastAcceptedLat = 0;
 let lastAcceptedLng = 0;
 let lastAcceptedSteps: number | null = null;
 
-// 다음 샘플에서 deltaSteps를 0으로 초기화할지 여부
-let zeroNextStepsDelta = false;
-
-// 합리적인 SPM 범위
-const MIN_STEPS_PER_SEC = 1.0;
-const MAX_STEPS_PER_SEC = 4.5;
-
 function isFirstSample(sharedSensorStore: SensorStore) {
     return sharedSensorStore.locations.last() === undefined;
 }
@@ -33,11 +26,6 @@ function reset() {
     lastAcceptedLat = 0;
     lastAcceptedLng = 0;
     lastAcceptedSteps = null;
-    zeroNextStepsDelta = false;
-}
-
-export function markResumeAnchor() {
-    zeroNextStepsDelta = true;
 }
 
 TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
@@ -92,43 +80,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         );
 
         const totalSteps = joined.steps?.totalSteps ?? lastAcceptedSteps ?? 0;
-        const dtSec =
-            lastAcceptedTs > 0
-                ? Math.max(0, (joined.timestamp - lastAcceptedTs) / 1000)
-                : 0;
-        let deltaSteps = 0;
-
-        if (lastAcceptedTs === 0) {
-            deltaSteps = 0;
-            lastAcceptedSteps = totalSteps;
-        } else if (zeroNextStepsDelta) {
-            deltaSteps = 0;
-            lastAcceptedSteps = totalSteps;
-            zeroNextStepsDelta = false;
-        } else {
-            const rawDelta = Math.max(0, totalSteps - (lastAcceptedSteps ?? 0));
-
-            if (dtSec > 0) {
-                const maxAllowed = Math.ceil(MAX_STEPS_PER_SEC * dtSec * 1.2);
-                const minAllowed = dtSec >= 0.2 ? 0 : 0;
-
-                if (rawDelta > maxAllowed) {
-                    devLog("[STEPS] 비정상 jump 컷", {
-                        rawDelta,
-                        dtSec,
-                        maxAllowed,
-                    });
-                    deltaSteps = 0;
-                    lastAcceptedSteps = totalSteps;
-                } else {
-                    deltaSteps = Math.max(minAllowed, rawDelta);
-                    lastAcceptedSteps = (lastAcceptedSteps ?? 0) + deltaSteps;
-                }
-            } else {
-                deltaSteps = 0;
-                lastAcceptedSteps = totalSteps;
-            }
-        }
+        const deltaSteps = totalSteps - (lastAcceptedSteps ?? 0);
 
         joinedState.push({
             timestamp: joined.timestamp,

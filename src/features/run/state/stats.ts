@@ -98,17 +98,11 @@ export function updateStats(
     const deltaSteps = !zero ? Math.max(0, sample.steps ?? 0) : 0;
     next._totalSteps += deltaSteps;
 
-    // --- 롤링 창 갱신(앵커/실샘플) ---
-    if (zero) {
-        // 재개 첫 샘플: 기여 0인 앵커만 넣음
-        next._window.push({ ts: sample.timestamp, dist: 0, steps: 0 });
-    } else {
-        next._window.push({
-            ts: sample.timestamp,
-            dist: filteredDistM,
-            steps: deltaSteps,
-        });
-    }
+    next._window.push({
+        ts: sample.timestamp,
+        dist: filteredDistM,
+        steps: deltaSteps,
+    });
 
     // 10초 윈도 유지
     const cutoff = sample.timestamp - PACE_WINDOW_MS;
