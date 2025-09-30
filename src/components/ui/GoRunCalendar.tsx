@@ -1,109 +1,180 @@
 import { BackIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { endOfDay, startOfDay } from "@/src/utils/formatDate";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { Divider } from "./Divider";
 import Section from "./Section";
 import { Typography } from "./Typography";
 
+type DateRange = { startDate: Date; endDate: Date };
+
 export const GoRunCalendar = ({
     period,
     setPeriod,
 }: {
-    period: { startDate: Date; endDate: Date };
-    setPeriod: (period: { startDate: Date; endDate: Date }) => void;
+    period: DateRange;
+    setPeriod: (period: DateRange) => void;
 }) => {
-    const handleDayPress = (day: any) => {
-        // 달력 라이브러리에서 받은 날짜 문자열로 Date 객체 생성
-        const selectedDateObj = new Date(day.dateString);
+    // 내부 편집 상태(종료일 null 허용)
+    const [changedPeriod, setChangedPeriod] = useState<{
+        startDate: Date | null;
+        endDate: Date | null;
+    }>({
+        startDate: period.startDate ? startOfDay(period.startDate) : null,
+        endDate: period.endDate ? endOfDay(period.endDate) : null,
+    });
 
-        // 시작일과 종료일이 모두 선택된 상태에서 다시 클릭하면 기간을 리셋하고 새로 시작
-        if (
-            period.startDate &&
-            period.endDate &&
-            period.startDate < period.endDate
-        ) {
-            setPeriod({
-                startDate: startOfDay(selectedDateObj),
-                endDate: endOfDay(selectedDateObj),
+    // 외부 period가 바뀌면 내부 상태도 동기화
+    useEffect(() => {
+        const pStart = period.startDate
+            ? startOfDay(period.startDate).getTime()
+            : null;
+        const pEnd = period.endDate ? endOfDay(period.endDate).getTime() : null;
+        const cStart = changedPeriod.startDate
+            ? startOfDay(changedPeriod.startDate).getTime()
+            : null;
+        const cEnd = changedPeriod.endDate
+            ? endOfDay(changedPeriod.endDate).getTime()
+            : null;
+
+        // 진짜로 달라졌을 때만 setChangedPeriod
+        if (pStart !== cStart || pEnd !== cEnd) {
+            setChangedPeriod({
+                startDate: pStart ? new Date(pStart) : null,
+                endDate: pEnd ? new Date(pEnd) : null,
             });
+        }
+    }, [period.startDate, period.endDate]);
+
+    // 범위가 완성되면 부모에 반영
+    useEffect(() => {
+        if (!changedPeriod.startDate || !changedPeriod.endDate) return;
+
+        const nextStart = startOfDay(changedPeriod.startDate).getTime();
+        const nextEnd = endOfDay(changedPeriod.endDate).getTime();
+        const curStart = period.startDate
+            ? startOfDay(period.startDate).getTime()
+            : null;
+        const curEnd = period.endDate
+            ? endOfDay(period.endDate).getTime()
+            : null;
+
+        // 값이 바뀐 경우에만 부모로 전파
+        if (nextStart !== curStart || nextEnd !== curEnd) {
+            setPeriod({
+                startDate: new Date(nextStart),
+                endDate: new Date(nextEnd),
+            });
+        }
+    }, [
+        changedPeriod.startDate,
+        changedPeriod.endDate,
+        period.startDate,
+        period.endDate,
+        setPeriod,
+    ]);
+
+    const formatKey = (d: Date) => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
+    const handleDayPress = (day: { dateString: string }) => {
+        const selected = new Date(day.dateString);
+        const s = startOfDay(selected);
+        const e = endOfDay(selected);
+
+        const hasStart = !!changedPeriod.startDate;
+        const hasEnd = !!changedPeriod.endDate;
+
+        // 1) 완성된 범위 상태: 클릭 = 초기화 후 새 시작일
+        if (hasStart && hasEnd) {
+            setChangedPeriod({ startDate: s, endDate: null });
             return;
         }
 
-        // 시작일만 선택된 상태에서 클릭
-        if (period.startDate) {
-            // 시작일보다 이전 날짜를 선택하면, 새 날짜가 시작일이 됨
-            if (selectedDateObj < period.startDate) {
-                setPeriod({
-                    startDate: selectedDateObj,
-                    endDate: period.startDate,
-                });
-            } else {
-                // 시작일보다 이후 날짜를 선택하면, 새 날짜가 종료일이 됨
-                setPeriod({ ...period, endDate: selectedDateObj });
+        // 2) 시작만 있는 상태: 두 번째 클릭으로 종료 확정
+        if (hasStart && !hasEnd) {
+            const start = startOfDay(changedPeriod.startDate!);
+
+            // 같은 날을 다시 눌렀다면 단일일자 그대로 유지(원하면 초기화로 바꿔도 됨)
+            if (s.getTime() === start.getTime()) {
+                setChangedPeriod({
+                    startDate: start,
+                    endDate: endOfDay(start),
+                }); // 단일일자를 아예 완성으로 처리
+                return;
             }
-        } else {
-            // 아무것도 선택되지 않은 상태에서는 시작일과 종료일을 동일하게 설정
-            setPeriod({
-                startDate: selectedDateObj,
-                endDate: selectedDateObj,
-            });
+
+            // 역전 정렬
+            if (s < start) {
+                setChangedPeriod({ startDate: s, endDate: endOfDay(start) });
+            } else {
+                setChangedPeriod({ startDate: start, endDate: e });
+            }
+            return;
         }
+
+        // 3) 아무 것도 없는 상태: 시작 지정
+        setChangedPeriod({ startDate: s, endDate: null });
     };
 
     const markedDates = useMemo(() => {
-        const marked: { [key: string]: any } = {};
+        const marked: Record<string, any> = {};
+        if (!changedPeriod.startDate) return marked;
 
-        if (!period.startDate) {
+        const start = startOfDay(changedPeriod.startDate);
+        const end = changedPeriod.endDate
+            ? endOfDay(changedPeriod.endDate)
+            : null;
+
+        // 단일일자(종료 미선택 or 같은 날) → 시작/끝 모두 true
+        if (!end || formatKey(start) === formatKey(end)) {
+            const k = formatKey(start);
+            marked[k] = {
+                selected: true,
+                startingDay: true,
+                endingDay: true,
+                color: "#404512",
+                textColor: colors.white,
+            };
             return marked;
         }
 
-        // 날짜를 순회하며 기간 마킹
-        let currentDate = new Date(period.startDate);
-        const endDate = period.endDate ? new Date(period.endDate) : currentDate;
-
-        while (currentDate <= endDate) {
-            const dateString = currentDate.toISOString().split("T")[0];
-            marked[dateString] = {
+        // 구간 마킹
+        let cur = new Date(start);
+        while (cur <= end) {
+            const k = formatKey(cur);
+            marked[k] = {
                 selected: true,
                 color: "#404512",
                 textColor: colors.white,
             };
-            currentDate.setDate(currentDate.getDate() + 1);
+            cur.setDate(cur.getDate() + 1);
         }
 
-        // 시작일과 종료일 특별 마킹
-        marked[period.startDate.toISOString().split("T")[0]] = {
-            ...marked[period.startDate.toISOString().split("T")[0]],
+        // 시작/끝 모서리 지정
+        marked[formatKey(start)] = {
+            ...marked[formatKey(start)],
             startingDay: true,
         };
-
-        if (period.endDate) {
-            marked[period.endDate.toISOString().split("T")[0]] = {
-                ...marked[period.endDate.toISOString().split("T")[0]],
-                endingDay: true,
-            };
-        } else {
-            // 시작일만 선택된 경우, 시작일이 곧 종료일
-            marked[period.startDate.toISOString().split("T")[0]].endingDay =
-                true;
-        }
+        marked[formatKey(end)] = { ...marked[formatKey(end)], endingDay: true };
 
         return marked;
-    }, [period.startDate, period.endDate]);
+    }, [changedPeriod.startDate, changedPeriod.endDate]);
 
     return (
         <Section containerStyle={{ marginBottom: 30, marginHorizontal: 16.5 }}>
             <Calendar
-                style={{
-                    backgroundColor: "#171717",
-                }}
+                style={{ backgroundColor: "#171717" }}
                 monthFormat="yyyy년 M월"
                 customHeader={CustomHeader}
-                enableSwipeMonths={true}
-                hideExtraDays={true}
+                enableSwipeMonths
+                hideExtraDays
                 markingType="period"
                 markedDates={markedDates}
                 theme={{
@@ -127,12 +198,7 @@ const CustomHeader = (item: any) => {
     const month = monthObj.getMonth() + 1;
     return (
         <View>
-            <View
-                style={{
-                    gap: 10,
-                    marginBottom: 20,
-                }}
-            >
+            <View style={{ gap: 10, marginBottom: 20 }}>
                 <View
                     style={{
                         flexDirection: "row",
@@ -140,21 +206,11 @@ const CustomHeader = (item: any) => {
                         alignItems: "center",
                     }}
                 >
-                    <Pressable
-                        onPress={() => {
-                            item.addMonth(-1);
-                        }}
-                    >
+                    <Pressable onPress={() => item.addMonth(-1)}>
                         <BackIcon
                             height={16.2}
                             width={8.1}
-                            style={{
-                                transform: [
-                                    {
-                                        rotate: "0deg",
-                                    },
-                                ],
-                            }}
+                            style={{ transform: [{ rotate: "0deg" }] }}
                         />
                     </Pressable>
                     <Typography
@@ -168,21 +224,11 @@ const CustomHeader = (item: any) => {
                     >
                         {year}년 {month}월
                     </Typography>
-                    <Pressable
-                        onPress={() => {
-                            item.addMonth(1);
-                        }}
-                    >
+                    <Pressable onPress={() => item.addMonth(1)}>
                         <BackIcon
                             height={16.2}
                             width={8.1}
-                            style={{
-                                transform: [
-                                    {
-                                        rotate: "180deg",
-                                    },
-                                ],
-                            }}
+                            style={{ transform: [{ rotate: "180deg" }] }}
                         />
                     </Pressable>
                 </View>
