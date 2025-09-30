@@ -304,12 +304,12 @@ class VoiceGuide {
             case "run/ghost-periodic": {
                 return {
                     text:
-                        "코스 진행거리 " +
-                        Math.round(event.progressM) +
-                        " 미터 입니다. " +
-                        " 고스트와의 거리 차이는 " +
-                        event.deltaM +
-                        " 미터 입니다.",
+                        event.leader === "GHOST"
+                            ? "고스트가 앞서고 있습니다. "
+                            : "현재 선두 입니다. " +
+                              " 거리 차이는 " +
+                              event.deltaM +
+                              " 미터 입니다.",
                     priority: "HIGH",
                     cooldownKey: "run/ghost-periodic",
                 };
