@@ -13,7 +13,7 @@ import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Dimensions, View } from "react-native";
 import { SharedValue, useAnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -40,6 +40,11 @@ const TAB_BAR_HEIGHT = 82;
 const CONTROL_PANEL_HEIGHT = 48;
 const MARGIN_BOTTOM = 16;
 const CONTROL_PANEL_OFFSET = CONTROL_PANEL_HEIGHT + MARGIN_BOTTOM;
+
+type VisibleBounds = {
+    sw: Position;
+    ne: Position;
+};
 
 export default function HomeMap({
     courseType,
@@ -81,11 +86,6 @@ export default function HomeMap({
             ],
             zoomLevel: zoomLevel,
         });
-    };
-
-    type VisibleBounds = {
-        sw: Position;
-        ne: Position;
     };
 
     const [bounds, setBounds] = useState<VisibleBounds | null>(null);
@@ -168,6 +168,24 @@ export default function HomeMap({
         enabled: !!center && !!distance,
     });
 
+    // 선택된 코스가 포함되어있는 것을 보장하기 위해 병합
+    const mergedCourses = useMemo(() => {
+        if (!courses) return activeCourse ? [activeCourse] : [];
+        const hasActive =
+            activeCourse && courses.some((c) => c.id === activeCourse.id);
+        if (hasActive) return courses;
+        return activeCourse ? [activeCourse, ...courses] : courses;
+    }, [courses, activeCourse]);
+
+    // activeCourse가 변경되었을 때, 실제 코스 데이터에서 찾아서 업데이트
+    useEffect(() => {
+        if (!activeCourse || !courses) return;
+        const canonicalCourse = courses.find((c) => c.id === activeCourse.id);
+        if (canonicalCourse && canonicalCourse !== activeCourse) {
+            setActiveCourse(canonicalCourse);
+        }
+    }, [activeCourse, courses]);
+
     useEffect(() => {
         if (firstRenderRef.current && courses) {
             firstRenderRef.current = false;
@@ -212,7 +230,7 @@ export default function HomeMap({
                     mapBottomSheetRef.current?.dismiss();
                 }}
             >
-                {courses?.map((course) => (
+                {mergedCourses?.map((course) => (
                     <CourseMarkers
                         key={course.id}
                         course={course}
@@ -242,7 +260,7 @@ export default function HomeMap({
             >
                 <View style={{ height: 20 }} />
                 <CourseListView
-                    courses={courses ?? []}
+                    courses={mergedCourses ?? []}
                     selectedCourse={activeCourse}
                     onShowCourseInfo={onClickCourseInfo}
                     maxHeight={Dimensions.get("window").height - 500}
@@ -253,7 +271,7 @@ export default function HomeMap({
                 bottomSheetRef={mapBottomSheetRef}
                 modalType={showListView ? "list" : courseType}
                 activeCourse={activeCourse}
-                courses={courses ?? []}
+                courses={mergedCourses ?? []}
                 onClickCourse={onClickCourse}
                 onClickCourseInfo={onClickCourseInfo}
                 backdropOpacity={0.1}
