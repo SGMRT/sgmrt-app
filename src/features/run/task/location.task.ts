@@ -27,7 +27,7 @@ function reset() {
 }
 
 TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
-    console.log("LOCATION_TASK", data, error);
+    devLog("LOCATION_TASK", data, error);
     if (error) return;
     const { locations } = (data ?? {}) as { locations?: LocationObject[] };
     if (!locations?.length) return;

@@ -16,12 +16,9 @@ export default function HeartRateScreen() {
     useEffect(() => {
         subHR.current = onHeartRate((bpm) => {
             setBpm(bpm);
-            console.log("heartRate:", bpm);
         });
-        const subState = onWatchState((s) => console.log("watchState:", s));
         return () => {
             subHR.current?.remove();
-            subState.remove();
         };
     }, []);
 
