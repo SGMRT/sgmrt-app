@@ -101,8 +101,7 @@ export default function Result() {
         queryKey: ["match-result", runningId],
         queryFn: () =>
             getRunComperison(Number(runningId), Number(ghostRunningId)),
-        enabled: false,
-        // enabled: runningMode === "GHOST" && !!runningId && !!ghostRunningId,
+        enabled: runningMode === "GHOST" && !!runningId && !!ghostRunningId,
     });
 
     const [recordTitle, setRecordTitle] = useState(runData?.runningName ?? "");
@@ -418,7 +417,7 @@ export default function Result() {
                         )}
 
                         {/* 고스트 러닝 기록 비교  (고스트 러닝) */}
-                        {runningMode === "GHOST" && (
+                        {runningMode === "GHOST" && comperison && (
                             <Section
                                 title="기록 비교"
                                 titleVariant="sectionhead"
