@@ -5,13 +5,19 @@ import { RunStatus } from "../types";
 
 export function useHeartRate(context: RunContext) {
     const prevStatus = useRef<RunStatus>("IDLE");
+    const isWatchAvailable = useRef(true);
+
     useEffect(() => {
+        if (!isWatchAvailable.current) return;
+
         const prev = prevStatus.current;
         const curr = context.status;
         prevStatus.current = curr;
 
         if ((prev === "IDLE" || prev === "READY") && curr === "RUNNING") {
-            start();
+            start().catch(() => {
+                isWatchAvailable.current = false;
+            });
         } else if (curr === "RUNNING" || curr === "RUNNING_EXTENDED") {
             resume();
         } else if (curr === "PAUSED_USER" || curr === "PAUSED_OFFCOURSE") {
