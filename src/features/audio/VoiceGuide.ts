@@ -305,7 +305,7 @@ class VoiceGuide {
                 return {
                     text:
                         "코스 진행거리 " +
-                        event.progressM +
+                        Math.round(event.progressM) +
                         " 미터 입니다. " +
                         " 고스트와의 거리 차이는 " +
                         event.deltaM +

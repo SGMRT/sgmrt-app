@@ -72,8 +72,8 @@ export default function Run() {
     );
     const [runSaveResult, setRunSaveResult] = useState<{
         runningId: number;
-        ghostRunningId: number;
-        courseId: number;
+        ghostRunningId: number | undefined;
+        courseId: number | undefined;
     } | null>(null);
 
     const { courseId, ghostRunningId } = useLocalSearchParams();
@@ -279,6 +279,22 @@ export default function Run() {
         (async () => {
             try {
                 const userRecordData = buildUserRecordData(context.stats);
+                console.log(isClearCourse);
+                console.log(withRouting);
+
+                const saveGhostId = !isClearCourse
+                    ? undefined
+                    : Number(ghostRunningId) !== -1
+                    ? Number(ghostRunningId)
+                    : undefined;
+
+                const saveCourseId = !isClearCourse
+                    ? undefined
+                    : Number(courseId);
+
+                console.log(saveGhostId);
+                console.log(saveCourseId);
+
                 const response = await saveRunning({
                     telemetries: context.telemetries,
                     rawData: extractRawData(context.mainTimeline),
@@ -286,17 +302,13 @@ export default function Run() {
                     userDashboardData: userRecordData,
                     runTime: Math.round(context.stats.totalTimeMs / 1000),
                     isPublic: true,
-                    ghostRunningId: !isClearCourse
-                        ? null
-                        : Number(ghostRunningId) !== -1
-                        ? Number(ghostRunningId)
-                        : null,
-                    courseId: Number(courseId),
+                    ghostRunningId: saveGhostId,
+                    courseId: saveCourseId,
                 });
                 setRunSaveResult({
                     runningId: response.runningId,
-                    courseId: Number(courseId),
-                    ghostRunningId: Number(ghostRunningId),
+                    courseId: saveCourseId,
+                    ghostRunningId: saveGhostId,
                 });
                 if (withRouting) {
                     router.replace({
@@ -304,8 +316,8 @@ export default function Run() {
                             "/stats/result/[runningId]/[courseId]/[ghostRunningId]",
                         params: {
                             runningId: response.runningId.toString(),
-                            courseId: courseId.toString(),
-                            ghostRunningId: ghostRunningId.toString(),
+                            courseId: saveCourseId ?? "-1",
+                            ghostRunningId: saveGhostId ?? "-1",
                         },
                     });
                 }
@@ -319,7 +331,7 @@ export default function Run() {
                 });
                 setIsSaving(false);
                 setThumbnailUri(null);
-                setRunShotType("share");
+                if (!withRouting) setRunShotType("share");
             }
         })();
     }, [
@@ -543,6 +555,7 @@ export default function Run() {
                             }
                             onPress={() => {
                                 if (context.status === "READY") {
+                                    controls.stop();
                                     router.back();
                                 } else {
                                     Alert.alert(
@@ -584,13 +597,9 @@ export default function Run() {
                                                     : "기록 저장",
                                             style: "destructive",
                                             onPress: () => {
-                                                if (
-                                                    context.stats
-                                                        .totalDistanceM < 500
-                                                ) {
-                                                    controls.stop();
-                                                    router.back();
+                                                if (false) {
                                                 } else {
+                                                    setWithRouting(true);
                                                     requestSave();
                                                 }
                                             },
@@ -655,9 +664,11 @@ export default function Run() {
                                         runningId:
                                             runSaveResult.runningId.toString(),
                                         courseId:
-                                            runSaveResult.courseId.toString(),
+                                            runSaveResult.courseId?.toString() ??
+                                            "-1",
                                         ghostRunningId:
-                                            runSaveResult.ghostRunningId.toString(),
+                                            runSaveResult.ghostRunningId?.toString() ??
+                                            "-1",
                                     },
                                 });
                             }
