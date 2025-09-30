@@ -5,3 +5,4 @@ export const MATCH_WINDOW_MS = 3000;
 export const LOCATION_BUFFER_SIZE = 100;
 export const PEDOMETER_BUFFER_SIZE = 100;
 export const PRESSURE_BUFFER_SIZE = 100;
+export const HEART_RATE_BUFFER_SIZE = 100;

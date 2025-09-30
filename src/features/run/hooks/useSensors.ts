@@ -1,4 +1,5 @@
 // features/run/app/useSensors.ts
+import { onHeartRate } from "@/modules/expo-watch-module";
 import { devLog } from "@/src/utils/devLog";
 import * as Location from "expo-location";
 import { Barometer, Pedometer } from "expo-sensors";
@@ -13,6 +14,7 @@ export function useSensors(enabled: boolean) {
     const baroSubRef = useRef<ReturnType<typeof Barometer.addListener> | null>(
         null
     );
+    const heartRateSubRef = useRef<ReturnType<typeof onHeartRate> | null>(null);
 
     useEffect(() => {
         if (!enabled) return;
@@ -62,6 +64,14 @@ export function useSensors(enabled: boolean) {
                     timestamp: Date.now(),
                 });
             });
+            // 6) Heart Rate (심박수 저장)
+            heartRateSubRef.current = onHeartRate((bpm) => {
+                if (!mounted) return;
+                sharedSensorStore.pushHeartRate({
+                    bpm: Math.round(bpm),
+                    timestamp: Date.now(),
+                });
+            });
         })();
 
         return () => {
@@ -78,6 +88,7 @@ export function useSensors(enabled: boolean) {
 
             stepSubRef.current?.remove();
             baroSubRef.current?.remove();
+            heartRateSubRef.current?.remove();
 
             // 세션 종료/화면 전환 시 스토어 정리
             sharedSensorStore.reset?.();

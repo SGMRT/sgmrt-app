@@ -1,5 +1,4 @@
 import { Telemetry } from "@/src/apis/types/run";
-import { markResumeAnchor } from "../task/location.task";
 import { RunStatus } from "../types";
 import { RunAction } from "./actions";
 import { RunContext } from "./context";
@@ -119,7 +118,6 @@ export function runReducer(
         // 러닝 재개
         case "RESUME":
         case "ONCOURSE": {
-            markResumeAnchor();
             const now = Date.now();
             const pausedAt = state.liveActivity.pausedAtMs;
             const startedAt =

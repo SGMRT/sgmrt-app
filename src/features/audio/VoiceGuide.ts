@@ -40,6 +40,12 @@ export type VoiceEvent =
           deltaM: number;
       }
     | {
+          type: "run/ghost-periodic";
+          leader: "ME" | "GHOST" | "TIED";
+          deltaM: number;
+          progressM: number;
+      }
+    | {
           type: "run/distance";
           distanceKM: string;
           totalTime: number;
@@ -67,11 +73,12 @@ class VoiceGuide {
 
     // 전역 설정
     private lang = "ko-KR";
-    private rate = 1.0;
+    private rate = 0.85;
     private cooldownMs: Record<string, number> = {
         "nav/approach-leg": 3000,
         "run/offcourse-warning": 5000,
         "run/ghost-change-leader": 5000,
+        "run/ghost-periodic": 5000,
     };
 
     setEnabled(enabled: boolean) {
@@ -292,6 +299,19 @@ class VoiceGuide {
                               " 미터 입니다.",
                     priority: "HIGH",
                     cooldownKey: "run/ghost-change-leader",
+                };
+            }
+            case "run/ghost-periodic": {
+                return {
+                    text:
+                        event.leader === "GHOST"
+                            ? "고스트가 앞서고 있습니다. "
+                            : "현재 선두 입니다. " +
+                              " 거리 차이는 " +
+                              event.deltaM +
+                              " 미터 입니다.",
+                    priority: "HIGH",
+                    cooldownKey: "run/ghost-periodic",
                 };
             }
             case "run/distance": {

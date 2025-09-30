@@ -14,8 +14,14 @@ export interface RunningStats {
     lossM: number;
     bpm: number | null;
     last?: RawRunData;
-    _window: { ts: number; dist: number; steps: number }[];
+    _window: {
+        ts: number;
+        dist: number;
+        deltaSteps: number;
+        estimated: boolean;
+    }[];
     _totalSteps: number;
+    _totalEstimatedSteps: number;
 }
 
 export const DEFAULT_STATS: RunningStats = {
@@ -31,6 +37,7 @@ export const DEFAULT_STATS: RunningStats = {
     bpm: null,
     _window: [],
     _totalSteps: 0,
+    _totalEstimatedSteps: 0,
 };
 
 const PACE_WINDOW_MS = 30_000;
@@ -67,7 +74,6 @@ export function updateStats(
     // zeroDt면 창 리셋(앵커 준비), 아니면 기존 창 유지
     const next: RunningStats = {
         ...prev,
-        _window: zero ? [] : [...prev._window],
         _totalSteps: prev._totalSteps ?? 0,
     };
 
@@ -95,24 +101,68 @@ export function updateStats(
         }
     }
 
-    const deltaSteps = !zero ? Math.max(0, sample.steps ?? 0) : 0;
-    next._totalSteps += deltaSteps;
+    const lastStpes = last?.steps ?? null;
+    const currentSteps = sample.steps ?? null;
 
-    // --- 롤링 창 갱신(앵커/실샘플) ---
-    if (zero) {
-        // 재개 첫 샘플: 기여 0인 앵커만 넣음
-        next._window.push({ ts: sample.timestamp, dist: 0, steps: 0 });
-    } else {
-        next._window.push({
-            ts: sample.timestamp,
-            dist: filteredDistM,
-            steps: deltaSteps,
-        });
+    let deltaSteps = 0;
+    if (currentSteps != null && lastStpes != null) {
+        deltaSteps = Math.max(0, currentSteps - lastStpes);
     }
 
-    // 10초 윈도 유지
+    const estimateSteps = (dt: number) => {
+        const cadence = prev.avgCadenceSpm ?? 160;
+        const estimatedSteps = (cadence / 60) * Math.max(0, dt);
+        return Math.round(estimatedSteps);
+    };
+
+    let windowDeltaSteps = 0;
+    let addToTotalSteps = 0;
+
+    if (deltaSteps > 0) {
+        // 실제로 값이 들어온 경우
+        // 부채 상계 진행
+        let repay = Math.min(prev._totalEstimatedSteps ?? 0, deltaSteps);
+        for (let i = next._window.length - 1; i >= 0 && repay > 0; i--) {
+            const e = next._window[i];
+            if (!e.estimated || e.deltaSteps <= 0) continue;
+            const take = Math.min(e.deltaSteps, repay);
+            e.deltaSteps -= take;
+            repay -= take;
+        }
+
+        // 총합 상계
+        const totalRepay = Math.min(prev._totalEstimatedSteps ?? 0, deltaSteps);
+        addToTotalSteps = deltaSteps - totalRepay;
+        next._totalEstimatedSteps =
+            (prev._totalEstimatedSteps ?? 0) - totalRepay;
+
+        windowDeltaSteps = deltaSteps;
+    } else {
+        if (filteredDistM > 0.5) {
+            // 실제 값이 들어오지 않은 경우
+            const estimatedSteps = estimateSteps(dtSec);
+            windowDeltaSteps = estimatedSteps;
+            addToTotalSteps = estimatedSteps;
+            next._totalEstimatedSteps =
+                (prev._totalEstimatedSteps ?? 0) + estimatedSteps;
+        }
+    }
+
+    next._totalSteps += addToTotalSteps;
+
+    next._window.push({
+        ts: sample.timestamp,
+        dist: filteredDistM,
+        deltaSteps: zero ? 0 : windowDeltaSteps,
+        estimated: deltaSteps === 0,
+    });
+
     const cutoff = sample.timestamp - PACE_WINDOW_MS;
-    while (next._window.length && next._window[0].ts < cutoff) {
+    while (
+        next._window.length &&
+        next._window.length > 2 &&
+        next._window[0].ts < cutoff
+    ) {
         next._window.shift();
     }
 
@@ -124,7 +174,7 @@ export function updateStats(
             : 0;
 
     const sumDist = next._window.reduce((a, b) => a + b.dist, 0);
-    const sumSteps = next._window.reduce((a, b) => a + b.steps, 0);
+    const sumSteps = next._window.reduce((a, b) => a + b.deltaSteps, 0);
 
     // "raw" 계산값
     const rawPace = secPerKmFrom(sumDist, winTimeSec);
@@ -134,7 +184,7 @@ export function updateStats(
     // sticky: 유효값이 아니면 이전 값을 유지
     next.currentPaceSecPerKm = rawPace ?? prev.currentPaceSecPerKm ?? null;
     next.currentCadenceSpm = rawCadence ?? prev.currentCadenceSpm ?? null;
-    next.bpm = 0;
+    next.bpm = sample.bpm ?? prev.bpm ?? null;
 
     // 평균 페이스(전체)
     next.avgPaceSecPerKm = secPerKmFrom(
@@ -155,7 +205,7 @@ export function updateStats(
         weight: weight ?? 70,
     });
 
-    // 마지막 샘플 저장
+    // 마지막 샘플 저장ß
     next.last = sample;
     return next;
 }

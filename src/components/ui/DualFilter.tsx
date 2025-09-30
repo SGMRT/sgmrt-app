@@ -42,7 +42,7 @@ export const DualFilter = ({
             <TouchableOpacity onPress={onPressFirst}>
                 <Section style={{ alignItems: "center" }}>
                     <Typography
-                        variant="headline"
+                        variant="subhead2"
                         color={selected === "first" ? "primary" : "gray20"}
                     >
                         {firstLabel}
@@ -53,7 +53,7 @@ export const DualFilter = ({
             <TouchableOpacity onPress={onPressSecond}>
                 <Section style={{ alignItems: "center" }}>
                     <Typography
-                        variant="headline"
+                        variant="subhead2"
                         color={selected === "second" ? "primary" : "gray20"}
                     >
                         {secondLabel}

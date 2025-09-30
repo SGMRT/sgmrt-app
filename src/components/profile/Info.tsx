@@ -10,6 +10,7 @@ import {
 import { GetUserInfoResponse } from "@/src/apis/types/user";
 import { useLocalNotificationPermission } from "@/src/features/notifications/useLocalNotificationPermission";
 import { useAuthStore, UserInfo, UserSettings } from "@/src/store/authState";
+import { useLocalPrefs } from "@/src/store/localPrefs";
 import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -47,15 +48,6 @@ const HK = {
     writeEnergy: "HKQuantityTypeIdentifierActiveEnergyBurned",
     readHeartRate: "HKQuantityTypeIdentifierHeartRate",
 } as const;
-
-const WRITE_TYPES = [
-    HK.writeWorkout,
-    HK.writeWR,
-    HK.writeRoute,
-    HK.writeEnergy,
-];
-
-const READ_TYPES = [HK.readHeartRate];
 
 function applyUserInfoToStore(
     res: GetUserInfoResponse,
@@ -330,6 +322,12 @@ export const Info = ({
         patchProfileMutation.mutate(image.uri);
     };
 
+    const isCadenceAssistEnabled = useLocalPrefs((s) => s.cadenceAssistEnabled);
+
+    const handleCadenceAssistChange = (v: boolean) => {
+        useLocalPrefs.getState().setCadenceAssistEnabled(v);
+    };
+
     return (
         <ScrollView
             ref={scrollViewRef}
@@ -412,6 +410,18 @@ export const Info = ({
                         />
                     }
                 />
+                <ProfileOptionItem
+                    title="케이던스 보조"
+                    rightElement={
+                        <StyledSwitch
+                            isSelected={isCadenceAssistEnabled}
+                            onValueChange={(v) => {
+                                handleCadenceAssistChange(v);
+                            }}
+                        />
+                    }
+                />
+                {isCadenceAssistEnabled && <CadenceAssistControl />}
             </ProfileOptionSection>
             {/* 건강 권한 */}
             <ProfileOptionSection>
@@ -563,6 +573,85 @@ export const Info = ({
                 </Typography>
             </TouchableOpacity>
         </ScrollView>
+    );
+};
+
+const CadenceAssistControl = () => {
+    const {
+        cadenceTarget: value,
+        decCadenceTarget,
+        incCadenceTarget,
+    } = useLocalPrefs();
+    return (
+        <View
+            style={{
+                paddingHorizontal: 17,
+                paddingBottom: 14,
+                gap: 12,
+            }}
+        >
+            <View
+                style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                }}
+            >
+                {/* -10 버튼 */}
+                <TouchableOpacity
+                    onPress={() => decCadenceTarget(10)}
+                    onLongPress={() => decCadenceTarget(10)}
+                    style={{
+                        height: 28,
+                        paddingHorizontal: 16,
+                        borderRadius: 8,
+                        backgroundColor: "#1F1F1F",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <Typography variant="subhead3" color="white">
+                        -10
+                    </Typography>
+                </TouchableOpacity>
+
+                {/* 현재 값 */}
+                <View
+                    style={{
+                        flex: 1,
+                        height: 30,
+                        borderRadius: 8,
+                        backgroundColor: "#111111",
+                        borderWidth: 1,
+                        borderColor: "#212121",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <Typography variant="subhead3" color="gray20">
+                        {value} spm
+                    </Typography>
+                </View>
+
+                {/* +10 버튼 */}
+                <TouchableOpacity
+                    onPress={() => incCadenceTarget(10)}
+                    onLongPress={() => incCadenceTarget(10)}
+                    style={{
+                        height: 28,
+                        paddingHorizontal: 16,
+                        borderRadius: 8,
+                        backgroundColor: "#1F1F1F",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <Typography variant="subhead3" color="white">
+                        +10
+                    </Typography>
+                </TouchableOpacity>
+            </View>
+        </View>
     );
 };
 

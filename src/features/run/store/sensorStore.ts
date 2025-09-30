@@ -2,6 +2,7 @@ import { LocationObject } from "expo-location";
 import { BarometerMeasurement } from "expo-sensors";
 import { PedometerResult } from "expo-sensors/build/Pedometer";
 import {
+    HEART_RATE_BUFFER_SIZE,
     LOCATION_BUFFER_SIZE,
     PEDOMETER_BUFFER_SIZE,
     PRESSURE_BUFFER_SIZE,
@@ -9,6 +10,7 @@ import {
 import { RingBuffer } from "./ringBuffers";
 import {
     ensureTs,
+    HeartRateSample,
     LocationSample,
     PressureSample,
     StepSample,
@@ -18,11 +20,14 @@ export class SensorStore {
     readonly locations = new RingBuffer<LocationSample>(LOCATION_BUFFER_SIZE);
     readonly pressures = new RingBuffer<PressureSample>(PRESSURE_BUFFER_SIZE);
     readonly steps = new RingBuffer<StepSample>(PEDOMETER_BUFFER_SIZE);
-
+    readonly heartRates = new RingBuffer<HeartRateSample>(
+        HEART_RATE_BUFFER_SIZE
+    );
     reset() {
         this.locations.reset();
         this.pressures.reset();
         this.steps.reset();
+        this.heartRates.reset();
     }
 
     pushLocation(raw: LocationObject) {
@@ -55,6 +60,15 @@ export class SensorStore {
             timestamp: ensureTs(raw.timestamp),
         };
         this.steps.push(sample);
+        return sample;
+    }
+
+    pushHeartRate(raw: HeartRateSample) {
+        const sample: HeartRateSample = {
+            bpm: raw.bpm,
+            timestamp: ensureTs(raw.timestamp),
+        };
+        this.heartRates.push(sample);
         return sample;
     }
 }

@@ -4,7 +4,7 @@ import { showCompactToast } from "@/src/components/ui/toastConfig";
 import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
 import { useEffect, useMemo, useRef } from "react";
-import { InteractionManager } from "react-native"; // ✅ 추가
+import { InteractionManager } from "react-native";
 import { voiceGuide } from "../../audio/VoiceGuide";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { CourseLeg } from "../types/courseLeg";
@@ -57,6 +57,10 @@ export function useGhostCoordinator(
     const prevTimestampRef = useRef<number | null>(null);
     const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
 
+    const prevResultRef = useRef<GhostCompareResult | null>(null);
+
+    const lastProgressBucketRef = useRef<number>(0);
+
     const ghostPoint = findClosest(
         ghostTelemetry,
         timestamp * (simulateSpeed ?? 1),
@@ -72,7 +76,7 @@ export function useGhostCoordinator(
         );
     }, [ghostTelemetry, ghostPoint]);
 
-    // 1) 계산만 하는 단계 (사이드이펙트 금지)
+    // 1) 계산
     const result = useMemo<GhostCompareResult | null>(() => {
         if (
             !legs.length ||
@@ -85,8 +89,10 @@ export function useGhostCoordinator(
         if (
             prevTimestampRef.current !== null &&
             prevTimestampRef.current === timestamp
-        )
-            return null;
+        ) {
+            return prevResultRef.current;
+        }
+
         prevTimestampRef.current = timestamp;
 
         const myProgressM = progressAlongCourseM(legs, myLegIndex, myPoint);
@@ -175,6 +181,9 @@ export function useGhostCoordinator(
         if (leader === "TIED") return;
         if (leader === prevLeaderRef.current) return;
 
+        const bucket = Math.floor(deltaM / 500);
+        lastProgressBucketRef.current = bucket;
+
         prevLeaderRef.current = leader;
 
         const text =
@@ -203,6 +212,26 @@ export function useGhostCoordinator(
             );
         });
     }, [result, controls]);
+
+    useEffect(() => {
+        if (!result) return;
+        const { myProgressM, leader, deltaM } = result;
+        if (myProgressM < 500) return;
+        const bucket = Math.floor(myProgressM / 500);
+        if (bucket <= lastProgressBucketRef.current) return;
+        lastProgressBucketRef.current = bucket;
+        voiceGuide.announce({
+            type: "run/ghost-periodic",
+            leader,
+            deltaM: Math.abs(deltaM),
+            progressM: myProgressM,
+        });
+    }, [result]);
+
+    useEffect(() => {
+        if (!result) return;
+        prevResultRef.current = result;
+    }, [result]);
 
     return result;
 }

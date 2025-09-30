@@ -21,6 +21,11 @@ export interface StepSample {
     timestamp: Ms;
 }
 
+export interface HeartRateSample {
+    bpm: number;
+    timestamp: Ms;
+}
+
 export function ensureTs(inputTs?: number | null): Ms {
     return typeof inputTs === "number" && isFinite(inputTs)
         ? inputTs
