@@ -138,12 +138,14 @@ export function updateStats(
 
         windowDeltaSteps = deltaSteps;
     } else {
-        // 실제 값이 들어오지 않은 경우
-        const estimatedSteps = estimateSteps(dtSec);
-        windowDeltaSteps = estimatedSteps;
-        addToTotalSteps = estimatedSteps;
-        next._totalEstimatedSteps =
-            (prev._totalEstimatedSteps ?? 0) + estimatedSteps;
+        if (filteredDistM > 0.5) {
+            // 실제 값이 들어오지 않은 경우
+            const estimatedSteps = estimateSteps(dtSec);
+            windowDeltaSteps = estimatedSteps;
+            addToTotalSteps = estimatedSteps;
+            next._totalEstimatedSteps =
+                (prev._totalEstimatedSteps ?? 0) + estimatedSteps;
+        }
     }
 
     next._totalSteps += addToTotalSteps;
