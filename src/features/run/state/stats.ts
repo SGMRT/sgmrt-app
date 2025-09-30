@@ -105,12 +105,8 @@ export function updateStats(
     const currentSteps = sample.steps ?? null;
 
     let deltaSteps = 0;
-    if (currentSteps != null) {
-        if (lastStpes == null) {
-            deltaSteps = 0;
-        } else {
-            deltaSteps = Math.max(0, currentSteps - lastStpes);
-        }
+    if (currentSteps != null && lastStpes != null) {
+        deltaSteps = Math.max(0, currentSteps - lastStpes);
     }
 
     const estimateSteps = (dt: number) => {
