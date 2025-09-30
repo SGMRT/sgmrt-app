@@ -15,7 +15,6 @@ const joiner = new StreamJoiner(sharedSensorStore, 3000);
 let lastAcceptedTs = 0;
 let lastAcceptedLat = 0;
 let lastAcceptedLng = 0;
-let lastAcceptedSteps: number | null = null;
 
 function isFirstSample(sharedSensorStore: SensorStore) {
     return sharedSensorStore.locations.last() === undefined;
@@ -25,10 +24,10 @@ function reset() {
     lastAcceptedTs = 0;
     lastAcceptedLat = 0;
     lastAcceptedLng = 0;
-    lastAcceptedSteps = null;
 }
 
 TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
+    console.log("LOCATION_TASK", data, error);
     if (error) return;
     const { locations } = (data ?? {}) as { locations?: LocationObject[] };
     if (!locations?.length) return;
@@ -79,16 +78,13 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             joined.pressure?.pressure ?? 0
         );
 
-        const totalSteps = joined.steps?.totalSteps ?? lastAcceptedSteps ?? 0;
-        const deltaSteps = totalSteps - (lastAcceptedSteps ?? 0);
-
         joinedState.push({
             timestamp: joined.timestamp,
             latitude: filtered.latitude,
             longitude: filtered.longitude,
             altitude: pressureAltitude ?? joined.location.altitude ?? null,
             pressure: joined.pressure?.pressure ?? null,
-            steps: deltaSteps,
+            steps: joined.steps?.totalSteps ?? null,
             distance: deltaDistance,
             isRunning: null,
             bpm: joined.heartRate?.bpm ?? null,
@@ -108,6 +104,5 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         lastAcceptedTs = joined.timestamp;
         lastAcceptedLat = filtered.latitude;
         lastAcceptedLng = filtered.longitude;
-        lastAcceptedSteps = totalSteps;
     }
 });
