@@ -279,8 +279,6 @@ export default function Run() {
         (async () => {
             try {
                 const userRecordData = buildUserRecordData(context.stats);
-                console.log(isClearCourse);
-                console.log(withRouting);
 
                 const saveGhostId = !isClearCourse
                     ? undefined
@@ -291,9 +289,6 @@ export default function Run() {
                 const saveCourseId = !isClearCourse
                     ? undefined
                     : Number(courseId);
-
-                console.log(saveGhostId);
-                console.log(saveCourseId);
 
                 const response = await saveRunning({
                     telemetries: context.telemetries,
@@ -597,7 +592,12 @@ export default function Run() {
                                                     : "기록 저장",
                                             style: "destructive",
                                             onPress: () => {
-                                                if (false) {
+                                                if (
+                                                    context.stats
+                                                        .totalDistanceM < 500
+                                                ) {
+                                                    controls.stop();
+                                                    router.back();
                                                 } else {
                                                     setWithRouting(true);
                                                     requestSave();
