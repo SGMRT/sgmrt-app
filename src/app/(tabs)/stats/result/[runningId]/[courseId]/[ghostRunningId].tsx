@@ -188,7 +188,7 @@ export default function Result() {
             },
             {
                 description: "케이던스",
-                value: runData?.recordInfo.cadence ?? 0,
+                value: Math.round(runData?.recordInfo.cadence ?? 0),
                 unit: "spm",
             },
             {

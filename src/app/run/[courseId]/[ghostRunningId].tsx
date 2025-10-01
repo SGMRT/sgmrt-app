@@ -248,7 +248,7 @@ export default function Run() {
             },
             {
                 description: "케이던스",
-                value: context.stats.avgCadenceSpm ?? 0,
+                value: Math.round(context.stats.avgCadenceSpm ?? 0),
                 unit: "spm",
             },
             {
