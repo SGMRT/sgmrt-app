@@ -17,7 +17,7 @@ import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as Sentry from "@sentry/react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
-import { useRouter } from "expo-router";
+import { SplashScreen, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import {
@@ -38,6 +38,7 @@ export default function Login() {
 
     useEffect(() => {
         initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_APP_KEY ?? "");
+        SplashScreen.hideAsync();
     }, []);
 
     const doLogin = async (args: {

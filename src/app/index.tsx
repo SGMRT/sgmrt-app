@@ -1,5 +1,7 @@
-import { Redirect } from "expo-router";
+import { SplashScreen } from "expo-router";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function Index() {
-    return <Redirect href="/(auth)/login" />;
+    return <></>;
 }

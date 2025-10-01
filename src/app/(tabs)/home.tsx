@@ -9,6 +9,7 @@ import TabBar from "@/src/components/ui/TabBar";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SplashScreen } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
@@ -23,13 +24,14 @@ export default function Home() {
 
     useEffect(() => {
         setTelemetryEnabled(false);
+        SplashScreen.hideAsync();
     }, []);
 
     useEffect(() => {
         const loadWelcome = async () => {
             const welcome = await AsyncStorage.getItem("welcome");
 
-            if (welcome === "false") {
+            if (welcome === "true") {
                 setShowOnboarding(true);
             }
         };
@@ -72,11 +74,13 @@ export default function Home() {
                 blastDuration={800}
                 autoplay={false}
             />
-            <Onboarding
-                showOnboarding={showOnboarding}
-                setShowOnboarding={setShowOnboarding}
-                confettiRef={confettiRef}
-            />
+            {showOnboarding && (
+                <Onboarding
+                    showOnboarding={showOnboarding}
+                    setShowOnboarding={setShowOnboarding}
+                    confettiRef={confettiRef}
+                />
+            )}
         </View>
     );
 }
