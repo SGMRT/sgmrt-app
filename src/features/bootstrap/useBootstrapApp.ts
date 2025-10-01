@@ -218,15 +218,6 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
             setStatus("running");
 
             try {
-                // 1) 권한
-                const granted = await requestPermissions();
-                if (!granted) {
-                    if (!cancelled) setStatus("blocked");
-                    // 권한 거부 시 스플래시는 닫아 UX를 막지 않음 (권한 설정 유도)
-                    await SplashScreen.hideAsync();
-                    return;
-                }
-
                 const checkAuthorization = async () => {
                     devLog("authorizationStatus", authorizationStatus);
                     if (
@@ -236,7 +227,15 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                         requestAuthorization();
                     }
                 };
-                checkAuthorization();
+                await checkAuthorization();
+                // 1) 권한
+                const granted = await requestPermissions();
+                if (!granted) {
+                    if (!cancelled) setStatus("blocked");
+                    // 권한 거부 시 스플래시는 닫아 UX를 막지 않음 (권한 설정 유도)
+                    await SplashScreen.hideAsync();
+                    return;
+                }
 
                 // 2) 초기화
                 await Promise.all([
