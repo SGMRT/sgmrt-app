@@ -54,7 +54,9 @@ export default function BottomCourseInfoModal({
         },
         {
             description: "하강",
-            value: course?.elevationLoss.toString() ?? "--",
+            value: course?.elevationLoss
+                ? Math.abs(course?.elevationLoss)
+                : "--",
             unit: "m",
         },
     ];

@@ -145,7 +145,7 @@ export default function Result() {
             },
             {
                 description: "하강",
-                value: runData?.recordInfo.elevationLoss ?? 0,
+                value: Math.abs(runData?.recordInfo.elevationLoss ?? 0),
                 unit: "m",
             },
         ];

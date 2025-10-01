@@ -67,7 +67,9 @@ export default function Result() {
             },
             {
                 description: "하강",
-                value: Math.round(course?.elevationLoss ?? 0).toString(),
+                value: Math.abs(
+                    Math.round(course?.elevationLoss ?? 0)
+                ).toString(),
                 unit: "m",
             },
         ];
