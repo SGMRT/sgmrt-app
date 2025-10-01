@@ -10,40 +10,13 @@ import { SuccessToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
 import { useAuthStore } from "@/src/store/authState";
-import { devLog } from "@/src/utils/devLog";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import {
-    AuthorizationRequestStatus,
-    useHealthkitAuthorization,
-} from "@kingstinct/react-native-healthkit";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
 export default function Home() {
     const [showListView, setShowListView] = useState(false);
-    const [authorizationStatus, requestAuthorization] =
-        useHealthkitAuthorization(
-            ["HKQuantityTypeIdentifierHeartRate"],
-            [
-                "HKQuantityTypeIdentifierDistanceWalkingRunning",
-                "HKQuantityTypeIdentifierActiveEnergyBurned",
-                "HKWorkoutTypeIdentifier",
-                "HKWorkoutRouteTypeIdentifier",
-            ]
-        );
-
-    useEffect(() => {
-        const checkAuthorization = async () => {
-            devLog("authorizationStatus", authorizationStatus);
-            if (
-                authorizationStatus === AuthorizationRequestStatus.shouldRequest
-            ) {
-                requestAuthorization();
-            }
-        };
-        checkAuthorization();
-    }, [authorizationStatus, requestAuthorization]);
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const confettiRef = useRef<ConfettiMethods | null>(null);
