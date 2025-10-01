@@ -53,6 +53,8 @@ import InfoIcon from "./info.svg";
 
 import SaveIcon from "./save.svg";
 
+import DotIcon from "./dot.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -61,6 +63,7 @@ export {
     CheckIcon,
     ChevronIcon,
     CloseIcon,
+    DotIcon,
     EditIcon,
     ElipsisVerticalIcon,
     FilterIcon,
