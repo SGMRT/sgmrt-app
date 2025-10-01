@@ -56,17 +56,12 @@ export default function Result() {
                 unit: "km",
             },
             {
-                description: "고도",
-                value: Math.round(course?.elevationAverage ?? 0).toString(),
-                unit: "m",
-            },
-            {
-                description: "상승",
+                description: "상승 고도",
                 value: Math.round(course?.elevationGain ?? 0).toString(),
                 unit: "m",
             },
             {
-                description: "하강",
+                description: "하강 고도",
                 value: Math.abs(
                     Math.round(course?.elevationLoss ?? 0)
                 ).toString(),
@@ -172,7 +167,7 @@ export default function Result() {
                             <StatRow
                                 color="gray20"
                                 style={{
-                                    justifyContent: "space-between",
+                                    gap: 20,
                                 }}
                                 stats={courseAverageStats}
                             />

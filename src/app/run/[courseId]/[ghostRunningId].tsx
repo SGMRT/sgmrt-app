@@ -377,7 +377,9 @@ export default function Run() {
                         stats={
                             runShotType === "share" ? captureStats : undefined
                         }
-                        distance={context.stats.totalDistanceM.toFixed(2)}
+                        distance={(context.stats.totalDistanceM / 1000).toFixed(
+                            2
+                        )}
                     />
                 )}
 

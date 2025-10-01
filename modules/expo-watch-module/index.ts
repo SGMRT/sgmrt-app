@@ -45,6 +45,10 @@ declare class ExpoWatchModule extends NativeModule<WatchEventMap> {
 const Native = requireNativeModule<ExpoWatchModule>("ExpoWatchModule");
 const emitter = new EventEmitter<WatchEventMap>(Native);
 
+export async function requestWatchAuthorization() {
+    return await Native.requestAuthorization();
+}
+
 // ── Public API ───────────────────────────────────────────
 export async function start() {
     Native.activateWC();
@@ -87,4 +91,12 @@ export function onWatchState(
     });
 }
 
-export default { start, pause, resume, stop, onHeartRate, onWatchState };
+export default {
+    start,
+    pause,
+    resume,
+    stop,
+    onHeartRate,
+    onWatchState,
+    requestWatchAuthorization,
+};

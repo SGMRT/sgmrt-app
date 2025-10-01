@@ -134,17 +134,12 @@ export default function Result() {
                 unit: "km",
             },
             {
-                description: "고도",
-                value: runData?.recordInfo.elevationAverage ?? 0,
-                unit: "m",
-            },
-            {
-                description: "상승",
+                description: "상승 고도",
                 value: runData?.recordInfo.elevationGain ?? 0,
                 unit: "m",
             },
             {
-                description: "하강",
+                description: "하강 고도",
                 value: Math.abs(runData?.recordInfo.elevationLoss ?? 0),
                 unit: "m",
             },
@@ -375,11 +370,7 @@ export default function Result() {
                         >
                             <StatRow
                                 color="gray20"
-                                style={
-                                    displayMode === "pace"
-                                        ? { gap: 20 }
-                                        : { justifyContent: "space-between" }
-                                }
+                                style={{ gap: 20 }}
                                 stats={
                                     displayMode === "pace"
                                         ? paceStats

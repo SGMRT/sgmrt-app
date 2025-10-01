@@ -43,24 +43,19 @@ export default function BottomCourseInfoModal({
             unit: "km",
         },
         {
-            description: "고도",
-            value: course?.elevationAverage.toString() ?? "--",
-            unit: "m",
-        },
-        {
-            description: "상승",
+            description: "상승 고도",
             value: course?.elevationGain.toString() ?? "--",
             unit: "m",
         },
         {
-            description: "하강",
+            description: "하강 고도",
             value: course?.elevationLoss
                 ? Math.abs(course?.elevationLoss)
-                : "--",
+                : "0",
             unit: "m",
         },
     ];
-
+    0;
     const ghostStats = [
         {
             description: "시간",
@@ -107,7 +102,7 @@ export default function BottomCourseInfoModal({
                     marginHorizontal: 16.5,
                 }}
                 type="active"
-                title={ghostSelected ? "고스트 러닝" : "코스 러닝"}
+                title={ghostSelected ? "고스트와 러닝" : "이 코스로 러닝"}
                 onPress={() => {
                     bottomSheetRef.current?.dismiss();
                     if (
@@ -307,7 +302,7 @@ const CourseInfoSection = ({
                     stats={stats}
                     color="gray20"
                     style={{
-                        justifyContent: "space-between",
+                        gap: 20,
                     }}
                 />
                 {data && (
