@@ -45,7 +45,7 @@ export default function StatsIndicator({
             num > 0
                 ? `+${display ?? num}`
                 : num < 0
-                ? `-${display ?? num}`
+                ? `${display ?? num}`
                 : `${display ?? num}`,
         []
     );

@@ -11,6 +11,10 @@ import { Alert, InteractionManager, Linking, Platform } from "react-native";
 import expoLiveActivity from "@/modules/expo-live-activity";
 import { devLog, errorLog } from "@/src/utils/devLog";
 import {
+    AuthorizationRequestStatus,
+    useHealthkitAuthorization,
+} from "@kingstinct/react-native-healthkit";
+import {
     getTrackingPermissionsAsync,
     PermissionStatus,
     requestTrackingPermissionsAsync,
@@ -188,6 +192,16 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
     const router = useRouter();
     const [status, setStatus] = useState<Status>("idle");
     const [error, setError] = useState<unknown>(null);
+    const [authorizationStatus, requestAuthorization] =
+        useHealthkitAuthorization(
+            ["HKQuantityTypeIdentifierHeartRate"],
+            [
+                "HKQuantityTypeIdentifierDistanceWalkingRunning",
+                "HKQuantityTypeIdentifierActiveEnergyBurned",
+                "HKWorkoutTypeIdentifier",
+                "HKWorkoutRouteTypeIdentifier",
+            ]
+        );
 
     const version = useMemo(() => Constants.expoConfig?.version, []);
     const build = useMemo(
@@ -212,6 +226,17 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                     await SplashScreen.hideAsync();
                     return;
                 }
+
+                const checkAuthorization = async () => {
+                    devLog("authorizationStatus", authorizationStatus);
+                    if (
+                        authorizationStatus ===
+                        AuthorizationRequestStatus.shouldRequest
+                    ) {
+                        requestAuthorization();
+                    }
+                };
+                checkAuthorization();
 
                 // 2) 초기화
                 await Promise.all([
@@ -254,7 +279,15 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
         return () => {
             cancelled = true;
         };
-    }, [isLoggedIn, loadedFonts, router, version, build]);
+    }, [
+        isLoggedIn,
+        loadedFonts,
+        router,
+        version,
+        build,
+        authorizationStatus,
+        requestAuthorization,
+    ]);
 
     return { status, error };
 }

@@ -1,7 +1,43 @@
 import * as Sentry from "@sentry/react-native";
 import axios from "axios";
 import { useAuthStore } from "../store/authState";
-import { devLog } from "../utils/devLog";
+
+let refreshingPromise: Promise<string> | null = null;
+
+async function refreshAccessToken(): Promise<string> {
+    if (!refreshingPromise) {
+        const { refreshToken } = useAuthStore.getState();
+        refreshingPromise = server
+            .post(
+                "auth/reissue",
+                {},
+                {
+                    headers: { Authorization: `Bearer ${refreshToken}` },
+                    canRetry: false,
+                    withAuth: false,
+                    timeout: 10000,
+                }
+            )
+            .then((res) => {
+                const {
+                    uuid,
+                    accessToken,
+                    refreshToken: newRefresh,
+                } = res.data;
+                useAuthStore.getState().login(accessToken, newRefresh, uuid);
+                return accessToken;
+            })
+            .catch((e) => {
+                // refresh 실패 → 강제 로그아웃
+                useAuthStore.getState().logout();
+                throw e;
+            })
+            .finally(() => {
+                refreshingPromise = null;
+            });
+    }
+    return refreshingPromise;
+}
 
 declare module "axios" {
     interface AxiosRequestConfig {
@@ -57,75 +93,91 @@ server.interceptors.request.use((config) => {
 });
 
 server.interceptors.response.use(
-    (response) => {
-        return response;
-    },
+    (response) => response,
     async (error) => {
-        if (
-            error.response.status === 401 &&
-            error.config.canRetry &&
-            error.config.retryCount < 3
-        ) {
-            if (error.config.retryCount === 0) {
-                return await server
-                    .post(
-                        `auth/reissue`,
-                        {},
-                        {
-                            headers: {
-                                Authorization: `Bearer ${
-                                    useAuthStore.getState().refreshToken
-                                }`,
-                            },
-                            canRetry: false,
-                            withAuth: false,
-                        }
-                    )
-                    .then((res) => {
-                        const { uuid, accessToken, refreshToken } = res.data;
-                        useAuthStore
-                            .getState()
-                            .login(uuid, accessToken, refreshToken);
-                        error.config.retryCount = error.config.retryCount + 1;
-                        error.config.withAuth = false;
-                        error.config.headers = {
-                            Authorization: `Bearer ${accessToken}`,
-                        };
-                        return server.request(error.config);
-                    });
+        // 네트워크 에러나 CORS 등 response 없는 케이스 가드
+        const status = error?.response?.status;
+        const cfg = error?.config ?? {};
+        cfg.retryCount = cfg.retryCount ?? 0;
+        cfg.canRetry = cfg.canRetry ?? true;
+        cfg.withAuth = cfg.withAuth ?? true;
+
+        // 401 처리
+        if (status === 401) {
+            // refresh 자체 실패면 바로 로그아웃된 상태이므로 reject
+            // (refresh 요청에는 canRetry:false 로 보냈으니 여기로 안 옴)
+            if (cfg.canRetry && cfg.retryCount < 1) {
+                try {
+                    await refreshAccessToken();
+                    cfg.retryCount += 1;
+                    return server.request(cfg);
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            } else {
+                useAuthStore.getState().logout();
+                return Promise.reject(error);
             }
-        } else if (error.response.status === 401) {
-            useAuthStore.getState().logout();
-            return Promise.reject(error);
         }
 
-        devLog(error.response.data);
+        try {
+            const redact = (v?: string) =>
+                v
+                    ? v.replace(
+                          /Bearer\s+[A-Za-z0-9._-]+/g,
+                          "Bearer [REDACTED]"
+                      )
+                    : "";
 
-        Sentry.withScope((scope: Sentry.Scope) => {
-            scope.setTags({
-                api: error.config?.url,
-                "api.request.headers.Authorization":
-                    error.config?.headers.Authorization || "",
-                "api.request.method": error.config?.method?.toUpperCase(),
-                "api.request.url": error.config?.url,
-                "api.request.params": error.config?.params,
-                "api.response.status": (
-                    error.response?.status || ""
-                ).toString(),
-                "api.response.data.code": error.response?.data.code,
-                "api.response.data.message": error.response?.data.message,
-                "api.response.data.fieldErrorInfos":
-                    error.response?.data.fieldErrorInfos,
+            // cfg는 error.config의 참조이므로 여기서 바꾸면 error.config에도 반영됨
+            const setMasked = (headers?: any) => {
+                if (!headers) return;
+                const raw = headers.Authorization ?? headers.authorization;
+                const masked = redact(raw);
+                if (!masked) return;
+
+                // axios v1에서 AxiosHeaders일 수도 있으니 set 지원도 처리
+                if (typeof headers.set === "function") {
+                    headers.set("Authorization", masked);
+                } else {
+                    headers.Authorization = masked;
+                    if ("authorization" in headers)
+                        headers.authorization = masked;
+                }
+            };
+
+            setMasked(cfg?.headers);
+            setMasked(error?.config?.headers); // 방어적 중복
+            setMasked(error?.response?.config?.headers); // 방어적 중복
+
+            Sentry.withScope((scope: Sentry.Scope) => {
+                scope.setTags({
+                    api: cfg?.url,
+                    "api.request.method": cfg?.method?.toUpperCase?.(),
+                    "api.request.url": cfg?.url,
+                    "api.request.params": JSON.stringify(cfg?.params || {}),
+                    "api.response.status": String(status || ""),
+                });
+                scope.setContext("request", {
+                    headers: {
+                        Authorization: cfg?.headers?.Authorization, // 이미 [REDACTED]
+                        "Content-Type": cfg?.headers?.["Content-Type"],
+                    },
+                });
+                scope.setContext("response", { data: error?.response?.data });
+
+                if (error?.response?.data?.message) {
+                    error.message = `[${error.response.data.code}] ${error.response.data.message}`;
+                    Sentry.captureException(error, {
+                        fingerprint: [error.response.data.message],
+                    });
+                } else {
+                    Sentry.captureException(error);
+                }
             });
-            error.message =
-                "[" +
-                error.response?.data.code +
-                "] " +
-                error.response?.data.message;
-            Sentry.captureException(error, {
-                fingerprint: [error.response?.data.message],
-            });
-        });
+        } catch {
+            /* no-op */
+        }
 
         return Promise.reject(error);
     }

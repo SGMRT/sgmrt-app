@@ -36,6 +36,7 @@ import {
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
+import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -248,7 +249,7 @@ export default function Run() {
             },
             {
                 description: "케이던스",
-                value: context.stats.avgCadenceSpm ?? 0,
+                value: Math.round(context.stats.avgCadenceSpm ?? 0),
                 unit: "spm",
             },
             {
@@ -316,17 +317,18 @@ export default function Run() {
                         },
                     });
                 }
-            } catch {
+                setThumbnailUri(null);
+                if (!withRouting) setRunShotType("share");
+            } catch (error) {
                 showCompactToast(
                     "기록 저장에 실패했습니다. 다시 시도해주세요."
                 );
+                Sentry.captureException("기록 저장 실패: " + error);
             } finally {
                 queryClient.invalidateQueries({
                     queryKey: ["runs"],
                 });
                 setIsSaving(false);
-                setThumbnailUri(null);
-                if (!withRouting) setRunShotType("share");
             }
         })();
     }, [
@@ -555,7 +557,7 @@ export default function Run() {
                                 } else {
                                     Alert.alert(
                                         "러닝을 일시정지하시겠습니까?",
-                                        "계속하기를 누르면 이어서 러닝이 가능합니다.",
+                                        "일시정지 후 다시 시작한 러닝은 고스트를 생성할 수 없습니다.",
                                         [
                                             {
                                                 text: "계속하기",

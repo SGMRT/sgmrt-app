@@ -67,7 +67,9 @@ export default function Result() {
             },
             {
                 description: "하강",
-                value: Math.round(course?.elevationLoss ?? 0).toString(),
+                value: Math.abs(
+                    Math.round(course?.elevationLoss ?? 0)
+                ).toString(),
                 unit: "m",
             },
         ];
@@ -169,7 +171,9 @@ export default function Result() {
                         >
                             <StatRow
                                 color="gray20"
-                                style={{ gap: 20 }}
+                                style={{
+                                    justifyContent: "space-between",
+                                }}
                                 stats={courseAverageStats}
                             />
                             {course?.telemetries.filter(

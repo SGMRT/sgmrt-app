@@ -145,7 +145,7 @@ export default function Result() {
             },
             {
                 description: "하강",
-                value: runData?.recordInfo.elevationLoss ?? 0,
+                value: Math.abs(runData?.recordInfo.elevationLoss ?? 0),
                 unit: "m",
             },
         ];
@@ -188,7 +188,7 @@ export default function Result() {
             },
             {
                 description: "케이던스",
-                value: runData?.recordInfo.cadence ?? 0,
+                value: Math.round(runData?.recordInfo.cadence ?? 0),
                 unit: "spm",
             },
             {
@@ -375,7 +375,11 @@ export default function Result() {
                         >
                             <StatRow
                                 color="gray20"
-                                style={{ gap: 20 }}
+                                style={
+                                    displayMode === "pace"
+                                        ? { gap: 20 }
+                                        : { justifyContent: "space-between" }
+                                }
                                 stats={
                                     displayMode === "pace"
                                         ? paceStats

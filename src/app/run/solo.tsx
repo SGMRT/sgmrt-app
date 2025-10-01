@@ -23,6 +23,7 @@ import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -154,10 +155,11 @@ export default function Run() {
                         ghostRunningId: "-1",
                     },
                 });
-            } catch {
+            } catch (error) {
                 showCompactToast(
                     "기록 저장에 실패했습니다. 다시 시도해주세요."
                 );
+                Sentry.captureException("기록 저장 실패: " + error);
             } finally {
                 queryClient.invalidateQueries({
                     queryKey: ["runs"],
@@ -265,7 +267,7 @@ export default function Run() {
                     onPress={() => {
                         Alert.alert(
                             "러닝을 일시정지하시겠습니까?",
-                            "계속하기를 누르면 이어서 러닝이 가능합니다.",
+                            "일시정지 후 다시 시작한 러닝은 고스트를 생성할 수 없습니다.",
                             [
                                 {
                                     text: "계속하기",

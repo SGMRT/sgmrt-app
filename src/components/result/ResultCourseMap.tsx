@@ -95,7 +95,7 @@ export default function ResultCourseMap({
                 zoom={calculateZoomLevelFromSize(
                     center.size,
                     center.latitude,
-                    width
+                    height
                 )}
                 logoEnabled={true}
                 logoPosition={logoPosition}
