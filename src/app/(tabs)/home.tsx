@@ -5,61 +5,36 @@ import HomeMap from "@/src/components/map/HomeMap";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import { HomeNotices } from "@/src/components/notice/HomeNotices";
 import { Onboarding } from "@/src/components/onboarding/Onboarding";
-import BottomModal from "@/src/components/ui/BottomModal";
 import TabBar from "@/src/components/ui/TabBar";
-import { SuccessToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
-import { Typography } from "@/src/components/ui/Typography";
-import { useAuthStore } from "@/src/store/authState";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
 export default function Home() {
     const [showListView, setShowListView] = useState(false);
 
-    const bottomSheetRef = useRef<BottomSheetModal>(null);
     const confettiRef = useRef<ConfettiMethods | null>(null);
     const { height: windowHeight, width: windowWidth } = useWindowDimensions();
-    const { username } = useAuthStore().userInfo ?? {};
 
     const mapBottomSheetRef = useRef<BottomSheetModal>(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
 
-    const loadOnboarding = useCallback(async () => {
-        const welcome = await AsyncStorage.getItem("welcome");
-
-        // 이미 welcome 화면을 본 경우
-        if (welcome === "false") {
-            const onboarding = await AsyncStorage.getItem("onboarding");
-            if (onboarding === "true" || onboarding === null) {
-                setShowOnboarding(true);
-            }
-        }
-    }, []);
-
     useEffect(() => {
         setTelemetryEnabled(false);
-        loadOnboarding();
-    }, [loadOnboarding]);
+    }, []);
 
     useEffect(() => {
         const loadWelcome = async () => {
             const welcome = await AsyncStorage.getItem("welcome");
 
-            if (welcome === "true" || welcome === null) {
-                confettiRef.current?.restart();
-                bottomSheetRef.current?.present();
-                await AsyncStorage.setItem("welcome", "false");
-                setTimeout(() => {
-                    bottomSheetRef.current?.close();
-                    loadOnboarding();
-                }, 3000);
+            if (welcome === "false") {
+                setShowOnboarding(true);
             }
         };
         loadWelcome();
-    }, [loadOnboarding]);
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -100,37 +75,8 @@ export default function Home() {
             <Onboarding
                 showOnboarding={showOnboarding}
                 setShowOnboarding={setShowOnboarding}
+                confettiRef={confettiRef}
             />
-
-            {!showOnboarding && (
-                <BottomModal
-                    bottomSheetRef={bottomSheetRef}
-                    canClose={true}
-                    backdropOpacity={0.1}
-                >
-                    <View
-                        style={{
-                            alignItems: "center",
-                            gap: 4,
-                        }}
-                    >
-                        <Typography
-                            variant="headline"
-                            color="white"
-                            style={{ textAlign: "center" }}
-                        >
-                            반가워요 {username}님!{"\n"}
-                            고스트러너 가입을 환영해요
-                        </Typography>
-                        <Typography variant="body3" color="gray40">
-                            내 정보는 마이페이지의 회원 정보에서 변경 가능합니다
-                        </Typography>
-                    </View>
-                    <View style={{ alignItems: "center", paddingVertical: 20 }}>
-                        <SuccessToast text1="가입이 완료 되었습니다" />
-                    </View>
-                </BottomModal>
-            )}
         </View>
     );
 }

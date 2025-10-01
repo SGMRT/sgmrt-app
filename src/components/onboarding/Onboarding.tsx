@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
     FlatList,
     Modal,
@@ -8,6 +8,7 @@ import {
     useWindowDimensions,
     View,
 } from "react-native";
+import { ConfettiMethods } from "react-native-fast-confetti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button } from "../ui/Button";
 import { Typography } from "../ui/Typography";
@@ -16,6 +17,7 @@ import { DotProgress } from "./DotProgress";
 interface OnboardingProps {
     showOnboarding: boolean;
     setShowOnboarding: (showOnboarding: boolean) => void;
+    confettiRef: React.RefObject<ConfettiMethods | null>;
 }
 
 type Step = {
@@ -53,11 +55,13 @@ const PAGE_H_PADDING = 16.5 * 2;
 export const Onboarding = ({
     showOnboarding,
     setShowOnboarding,
+    confettiRef,
 }: OnboardingProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const listRef = useRef<FlatList<Step>>(null);
     const { width: windowWidth } = useWindowDimensions();
     const insets = useSafeAreaInsets();
+    const didWelcome = useRef(false);
 
     const PAGE_WIDTH = useMemo(() => Math.max(0, windowWidth), [windowWidth]);
 
@@ -80,6 +84,7 @@ export const Onboarding = ({
     const viewabilityConfig = useRef({
         itemVisiblePercentThreshold: 60,
     }).current;
+
     const onViewableItemsChanged = useRef(
         ({ viewableItems }: { viewableItems: { index: number | null }[] }) => {
             if (viewableItems.length > 0 && viewableItems[0].index != null) {
@@ -87,6 +92,14 @@ export const Onboarding = ({
             }
         }
     ).current;
+
+    useEffect(() => {
+        if (currentIndex === 4 && !didWelcome.current) {
+            confettiRef.current?.restart();
+            AsyncStorage.setItem("welcome", "false");
+            didWelcome.current = true;
+        }
+    }, [currentIndex]);
 
     return (
         <Modal
