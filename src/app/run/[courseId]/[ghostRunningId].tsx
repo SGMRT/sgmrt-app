@@ -36,6 +36,7 @@ import {
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
+import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -318,10 +319,11 @@ export default function Run() {
                 }
                 setThumbnailUri(null);
                 if (!withRouting) setRunShotType("share");
-            } catch {
+            } catch (error) {
                 showCompactToast(
                     "기록 저장에 실패했습니다. 다시 시도해주세요."
                 );
+                Sentry.captureException("기록 저장 실패: " + error);
             } finally {
                 queryClient.invalidateQueries({
                     queryKey: ["runs"],
