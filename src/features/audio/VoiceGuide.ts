@@ -291,12 +291,8 @@ class VoiceGuide {
                 return {
                     text:
                         event.leader === "ME"
-                            ? "고스트를 추월하였습니다. 거리 차이는 " +
-                              event.deltaM +
-                              " 미터 입니다."
-                            : "고스트가 앞서고 있습니다. 거리 차이는 " +
-                              event.deltaM +
-                              " 미터 입니다.",
+                            ? "고스트를 추월하였습니다."
+                            : "고스트가 앞서고 있습니다.",
                     priority: "HIGH",
                     cooldownKey: "run/ghost-change-leader",
                 };
