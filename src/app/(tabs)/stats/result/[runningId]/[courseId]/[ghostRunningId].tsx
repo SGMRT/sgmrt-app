@@ -375,7 +375,11 @@ export default function Result() {
                         >
                             <StatRow
                                 color="gray20"
-                                style={{ gap: 20 }}
+                                style={
+                                    displayMode === "pace"
+                                        ? { gap: 20 }
+                                        : { justifyContent: "space-between" }
+                                }
                                 stats={
                                     displayMode === "pace"
                                         ? paceStats

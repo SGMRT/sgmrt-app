@@ -59,7 +59,7 @@ const convertTelemetriesToCourse = (
         runners: [{ uuId: "", profileUrl: "" }],
         runnersCount: 0,
         telemetries: telemetries,
-    };
+    } as CourseResponse;
 };
 
 const calculateZoomLevelFromSize = (

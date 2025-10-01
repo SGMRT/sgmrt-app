@@ -169,7 +169,9 @@ export default function Result() {
                         >
                             <StatRow
                                 color="gray20"
-                                style={{ gap: 20 }}
+                                style={{
+                                    justifyContent: "space-between",
+                                }}
                                 stats={courseAverageStats}
                             />
                             {course?.telemetries.filter(

@@ -33,7 +33,7 @@ interface HomeMapProps {
 }
 
 const ZOOM_THRESHOLD = 14.5;
-const CAMERA_LATITUDE_OFFSET = 0.01;
+const CAMERA_LATITUDE_OFFSET = 0.006;
 const BOTTOM_BAR_HEIGHT = 104;
 const TAB_BAR_HEIGHT = 82;
 
