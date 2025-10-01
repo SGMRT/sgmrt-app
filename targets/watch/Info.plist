@@ -12,5 +12,7 @@
 	<string>운동 거리와 심박수 등의 기록을 건강 앱에서 확인할 수 있도록 데이터를 읽습니다.</string>
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>고스트러너에서 측정한 운동 기록을 건강 앱에 저장합니다.</string>
+	<key>CFBundleDisplayName</key>
+	<string>고스트러너</string>
 </dict>
 </plist>
