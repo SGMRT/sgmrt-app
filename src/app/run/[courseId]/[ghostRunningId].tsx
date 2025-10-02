@@ -492,7 +492,10 @@ export default function Run() {
                         ))}
             </MapViewWrapper>
 
-            <StyledBottomSheet animatedPosition={heightVal}>
+            <StyledBottomSheet
+                bottomInset={bottom + 70}
+                animatedPosition={heightVal}
+            >
                 <View>
                     {isFirst ? (
                         <View

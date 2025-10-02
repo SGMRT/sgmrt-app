@@ -261,7 +261,7 @@ export default function HomeMap({
             <StyledBottomSheet
                 ref={listBottomSheetRef}
                 bottomInset={bottom + 36}
-                snapPoints={[64, "32%", "48%", "66%"]}
+                snapPoints={[64, 290, "66%"]}
                 index={0}
                 handleComponent={ListBottomSheetHandle}
             >

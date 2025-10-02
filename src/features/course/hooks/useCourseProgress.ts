@@ -43,10 +43,10 @@ export function useCourseProgress(props: CourseProgressProps) {
         onStart,
         onForceStop,
         guideAdvanceM = 50,
-        offEnterM = 35,
-        offReturnM = 18,
+        offEnterM = 50,
+        offReturnM = 35,
         startEnterM = 25,
-        passCpM = 8,
+        passCpM = 10,
         endApproachAlertM = 50,
     } = props;
 
