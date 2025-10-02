@@ -1,5 +1,6 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
+import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
     calculateCenter,
@@ -7,20 +8,25 @@ import {
     Coordinate,
     getDistance,
 } from "@/src/utils/mapUtils";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheetHandle, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Dimensions, View } from "react-native";
-import { SharedValue, useAnimatedStyle } from "react-native-reanimated";
+import { Dimensions, StyleSheet, View } from "react-native";
+import {
+    SharedValue,
+    useAnimatedStyle,
+    useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CourseListView from "../course/CourseListView";
 import { ActionButton } from "../ui/ActionButton";
 import BottomModal from "../ui/BottomModal";
 import StyledBottomSheet from "../ui/StyledBottomSheet";
+import { Typography } from "../ui/Typography";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
@@ -34,8 +40,8 @@ interface HomeMapProps {
 
 const ZOOM_THRESHOLD = 14.5;
 const CAMERA_LATITUDE_OFFSET = 0.006;
-const BOTTOM_BAR_HEIGHT = 104;
-const TAB_BAR_HEIGHT = 82;
+const BOTTOM_BAR_HEIGHT = 155;
+const TAB_BAR_HEIGHT = 130;
 
 const CONTROL_PANEL_HEIGHT = 48;
 const MARGIN_BOTTOM = 16;
@@ -245,7 +251,7 @@ export default function HomeMap({
                 text="러닝 시작"
                 style={{
                     position: "absolute",
-                    bottom: 93,
+                    bottom: 149,
                     alignSelf: "center",
                 }}
                 onPress={() => {
@@ -255,8 +261,9 @@ export default function HomeMap({
             <StyledBottomSheet
                 ref={listBottomSheetRef}
                 bottomInset={bottom + 36}
-                snapPoints={[15, "32%", "48%", "66%"]}
+                snapPoints={[64, "32%", "48%", "66%"]}
                 index={0}
+                handleComponent={ListBottomSheetHandle}
             >
                 <View style={{ height: 20 }} />
                 <CourseListView
@@ -316,3 +323,29 @@ const HomeBottomModal = ({
         </BottomModal>
     );
 };
+
+const ListBottomSheetHandle = () => {
+    const animatedIndex = useSharedValue(0);
+    const animatedPosition = useSharedValue(0);
+    return (
+        <View style={{ alignItems: "center" }}>
+            <BottomSheetHandle
+                indicatorStyle={styles.handleIndicator}
+                animatedIndex={animatedIndex}
+                animatedPosition={animatedPosition}
+            />
+            <Typography variant="subhead1" color="gray40">
+                목록
+            </Typography>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    handleIndicator: {
+        backgroundColor: colors.gray[40],
+        width: 50,
+        height: 5,
+        borderRadius: 100,
+    },
+});
