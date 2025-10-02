@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAudioModeAsync } from "expo-audio";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
-import { SplashScreen, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Barometer, Pedometer } from "expo-sensors";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, InteractionManager, Linking, Platform } from "react-native";
@@ -233,7 +233,6 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 if (!granted) {
                     if (!cancelled) setStatus("blocked");
                     // 권한 거부 시 스플래시는 닫아 UX를 막지 않음 (권한 설정 유도)
-                    await SplashScreen.hideAsync();
                     return;
                 }
 
@@ -257,7 +256,6 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 }
 
                 // 5) 스플래시 종료
-                await SplashScreen.hideAsync();
                 if (!cancelled) setStatus("done");
 
                 InteractionManager.runAfterInteractions(async () => {
@@ -269,7 +267,6 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                     setError(e);
                     setStatus("error");
                     // 에러 시에도 스플래시는 닫아줌
-                    await SplashScreen.hideAsync();
                 }
             }
         };
