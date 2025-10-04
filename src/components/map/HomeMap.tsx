@@ -1,5 +1,6 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
+import { voiceGuide } from "@/src/features/audio/VoiceGuide";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
@@ -246,6 +247,21 @@ export default function HomeMap({
                     />
                 ))}
             </MapViewWrapper>
+            <ActionButton
+                type="text"
+                text="음성 안내 테스트"
+                style={{
+                    position: "absolute",
+                    bottom: 230,
+                    alignSelf: "center",
+                }}
+                onPress={() => {
+                    voiceGuide.announce({
+                        type: "run/start",
+                        mode: "SOLO",
+                    });
+                }}
+            />
             <ActionButton
                 type="text"
                 text="러닝 시작"

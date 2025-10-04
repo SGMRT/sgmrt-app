@@ -2,9 +2,25 @@ import { useAuthStore } from "@/src/store/authState";
 import { devLog } from "@/src/utils/devLog";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import * as Sentry from "@sentry/react-native";
+import { setAudioModeAsync } from "expo-audio";
 import * as Speech from "expo-speech";
-import { initAudioModule } from "../bootstrap/useBootstrapApp";
 export type VoicePriority = "CRITICAL" | "HIGH" | "NORMAL" | "LOW";
+
+export async function enableDucking() {
+    await setAudioModeAsync({
+        playsInSilentMode: true,
+        interruptionMode: "duckOthers",
+        shouldPlayInBackground: true,
+    });
+}
+
+export async function disableDucking() {
+    await setAudioModeAsync({
+        playsInSilentMode: true,
+        interruptionMode: "mixWithOthers",
+        shouldPlayInBackground: true,
+    });
+}
 
 export type VoiceEvent =
     | { type: "nav/enter-leg"; meters: number; legIndex: number }
@@ -70,6 +86,7 @@ class VoiceGuide {
     private queue: Utterance[] = [];
     private lastSpokenAt: Record<string, number> = {};
     private enabled = false;
+    private duckingOn = false;
 
     // 전역 설정
     private lang = "ko-KR";
@@ -142,6 +159,11 @@ class VoiceGuide {
         Speech.stop();
         this.queue = [];
         this.speaking = false;
+
+        if (this.duckingOn) {
+            this.duckingOn = false;
+            disableDucking().catch(() => {});
+        }
     }
 
     clearQueue() {
@@ -149,30 +171,52 @@ class VoiceGuide {
     }
 
     private async trySpeakNext() {
-        if (this.speaking || this.queue.length === 0) return;
+        if (this.speaking || this.queue.length === 0) {
+            if (!this.speaking && this.queue.length === 0 && this.duckingOn) {
+                disableDucking().catch(() => {});
+                this.duckingOn = false;
+            }
+            return;
+        }
+
         const next = this.queue.shift()!;
         this.speaking = true;
-        await initAudioModule();
+
+        if (!this.duckingOn) {
+            try {
+                await enableDucking();
+                this.duckingOn = true;
+            } catch {}
+        }
+
         Speech.speak(next.text, {
             language: this.lang,
             rate: this.rate,
-            onDone: () => {
-                this.speaking = false;
-                this.trySpeakNext();
-            },
-            onStopped: () => {
-                this.speaking = false;
-            },
+            onDone: () => this.onSpeechFinished(),
+            onStopped: () => this.onSpeechFinished(),
             onError: (error) => {
                 Sentry.captureException(error, {
                     extra: {
                         text: next.text,
                     },
                 });
-                this.speaking = false;
-                this.trySpeakNext();
+                this.onSpeechFinished();
             },
         });
+    }
+
+    private onSpeechFinished() {
+        this.speaking = false;
+
+        if (this.queue.length > 0) {
+            this.trySpeakNext();
+            return;
+        }
+
+        if (this.duckingOn) {
+            this.duckingOn = false;
+            disableDucking().catch(() => {});
+        }
     }
 
     private toUtterance(event: VoiceEvent): Utterance | null {
