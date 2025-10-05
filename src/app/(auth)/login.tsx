@@ -216,14 +216,14 @@ async function handleLogin({
             voiceGuidanceEnabled: ui.voiceGuidanceEnabled,
         });
 
-        amplitude.track("sign_in", { provider: providerId });
+        amplitude.track("signin", { provider: providerId });
     } catch (err: any) {
         devLog(err);
         if (err?.response?.status !== 404) {
             showToast("info", "로그인에 실패했습니다.", bottom);
             throw err;
         } else {
-            amplitude.track("sign_up_start", { provider: providerId });
+            amplitude.track("signup_start", { provider: providerId });
             throw { needsSignup: true };
         }
     }
