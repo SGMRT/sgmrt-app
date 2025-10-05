@@ -105,8 +105,7 @@ export default function BottomCourseInfoModal({
                 type="active"
                 title={ghostSelected ? "고스트와 러닝" : "이 코스로 러닝"}
                 onPress={async () => {
-                    await requestOptional("HEALTHKIT");
-                    await requestOptional("WATCH");
+                    const hk = await requestOptional("HEALTHKIT");
 
                     const ok = await requestOrAlert(
                         "SENSORS",

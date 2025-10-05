@@ -114,12 +114,12 @@ export default function Profile() {
             .then(async (res) => {
                 setRes(res);
                 await AsyncStorage.setItem("welcome", "true");
-                amplitude.track("Sign Up", {
+                amplitude.track("signup_complete", {
                     provider: "email",
-                    nickname: nickname,
-                    gender: gender,
                     age: age,
+                    gender: gender,
                     height: height,
+                    nickname: nickname,
                     weight: weight,
                 });
                 setUserInfo({
@@ -130,6 +130,7 @@ export default function Profile() {
                     weight: weight,
                 });
                 login(res.accessToken, res.refreshToken, res.uuid);
+                amplitude.setUserId(res.uuid);
             })
             .catch((err) => {
                 devLog(err);

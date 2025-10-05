@@ -100,8 +100,7 @@ async function bootstrapAnalytics({
 }) {
     try {
         // 매 실행
-        amplitude.track("App Launched", {
-            platform: Platform.OS,
+        amplitude.track("app_launched", {
             version,
             build,
         });
@@ -109,7 +108,7 @@ async function bootstrapAnalytics({
         // 첫 설치 1회
         const first = await AsyncStorage.getItem(FIRST_LAUNCH_KEY);
         if (!first) {
-            amplitude.track("App Installed", {
+            amplitude.track("app_install", {
                 platform: Platform.OS,
                 version,
                 build,
@@ -128,7 +127,7 @@ async function bootstrapAnalytics({
         // 업데이트 감지
         const lastVersion = await AsyncStorage.getItem(VERSION_KEY);
         if (lastVersion && lastVersion !== version) {
-            amplitude.track("App Updated", {
+            amplitude.track("app_updated ", {
                 from: lastVersion,
                 to: version,
                 build,

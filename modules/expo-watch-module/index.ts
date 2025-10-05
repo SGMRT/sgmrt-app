@@ -31,7 +31,6 @@ type WatchEventMap = {
 
 // 3) 네이티브 모듈 인터페이스에 제네릭 적용 + 표준 add/remove 시그니처
 declare class ExpoWatchModule extends NativeModule<WatchEventMap> {
-    requestAuthorization(): Promise<boolean>;
     startWatchApp(): Promise<boolean>;
     stopWatch(): Promise<boolean>;
     pauseWatch(): Promise<boolean>;
@@ -45,15 +44,9 @@ declare class ExpoWatchModule extends NativeModule<WatchEventMap> {
 const Native = requireNativeModule<ExpoWatchModule>("ExpoWatchModule");
 const emitter = new EventEmitter<WatchEventMap>(Native);
 
-export async function requestWatchAuthorization() {
-    return await Native.requestAuthorization();
-}
-
 // ── Public API ───────────────────────────────────────────
 export async function start() {
     Native.activateWC();
-    const ok = await Native.requestAuthorization();
-    if (!ok) throw new Error("HealthKit authorization failed");
     const started = await Native.startWatchApp();
     if (!started) throw new Error("Failed to start watch app");
 }
@@ -98,5 +91,4 @@ export default {
     stop,
     onHeartRate,
     onWatchState,
-    requestWatchAuthorization,
 };

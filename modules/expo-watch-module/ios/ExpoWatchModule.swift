@@ -108,20 +108,6 @@ public final class ExpoWatchModule: Module {
 
     OnStartObserving { self.hasListeners = true }
     OnStopObserving  { self.hasListeners = false }
-
-    // 권한 요청
-    AsyncFunction("requestAuthorization") { () -> Bool in
-      guard HKHealthStore.isHealthDataAvailable() else { return false }
-      let toShare: Set = [HKQuantityType.workoutType()]
-      let toRead: Set  = [HKQuantityType(.heartRate), HKQuantityType.workoutType()]
-      do {
-        try await self.healthStore.requestAuthorization(toShare: toShare, read: toRead)
-        return true
-      } catch {
-        self.logger.debug("HK auth failed: \(error.localizedDescription)")
-        return false
-      }
-    }
     
 
     // 워치 앱 띄우고 → 즉시 start 명령
@@ -131,6 +117,7 @@ public final class ExpoWatchModule: Module {
             WCSession.default.isPaired,
             WCSession.default.isWatchAppInstalled,
             HKHealthStore.isHealthDataAvailable() else { return false }
+
       do {
         let config = HKWorkoutConfiguration()
         config.activityType = .running

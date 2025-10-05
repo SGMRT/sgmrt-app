@@ -1,6 +1,7 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
+import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
@@ -9,6 +10,7 @@ import {
     Coordinate,
     getDistance,
 } from "@/src/utils/mapUtils";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetHandle, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
@@ -65,6 +67,7 @@ export default function HomeMap({
     );
     const [zoomLevel, setZoomLevel] = useState(16);
     const { requestOptional, requestOrAlert } = useAppPermissions();
+    const { uuid } = useAuthStore();
 
     const firstRenderRef = useRef(true);
 
@@ -74,6 +77,11 @@ export default function HomeMap({
 
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
+
+        amplitude.track("course_detail_view", {
+            course_id: course.id,
+            is_own_course: course.ownerUuid === uuid,
+        });
 
         const coordinates: Coordinate[] = [];
 
@@ -166,6 +174,10 @@ export default function HomeMap({
     const { data: courses } = useQuery({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
+            amplitude.track("main_screen_view", {
+                course_search_radius:
+                    distance * 1000 > 10000 ? 10000 : distance * 1000,
+            });
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
@@ -257,8 +269,7 @@ export default function HomeMap({
                     alignSelf: "center",
                 }}
                 onPress={async () => {
-                    await requestOptional("HEALTHKIT");
-                    await requestOptional("WATCH");
+                    const hk = await requestOptional("HEALTHKIT");
 
                     const ok = await requestOrAlert(
                         "SENSORS",

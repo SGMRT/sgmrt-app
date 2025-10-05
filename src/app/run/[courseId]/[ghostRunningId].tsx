@@ -35,6 +35,7 @@ import {
     saveRunning,
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -657,6 +658,7 @@ export default function Run() {
                             })
                                 .then((res) => {
                                     devLog(res);
+                                    amplitude.track("run_shared");
                                 })
                                 .catch((err) => {
                                     err && devLog(err);

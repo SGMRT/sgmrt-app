@@ -31,6 +31,7 @@ interface StyledChartProps {
         xPos: number;
         yPos: number;
     }) => void;
+    onExpand?: () => void;
 }
 
 const StyledChart = ({
@@ -43,6 +44,7 @@ const StyledChart = ({
     invertYAxis = false,
     expandable = false,
     onPointChange,
+    onExpand,
 }: StyledChartProps) => {
     const font = useFont(
         require("@/assets/fonts/SpoqaHanSansNeo-Regular.ttf"),
@@ -56,6 +58,9 @@ const StyledChart = ({
         const targetHeight = !isExpanded ? 120 : 70;
         chartHeight.value = withTiming(targetHeight, { duration: 300 });
         setIsExpanded(!isExpanded);
+        if (onExpand) {
+            onExpand();
+        }
     };
 
     const animatedChartContainerStyle = useAnimatedStyle(() => {
