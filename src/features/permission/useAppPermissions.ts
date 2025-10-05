@@ -12,7 +12,6 @@ import {
 import { useCallback } from "react";
 import { Alert, Linking, Platform } from "react-native";
 
-import { requestWatchAuthorization } from "@/modules/expo-watch-module";
 import { Labels } from "./alerts";
 import type {
     PermissionCheck,
@@ -80,7 +79,7 @@ type HKAuthState = {
 
 function useHealthKitBridge(): HKAuthState {
     const [status, request] = useHealthkitAuthorization(
-        ["HKQuantityTypeIdentifierHeartRate"],
+        ["HKQuantityTypeIdentifierHeartRate", "HKWorkoutTypeIdentifier"],
         [
             "HKQuantityTypeIdentifierDistanceWalkingRunning",
             "HKQuantityTypeIdentifierActiveEnergyBurned",
@@ -155,19 +154,6 @@ async function requestATT(): Promise<PermissionRequestResult> {
     };
 }
 
-// WATCH
-async function checkWatch(): Promise<PermissionCheck> {
-    return { ok: false, missing: [Labels.watch], details: {} };
-}
-async function requestWatch(): Promise<PermissionRequestResult> {
-    try {
-        const ok = await requestWatchAuthorization();
-        return { ok, missing: ok ? [] : [Labels.watch], requested: true };
-    } catch {
-        return { ok: false, missing: [Labels.watch], requested: true };
-    }
-}
-
 // PUBLIC HOOK
 export function useAppPermissions() {
     const hk = useHealthKitBridge();
@@ -183,8 +169,6 @@ export function useAppPermissions() {
                     return checkHealthKit(hk.status);
                 case "ADS":
                     return await checkATT();
-                case "WATCH":
-                    return await checkWatch();
                 default:
                     return { ok: true, missing: [] };
             }
@@ -203,8 +187,6 @@ export function useAppPermissions() {
                     return await requestHealthKit(hk);
                 case "ADS":
                     return await requestATT();
-                case "WATCH":
-                    return await requestWatch();
                 default:
                     return { ok: true, missing: [], requested: false };
             }
@@ -238,7 +220,7 @@ export function useAppPermissions() {
         async (
             group: Extract<
                 PermissionGroup,
-                "HEALTHKIT" | "ADS" | "WATCH" | "LOCATION" | "SENSORS"
+                "HEALTHKIT" | "ADS" | "LOCATION" | "SENSORS"
             >
         ): Promise<boolean> => {
             const res = await request(group);
