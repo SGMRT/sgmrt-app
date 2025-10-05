@@ -97,6 +97,8 @@ export const useAuthStore = create<AuthState>()(
                         refreshToken: null,
                         uuid: null,
                         isLoggedIn: false,
+                        userInfo: null,
+                        userSettings: null,
                     });
                     amplitude.reset();
                 },

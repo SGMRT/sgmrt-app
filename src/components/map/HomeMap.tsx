@@ -1,6 +1,6 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
-import { voiceGuide } from "@/src/features/audio/VoiceGuide";
+import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
@@ -64,6 +64,7 @@ export default function HomeMap({
         null
     );
     const [zoomLevel, setZoomLevel] = useState(16);
+    const { requestOptional, requestOrAlert } = useAppPermissions();
 
     const firstRenderRef = useRef(true);
 
@@ -249,29 +250,26 @@ export default function HomeMap({
             </MapViewWrapper>
             <ActionButton
                 type="text"
-                text="음성 안내 테스트"
-                style={{
-                    position: "absolute",
-                    bottom: 230,
-                    alignSelf: "center",
-                }}
-                onPress={() => {
-                    voiceGuide.announce({
-                        type: "run/start",
-                        mode: "SOLO",
-                    });
-                }}
-            />
-            <ActionButton
-                type="text"
                 text="러닝 시작"
                 style={{
                     position: "absolute",
                     bottom: 149,
                     alignSelf: "center",
                 }}
-                onPress={() => {
-                    router.push("/run/solo");
+                onPress={async () => {
+                    await requestOptional("HEALTHKIT");
+                    await requestOptional("WATCH");
+
+                    const ok = await requestOrAlert(
+                        "SENSORS",
+                        "러닝 중 측정을 위해 권한이 필요해요"
+                    );
+
+                    if (!ok) {
+                        return;
+                    } else {
+                        router.push("/run/solo");
+                    }
                 }}
             />
             <StyledBottomSheet
