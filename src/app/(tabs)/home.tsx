@@ -7,9 +7,9 @@ import { HomeNotices } from "@/src/components/notice/HomeNotices";
 import { Onboarding } from "@/src/components/onboarding/Onboarding";
 import TabBar from "@/src/components/ui/TabBar";
 import TopBlurView from "@/src/components/ui/TopBlurView";
+import { useSplashUntilLocationReady } from "@/src/features/permission/useSplashUntilLocationReady";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SplashScreen } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
@@ -22,9 +22,10 @@ export default function Home() {
     const mapBottomSheetRef = useRef<BottomSheetModal>(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
 
+    useSplashUntilLocationReady();
+
     useEffect(() => {
         setTelemetryEnabled(false);
-        SplashScreen.hideAsync();
     }, []);
 
     useEffect(() => {
@@ -51,14 +52,6 @@ export default function Home() {
                 mapBottomSheetRef={mapBottomSheetRef}
             />
             <TabBar topRound={false} />
-            {/* <SlideToAction
-                label="밀어서 러닝 시작"
-                onSlideSuccess={() => {
-                    router.push("/run/solo");
-                }}
-                color="green"
-                direction="left"
-            /> */}
 
             <Confetti
                 ref={confettiRef}

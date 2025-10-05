@@ -1,5 +1,6 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse, HistoryResponse } from "@/src/apis/types/course";
+import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -29,7 +30,7 @@ export default function BottomCourseInfoModal({
     course,
 }: BottomCourseInfoModalProps) {
     const [ghostSelected, setGhostSelected] = useState(false);
-
+    const { requestOrAlert, requestOptional } = useAppPermissions();
     useEffect(() => {
         if (course?.myGhostInfo) {
             setGhostSelected(true);
@@ -103,7 +104,18 @@ export default function BottomCourseInfoModal({
                 }}
                 type="active"
                 title={ghostSelected ? "고스트와 러닝" : "이 코스로 러닝"}
-                onPress={() => {
+                onPress={async () => {
+                    await requestOptional("HEALTHKIT");
+                    await requestOptional("WATCH");
+
+                    const ok = await requestOrAlert(
+                        "SENSORS",
+                        "러닝 중 측정을 위해 권한이 필요해요"
+                    );
+
+                    if (!ok) {
+                        return;
+                    }
                     bottomSheetRef.current?.dismiss();
                     if (
                         ghostSelected &&
