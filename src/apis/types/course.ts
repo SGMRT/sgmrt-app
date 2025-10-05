@@ -15,6 +15,7 @@ export interface CoursesRequest {
 export interface CourseResponse {
     id: number;
     name: string;
+    ownerUuid: string;
     sourse: "USER" | "OFFICIAL";
     startLat: number;
     startLng: number;

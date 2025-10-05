@@ -1,6 +1,7 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
+import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
@@ -66,6 +67,7 @@ export default function HomeMap({
     );
     const [zoomLevel, setZoomLevel] = useState(16);
     const { requestOptional, requestOrAlert } = useAppPermissions();
+    const { uuid } = useAuthStore();
 
     const firstRenderRef = useRef(true);
 
@@ -75,6 +77,11 @@ export default function HomeMap({
 
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
+
+        amplitude.track("course_detail_view", {
+            course_id: course.id,
+            is_own_course: course.ownerUuid === uuid,
+        });
 
         const coordinates: Coordinate[] = [];
 
@@ -262,9 +269,6 @@ export default function HomeMap({
                     alignSelf: "center",
                 }}
                 onPress={async () => {
-                    await requestOptional("HEALTHKIT");
-                    await requestOptional("WATCH");
-
                     const ok = await requestOrAlert(
                         "SENSORS",
                         "러닝 중 측정을 위해 권한이 필요해요"
@@ -275,6 +279,9 @@ export default function HomeMap({
                     } else {
                         router.push("/run/solo");
                     }
+
+                    requestOptional("HEALTHKIT");
+                    requestOptional("WATCH");
                 }}
             />
             <StyledBottomSheet

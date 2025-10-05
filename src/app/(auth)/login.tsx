@@ -200,6 +200,8 @@ async function handleLogin({
 
         login(res.accessToken, res.refreshToken, res.uuid);
 
+        amplitude.setUserId(credential.user.uid);
+
         const ui = await getUserInfo();
         setUserInfoStore({
             username: ui.nickname,

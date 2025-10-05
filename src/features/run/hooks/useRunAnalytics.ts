@@ -52,7 +52,10 @@ export function useRunAnalytics(context: RunContext) {
             });
         }
 
-        if (prev === "PAUSED_OFFCOURSE" || prev === "PAUSED_USER") {
+        if (
+            (prev === "PAUSED_OFFCOURSE" || prev === "PAUSED_USER") &&
+            curr === "RUNNING"
+        ) {
             amplitude.track("run_restart", {
                 course_id: propsBase.course_id,
             });

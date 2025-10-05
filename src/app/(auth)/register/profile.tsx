@@ -130,6 +130,7 @@ export default function Profile() {
                     weight: weight,
                 });
                 login(res.accessToken, res.refreshToken, res.uuid);
+                amplitude.setUserId(res.uuid);
             })
             .catch((err) => {
                 devLog(err);

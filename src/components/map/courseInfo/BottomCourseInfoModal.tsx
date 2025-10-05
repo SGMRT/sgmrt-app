@@ -105,9 +105,6 @@ export default function BottomCourseInfoModal({
                 type="active"
                 title={ghostSelected ? "고스트와 러닝" : "이 코스로 러닝"}
                 onPress={async () => {
-                    await requestOptional("HEALTHKIT");
-                    await requestOptional("WATCH");
-
                     const ok = await requestOrAlert(
                         "SENSORS",
                         "러닝 중 측정을 위해 권한이 필요해요"
@@ -128,6 +125,9 @@ export default function BottomCourseInfoModal({
                     } else {
                         router.push(`/run/${course?.id}/-1`);
                     }
+
+                    requestOptional("HEALTHKIT");
+                    requestOptional("WATCH");
                 }}
             />
         </View>
