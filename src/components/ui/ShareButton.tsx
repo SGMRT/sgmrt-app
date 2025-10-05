@@ -30,7 +30,7 @@ export default function ShareButton({
                     .then((res) => {
                         devLog(res);
                         if (res.success) {
-                            amplitude.track("Run Shared");
+                            amplitude.track("run_shared");
                         }
                     })
                     .catch((err) => {

@@ -32,7 +32,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Pressable,
     ScrollView,
@@ -53,6 +53,13 @@ export default function Result() {
     const runShotRef = useRef<RunShotHandle>(null);
     const { bottom } = useSafeAreaInsets();
     const [isTabBar, setIsTabBar] = useState(false);
+    const resultTrackRef = useRef({
+        view: false,
+        graphOpen: false,
+        viewScroll: false,
+        infoChange: false,
+        graphDrag: false,
+    });
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -72,6 +79,12 @@ export default function Result() {
     };
 
     const changeDisplayMode = () => {
+        if (!resultTrackRef.current.infoChange) {
+            resultTrackRef.current.infoChange = true;
+            amplitude.track("run_detail_view_movement", {
+                action: "change_button_click",
+            });
+        }
         setDisplayMode((prev) => (prev === "pace" ? "course" : "pace"));
     };
 
@@ -242,6 +255,13 @@ export default function Result() {
         }
     }, [runData?.runningName]);
 
+    useEffect(() => {
+        if (!resultTrackRef.current.view) {
+            resultTrackRef.current.view = true;
+            amplitude.track("run_detail_view");
+        }
+    }, []);
+
     if (isLoading) {
         return <></>;
     }
@@ -259,6 +279,14 @@ export default function Result() {
                         ref={scrollViewRef}
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
+                        onScrollEndDrag={() => {
+                            if (!resultTrackRef.current.viewScroll) {
+                                resultTrackRef.current.viewScroll = true;
+                                amplitude.track("run_detail_view_movement", {
+                                    action: "scroll",
+                                });
+                            }
+                        }}
                     >
                         {/* 제목 파트 */}
                         <View style={styles.titleContainer}>
@@ -391,8 +419,28 @@ export default function Result() {
                                 }
                                 showToolTip={true}
                                 onPointChange={(payload) => {
+                                    if (!resultTrackRef.current.graphOpen) {
+                                        resultTrackRef.current.graphOpen = true;
+                                        amplitude.track(
+                                            "run_detail_view_movement",
+                                            {
+                                                action: "graph_point_click",
+                                            }
+                                        );
+                                    }
                                     isChartActive.value = payload.isActive;
                                     chartPointIndex.value = payload.index;
+                                }}
+                                onExpand={() => {
+                                    if (!resultTrackRef.current.graphOpen) {
+                                        resultTrackRef.current.graphOpen = true;
+                                        amplitude.track(
+                                            "run_detail_view_movement",
+                                            {
+                                                action: "graph_open",
+                                            }
+                                        );
+                                    }
                                 }}
                                 expandable
                             />
@@ -532,7 +580,7 @@ export default function Result() {
                                             tab: "course",
                                         },
                                     });
-                                    amplitude.track("Course Created", {
+                                    amplitude.track("course_register", {
                                         courseId: runData?.courseInfo.id,
                                         courseName: courseName,
                                         distance: runData?.recordInfo.distance,

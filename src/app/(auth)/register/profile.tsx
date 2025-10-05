@@ -114,12 +114,12 @@ export default function Profile() {
             .then(async (res) => {
                 setRes(res);
                 await AsyncStorage.setItem("welcome", "true");
-                amplitude.track("Sign Up", {
+                amplitude.track("signup_complete", {
                     provider: "email",
-                    nickname: nickname,
-                    gender: gender,
                     age: age,
+                    gender: gender,
                     height: height,
+                    nickname: nickname,
                     weight: weight,
                 });
                 setUserInfo({

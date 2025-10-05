@@ -1,31 +1,40 @@
 // useRunAnalytics.ts
+import { useAuthStore } from "@/src/store/authState";
 import * as amplitude from "@amplitude/analytics-react-native";
-import { useEffect, useRef } from "react";
+import { useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { RunContext } from "../state/context";
 import { RunStatus } from "../types";
 import { mapRunType } from "../utils/mapRunType";
 
 export function useRunAnalytics(context: RunContext) {
+    const { courseId, ghostRunningId } = useLocalSearchParams();
+    const [isCourseFinished, setIsCourseFinished] = useState(false);
     const prevStatus = useRef<RunStatus | null>(null);
+    const { uuid } = useAuthStore();
+
+    const propsBase = {
+        run_mode: mapRunType(context.mode, context.variant),
+        session_id: context.sessionId,
+        user_id: uuid,
+        course_id: courseId
+            ? courseId === "-1"
+                ? undefined
+                : courseId
+            : undefined,
+    };
 
     useEffect(() => {
         const prev = prevStatus.current;
         const curr = context.status;
         prevStatus.current = curr;
 
-        const propsBase = {
-            sessionId: context.sessionId,
-            mode: mapRunType(context.mode, context.variant),
-            distance: context.stats.totalDistanceM,
-            elevationGain: context.stats.gainM,
-        };
-
         // START: IDLE/READY -> RUNNING(또는 READY) 전이 시 한 번
         if (
             (prev === "IDLE" || prev == null) &&
             (curr === "RUNNING" || curr === "READY")
         ) {
-            amplitude.track("Run Started", propsBase);
+            amplitude.track("run_start", propsBase);
         }
 
         // // 일시정지/재개
@@ -38,21 +47,32 @@ export function useRunAnalytics(context: RunContext) {
 
         // 코스 이탈/복귀
         if (prev !== "PAUSED_OFFCOURSE" && curr === "PAUSED_OFFCOURSE") {
-            amplitude.track("Course Offcourse", propsBase);
-        }
-        if (prev === "PAUSED_OFFCOURSE" && curr === "RUNNING") {
-            amplitude.track("Course Oncourse", propsBase);
+            amplitude.track("course_out", {
+                course_id: propsBase.course_id,
+            });
         }
 
-        // 완주/연장/정지
+        if (prev === "PAUSED_OFFCOURSE" || prev === "PAUSED_USER") {
+            amplitude.track("run_restart", {
+                course_id: propsBase.course_id,
+            });
+        }
+
         if (prev !== "COMPLETION_PENDING" && curr === "COMPLETION_PENDING") {
-            amplitude.track("Course Complete", propsBase);
+            // 완주/연장/정지
+            setIsCourseFinished(true);
         }
-        if (prev === "COMPLETION_PENDING" && curr === "RUNNING_EXTENDED") {
-            amplitude.track("Course Extend", propsBase);
-        }
+
         if (prev !== "STOPPED" && curr === "STOPPED") {
-            amplitude.track("Run End", propsBase);
+            amplitude.track("run_complete", {
+                run_mode: propsBase.run_mode,
+                distance_km: (context.stats.totalDistanceM / 1000).toFixed(2),
+                elevation_gain_m: context.stats.gainM.toFixed(2),
+                course_finished:
+                    propsBase.run_mode !== "SOLO"
+                        ? isCourseFinished
+                        : undefined,
+            });
         }
     }, [
         context.status,

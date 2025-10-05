@@ -194,9 +194,6 @@ async function handleLogin({
             email: credential.user.email ?? "",
         });
 
-        amplitude.setUserId(credential.user.uid);
-        amplitude.setGroup("provider", providerId);
-
         const res = await signIn({
             idToken: await credential.user.getIdToken(),
         });
@@ -217,14 +214,14 @@ async function handleLogin({
             voiceGuidanceEnabled: ui.voiceGuidanceEnabled,
         });
 
-        amplitude.track("Sign In", { provider: providerId });
+        amplitude.track("sign_in", { provider: providerId });
     } catch (err: any) {
         devLog(err);
         if (err?.response?.status !== 404) {
             showToast("info", "로그인에 실패했습니다.", bottom);
             throw err;
         } else {
-            amplitude.track("Start Sign Up", { provider: providerId });
+            amplitude.track("sign_up_start", { provider: providerId });
             throw { needsSignup: true };
         }
     }

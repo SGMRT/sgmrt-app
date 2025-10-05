@@ -9,6 +9,7 @@ import {
     Coordinate,
     getDistance,
 } from "@/src/utils/mapUtils";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { BottomSheetHandle, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
@@ -166,6 +167,10 @@ export default function HomeMap({
     const { data: courses } = useQuery({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
+            amplitude.track("main_screen_view", {
+                course_search_radius:
+                    distance * 1000 > 10000 ? 10000 : distance * 1000,
+            });
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
