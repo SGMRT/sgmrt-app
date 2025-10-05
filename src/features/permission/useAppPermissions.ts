@@ -75,7 +75,7 @@ async function requestSensors(): Promise<PermissionRequestResult> {
 // HEALTHKIT
 type HKAuthState = {
     status: AuthorizationRequestStatus;
-    request: () => Promise<void>;
+    request: () => Promise<AuthorizationRequestStatus>;
 };
 
 function useHealthKitBridge(): HKAuthState {
@@ -91,7 +91,8 @@ function useHealthKitBridge(): HKAuthState {
     return {
         status: status ?? AuthorizationRequestStatus.unknown,
         request: async () => {
-            await request();
+            const next = await request();
+            return next ?? AuthorizationRequestStatus.unknown;
         },
     };
 }
@@ -109,12 +110,13 @@ async function requestHealthKit(
     hk: HKAuthState
 ): Promise<PermissionRequestResult> {
     let requested = false;
-    if (hk.status === AuthorizationRequestStatus.shouldRequest) {
+    let status = hk.status;
+    if (status == AuthorizationRequestStatus.shouldRequest) {
         requested = true;
-        await hk.request();
+        status = await hk.request();
     }
-    const { ok, missing, details } = checkHealthKit(hk.status);
-    return { ok, missing, requested, details };
+    const { ok, missing } = checkHealthKit(status);
+    return { ok, missing, requested, details: { status } };
 }
 
 // ADS/ATT (iOS)

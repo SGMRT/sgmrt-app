@@ -15,7 +15,6 @@ import mobileAds, {
     AdsConsentStatus,
     MaxAdContentRating,
 } from "react-native-google-mobile-ads";
-import { useAppPermissions } from "../permission/useAppPermissions";
 import { LOCATION_TASK } from "../run/constants";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
