@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { RunContext } from "../state/context";
 import { RunStatus } from "../types";
 import { mapRunType } from "../utils/mapRunType";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 
 export function useRunAnalytics(context: RunContext) {
     const { courseId, ghostRunningId } = useLocalSearchParams();
@@ -35,7 +36,7 @@ export function useRunAnalytics(context: RunContext) {
             (curr === "RUNNING" || curr === "READY")
         ) {
             // run_start
-            amplitude.track("Run Started", propsBase);
+            trackAmplitude("Run Started", propsBase);
         }
 
         // // 일시정지/재개
@@ -48,7 +49,7 @@ export function useRunAnalytics(context: RunContext) {
 
         // 코스 이탈/복귀
         if (prev !== "PAUSED_OFFCOURSE" && curr === "PAUSED_OFFCOURSE") {
-            amplitude.track("course_out", {
+            trackAmplitude("course_out", {
                 course_id: propsBase.course_id,
             });
         }
@@ -57,7 +58,7 @@ export function useRunAnalytics(context: RunContext) {
             (prev === "PAUSED_OFFCOURSE" || prev === "PAUSED_USER") &&
             curr === "RUNNING"
         ) {
-            amplitude.track("run_restart", {
+            trackAmplitude("run_restart", {
                 course_id: propsBase.course_id,
             });
         }
@@ -69,7 +70,7 @@ export function useRunAnalytics(context: RunContext) {
 
         if (prev !== "STOPPED" && curr === "STOPPED") {
             // run_complete
-            amplitude.track("Run End", {
+            trackAmplitude("Run End", {
                 run_mode: propsBase.run_mode,
                 distance_km: (context.stats.totalDistanceM / 1000).toFixed(2),
                 elevation_gain_m: context.stats.gainM.toFixed(2),

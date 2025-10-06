@@ -16,6 +16,7 @@ import mobileAds, {
     MaxAdContentRating,
 } from "react-native-google-mobile-ads";
 import { LOCATION_TASK } from "../run/constants";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
 const VERSION_KEY = "version_v1";
@@ -100,7 +101,7 @@ async function bootstrapAnalytics({
 }) {
     try {
         // app_launched
-        amplitude.track("App Launched", {
+        trackAmplitude("App Launched", {
             version,
             build,
         });
@@ -109,7 +110,7 @@ async function bootstrapAnalytics({
         const first = await AsyncStorage.getItem(FIRST_LAUNCH_KEY);
         if (!first) {
             // app_install
-            amplitude.track("App Installed", {
+            trackAmplitude("App Installed", {
                 platform: Platform.OS,
                 version,
                 build,
@@ -129,7 +130,7 @@ async function bootstrapAnalytics({
         const lastVersion = await AsyncStorage.getItem(VERSION_KEY);
         if (lastVersion && lastVersion !== version) {
             // app_updated
-            amplitude.track("App Updated", {
+            trackAmplitude("App Updated", {
                 from: lastVersion,
                 to: version,
                 build,

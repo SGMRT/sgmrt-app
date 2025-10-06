@@ -6,6 +6,7 @@ import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { useAuthStore } from "@/src/store/authState";
 import { devLog } from "@/src/utils/devLog";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
 import {
@@ -216,7 +217,7 @@ async function handleLogin({
             voiceGuidanceEnabled: ui.voiceGuidanceEnabled,
         });
         // signin
-        amplitude.track("Sign In", { provider: providerId });
+        trackAmplitude("Sign In", { provider: providerId });
     } catch (err: any) {
         devLog(err);
         if (err?.response?.status !== 404) {
@@ -224,7 +225,7 @@ async function handleLogin({
             throw err;
         } else {
             // signup_start
-            amplitude.track("Start Sign Up", { provider: providerId });
+            trackAmplitude("Start Sign Up", { provider: providerId });
             throw { needsSignup: true };
         }
     }

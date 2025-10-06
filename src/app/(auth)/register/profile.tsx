@@ -10,6 +10,7 @@ import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import { devLog } from "@/src/utils/devLog";
 import { pickImage } from "@/src/utils/pickImage";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth } from "@react-native-firebase/auth";
@@ -115,7 +116,7 @@ export default function Profile() {
                 setRes(res);
                 await AsyncStorage.setItem("welcome", "true");
                 // signup_complete
-                amplitude.track("Sign Up", {
+                trackAmplitude("Sign Up", {
                     provider: "email",
                     age: age,
                     gender: gender,
