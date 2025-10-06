@@ -215,15 +215,16 @@ async function handleLogin({
             vibrationEnabled: ui.vibrationEnabled,
             voiceGuidanceEnabled: ui.voiceGuidanceEnabled,
         });
-
-        amplitude.track("signin", { provider: providerId });
+        // signin
+        amplitude.track("Sign In", { provider: providerId });
     } catch (err: any) {
         devLog(err);
         if (err?.response?.status !== 404) {
             showToast("info", "로그인에 실패했습니다.", bottom);
             throw err;
         } else {
-            amplitude.track("signup_start", { provider: providerId });
+            // signup_start
+            amplitude.track("Start Sign Up", { provider: providerId });
             throw { needsSignup: true };
         }
     }

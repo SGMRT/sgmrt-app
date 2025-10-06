@@ -34,7 +34,8 @@ export function useRunAnalytics(context: RunContext) {
             (prev === "IDLE" || prev == null) &&
             (curr === "RUNNING" || curr === "READY")
         ) {
-            amplitude.track("run_start", propsBase);
+            // run_start
+            amplitude.track("Run Started", propsBase);
         }
 
         // // 일시정지/재개
@@ -67,7 +68,8 @@ export function useRunAnalytics(context: RunContext) {
         }
 
         if (prev !== "STOPPED" && curr === "STOPPED") {
-            amplitude.track("run_complete", {
+            // run_complete
+            amplitude.track("Run End", {
                 run_mode: propsBase.run_mode,
                 distance_km: (context.stats.totalDistanceM / 1000).toFixed(2),
                 elevation_gain_m: context.stats.gainM.toFixed(2),

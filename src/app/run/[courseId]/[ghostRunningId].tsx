@@ -658,7 +658,8 @@ export default function Run() {
                             })
                                 .then((res) => {
                                     devLog(res);
-                                    amplitude.track("run_shared");
+                                    // run_shared
+                                    amplitude.track("Run Shared");
                                 })
                                 .catch((err) => {
                                     err && devLog(err);

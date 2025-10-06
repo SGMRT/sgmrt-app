@@ -580,7 +580,8 @@ export default function Result() {
                                             tab: "course",
                                         },
                                     });
-                                    amplitude.track("course_register", {
+                                    // course_register
+                                    amplitude.track("Course Created", {
                                         courseId: runData?.courseInfo.id,
                                         courseName: courseName,
                                         distance: runData?.recordInfo.distance,
