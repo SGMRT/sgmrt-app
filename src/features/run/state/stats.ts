@@ -40,7 +40,7 @@ export const DEFAULT_STATS: RunningStats = {
     _totalEstimatedSteps: 0,
 };
 
-const PACE_WINDOW_MS = 30_000;
+const PACE_WINDOW_MS = 10_000;
 const MAX_SPEED_MPS = 15;
 const MIN_VALID_DIST_M = 0.3;
 const ALT_THRESHOLD_M = 0;
@@ -63,21 +63,39 @@ function secPerKmFrom(distM: number, dtSec: number): number | null {
     return pace;
 }
 
+function estimateSteps(dt: number, cadence: number) {
+    const estimatedSteps = (cadence / 60) * Math.max(0, dt);
+    return Math.round(estimatedSteps);
+}
+
 export function updateStats(
     prev: RunningStats,
     sample: RawRunData,
     options?: { zeroDt?: boolean }
 ): RunningStats {
     const { weight } = useAuthStore.getState().userInfo ?? { weight: 70 };
-    const zero = !!options?.zeroDt;
+    const last = prev.last;
+    let zero = !!options?.zeroDt;
 
     // zeroDt면 창 리셋(앵커 준비), 아니면 기존 창 유지
     const next: RunningStats = {
         ...prev,
+        _window: zero ? [] : prev._window ?? [],
         _totalSteps: prev._totalSteps ?? 0,
     };
 
-    const last = prev.last;
+    if (sample.steps != null && last?.steps != null) {
+        let diff = sample.timestamp - last?.timestamp;
+        if (
+            sample.steps > last?.steps &&
+            prev._totalEstimatedSteps > 0 &&
+            diff > 5000
+        ) {
+            zero = true;
+            next._window = [];
+            next._totalEstimatedSteps = 0;
+        }
+    }
 
     // --- 시간 증분 ---
     let dtMs = 0;
@@ -101,74 +119,58 @@ export function updateStats(
         }
     }
 
-    const lastStpes = last?.steps ?? null;
-    const currentSteps = sample.steps ?? null;
+    let dtSteps = 0;
+    let estimated = false;
 
-    let deltaSteps = 0;
-    if (currentSteps != null && lastStpes != null) {
-        deltaSteps = Math.max(0, currentSteps - lastStpes);
-    }
+    if (!zero && last && sample.steps != null && last.steps != null) {
+        const raw = sample.steps - last.steps;
 
-    const estimateSteps = (dt: number) => {
-        const cadence = prev.avgCadenceSpm ?? 160;
-        const estimatedSteps = (cadence / 60) * Math.max(0, dt);
-        return Math.round(estimatedSteps);
-    };
-
-    let windowDeltaSteps = 0;
-    let addToTotalSteps = 0;
-
-    if (deltaSteps > 0) {
-        // 실제로 값이 들어온 경우
-        // 부채 상계 진행
-        let repay = Math.min(prev._totalEstimatedSteps ?? 0, deltaSteps);
-        for (let i = next._window.length - 1; i >= 0 && repay > 0; i--) {
-            const e = next._window[i];
-            if (!e.estimated || e.deltaSteps <= 0) continue;
-            const take = Math.min(e.deltaSteps, repay);
-            e.deltaSteps -= take;
-            repay -= take;
+        if (raw < 0) {
+            // 리셋 상황: 부채도 같이 리셋
+            next._totalEstimatedSteps = 0;
+            dtSteps = 0;
+        } else if (raw === 0) {
+            // 추정 케이스
+            if (prev.currentCadenceSpm != null && dtSec > 0) {
+                const est = estimateSteps(dtSec, prev.currentCadenceSpm);
+                if (est > 0) {
+                    dtSteps = est;
+                    estimated = true;
+                    next._totalEstimatedSteps += est; // 추정치를 "부채"로 쌓음
+                }
+            }
+        } else {
+            // raw > 0: 실제 수치 들어왔을 때
+            if (next._totalEstimatedSteps > 0) {
+                const settle = Math.min(next._totalEstimatedSteps, raw);
+                next._totalEstimatedSteps -= settle; // 추정분과 상계
+                dtSteps = raw - settle; // 남은 실제만 반영
+            } else {
+                dtSteps = raw;
+            }
         }
 
-        // 총합 상계
-        const totalRepay = Math.min(prev._totalEstimatedSteps ?? 0, deltaSteps);
-        addToTotalSteps = deltaSteps - totalRepay;
-        next._totalEstimatedSteps =
-            (prev._totalEstimatedSteps ?? 0) - totalRepay;
-
-        windowDeltaSteps = deltaSteps;
-    } else {
-        if (filteredDistM > 0.5) {
-            // 실제 값이 들어오지 않은 경우
-            const estimatedSteps = estimateSteps(dtSec);
-            windowDeltaSteps = estimatedSteps;
-            addToTotalSteps = estimatedSteps;
-            next._totalEstimatedSteps =
-                (prev._totalEstimatedSteps ?? 0) + estimatedSteps;
+        if (dtSteps > 0) {
+            next._totalSteps += dtSteps;
         }
     }
-
-    next._totalSteps += addToTotalSteps;
 
     next._window.push({
         ts: sample.timestamp,
         dist: filteredDistM,
-        deltaSteps: zero ? 0 : windowDeltaSteps,
-        estimated: deltaSteps === 0,
+        deltaSteps: zero ? 0 : dtSteps,
+        estimated,
     });
 
     const cutoff = sample.timestamp - PACE_WINDOW_MS;
-    while (
-        next._window.length &&
-        next._window.length > 2 &&
-        next._window[0].ts < cutoff
-    ) {
+
+    while (next._window.length && next._window[0].ts < cutoff) {
         next._window.shift();
     }
 
     // --- 창 집계 ---
     const winTimeSec =
-        next._window.length > 1
+        next._window.length > 5
             ? (next._window[next._window.length - 1].ts - next._window[0].ts) /
               1000
             : 0;

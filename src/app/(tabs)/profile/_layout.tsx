@@ -13,7 +13,6 @@ export default function ProfileLayout() {
             <Stack.Screen name="termDetail" />
             <Stack.Screen name="notice" />
             <Stack.Screen name="[courseId]/detail" />
-            <Stack.Screen name="[courseId]/rank" />
         </Stack>
     );
 }
