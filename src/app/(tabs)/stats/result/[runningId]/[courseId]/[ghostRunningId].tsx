@@ -27,12 +27,12 @@ import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
-import * as amplitude from "@amplitude/analytics-react-native";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Pressable,
     ScrollView,
@@ -53,6 +53,13 @@ export default function Result() {
     const runShotRef = useRef<RunShotHandle>(null);
     const { bottom } = useSafeAreaInsets();
     const [isTabBar, setIsTabBar] = useState(false);
+    const resultTrackRef = useRef({
+        view: false,
+        graphOpen: false,
+        viewScroll: false,
+        infoChange: false,
+        graphDrag: false,
+    });
 
     const runningMode = useMemo(() => {
         if (courseId === "-1") {
@@ -72,6 +79,12 @@ export default function Result() {
     };
 
     const changeDisplayMode = () => {
+        if (!resultTrackRef.current.infoChange) {
+            resultTrackRef.current.infoChange = true;
+            trackAmplitude("run_detail_view_movement", {
+                action: "change_button_click",
+            });
+        }
         setDisplayMode((prev) => (prev === "pace" ? "course" : "pace"));
     };
 
@@ -134,17 +147,12 @@ export default function Result() {
                 unit: "km",
             },
             {
-                description: "고도",
-                value: runData?.recordInfo.elevationAverage ?? 0,
-                unit: "m",
-            },
-            {
-                description: "상승",
+                description: "상승 고도",
                 value: runData?.recordInfo.elevationGain ?? 0,
                 unit: "m",
             },
             {
-                description: "하강",
+                description: "하강 고도",
                 value: Math.abs(runData?.recordInfo.elevationLoss ?? 0),
                 unit: "m",
             },
@@ -247,6 +255,13 @@ export default function Result() {
         }
     }, [runData?.runningName]);
 
+    useEffect(() => {
+        if (!resultTrackRef.current.view) {
+            resultTrackRef.current.view = true;
+            trackAmplitude("run_detail_view");
+        }
+    }, []);
+
     if (isLoading) {
         return <></>;
     }
@@ -264,6 +279,14 @@ export default function Result() {
                         ref={scrollViewRef}
                         contentContainerStyle={styles.content}
                         keyboardShouldPersistTaps="handled"
+                        onScrollEndDrag={() => {
+                            if (!resultTrackRef.current.viewScroll) {
+                                resultTrackRef.current.viewScroll = true;
+                                trackAmplitude("run_detail_view_movement", {
+                                    action: "scroll",
+                                });
+                            }
+                        }}
                     >
                         {/* 제목 파트 */}
                         <View style={styles.titleContainer}>
@@ -375,11 +398,7 @@ export default function Result() {
                         >
                             <StatRow
                                 color="gray20"
-                                style={
-                                    displayMode === "pace"
-                                        ? { gap: 20 }
-                                        : { justifyContent: "space-between" }
-                                }
+                                style={{ gap: 20 }}
                                 stats={
                                     displayMode === "pace"
                                         ? paceStats
@@ -400,8 +419,28 @@ export default function Result() {
                                 }
                                 showToolTip={true}
                                 onPointChange={(payload) => {
+                                    if (!resultTrackRef.current.graphOpen) {
+                                        resultTrackRef.current.graphOpen = true;
+                                        trackAmplitude(
+                                            "run_detail_view_movement",
+                                            {
+                                                action: "graph_point_click",
+                                            }
+                                        );
+                                    }
                                     isChartActive.value = payload.isActive;
                                     chartPointIndex.value = payload.index;
+                                }}
+                                onExpand={() => {
+                                    if (!resultTrackRef.current.graphOpen) {
+                                        resultTrackRef.current.graphOpen = true;
+                                        trackAmplitude(
+                                            "run_detail_view_movement",
+                                            {
+                                                action: "graph_open",
+                                            }
+                                        );
+                                    }
                                 }}
                                 expandable
                             />
@@ -541,7 +580,8 @@ export default function Result() {
                                             tab: "course",
                                         },
                                     });
-                                    amplitude.track("Course Created", {
+                                    // course_register
+                                    trackAmplitude("Course Created", {
                                         courseId: runData?.courseInfo.id,
                                         courseName: courseName,
                                         distance: runData?.recordInfo.distance,

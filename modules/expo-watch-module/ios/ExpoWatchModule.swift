@@ -16,17 +16,28 @@ fileprivate final class WCBridge: NSObject, WCSessionDelegate {
   }
 
   // 워치로 명령 전송
-  func sendCommand(_ dict: [String: Any]) async throws {
+  @discardableResult
+  func sendCommand(_ dict: [String: Any]) async -> Bool {
     activate()
+    guard WCSession.isSupported() else { return false }
     let s = WCSession.default
-    let data = try JSONSerialization.data(withJSONObject: dict)
+
+    // 페어링/설치 안됐으면 전송하지 않음(조용히 실패)
+    guard s.isPaired, s.isWatchAppInstalled else { return false }
+
+    guard let data = try? JSONSerialization.data(withJSONObject: dict) else {
+      return false
+    }
 
     if s.isReachable {
       s.sendMessageData(data, replyHandler: nil) { err in
-        self.logger.error("sendMessageData failed: \(err.localizedDescription)")
+        // 에러도 사용자에겐 조용히: 필요하면 debug 로깅
+        self.logger.debug("sendMessageData failed: \(err.localizedDescription)")
       }
+      return true
     } else {
-      s.transferUserInfo(dict) // 지연 전송
+      s.transferUserInfo(dict) // 지연 전송 큐에 올림
+      return true
     }
   }
 
@@ -97,64 +108,44 @@ public final class ExpoWatchModule: Module {
 
     OnStartObserving { self.hasListeners = true }
     OnStopObserving  { self.hasListeners = false }
-
-    // 권한 요청
-    AsyncFunction("requestAuthorization") { () -> Bool in
-      let toShare: Set = [HKQuantityType.workoutType()]
-      let toRead: Set  = [HKQuantityType(.heartRate), HKQuantityType.workoutType()]
-      do {
-        try await self.healthStore.requestAuthorization(toShare: toShare, read: toRead)
-        return true
-      } catch {
-        self.logger.error("HK auth failed: \(error.localizedDescription)")
-        return false
-      }
-    }
     
 
     // 워치 앱 띄우고 → 즉시 start 명령
     AsyncFunction("startWatchApp") { () -> Bool in
+      // 사전 조건 체크(지원/페어링/설치 + HealthKit 가능)
+      guard WCSession.isSupported(),
+            WCSession.default.isPaired,
+            WCSession.default.isWatchAppInstalled,
+            HKHealthStore.isHealthDataAvailable() else { return false }
+
       do {
-          // 1) 워치 앱을 "운동 처리 모드"로 실행
-          let config = HKWorkoutConfiguration()
-          config.activityType = .running       // 필요시 JS에서 파라미터로 받도록 확장
-          config.locationType = .outdoor
-
-          // 권한은 사전에 requestAuthorization 호출로 받아둔 상태여야 함
-          try await self.healthStore.startWatchApp(toHandle: config)
-          
-          return true
-      } catch {
-          self.logger.error("startWatchApp failed: \(error.localizedDescription)")
-          return false
-      }
-    }
-
-    AsyncFunction("pauseWatch") { () -> Bool in
-      do { try await self.wc.sendCommand(["cmd": "pause"]); return true }
-      catch { self.logger.error("pauseWatch failed: \(error.localizedDescription)"); return false }
-    }
-
-    AsyncFunction("resumeWatch") { () -> Bool in
-      do { try await self.wc.sendCommand(["cmd": "resume"]); return true }
-      catch { self.logger.error("resumeWatch failed: \(error.localizedDescription)"); return false }
-    }
-
-    // 측정 중지
-    AsyncFunction("stopWatch") { () -> Bool in
-      do {
-        try await self.wc.sendCommand(["cmd": "stop"])
+        let config = HKWorkoutConfiguration()
+        config.activityType = .running
+        config.locationType = .outdoor
+        try await self.healthStore.startWatchApp(toHandle: config)
         return true
       } catch {
-        self.logger.error("stopWatch failed: \(error.localizedDescription)")
+        self.logger.debug("startWatchApp failed: \(error.localizedDescription)")
         return false
       }
     }
 
-    // 수동 WC 활성화(옵션)
-    Function("activateWC") {
-      self.wc.activate()
+    AsyncFunction("pauseWatch")  { () -> Bool in
+      let ok = await self.wc.sendCommand(["cmd": "pause"])
+      return ok // false 여도 조용히 반환
     }
+
+    AsyncFunction("resumeWatch") { () -> Bool in
+      let ok = await self.wc.sendCommand(["cmd": "resume"])
+      return ok
+    }
+
+    AsyncFunction("stopWatch")   { () -> Bool in
+      let ok = await self.wc.sendCommand(["cmd": "stop"])
+      return ok
+    }
+
+    Function("activateWC") { self.wc.activate() }
   }
 
   // JS 이벤트 내보내기 (리스너 있을 때만)

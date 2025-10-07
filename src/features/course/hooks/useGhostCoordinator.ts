@@ -188,12 +188,8 @@ export function useGhostCoordinator(
 
         const text =
             leader === "ME"
-                ? `고스트를 추월하였습니다. 거리 차이는 ${Math.abs(
-                      deltaM
-                  )} 미터 입니다.`
-                : `고스트가 앞서고 있습니다. 거리 차이는 ${Math.abs(
-                      deltaM
-                  )} 미터 입니다.`;
+                ? `고스트를 추월하였습니다.`
+                : `고스트가 앞서고 있습니다.`;
 
         // 네이티브/전역 업데이트
         controls.setLiveActivityMessage(text, "INFO");

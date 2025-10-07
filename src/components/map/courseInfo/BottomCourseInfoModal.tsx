@@ -1,5 +1,6 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse, HistoryResponse } from "@/src/apis/types/course";
+import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -29,7 +30,7 @@ export default function BottomCourseInfoModal({
     course,
 }: BottomCourseInfoModalProps) {
     const [ghostSelected, setGhostSelected] = useState(false);
-
+    const { requestOrAlert, requestOptional } = useAppPermissions();
     useEffect(() => {
         if (course?.myGhostInfo) {
             setGhostSelected(true);
@@ -43,24 +44,19 @@ export default function BottomCourseInfoModal({
             unit: "km",
         },
         {
-            description: "고도",
-            value: course?.elevationAverage.toString() ?? "--",
-            unit: "m",
-        },
-        {
-            description: "상승",
+            description: "상승 고도",
             value: course?.elevationGain.toString() ?? "--",
             unit: "m",
         },
         {
-            description: "하강",
+            description: "하강 고도",
             value: course?.elevationLoss
                 ? Math.abs(course?.elevationLoss)
-                : "--",
+                : "0",
             unit: "m",
         },
     ];
-
+    0;
     const ghostStats = [
         {
             description: "시간",
@@ -107,8 +103,18 @@ export default function BottomCourseInfoModal({
                     marginHorizontal: 16.5,
                 }}
                 type="active"
-                title={ghostSelected ? "고스트 러닝" : "코스 러닝"}
-                onPress={() => {
+                title={ghostSelected ? "고스트와 러닝" : "이 코스로 러닝"}
+                onPress={async () => {
+                    const hk = await requestOptional("HEALTHKIT");
+
+                    const ok = await requestOrAlert(
+                        "SENSORS",
+                        "러닝 중 측정을 위해 권한이 필요해요"
+                    );
+
+                    if (!ok) {
+                        return;
+                    }
                     bottomSheetRef.current?.dismiss();
                     if (
                         ghostSelected &&
@@ -307,7 +313,7 @@ const CourseInfoSection = ({
                     stats={stats}
                     color="gray20"
                     style={{
-                        justifyContent: "space-between",
+                        gap: 20,
                     }}
                 />
                 {data && (

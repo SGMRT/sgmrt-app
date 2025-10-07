@@ -69,7 +69,6 @@ export default function BottomModal({
             >
                 <BottomSheetView
                     style={{
-                        minHeight: 280 - (bottomInset ?? bottom) - 35,
                         justifyContent: "center",
                     }}
                 >

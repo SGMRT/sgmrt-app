@@ -1,0 +1,29 @@
+diff --git a/node_modules/@bacons/apple-targets/build/withWidget.js b/node_modules/@bacons/apple-targets/build/withWidget.js
+index 11bfa69..fd3f21c 100644
+--- a/node_modules/@bacons/apple-targets/build/withWidget.js
++++ b/node_modules/@bacons/apple-targets/build/withWidget.js
+@@ -55,9 +55,7 @@ const withWidget = (config, props) => {
+     // This value should be used for the target name and other internal uses.
+     const targetDirName = path_1.default.basename(path_1.default.dirname(props.configPath));
+     // Sanitized for general usage. This name just needs to resemble the input value since it shouldn't be used for user-facing values such as the home screen or app store.
+-    const productName = sanitizeNameForNonDisplayUse(props.name || targetDirName) ||
+-        sanitizeNameForNonDisplayUse(targetDirName) ||
+-        sanitizeNameForNonDisplayUse(props.type);
++    const productName = sanitizeNameForNonDisplayUse(targetDirName || props.type);
+     // This should never happen.
+     if (!productName) {
+         throw new Error(`[bacons/apple-targets][${props.type}] Target name does not contain any valid characters: ${targetDirName}`);
+diff --git a/node_modules/@bacons/apple-targets/build/withXcodeChanges.js b/node_modules/@bacons/apple-targets/build/withXcodeChanges.js
+index dc4f5cf..ec43419 100644
+--- a/node_modules/@bacons/apple-targets/build/withXcodeChanges.js
++++ b/node_modules/@bacons/apple-targets/build/withXcodeChanges.js
+@@ -844,7 +844,8 @@ async function applyXcodeChanges(config, project, props) {
+         appExtensionBuildFile.props.fileRef);
+         targetToUpdate = project.rootObject.createNativeTarget({
+             buildConfigurationList: createConfigurationListForType(project, props),
+-            name: props.name,
++            name: props.productName,
++
+             productName,
+             // @ts-expect-error
+             productReference: appExtensionBuildFile.props.fileRef /* alphaExtension.appex */,

@@ -16,6 +16,10 @@ let lastAcceptedTs = 0;
 let lastAcceptedLat = 0;
 let lastAcceptedLng = 0;
 
+let lastAcceptedPressure: number | null = null;
+let lastAcceptedSteps: number | null = null;
+let lastAcceptedHeartRate: number | null = null;
+
 function isFirstSample(sharedSensorStore: SensorStore) {
     return sharedSensorStore.locations.last() === undefined;
 }
@@ -24,10 +28,12 @@ function reset() {
     lastAcceptedTs = 0;
     lastAcceptedLat = 0;
     lastAcceptedLng = 0;
+    lastAcceptedPressure = null;
+    lastAcceptedSteps = null;
+    lastAcceptedHeartRate = null;
 }
 
 TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
-    devLog("LOCATION_TASK", data, error);
     if (error) return;
     const { locations } = (data ?? {}) as { locations?: LocationObject[] };
     if (!locations?.length) return;
@@ -68,7 +74,35 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         const sample = sharedSensorStore.pushLocation(loc);
         const joined = joiner.onNewLocation(sample);
 
+        if (joined.pressure?.pressure != null) {
+            lastAcceptedPressure = joined.pressure.pressure;
+        } else if (lastAcceptedPressure != null) {
+            joined.pressure = {
+                pressure: lastAcceptedPressure,
+                timestamp: joined.timestamp,
+            };
+        }
+
+        if (joined.steps?.totalSteps != null) {
+            lastAcceptedSteps = joined.steps.totalSteps;
+        } else if (lastAcceptedSteps != null) {
+            joined.steps = {
+                totalSteps: lastAcceptedSteps,
+                timestamp: joined.timestamp,
+            };
+        }
+
+        if (joined.heartRate?.bpm != null) {
+            lastAcceptedHeartRate = joined.heartRate.bpm;
+        } else if (lastAcceptedHeartRate != null) {
+            joined.heartRate = {
+                bpm: lastAcceptedHeartRate,
+                timestamp: joined.timestamp,
+            };
+        }
+
         const isBaroAvailable = await Barometer.isAvailableAsync();
+
         if (isBaroAvailable && joined.pressure == null) {
             devLog("[LOCATION] 압력 데이터 없음");
             continue;

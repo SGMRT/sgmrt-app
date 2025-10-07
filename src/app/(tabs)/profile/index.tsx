@@ -52,6 +52,11 @@ export default function ProfileScreen() {
                         text: "탈퇴",
                         onPress: async () => {
                             await deleteUser();
+                            showToast(
+                                "success",
+                                "회원 탈퇴 되었습니다.",
+                                bottom + 60
+                            );
                             logout();
                         },
                     },

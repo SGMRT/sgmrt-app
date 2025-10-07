@@ -4,7 +4,7 @@ import Mapbox from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { SplashScreen, Stack } from "expo-router";
+import { Stack } from "expo-router";
 
 import { useEffect, useMemo } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -28,8 +28,6 @@ const env =
         : process.env.EAS_BUILD_PROFILE === "production"
         ? "PRODUCTION"
         : "STAGING";
-
-SplashScreen.preventAutoHideAsync();
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 amplitude.init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || "", undefined, {
@@ -58,7 +56,6 @@ function RootLayout() {
     useEffect(() => {
         if (status !== "idle") {
             devLog(`[bootstrap] status=${status}`, error ?? "");
-            SplashScreen.hideAsync();
         }
     }, [status, error]);
 

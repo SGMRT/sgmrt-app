@@ -3,22 +3,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAudioModeAsync } from "expo-audio";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
-import { SplashScreen, useRouter } from "expo-router";
-import { Barometer, Pedometer } from "expo-sensors";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, InteractionManager, Linking, Platform } from "react-native";
+import { InteractionManager, Platform } from "react-native";
 
 import expoLiveActivity from "@/modules/expo-live-activity";
 import { devLog, errorLog } from "@/src/utils/devLog";
-import {
-    AuthorizationRequestStatus,
-    useHealthkitAuthorization,
-} from "@kingstinct/react-native-healthkit";
-import {
-    getTrackingPermissionsAsync,
-    PermissionStatus,
-    requestTrackingPermissionsAsync,
-} from "expo-tracking-transparency";
 import mobileAds, {
     AdsConsent,
     AdsConsentDebugGeography,
@@ -26,49 +16,12 @@ import mobileAds, {
     MaxAdContentRating,
 } from "react-native-google-mobile-ads";
 import { LOCATION_TASK } from "../run/constants";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
 const VERSION_KEY = "version_v1";
 
 type Status = "idle" | "running" | "blocked" | "done" | "error";
-
-async function requestPermissions(): Promise<boolean> {
-    const locationPermission =
-        await Location.requestForegroundPermissionsAsync();
-    const pedometerPermission = await Pedometer.requestPermissionsAsync();
-    const barometerPermission = await Barometer.requestPermissionsAsync();
-
-    if (Platform.OS === "ios") {
-        const att = await getTrackingPermissionsAsync();
-        if (att.status === PermissionStatus.UNDETERMINED) {
-            await requestTrackingPermissionsAsync();
-        }
-    }
-
-    const locationGranted = locationPermission.status === "granted";
-    const pedometerGranted = pedometerPermission.status === "granted";
-    const barometerGranted = barometerPermission.status === "granted";
-
-    if (locationGranted && pedometerGranted && barometerGranted) {
-        return true;
-    }
-
-    const missing: string[] = [];
-    if (!locationGranted) missing.push("위치");
-    if (!pedometerGranted) missing.push("활동");
-    if (!barometerGranted) missing.push("기압");
-
-    const message = `${missing.join(
-        ", "
-    )} 권한이 허용되지 않았습니다.\n\n서비스 이용을 위해 설정에서 권한을 허용해주세요.`;
-
-    Alert.alert("권한이 부족해요", message, [
-        { text: "취소", style: "cancel" },
-        { text: "설정으로 이동", onPress: () => Linking.openSettings() },
-    ]);
-
-    return false;
-}
 
 let ADS_INIT_DONE = false;
 
@@ -147,9 +100,8 @@ async function bootstrapAnalytics({
     build?: string;
 }) {
     try {
-        // 매 실행
-        amplitude.track("App Launched", {
-            platform: Platform.OS,
+        // app_launched
+        trackAmplitude("App Launched", {
             version,
             build,
         });
@@ -157,7 +109,8 @@ async function bootstrapAnalytics({
         // 첫 설치 1회
         const first = await AsyncStorage.getItem(FIRST_LAUNCH_KEY);
         if (!first) {
-            amplitude.track("App Installed", {
+            // app_install
+            trackAmplitude("App Installed", {
                 platform: Platform.OS,
                 version,
                 build,
@@ -176,7 +129,8 @@ async function bootstrapAnalytics({
         // 업데이트 감지
         const lastVersion = await AsyncStorage.getItem(VERSION_KEY);
         if (lastVersion && lastVersion !== version) {
-            amplitude.track("App Updated", {
+            // app_updated
+            trackAmplitude("App Updated", {
                 from: lastVersion,
                 to: version,
                 build,
@@ -192,16 +146,6 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
     const router = useRouter();
     const [status, setStatus] = useState<Status>("idle");
     const [error, setError] = useState<unknown>(null);
-    const [authorizationStatus, requestAuthorization] =
-        useHealthkitAuthorization(
-            ["HKQuantityTypeIdentifierHeartRate"],
-            [
-                "HKQuantityTypeIdentifierDistanceWalkingRunning",
-                "HKQuantityTypeIdentifierActiveEnergyBurned",
-                "HKWorkoutTypeIdentifier",
-                "HKWorkoutRouteTypeIdentifier",
-            ]
-        );
 
     const version = useMemo(() => Constants.expoConfig?.version, []);
     const build = useMemo(
@@ -218,35 +162,16 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
             setStatus("running");
 
             try {
-                const checkAuthorization = async () => {
-                    devLog("authorizationStatus", authorizationStatus);
-                    if (
-                        authorizationStatus ===
-                        AuthorizationRequestStatus.shouldRequest
-                    ) {
-                        requestAuthorization();
-                    }
-                };
-                await checkAuthorization();
-                // 1) 권한
-                const granted = await requestPermissions();
-                if (!granted) {
-                    if (!cancelled) setStatus("blocked");
-                    // 권한 거부 시 스플래시는 닫아 UX를 막지 않음 (권한 설정 유도)
-                    await SplashScreen.hideAsync();
-                    return;
-                }
-
-                // 2) 초기화
+                // 초기화
                 await Promise.all([
                     initAudioModule(),
                     stopTrackingAndLiveActivity(),
                 ]);
 
-                // 3) 분석 로깅
+                // 분석 로깅
                 await bootstrapAnalytics({ version, build });
 
-                // 4) 라우팅
+                // 라우팅
                 if (cancelled) return;
                 if (isLoggedIn) {
                     devLog("replace to /(tabs)/home");
@@ -256,8 +181,7 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                     router.replace("/(auth)/login");
                 }
 
-                // 5) 스플래시 종료
-                await SplashScreen.hideAsync();
+                // 스플래시 종료
                 if (!cancelled) setStatus("done");
 
                 InteractionManager.runAfterInteractions(async () => {
@@ -269,7 +193,6 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                     setError(e);
                     setStatus("error");
                     // 에러 시에도 스플래시는 닫아줌
-                    await SplashScreen.hideAsync();
                 }
             }
         };
@@ -278,15 +201,7 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
         return () => {
             cancelled = true;
         };
-    }, [
-        isLoggedIn,
-        loadedFonts,
-        router,
-        version,
-        build,
-        authorizationStatus,
-        requestAuthorization,
-    ]);
+    }, [isLoggedIn, loadedFonts, router, version, build]);
 
     return { status, error };
 }

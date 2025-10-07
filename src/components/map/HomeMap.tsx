@@ -1,5 +1,8 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
+import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
+import { useAuthStore } from "@/src/store/authState";
+import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
     calculateCenter,
@@ -7,23 +10,30 @@ import {
     Coordinate,
     getDistance,
 } from "@/src/utils/mapUtils";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import * as amplitude from "@amplitude/analytics-react-native";
+import { BottomSheetHandle, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Dimensions, View } from "react-native";
-import { SharedValue, useAnimatedStyle } from "react-native-reanimated";
+import { Dimensions, StyleSheet, View } from "react-native";
+import {
+    SharedValue,
+    useAnimatedStyle,
+    useSharedValue,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CourseListView from "../course/CourseListView";
 import { ActionButton } from "../ui/ActionButton";
 import BottomModal from "../ui/BottomModal";
 import StyledBottomSheet from "../ui/StyledBottomSheet";
+import { Typography } from "../ui/Typography";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 
 interface HomeMapProps {
     courseType: "all" | "my";
@@ -34,8 +44,8 @@ interface HomeMapProps {
 
 const ZOOM_THRESHOLD = 14.5;
 const CAMERA_LATITUDE_OFFSET = 0.006;
-const BOTTOM_BAR_HEIGHT = 104;
-const TAB_BAR_HEIGHT = 82;
+const BOTTOM_BAR_HEIGHT = 155;
+const TAB_BAR_HEIGHT = 130;
 
 const CONTROL_PANEL_HEIGHT = 48;
 const MARGIN_BOTTOM = 16;
@@ -57,6 +67,8 @@ export default function HomeMap({
         null
     );
     const [zoomLevel, setZoomLevel] = useState(16);
+    const { requestOptional, requestOrAlert } = useAppPermissions();
+    const { uuid } = useAuthStore();
 
     const firstRenderRef = useRef(true);
 
@@ -66,6 +78,11 @@ export default function HomeMap({
 
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
+
+        trackAmplitude("course_detail_view", {
+            course_id: course.id,
+            is_own_course: course.ownerUuid === uuid,
+        });
 
         const coordinates: Coordinate[] = [];
 
@@ -158,6 +175,10 @@ export default function HomeMap({
     const { data: courses } = useQuery({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
+            trackAmplitude("main_screen_view", {
+                course_search_radius:
+                    distance * 1000 > 10000 ? 10000 : distance * 1000,
+            });
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
@@ -245,18 +266,30 @@ export default function HomeMap({
                 text="러닝 시작"
                 style={{
                     position: "absolute",
-                    bottom: 93,
+                    bottom: 149,
                     alignSelf: "center",
                 }}
-                onPress={() => {
-                    router.push("/run/solo");
+                onPress={async () => {
+                    const hk = await requestOptional("HEALTHKIT");
+
+                    const ok = await requestOrAlert(
+                        "SENSORS",
+                        "러닝 중 측정을 위해 권한이 필요해요"
+                    );
+
+                    if (!ok) {
+                        return;
+                    } else {
+                        router.push("/run/solo");
+                    }
                 }}
             />
             <StyledBottomSheet
                 ref={listBottomSheetRef}
                 bottomInset={bottom + 36}
-                snapPoints={[15, "32%", "48%", "66%"]}
+                snapPoints={[64, 290, "66%"]}
                 index={0}
+                handleComponent={ListBottomSheetHandle}
             >
                 <View style={{ height: 20 }} />
                 <CourseListView
@@ -316,3 +349,29 @@ const HomeBottomModal = ({
         </BottomModal>
     );
 };
+
+const ListBottomSheetHandle = () => {
+    const animatedIndex = useSharedValue(0);
+    const animatedPosition = useSharedValue(0);
+    return (
+        <View style={{ alignItems: "center" }}>
+            <BottomSheetHandle
+                indicatorStyle={styles.handleIndicator}
+                animatedIndex={animatedIndex}
+                animatedPosition={animatedPosition}
+            />
+            <Typography variant="subhead1" color="gray40">
+                목록
+            </Typography>
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    handleIndicator: {
+        backgroundColor: colors.gray[40],
+        width: 50,
+        height: 5,
+        borderRadius: 100,
+    },
+});

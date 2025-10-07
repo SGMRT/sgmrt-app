@@ -35,6 +35,8 @@ import {
     saveRunning,
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
+import * as amplitude from "@amplitude/analytics-react-native";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -377,7 +379,9 @@ export default function Run() {
                         stats={
                             runShotType === "share" ? captureStats : undefined
                         }
-                        distance={context.stats.totalDistanceM.toFixed(2)}
+                        distance={(context.stats.totalDistanceM / 1000).toFixed(
+                            2
+                        )}
                     />
                 )}
 
@@ -490,7 +494,10 @@ export default function Run() {
                         ))}
             </MapViewWrapper>
 
-            <StyledBottomSheet animatedPosition={heightVal}>
+            <StyledBottomSheet
+                bottomInset={bottom + 70}
+                animatedPosition={heightVal}
+            >
                 <View>
                     {isFirst ? (
                         <View
@@ -652,6 +659,8 @@ export default function Run() {
                             })
                                 .then((res) => {
                                     devLog(res);
+                                    // run_shared
+                                    trackAmplitude("Run Shared");
                                 })
                                 .catch((err) => {
                                     err && devLog(err);

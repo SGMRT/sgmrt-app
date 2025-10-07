@@ -34,6 +34,7 @@ export default function StyledBottomSheet({
             handleIndicatorStyle={
                 handleIndicatorStyle ?? styles.handleIndicator
             }
+            handleComponent={props.handleComponent}
             snapPoints={snapPoints}
             index={index}
             animatedPosition={animatedPosition}

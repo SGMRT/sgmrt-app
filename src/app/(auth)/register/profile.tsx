@@ -10,6 +10,7 @@ import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import { devLog } from "@/src/utils/devLog";
 import { pickImage } from "@/src/utils/pickImage";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth } from "@react-native-firebase/auth";
@@ -114,12 +115,13 @@ export default function Profile() {
             .then(async (res) => {
                 setRes(res);
                 await AsyncStorage.setItem("welcome", "true");
-                amplitude.track("Sign Up", {
+                // signup_complete
+                trackAmplitude("Sign Up", {
                     provider: "email",
-                    nickname: nickname,
-                    gender: gender,
                     age: age,
+                    gender: gender,
                     height: height,
+                    nickname: nickname,
                     weight: weight,
                 });
                 setUserInfo({
@@ -130,6 +132,7 @@ export default function Profile() {
                     weight: weight,
                 });
                 login(res.accessToken, res.refreshToken, res.uuid);
+                amplitude.setUserId(res.uuid);
             })
             .catch((err) => {
                 devLog(err);

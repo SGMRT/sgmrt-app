@@ -6,6 +6,7 @@ import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { useAuthStore } from "@/src/store/authState";
 import { devLog } from "@/src/utils/devLog";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
 import {
@@ -17,7 +18,7 @@ import { initializeKakaoSDK } from "@react-native-kakao/core";
 import { login as kakaoLogin } from "@react-native-kakao/user";
 import * as Sentry from "@sentry/react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
-import { useRouter } from "expo-router";
+import { SplashScreen, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import {
@@ -38,6 +39,7 @@ export default function Login() {
 
     useEffect(() => {
         initializeKakaoSDK(process.env.EXPO_PUBLIC_KAKAO_APP_KEY ?? "");
+        SplashScreen.hideAsync();
     }, []);
 
     const doLogin = async (args: {
@@ -193,14 +195,13 @@ async function handleLogin({
             email: credential.user.email ?? "",
         });
 
-        amplitude.setUserId(credential.user.uid);
-        amplitude.setGroup("provider", providerId);
-
         const res = await signIn({
             idToken: await credential.user.getIdToken(),
         });
 
         login(res.accessToken, res.refreshToken, res.uuid);
+
+        amplitude.setUserId(credential.user.uid);
 
         const ui = await getUserInfo();
         setUserInfoStore({
@@ -215,15 +216,16 @@ async function handleLogin({
             vibrationEnabled: ui.vibrationEnabled,
             voiceGuidanceEnabled: ui.voiceGuidanceEnabled,
         });
-
-        amplitude.track("Sign In", { provider: providerId });
+        // signin
+        trackAmplitude("Sign In", { provider: providerId });
     } catch (err: any) {
         devLog(err);
         if (err?.response?.status !== 404) {
             showToast("info", "로그인에 실패했습니다.", bottom);
             throw err;
         } else {
-            amplitude.track("Start Sign Up", { provider: providerId });
+            // signup_start
+            trackAmplitude("Start Sign Up", { provider: providerId });
             throw { needsSignup: true };
         }
     }

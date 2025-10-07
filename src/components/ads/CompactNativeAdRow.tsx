@@ -92,63 +92,68 @@ export default function CompactNativeAdRow({ style }: Props) {
         );
 
     return (
-        <NativeAdView
-            nativeAd={ad}
-            style={[styles.container, style, { marginBottom: bottom }]}
-        >
-            {/* AD 배지 (자산 아님) */}
-            <View style={styles.badge}>
-                <Typography variant="advertiser" color="white">
-                    AD
-                </Typography>
-            </View>
+        ad && (
+            <NativeAdView
+                nativeAd={ad}
+                style={[styles.container, style, { marginBottom: bottom }]}
+            >
+                {/* AD 배지 (자산 아님) */}
+                <View style={styles.badge}>
+                    <Typography variant="advertiser" color="white">
+                        AD
+                    </Typography>
+                </View>
 
-            {/* 이미지 */}
-            {ad.icon?.url && (
-                <NativeAsset assetType={NativeAssetType.ICON}>
-                    <Image source={{ uri: ad.icon?.url }} style={styles.icon} />
-                </NativeAsset>
-            )}
+                {/* 이미지 */}
+                {ad.icon?.url && (
+                    <NativeAsset assetType={NativeAssetType.ICON}>
+                        <Image
+                            source={{ uri: ad.icon?.url }}
+                            style={styles.icon}
+                        />
+                    </NativeAsset>
+                )}
 
-            {/* 텍스트 라인 */}
-            <View style={styles.textLine}>
-                {ad.advertiser ? (
-                    <NativeAsset assetType={NativeAssetType.ADVERTISER}>
+                {/* 텍스트 라인 */}
+                <View style={styles.textLine}>
+                    {ad.advertiser ? (
+                        <NativeAsset assetType={NativeAssetType.ADVERTISER}>
+                            <Typography
+                                variant="advertiser"
+                                color="white"
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
+                                {ad.advertiser}
+                                {": "}
+                            </Typography>
+                        </NativeAsset>
+                    ) : null}
+                    <NativeAsset assetType={NativeAssetType.HEADLINE}>
                         <Typography
-                            variant="advertiser"
-                            color="white"
+                            variant="caption1"
+                            color="gray20"
                             numberOfLines={1}
                             ellipsizeMode="tail"
                         >
-                            {ad.advertiser}
-                            {": "}
+                            {ad.headline}
                         </Typography>
                     </NativeAsset>
-                ) : null}
-                <NativeAsset assetType={NativeAssetType.HEADLINE}>
+                </View>
+
+                {/* CTA */}
+                <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
                     <Typography
                         variant="caption1"
-                        color="gray20"
+                        color="black"
                         numberOfLines={1}
-                        ellipsizeMode="tail"
+                        style={styles.cta}
                     >
-                        {ad.headline}
+                        {ad.callToAction}
                     </Typography>
                 </NativeAsset>
-            </View>
-
-            {/* CTA */}
-            <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
-                <Typography
-                    variant="caption1"
-                    color="black"
-                    numberOfLines={1}
-                    style={styles.cta}
-                >
-                    {ad.callToAction}
-                </Typography>
-            </NativeAsset>
-        </NativeAdView>
+            </NativeAdView>
+        )
     );
 }
 
