@@ -6,6 +6,7 @@ import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { useAuthStore } from "@/src/store/authState";
 import { devLog } from "@/src/utils/devLog";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
 import {
@@ -215,15 +216,16 @@ async function handleLogin({
             vibrationEnabled: ui.vibrationEnabled,
             voiceGuidanceEnabled: ui.voiceGuidanceEnabled,
         });
-
-        amplitude.track("signin", { provider: providerId });
+        // signin
+        trackAmplitude("Sign In", { provider: providerId });
     } catch (err: any) {
         devLog(err);
         if (err?.response?.status !== 404) {
             showToast("info", "로그인에 실패했습니다.", bottom);
             throw err;
         } else {
-            amplitude.track("signup_start", { provider: providerId });
+            // signup_start
+            trackAmplitude("Start Sign Up", { provider: providerId });
             throw { needsSignup: true };
         }
     }

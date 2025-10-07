@@ -16,6 +16,7 @@ import mobileAds, {
     MaxAdContentRating,
 } from "react-native-google-mobile-ads";
 import { LOCATION_TASK } from "../run/constants";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
 const VERSION_KEY = "version_v1";
@@ -99,8 +100,8 @@ async function bootstrapAnalytics({
     build?: string;
 }) {
     try {
-        // 매 실행
-        amplitude.track("app_launched", {
+        // app_launched
+        trackAmplitude("App Launched", {
             version,
             build,
         });
@@ -108,7 +109,8 @@ async function bootstrapAnalytics({
         // 첫 설치 1회
         const first = await AsyncStorage.getItem(FIRST_LAUNCH_KEY);
         if (!first) {
-            amplitude.track("app_install", {
+            // app_install
+            trackAmplitude("App Installed", {
                 platform: Platform.OS,
                 version,
                 build,
@@ -127,7 +129,8 @@ async function bootstrapAnalytics({
         // 업데이트 감지
         const lastVersion = await AsyncStorage.getItem(VERSION_KEY);
         if (lastVersion && lastVersion !== version) {
-            amplitude.track("app_updated ", {
+            // app_updated
+            trackAmplitude("App Updated", {
                 from: lastVersion,
                 to: version,
                 build,

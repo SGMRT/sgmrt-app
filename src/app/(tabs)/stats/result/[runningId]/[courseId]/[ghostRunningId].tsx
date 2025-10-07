@@ -27,7 +27,7 @@ import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
-import * as amplitude from "@amplitude/analytics-react-native";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
@@ -81,7 +81,7 @@ export default function Result() {
     const changeDisplayMode = () => {
         if (!resultTrackRef.current.infoChange) {
             resultTrackRef.current.infoChange = true;
-            amplitude.track("run_detail_view_movement", {
+            trackAmplitude("run_detail_view_movement", {
                 action: "change_button_click",
             });
         }
@@ -258,7 +258,7 @@ export default function Result() {
     useEffect(() => {
         if (!resultTrackRef.current.view) {
             resultTrackRef.current.view = true;
-            amplitude.track("run_detail_view");
+            trackAmplitude("run_detail_view");
         }
     }, []);
 
@@ -282,7 +282,7 @@ export default function Result() {
                         onScrollEndDrag={() => {
                             if (!resultTrackRef.current.viewScroll) {
                                 resultTrackRef.current.viewScroll = true;
-                                amplitude.track("run_detail_view_movement", {
+                                trackAmplitude("run_detail_view_movement", {
                                     action: "scroll",
                                 });
                             }
@@ -421,7 +421,7 @@ export default function Result() {
                                 onPointChange={(payload) => {
                                     if (!resultTrackRef.current.graphOpen) {
                                         resultTrackRef.current.graphOpen = true;
-                                        amplitude.track(
+                                        trackAmplitude(
                                             "run_detail_view_movement",
                                             {
                                                 action: "graph_point_click",
@@ -434,7 +434,7 @@ export default function Result() {
                                 onExpand={() => {
                                     if (!resultTrackRef.current.graphOpen) {
                                         resultTrackRef.current.graphOpen = true;
-                                        amplitude.track(
+                                        trackAmplitude(
                                             "run_detail_view_movement",
                                             {
                                                 action: "graph_open",
@@ -580,7 +580,8 @@ export default function Result() {
                                             tab: "course",
                                         },
                                     });
-                                    amplitude.track("course_register", {
+                                    // course_register
+                                    trackAmplitude("Course Created", {
                                         courseId: runData?.courseInfo.id,
                                         courseName: courseName,
                                         distance: runData?.recordInfo.distance,

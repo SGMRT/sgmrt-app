@@ -35,6 +35,7 @@ import {
     saveRunning,
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
@@ -658,7 +659,8 @@ export default function Run() {
                             })
                                 .then((res) => {
                                     devLog(res);
-                                    amplitude.track("run_shared");
+                                    // run_shared
+                                    trackAmplitude("Run Shared");
                                 })
                                 .catch((err) => {
                                     err && devLog(err);

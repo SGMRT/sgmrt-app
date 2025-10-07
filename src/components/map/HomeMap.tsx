@@ -33,6 +33,7 @@ import { Typography } from "../ui/Typography";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 
 interface HomeMapProps {
     courseType: "all" | "my";
@@ -78,7 +79,7 @@ export default function HomeMap({
     const onClickCourse = (course: CourseResponse) => {
         setActiveCourse(course);
 
-        amplitude.track("course_detail_view", {
+        trackAmplitude("course_detail_view", {
             course_id: course.id,
             is_own_course: course.ownerUuid === uuid,
         });
@@ -174,7 +175,7 @@ export default function HomeMap({
     const { data: courses } = useQuery({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
-            amplitude.track("main_screen_view", {
+            trackAmplitude("main_screen_view", {
                 course_search_radius:
                     distance * 1000 > 10000 ? 10000 : distance * 1000,
             });
