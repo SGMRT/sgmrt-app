@@ -133,22 +133,20 @@ async function checkATT(): Promise<PermissionCheck> {
 }
 
 async function requestATT(): Promise<PermissionRequestResult> {
-    if (Platform.OS !== "ios")
-        return { ok: true, missing: [], requested: false };
     const before = await getTrackingPermissionsAsync();
-    if (
-        before.status === PermissionStatus.GRANTED ||
-        before.status === PermissionStatus.DENIED
-    ) {
+
+    if (before.status === PermissionStatus.GRANTED) {
         return { ok: true, missing: [], requested: false, details: { before } };
     }
+
     const after = await requestTrackingPermissionsAsync();
     const ok =
         after.status === PermissionStatus.GRANTED ||
         after.status === PermissionStatus.DENIED;
+
     return {
         ok,
-        missing: ok ? [] : [Labels.att ?? "추적 허용(ATT)"],
+        missing: ok ? [] : ["App Tracking Transparency"],
         requested: true,
         details: { after },
     };
