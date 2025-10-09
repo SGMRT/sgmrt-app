@@ -3,6 +3,7 @@ import { getCourse } from "@/src/apis";
 import { CourseDetailResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostRow } from "@/src/components/map/courseInfo/GhostRow";
+import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import { Divider } from "@/src/components/ui/Divider";
@@ -20,7 +21,7 @@ import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,6 +31,8 @@ export default function Result() {
 
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
+
+    const [showInfo, setShowInfo] = useState(false);
 
     const onBack = () => {
         if (router.canGoBack()) {
@@ -202,6 +205,9 @@ export default function Result() {
                                             alignItems: "center",
                                             gap: 4,
                                         }}
+                                        onPress={() => {
+                                            setShowInfo(true);
+                                        }}
                                     >
                                         <Typography
                                             variant="caption1"
@@ -265,6 +271,10 @@ export default function Result() {
                     title={course?.name}
                     distance={((course?.distance ?? 0) / 1000).toFixed(2)}
                     stats={courseAverageStats}
+                />
+                <GhostGuide
+                    show={showInfo}
+                    handleClose={() => setShowInfo(false)}
                 />
             </>
         )

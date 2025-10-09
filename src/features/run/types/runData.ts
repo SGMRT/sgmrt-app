@@ -4,7 +4,12 @@ export type RawRunData = {
     longitude: number;
     altitude: number | null;
     pressure: number | null;
-    steps: number | null;
+    steps: {
+        totalSteps: number;
+        deltaSteps: number;
+        last5sSteps: number;
+        timestamp: number;
+    } | null;
     distance: number;
     isRunning: boolean | null;
     bpm: number | null;

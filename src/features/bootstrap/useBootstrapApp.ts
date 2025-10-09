@@ -9,14 +9,15 @@ import { InteractionManager, Platform } from "react-native";
 
 import expoLiveActivity from "@/modules/expo-live-activity";
 import { devLog, errorLog } from "@/src/utils/devLog";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import mobileAds, {
     AdsConsent,
     AdsConsentDebugGeography,
     AdsConsentStatus,
     MaxAdContentRating,
 } from "react-native-google-mobile-ads";
+import { useAppPermissions } from "../permission/useAppPermissions";
 import { LOCATION_TASK } from "../run/constants";
-import { trackAmplitude } from "@/src/utils/trackAmplitude";
 
 const FIRST_LAUNCH_KEY = "first_launch_v1";
 const VERSION_KEY = "version_v1";
@@ -147,6 +148,8 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
     const [status, setStatus] = useState<Status>("idle");
     const [error, setError] = useState<unknown>(null);
 
+    const { requestOptional } = useAppPermissions();
+
     const version = useMemo(() => Constants.expoConfig?.version, []);
     const build = useMemo(
         () =>
@@ -185,6 +188,7 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 if (!cancelled) setStatus("done");
 
                 InteractionManager.runAfterInteractions(async () => {
+                    await requestOptional("ADS");
                     await initAds();
                 });
             } catch (e) {
