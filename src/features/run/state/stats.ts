@@ -18,10 +18,10 @@ export interface RunningStats {
         ts: number;
         dist: number;
         deltaSteps: number;
-        estimated: boolean;
     }[];
     _totalSteps: number;
-    _totalEstimatedSteps: number;
+    _stepInvalid: boolean;
+    _stepStaleCount: number;
 }
 
 export const DEFAULT_STATS: RunningStats = {
@@ -37,7 +37,8 @@ export const DEFAULT_STATS: RunningStats = {
     bpm: null,
     _window: [],
     _totalSteps: 0,
-    _totalEstimatedSteps: 0,
+    _stepInvalid: false,
+    _stepStaleCount: 0,
 };
 
 const PACE_WINDOW_MS = 10_000;
@@ -45,6 +46,7 @@ const MAX_SPEED_MPS = 15;
 const MIN_VALID_DIST_M = 0.3;
 const ALT_THRESHOLD_M = 0;
 const MAX_VALID_PACE_SEC_PER_KM = 1200;
+const MIN_ACCEPT_DT_SEC = 0.8;
 
 function clampGlitch(distM: number, dtSec: number): number {
     if (dtSec <= 0) return 0;
@@ -59,13 +61,17 @@ function secPerKmFrom(distM: number, dtSec: number): number | null {
     const v = distM / dtSec;
     if (v <= 0) return null;
     const pace = 1000 / v;
-    if (pace > MAX_VALID_PACE_SEC_PER_KM) return null; // 너무 느리면 무효
+    if (pace > MAX_VALID_PACE_SEC_PER_KM) return null;
     return pace;
 }
 
 function estimateSteps(dt: number, cadence: number) {
     const estimatedSteps = (cadence / 60) * Math.max(0, dt);
     return Math.round(estimatedSteps);
+}
+
+function cloneWindow(win: RunningStats["_window"]) {
+    return win.map((w) => ({ ...w }));
 }
 
 export function updateStats(
@@ -77,33 +83,29 @@ export function updateStats(
     const last = prev.last;
     let zero = !!options?.zeroDt;
 
-    // zeroDt면 창 리셋(앵커 준비), 아니면 기존 창 유지
     const next: RunningStats = {
         ...prev,
-        _window: zero ? [] : prev._window ?? [],
+        _window: zero || prev._stepInvalid ? [] : cloneWindow(prev._window),
         _totalSteps: prev._totalSteps ?? 0,
+        _stepInvalid: zero ? true : prev._stepInvalid,
     };
 
-    if (sample.steps != null && last?.steps != null) {
-        let diff = sample.timestamp - last?.timestamp;
-        if (
-            sample.steps > last?.steps &&
-            prev._totalEstimatedSteps > 0 &&
-            diff > 5000
-        ) {
-            zero = true;
-            next._window = [];
-            next._totalEstimatedSteps = 0;
-        }
-    }
-
-    // --- 시간 증분 ---
+    // --- 시간 증분 (수용 여부 판단 이전에 dt 계산만) ---
     let dtMs = 0;
     if (!zero && last) {
         dtMs = Math.max(0, sample.timestamp - last.timestamp);
-        next.totalTimeMs += dtMs;
     }
     const dtSec = dtMs / 1000;
+
+    // 짧은 dt 샘플은 완전 무시(시간/거리/창/last 모두 변경 없음)
+    if (!zero && last && dtSec > 0 && dtSec < MIN_ACCEPT_DT_SEC) {
+        return prev;
+    }
+
+    // 수용 결정 이후에만 시간 누적
+    if (!zero && last) {
+        next.totalTimeMs += dtMs;
+    }
 
     // --- 거리 증분(글리치 필터) ---
     const rawDist = sample.distance ?? 0; // Δdistance (m)
@@ -119,82 +121,60 @@ export function updateStats(
         }
     }
 
-    let dtSteps = 0;
-    let estimated = false;
+    // --- 스텝 증분 ---
+    const deltaSteps = sample.steps?.deltaSteps ?? 0;
 
-    if (!zero && last && sample.steps != null && last.steps != null) {
-        const raw = sample.steps - last.steps;
-
-        if (raw < 0) {
-            // 리셋 상황: 부채도 같이 리셋
-            next._totalEstimatedSteps = 0;
-            dtSteps = 0;
-        } else if (raw === 0) {
-            // 추정 케이스
-            if (prev.currentCadenceSpm != null && dtSec > 0) {
-                const est = estimateSteps(dtSec, prev.currentCadenceSpm);
-                if (est > 0) {
-                    dtSteps = est;
-                    estimated = true;
-                    next._totalEstimatedSteps += est; // 추정치를 "부채"로 쌓음
-                }
-            }
+    if (deltaSteps > 0) {
+        if (next._stepInvalid) {
+            next._stepInvalid = false;
         } else {
-            // raw > 0: 실제 수치 들어왔을 때
-            if (next._totalEstimatedSteps > 0) {
-                const settle = Math.min(next._totalEstimatedSteps, raw);
-                next._totalEstimatedSteps -= settle; // 추정분과 상계
-                dtSteps = raw - settle; // 남은 실제만 반영
-            } else {
-                dtSteps = raw;
-            }
-        }
-
-        if (dtSteps > 0) {
-            next._totalSteps += dtSteps;
+            next._totalSteps += deltaSteps;
         }
     }
 
-    next._window.push({
-        ts: sample.timestamp,
-        dist: filteredDistM,
-        deltaSteps: zero ? 0 : dtSteps,
-        estimated,
-    });
-
+    // --- 창 슬라이드 (cutoff는 push 이전) ---
     const cutoff = sample.timestamp - PACE_WINDOW_MS;
-
     while (next._window.length && next._window[0].ts < cutoff) {
         next._window.shift();
     }
 
+    // --- 매 샘플 푸시  ---
+    next._window.push({
+        ts: sample.timestamp,
+        dist: filteredDistM,
+        deltaSteps: deltaSteps,
+    });
+
     // --- 창 집계 ---
     const winTimeSec =
-        next._window.length > 5
+        next._window.length >= 2
             ? (next._window[next._window.length - 1].ts - next._window[0].ts) /
               1000
             : 0;
 
     const sumDist = next._window.reduce((a, b) => a + b.dist, 0);
-    const sumSteps = next._window.reduce((a, b) => a + b.deltaSteps, 0);
-
-    // "raw" 계산값
     const rawPace = secPerKmFrom(sumDist, winTimeSec);
-    const rawCadence =
-        winTimeSec > 0 && sumSteps > 0 ? (sumSteps / winTimeSec) * 60 : null;
 
-    // sticky: 유효값이 아니면 이전 값을 유지
+    let rawCadence = sample.steps ? (sample.steps.last5sSteps / 5) * 60 : null;
+
+    if (rawCadence != null && rawCadence > 300) {
+        rawCadence = null;
+    }
+
+    // console.log("rawCadence", rawCadence);
+    // console.log("sample.steps.last5sSteps", sample.steps?.last5sSteps);
+
+    // sticky
     next.currentPaceSecPerKm = rawPace ?? prev.currentPaceSecPerKm ?? null;
     next.currentCadenceSpm = rawCadence ?? prev.currentCadenceSpm ?? null;
     next.bpm = sample.bpm ?? prev.bpm ?? null;
 
-    // 평균 페이스(전체)
+    // 평균
     next.avgPaceSecPerKm = secPerKmFrom(
         next.totalDistanceM,
         next.totalTimeMs / 1000
     );
 
-    // 평균 케이던스(전체)
     const totalTimeSec = next.totalTimeMs / 1000;
     next.avgCadenceSpm =
         totalTimeSec > 0 && (next._totalSteps ?? 0) > 0
@@ -203,11 +183,10 @@ export function updateStats(
 
     next.calories = getCalories({
         distance: next.totalDistanceM,
-        timeInSec: next.totalTimeMs / 1000,
+        timeInSec: totalTimeSec,
         weight: weight ?? 70,
     });
 
-    // 마지막 샘플 저장ß
     next.last = sample;
     return next;
 }

@@ -1,11 +1,13 @@
 import { devLog } from "@/src/utils/devLog";
 import type { LocationObject } from "expo-location";
 import { Barometer } from "expo-sensors";
+import { getStepCountAsync } from "expo-sensors/build/Pedometer";
 import * as TaskManager from "expo-task-manager";
 import { LOCATION_TASK, MAX_ACCURACY_METERS } from "../constants";
 import { joinedState } from "../store/joinedState";
 import { StreamJoiner } from "../store/joiner";
 import { SensorStore, sharedSensorStore } from "../store/sensorStore";
+import { StepSample } from "../store/sensorTypes";
 import { geoFilter } from "../utils/geoFilter";
 import { haversineMeters } from "../utils/haversineMeters";
 import { pressureAltitudeM } from "../utils/pressureAltitudeM";
@@ -17,7 +19,7 @@ let lastAcceptedLat = 0;
 let lastAcceptedLng = 0;
 
 let lastAcceptedPressure: number | null = null;
-let lastAcceptedSteps: number | null = null;
+let lastAcceptedSteps: StepSample | null = null;
 let lastAcceptedHeartRate: number | null = null;
 
 function isFirstSample(sharedSensorStore: SensorStore) {
@@ -83,13 +85,15 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             };
         }
 
+        const stepDiff =
+            joined.steps?.totalSteps != null
+                ? joined.steps.totalSteps - (lastAcceptedSteps?.totalSteps ?? 0)
+                : 0;
+
         if (joined.steps?.totalSteps != null) {
-            lastAcceptedSteps = joined.steps.totalSteps;
+            lastAcceptedSteps = joined.steps;
         } else if (lastAcceptedSteps != null) {
-            joined.steps = {
-                totalSteps: lastAcceptedSteps,
-                timestamp: joined.timestamp,
-            };
+            joined.steps = lastAcceptedSteps;
         }
 
         if (joined.heartRate?.bpm != null) {
@@ -112,13 +116,25 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             joined.pressure?.pressure ?? 0
         );
 
+        const last5sSteps = await getStepCountAsync(
+            new Date(joined.timestamp - 10000),
+            new Date(joined.timestamp - 5000)
+        ).then((steps) => steps.steps);
+
         joinedState.push({
             timestamp: joined.timestamp,
             latitude: filtered.latitude,
             longitude: filtered.longitude,
             altitude: pressureAltitude ?? joined.location.altitude ?? null,
             pressure: joined.pressure?.pressure ?? null,
-            steps: joined.steps?.totalSteps ?? null,
+            steps: joined.steps
+                ? {
+                      totalSteps: joined.steps.totalSteps,
+                      deltaSteps: stepDiff,
+                      last5sSteps: last5sSteps,
+                      timestamp: joined.steps.timestamp,
+                  }
+                : null,
             distance: deltaDistance,
             isRunning: null,
             bpm: joined.heartRate?.bpm ?? null,
