@@ -4,13 +4,13 @@ import { StyleSheet, useWindowDimensions, View } from "react-native";
 import HomeMap from "@/src/components/map/HomeMap";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import { HomeNotices } from "@/src/components/notice/HomeNotices";
-import { Onboarding } from "@/src/components/onboarding/Onboarding";
+import { WelcomeOnboarding } from "@/src/components/onboarding/WelcomOnboarding";
 import TabBar from "@/src/components/ui/TabBar";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useSplashUntilLocationReady } from "@/src/features/permission/useSplashUntilLocationReady";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
 
 export default function Home() {
@@ -37,6 +37,11 @@ export default function Home() {
             }
         };
         loadWelcome();
+    }, []);
+
+    const handleCloseOnboarding = useCallback(() => {
+        setShowOnboarding(false);
+        AsyncStorage.setItem("welcome", "false");
     }, []);
 
     return (
@@ -68,9 +73,9 @@ export default function Home() {
                 autoplay={false}
             />
             {showOnboarding && (
-                <Onboarding
-                    showOnboarding={showOnboarding}
-                    setShowOnboarding={setShowOnboarding}
+                <WelcomeOnboarding
+                    show={showOnboarding}
+                    handleClose={handleCloseOnboarding}
                     confettiRef={confettiRef}
                 />
             )}

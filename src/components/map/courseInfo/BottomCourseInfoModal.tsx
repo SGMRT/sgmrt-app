@@ -9,13 +9,13 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StyledChart from "../../chart/StyledChart";
+import { GhostGuide } from "../../onboarding/GhostGuide";
 import { Button } from "../../ui/Button";
 import { Divider } from "../../ui/Divider";
 import EmptyListView from "../../ui/EmptyListView";
 import Section from "../../ui/Section";
 import StatRow, { Stat } from "../../ui/StatRow";
 import { StyledSwitch } from "../../ui/StyledSwitch";
-import { showToast } from "../../ui/toastConfig";
 import { Typography, TypographyColor } from "../../ui/Typography";
 import { GhostRow } from "./GhostRow";
 import UserStatItem from "./UserStatItem";
@@ -145,25 +145,32 @@ const GhostSection = ({
     ghostStats: Stat[];
 }) => {
     const { bottom } = useSafeAreaInsets();
+    const [show, setShow] = useState(false);
     return (
-        <Section
-            title="내 고스트"
-            titleColor="white"
-            containerStyle={styles.ghostInfoSection}
-            onClickInfo={() => {
-                showToast("info", "내 고스트는 현재 지원하지 않아요.", bottom);
-            }}
-            titleRightChildren={
-                <StyledSwitch
-                    isSelected={ghostSelected}
-                    onValueChange={(value) => {
-                        onSwitchChange(value);
-                    }}
+        <>
+            <Section
+                title="내 고스트"
+                titleColor="white"
+                containerStyle={styles.ghostInfoSection}
+                onClickInfo={() => {
+                    setShow(true);
+                }}
+                titleRightChildren={
+                    <StyledSwitch
+                        isSelected={ghostSelected}
+                        onValueChange={(value) => {
+                            onSwitchChange(value);
+                        }}
+                    />
+                }
+            >
+                <GhostRow
+                    profileUrl={ghost.profileUrl}
+                    ghostStats={ghostStats}
                 />
-            }
-        >
-            <GhostRow profileUrl={ghost.profileUrl} ghostStats={ghostStats} />
-        </Section>
+            </Section>
+            <GhostGuide show={show} handleClose={() => setShow(false)} />
+        </>
     );
 };
 

@@ -1,4 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -14,48 +13,30 @@ import { Button } from "../ui/Button";
 import { Typography } from "../ui/Typography";
 import { DotProgress } from "./DotProgress";
 
-interface OnboardingProps {
-    showOnboarding: boolean;
-    setShowOnboarding: (showOnboarding: boolean) => void;
-    confettiRef: React.RefObject<ConfettiMethods | null>;
-}
-
-type Step = {
+export type Step = {
     title: string;
     image: any;
     subTitle?: string;
 };
 
-const steps: Step[] = [
-    {
-        title: `내 주변 코스를 탐색하고\n러닝 후 나만의 코스도 등록해 보세요`,
-        image: require("@/assets/images/onboarding/onboarding_1.png"),
-    },
-    {
-        title: `어떤 코스가 제일 인기 있을까?\n목록을 열어 확인해 보세요`,
-        image: require("@/assets/images/onboarding/onboarding_2.png"),
-    },
-    {
-        title: "코스별 내 최고 기록이 고스트로 남아요\n고스트와 달려 나를 넘어보세요",
-        image: require("@/assets/images/onboarding/onboarding_3.png"),
-    },
-    {
-        title: "고스트와 나는 색으로 구분돼요\n작은 숫자는 내 과거 기록과의 차이에요",
-        image: require("@/assets/images/onboarding/onboarding_4.png"),
-    },
-    {
-        title: "모든 준비가 끝났어요\n어제의 나를 뛰어넘을 준비가 되셨나요?",
-        subTitle: "내 정보는 마이페이지의 회원 정보에서 변경 가능해요",
-        image: require("@/assets/images/onboarding/onboarding_5.png"),
-    },
-];
+interface OnboardingProps {
+    steps: Step[];
+    show: boolean;
+    handleClose: () => void;
+    confettiRef?: React.RefObject<ConfettiMethods | null>;
+    nextTitle?: string;
+    endTitle?: string;
+}
 
 const PAGE_H_PADDING = 16.5 * 2;
 
 export const Onboarding = ({
-    showOnboarding,
-    setShowOnboarding,
+    steps,
+    show,
+    handleClose,
     confettiRef,
+    nextTitle = "다음",
+    endTitle = "시작하기",
 }: OnboardingProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const listRef = useRef<FlatList<Step>>(null);
@@ -65,10 +46,11 @@ export const Onboarding = ({
 
     const PAGE_WIDTH = useMemo(() => Math.max(0, windowWidth), [windowWidth]);
 
+    const lastIndex = useMemo(() => steps.length - 1, [steps.length]);
+
     const handlePress = () => {
-        if (currentIndex === steps.length - 1) {
-            AsyncStorage.setItem("onboarding", "false");
-            setShowOnboarding(false);
+        if (currentIndex === lastIndex) {
+            handleClose();
         } else {
             const next = currentIndex + 1;
             listRef.current?.scrollToIndex({ index: next, animated: true });
@@ -94,16 +76,15 @@ export const Onboarding = ({
     ).current;
 
     useEffect(() => {
-        if (currentIndex === 4 && !didWelcome.current) {
-            confettiRef.current?.restart();
-            AsyncStorage.setItem("welcome", "false");
+        if (currentIndex === lastIndex && !didWelcome.current) {
+            confettiRef?.current?.restart();
             didWelcome.current = true;
         }
     }, [currentIndex]);
 
     return (
         <Modal
-            visible={showOnboarding}
+            visible={show}
             transparent
             animationType="slide"
             style={styles.modal}
@@ -171,7 +152,9 @@ export const Onboarding = ({
                     />
 
                     <Button
-                        title={currentIndex === 4 ? "시작하기" : "다음"}
+                        title={
+                            currentIndex === lastIndex ? endTitle : nextTitle
+                        }
                         onPress={handlePress}
                         containerStyle={styles.buttonContainer}
                         style={styles.button}
