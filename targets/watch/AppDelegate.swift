@@ -20,11 +20,6 @@
 
     let ui = WorkoutUI()
 
-    override init() {
-      super.init()
-      AppDelegate.shared = self
-    }
-
     // MARK: - 공통: iPhone으로 상태 전송 + 워치 UI 갱신
     private func sendState(_ state: String, reason: String? = nil) {
       let now = Date()
@@ -32,31 +27,35 @@
         self.ui.state = state
         
         switch state {
-          case "started":
-            self.ui.startedAt = now
-            self.ui.pauseAccum = 0
+        case "started":
+          self.ui.startedAt = now
+          self.ui.pauseAccum = 0
+          self.ui.pauseStartedAt = nil
+          self.ui.endedAt = nil
+          self.ui.state = "running"
+          
+        case "running":
+          if self.ui.startedAt == nil { self.ui.startedAt = now }
+          if let ps = self.ui.pauseStartedAt {
+            self.ui.pauseAccum += now.timeIntervalSince(ps)
             self.ui.pauseStartedAt = nil
-
-          case "running":
-            if self.ui.startedAt == nil { self.ui.startedAt = now }
-            if let ps = self.ui.pauseStartedAt {
-              self.ui.pauseAccum += now.timeIntervalSince(ps)
-              self.ui.pauseStartedAt = nil
-            }
-
-          case "paused":
-            if self.ui.pauseStartedAt == nil {
-              self.ui.pauseStartedAt = now
-            }
-
-          case "ended":
-            if let ps = self.ui.pauseStartedAt {
-              self.ui.pauseAccum += now.timeIntervalSince(ps)
-              self.ui.pauseStartedAt = nil
-            }
-
-          default:
-            break
+          }
+          self.ui.endedAt = nil
+          
+        case "paused":
+          if self.ui.pauseStartedAt == nil {
+            self.ui.pauseStartedAt = now
+          }
+          
+        case "ended":
+          if let ps = self.ui.pauseStartedAt {
+            self.ui.pauseAccum += now.timeIntervalSince(ps)
+            self.ui.pauseStartedAt = nil
+          }
+          self.ui.endedAt = now
+          
+        default:
+          break
         }
       }
 
@@ -214,7 +213,8 @@
                         from fromState: HKWorkoutSessionState,
                         date: Date) {
       switch toState {
-        case .running: sendState("running", reason: "delegate")
+        case .running:
+          sendState("running", reason: "delegate")
         case .paused:  sendState("paused",  reason: "delegate")
         case .ended:
         guard let builder = self.builder else {
