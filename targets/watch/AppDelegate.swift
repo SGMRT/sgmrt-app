@@ -100,7 +100,6 @@
       sendState("ready", reason: "launch")
     }
 
-    // Health 앱에서 워치로 워크아웃 넘겨줄 때 호출
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
       Task {
         try? await startWorkout(activity: workoutConfiguration.activityType == .cycling ? "cycling" : "running")
@@ -188,21 +187,25 @@
     }
 
     func stopWorkout(reason: String? = nil) {
-      guard let _ = wSession, let builder = builder else { return }
-      wSession?.stopActivity(with: Date())
+      guard let session = wSession, let builder = builder else { return }
+      
+      if session.state == .ended { return }
+      
+      session.stopActivity(with: Date())
+      
       Task {
         try? await builder.endCollection(at: Date())
-        _ = try? await builder.finishWorkout()
+        builder.discardWorkout()
         sendState("ended", reason: reason ?? "stopWorkout")
       }
+      
       self.wSession = nil
       self.builder = nil
     }
 
     private func requestHKAuth() async throws {
-      let toShare: Set = [HKQuantityType.workoutType()]
       let toRead: Set = [HKQuantityType(.heartRate), HKQuantityType.workoutType()]
-      try await healthStore.requestAuthorization(toShare: toShare, read: toRead)
+      try await healthStore.requestAuthorization(toShare: [], read: toRead)
     }
 
     // MARK: - HKWorkoutSessionDelegate
@@ -214,13 +217,20 @@
         case .running: sendState("running", reason: "delegate")
         case .paused:  sendState("paused",  reason: "delegate")
         case .ended:
-          Task {
-            try? await builder?.endCollection(at: Date())
-            _ = try? await builder?.finishWorkout()
-            sendState("ended", reason: "delegate")
-            self.wSession = nil
-            self.builder = nil
-          }
+        guard let builder = self.builder else {
+          sendState("ended", reason: "delegate (already nil)")
+          return
+        }
+
+        Task {
+          try? await builder.endCollection(at: Date())
+          // 저장 안함
+          builder.discardWorkout()
+          sendState("ended", reason: "delegate")
+        }
+
+        self.wSession = nil
+        self.builder = nil
         default: break
       }
     }
