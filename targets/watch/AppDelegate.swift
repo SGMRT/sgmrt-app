@@ -31,6 +31,11 @@
       return iso.date(from: s)
     }
     
+    private var hasActiveSession: Bool {
+      guard let s = wSession, let _ = builder else { return false }
+      return s.state != .ended
+    }
+    
     // MARK: - 공통: iPhone으로 상태 전송 + 워치 UI 갱신
     private func sendState(_ state: String, at: Date? = nil, reason: String? = nil) {
       let ts = at ?? Date()
@@ -191,19 +196,30 @@
     }
     
     func pauseWorkout(at eventAt: Date?) {
+      guard hasActiveSession else {
+        logger.debug("pause ignored: no active session")
+        return
+      }
       let t = eventAt ?? Date()
       wSession?.pause()
       sendState("paused", at: t, reason: "pauseWorkout@remote")
     }
     
     func resumeWorkout(at eventAt: Date?) {
+      guard hasActiveSession else {
+        logger.debug("resume ignored: no active session")
+        return
+      }
       let t = eventAt ?? Date()
       wSession?.resume()
       sendState("running", at: t, reason: "resumeWorkout@remote")
     }
     
     func stopWorkout(at eventAt: Date?, reason: String? = nil) {
-      guard let session = wSession, let builder = builder else { return }
+      guard hasActiveSession, let session = wSession, let builder = builder else {
+        logger.debug("stop ignored: no active session")
+        return
+      }
       if session.state == .ended { return }
       
       let t = eventAt ?? Date()

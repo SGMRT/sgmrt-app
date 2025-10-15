@@ -14,7 +14,6 @@ extension ShapeStyle where Self == Color {
 
 struct MetricsPage: View {
   @EnvironmentObject var ui: WorkoutUI
-  @Environment(\.dismiss) private var dismiss
 
   var body: some View {
     ZStack {
@@ -54,15 +53,6 @@ struct MetricsPage: View {
       }
       .padding(.horizontal, 12)
       .padding(.vertical, 8)
-    }
-    .onChange(of: ui.state) { newValue in
-      guard newValue == "ended" || newValue == "unreachable" else { return }
-      WKInterfaceDevice.current().play(.success)
-      
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-        print("종료 시도")
-        dismiss()
-      }
     }
   }
 }
