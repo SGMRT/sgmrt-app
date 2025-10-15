@@ -119,7 +119,9 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         const last5sSteps = await getStepCountAsync(
             new Date(joined.timestamp - 10000),
             new Date(joined.timestamp - 5000)
-        ).then((steps) => steps.steps);
+        )
+            .then((steps) => steps.steps)
+            .catch(() => 0);
 
         joinedState.push({
             timestamp: joined.timestamp,
