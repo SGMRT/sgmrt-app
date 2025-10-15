@@ -71,7 +71,7 @@ const config = {
                     image: "./assets/icons/logo.png",
                     resizeMode: "contain",
                     backgroundColor: "#111111",
-                    imageWidth: 275,
+                    imageWidth: 257,
                 },
             ],
             [
