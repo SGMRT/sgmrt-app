@@ -32,17 +32,19 @@ type WatchEventMap = {
 // 3) 네이티브 모듈 인터페이스에 제네릭 적용 + 표준 add/remove 시그니처
 declare class ExpoWatchModule extends NativeModule<WatchEventMap> {
     startWatchApp(): Promise<boolean>;
-    stopWatch(): Promise<boolean>;
-    pauseWatch(): Promise<boolean>;
-    resumeWatch(): Promise<boolean>;
+    startWorkout(activity: string, eventTs?: string): Promise<boolean>;
+    stopWatch(eventTs?: string): Promise<boolean>;
+    pauseWatch(eventTs?: string): Promise<boolean>;
+    resumeWatch(eventTs?: string): Promise<boolean>;
     activateWC(): void;
-
     addListener(eventName: keyof WatchEventMap): EventSubscription;
     removeListeners(count: number): void;
 }
 
 const Native = requireNativeModule<ExpoWatchModule>("ExpoWatchModule");
 const emitter = new EventEmitter<WatchEventMap>(Native);
+
+export const nowIso = () => new Date().toISOString();
 
 // ── Public API ───────────────────────────────────────────
 export async function start() {
@@ -51,14 +53,22 @@ export async function start() {
     if (!started) throw new Error("Failed to start watch app");
 }
 
-export async function pause() {
-    if (!(await Native.pauseWatch())) throw new Error("Pause failed");
+export async function startWorkout(
+    activity: "running" | "cycling" = "running",
+    eventTs: string = nowIso()
+) {
+    if (!(await Native.startWorkout(activity, eventTs)))
+        throw new Error("Start failed");
 }
-export async function resume() {
-    if (!(await Native.resumeWatch())) throw new Error("Resume failed");
+
+export async function pause(eventTs: string = nowIso()) {
+    if (!(await Native.pauseWatch(eventTs))) throw new Error("Pause failed");
 }
-export async function stop() {
-    if (!(await Native.stopWatch())) throw new Error("Stop failed");
+export async function resume(eventTs: string = nowIso()) {
+    if (!(await Native.resumeWatch(eventTs))) throw new Error("Resume failed");
+}
+export async function stop(eventTs: string = nowIso()) {
+    if (!(await Native.stopWatch(eventTs))) throw new Error("Stop failed");
 }
 
 // 4) 이벤트 리스너 — 파라미터에 타입 명시 (암시적 any 방지)

@@ -1,4 +1,11 @@
-import { pause, resume, start, stop } from "@/modules/expo-watch-module";
+import {
+    nowIso,
+    pause,
+    resume,
+    start,
+    startWorkout,
+    stop,
+} from "@/modules/expo-watch-module";
 import { useEffect, useRef } from "react";
 import { RunContext } from "../state/context";
 import { RunStatus } from "../types";
@@ -14,16 +21,20 @@ export function useHeartRate(context: RunContext) {
         const curr = context.status;
         prevStatus.current = curr;
 
+        const ts = nowIso();
+
         if ((prev === "IDLE" || prev === "READY") && curr === "RUNNING") {
-            start().catch(() => {
-                isWatchAvailable.current = false;
-            });
+            start()
+                .then(() => startWorkout("running", ts))
+                .catch(() => {
+                    isWatchAvailable.current = false;
+                });
         } else if (curr === "RUNNING" || curr === "RUNNING_EXTENDED") {
-            resume();
+            resume(ts);
         } else if (curr === "PAUSED_USER" || curr === "PAUSED_OFFCOURSE") {
-            pause();
+            pause(ts);
         } else if (curr === "STOPPED") {
-            stop();
+            stop(ts);
         }
     }, [context.status]);
 }

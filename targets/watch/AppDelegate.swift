@@ -20,50 +20,61 @@
 
     let ui = WorkoutUI()
 
+    fileprivate let iso: ISO8601DateFormatter = {
+      let f = ISO8601DateFormatter()
+      f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+      return f
+    }()
+
+    fileprivate func parseISO(_ v: Any?) -> Date? {
+      guard let s = v as? String else { return nil }
+      return iso.date(from: s)
+    }
+
     // MARK: - 공통: iPhone으로 상태 전송 + 워치 UI 갱신
-    private func sendState(_ state: String, reason: String? = nil) {
-      let now = Date()
+    private func sendState(_ state: String, at: Date? = nil, reason: String? = nil) {
+      let ts = at ?? Date()
       DispatchQueue.main.async {
         self.ui.state = state
         
         switch state {
         case "started":
-          self.ui.startedAt = now
+          self.ui.startedAt = ts
           self.ui.pauseAccum = 0
           self.ui.pauseStartedAt = nil
           self.ui.endedAt = nil
           self.ui.state = "running"
           
         case "running":
-          if self.ui.startedAt == nil { self.ui.startedAt = now }
+          if self.ui.startedAt == nil { self.ui.startedAt = ts }
           if let ps = self.ui.pauseStartedAt {
-            self.ui.pauseAccum += now.timeIntervalSince(ps)
+            self.ui.pauseAccum += ts.timeIntervalSince(ps)
             self.ui.pauseStartedAt = nil
           }
           self.ui.endedAt = nil
           
         case "paused":
           if self.ui.pauseStartedAt == nil {
-            self.ui.pauseStartedAt = now
+            self.ui.pauseStartedAt = ts
           }
           
         case "ended":
           if let ps = self.ui.pauseStartedAt {
-            self.ui.pauseAccum += now.timeIntervalSince(ps)
+            self.ui.pauseAccum += ts.timeIntervalSince(ps)
             self.ui.pauseStartedAt = nil
           }
-          self.ui.endedAt = now
+          self.ui.endedAt = ts
           
         default:
           break
         }
       }
 
-      // iPhone으로도 브로드캐스트 (그대로 유지)
+      // iPhone으로도 브로드캐스트
       let payload: [String: Any] = [
         "type": "state",
         "state": state,
-        "ts": ISO8601DateFormatter().string(from: now),
+        "ts": ISO8601DateFormatter().string(from: ts),
         "reason": reason ?? NSNull()
       ]
       send(payload)
@@ -100,9 +111,7 @@
     }
 
     func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
-      Task {
-        try? await startWorkout(activity: workoutConfiguration.activityType == .cycling ? "cycling" : "running")
-      }
+      sendState("ready", reason: "watchAppLaunched")
     }
 
     // MARK: - WCSessionDelegate
@@ -117,40 +126,47 @@
       guard let obj = try? JSONSerialization.jsonObject(with: messageData) as? [String: Any],
             let cmd = obj["cmd"] as? String else { return }
 
+      // ★ 폰이 준 절대 시각
+      let eventAt = parseISO(obj["eventTs"])
+
       switch cmd {
         case "start":
-          Task { try? await startWorkout(activity: (obj["activity"] as? String) ?? "running") }
+          let activity = (obj["activity"] as? String) ?? "running"
+          Task { try? await startWorkout(activity: activity, at: eventAt) }
         case "pause":
-          pauseWorkout()
+          pauseWorkout(at: eventAt)
         case "resume":
-          resumeWorkout()
+          resumeWorkout(at: eventAt)
         case "stop":
-          stopWorkout()
+          stopWorkout(at: eventAt)
         default:
           break
       }
     }
 
+
     // iPhone → 워치 (지연)
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
       guard let cmd = userInfo["cmd"] as? String else { return }
+      let eventAt = parseISO(userInfo["eventTs"])
+
       switch cmd {
         case "start":
-          Task { try? await startWorkout(activity: (userInfo["activity"] as? String) ?? "running") }
+          let activity = (userInfo["activity"] as? String) ?? "running"
+          Task { try? await startWorkout(activity: activity, at: eventAt) }
         case "pause":
-          pauseWorkout()
+          pauseWorkout(at: eventAt)
         case "resume":
-          resumeWorkout()
+          resumeWorkout(at: eventAt)
         case "stop":
-          stopWorkout()
+          stopWorkout(at: eventAt)
         default:
           break
       }
     }
 
     // MARK: - Workout 제어
-    // 워치 UI에서 직접 호출하려고 private 제거 (internal)
-    func startWorkout(activity: String) async throws {
+    func startWorkout(activity: String, at eventAt: Date?) async throws {
       try await requestHKAuth()
 
       let config = HKWorkoutConfiguration()
@@ -163,45 +179,45 @@
 
       self.wSession = session
       self.builder = builder
-
       session.delegate = self
       builder.delegate = self
 
-      let start = Date()
-      session.startActivity(with: start)
-      try await builder.beginCollection(at: start)
+      let t = eventAt ?? Date()
+      session.startActivity(with: t)
+      try await builder.beginCollection(at: t)
 
-      sendState("started", reason: "startWorkout")
-      // 곧이어 delegate에서 running 전환 콜백이 들어옴
+      sendState("started", at: t, reason: "startWorkout@remote")
     }
 
-    func pauseWorkout()  {
+    func pauseWorkout(at eventAt: Date?) {
+      let t = eventAt ?? Date()
       wSession?.pause()
-      sendState("paused", reason: "pauseWorkout")     // 체감용 즉시 갱신
+      sendState("paused", at: t, reason: "pauseWorkout@remote")
     }
 
-    func resumeWorkout() {
+    func resumeWorkout(at eventAt: Date?) {
+      let t = eventAt ?? Date()
       wSession?.resume()
-      sendState("running", reason: "resumeWorkout")   // 체감용 즉시 갱신
+      sendState("running", at: t, reason: "resumeWorkout@remote")
     }
 
-    func stopWorkout(reason: String? = nil) {
+    func stopWorkout(at eventAt: Date?, reason: String? = nil) {
       guard let session = wSession, let builder = builder else { return }
-      
       if session.state == .ended { return }
-      
-      session.stopActivity(with: Date())
-      
+
+      let t = eventAt ?? Date()
+      session.stopActivity(with: t)
+
       Task {
-        try? await builder.endCollection(at: Date())
+        try? await builder.endCollection(at: t)
         builder.discardWorkout()
-        sendState("ended", reason: reason ?? "stopWorkout")
+        sendState("ended", at: t, reason: reason ?? "stopWorkout@remote")
       }
-      
+
       self.wSession = nil
       self.builder = nil
     }
-
+    
     private func requestHKAuth() async throws {
       let toRead: Set = [HKQuantityType(.heartRate), HKQuantityType.workoutType()]
       try await healthStore.requestAuthorization(toShare: [], read: toRead)
@@ -214,23 +230,21 @@
                         date: Date) {
       switch toState {
         case .running:
-          sendState("running", reason: "delegate")
-        case .paused:  sendState("paused",  reason: "delegate")
+          sendState("running", at: date, reason: "delegate")
+        case .paused:
+          sendState("paused",  at: date, reason: "delegate")
         case .ended:
-        guard let builder = self.builder else {
-          sendState("ended", reason: "delegate (already nil)")
-          return
-        }
-
-        Task {
-          try? await builder.endCollection(at: Date())
-          // 저장 안함
-          builder.discardWorkout()
-          sendState("ended", reason: "delegate")
-        }
-
-        self.wSession = nil
-        self.builder = nil
+          guard let builder = self.builder else {
+            sendState("ended", at: date, reason: "delegate (already nil)")
+            return
+          }
+          Task {
+            try? await builder.endCollection(at: date) // ← Date() 대신 date
+            builder.discardWorkout()
+            sendState("ended", at: date, reason: "delegate")
+          }
+          self.wSession = nil
+          self.builder = nil
         default: break
       }
     }
