@@ -74,7 +74,7 @@
       let payload: [String: Any] = [
         "type": "state",
         "state": state,
-        "ts": ISO8601DateFormatter().string(from: ts),
+        "ts": iso.string(from: ts),
         "reason": reason ?? NSNull()
       ]
       send(payload)
@@ -84,7 +84,7 @@
       DispatchQueue.main.async { self.ui.bpm = Int(bpm.rounded()) }
       send(["type": "bpm",
             "bpm": bpm,
-            "ts": ISO8601DateFormatter().string(from: Date())])
+            "ts": iso.string(from: Date())])
     }
     
     private func send(_ dict: [String: Any]) {
@@ -272,8 +272,6 @@
 
 extension AppDelegate {
   func stopWatchWorkout() {
-    let s = WCSession.default
-    
     stopWorkout(at: Date())
   }
 }

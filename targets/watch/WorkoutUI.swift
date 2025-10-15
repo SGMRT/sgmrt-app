@@ -17,7 +17,7 @@ final class WorkoutUI: ObservableObject {
   @Published var startedAt: Date? = nil          // 세션 시작 시각
   @Published var pauseAccum: TimeInterval = 0    // 누적 일시정지 시간
   @Published var pauseStartedAt: Date? = nil     // 현재 일시정지 시작 시각
-  @Published var endedAt: Date? = nil            // 종료 시각
+  @Published var endedAt: Date?                  // 종료 시각
 
   /// 지정 시점 기준 경과시간(초). paused이면 멈춘 값 유지.
   func elapsed(at date: Date = Date()) -> TimeInterval {
