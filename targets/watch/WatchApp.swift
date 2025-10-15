@@ -5,7 +5,7 @@ struct WatchApp: App {
   @WKApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   var body: some Scene {
     WindowGroup {
-      ContentView()
+      PagerView()
         .environmentObject(appDelegate.ui)
     }
   }
