@@ -1,15 +1,16 @@
+import expoLiveActivity from "@/modules/expo-live-activity";
+import { devLog, errorLog } from "@/src/utils/devLog";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { setAudioModeAsync } from "expo-audio";
 import Constants from "expo-constants";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
+import { PermissionStatus } from "expo-tracking-transparency";
 import { useEffect, useMemo, useState } from "react";
 import { InteractionManager, Platform } from "react-native";
-
-import expoLiveActivity from "@/modules/expo-live-activity";
-import { devLog, errorLog } from "@/src/utils/devLog";
-import { trackAmplitude } from "@/src/utils/trackAmplitude";
+import { Settings } from "react-native-fbsdk-next";
 import mobileAds, {
     AdsConsent,
     AdsConsentDebugGeography,
@@ -171,6 +172,8 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                     stopTrackingAndLiveActivity(),
                 ]);
 
+                Settings.initializeSDK();
+
                 // 분석 로깅
                 await bootstrapAnalytics({ version, build });
 
@@ -188,7 +191,20 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
                 if (!cancelled) setStatus("done");
 
                 InteractionManager.runAfterInteractions(async () => {
-                    await requestOptional("ADS");
+                    const res = await requestOptional("ADS");
+
+                    const attGranted =
+                        Platform.OS !== "ios"
+                            ? true
+                            : res.details?.after?.status ===
+                                  PermissionStatus.GRANTED ||
+                              res.details?.before?.status ===
+                                  PermissionStatus.GRANTED;
+
+                    if (Platform.OS === "ios") {
+                        Settings.setAdvertiserTrackingEnabled(attGranted);
+                    }
+
                     await initAds();
                 });
             } catch (e) {

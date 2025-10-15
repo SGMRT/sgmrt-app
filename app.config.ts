@@ -248,6 +248,19 @@ const config = {
                     background: true,
                 },
             ],
+            [
+                "react-native-fbsdk-next",
+                {
+                    appID: process.env.FB_APP_ID,
+                    displayName: "ghostrun",
+                    scheme: process.env.FB_SCHEME,
+                    clientToken: process.env.FB_CLIENT_TOKEN,
+                    advertiserIDCollectionEnabled: true,
+                    autoLogAppEventsEnabled: true,
+                    iosUserTrackingPermission:
+                        "앱 이용 통계를 기반으로 한 맞춤형 광고를 제공하기 위해 기기 식별자 사용에 동의할 수 있습니다. 동의 여부와 관계없이 기본 기능은 이용할 수 있습니다.",
+                },
+            ],
         ],
         experiments: {
             typedRoutes: true,

@@ -69,6 +69,7 @@
         "react-native-audio-api": "^0.8.2",
         "react-native-calendars": "^1.1313.0",
         "react-native-fast-confetti": "^1.0.2",
+        "react-native-fbsdk-next": "^13.4.1",
         "react-native-gesture-handler": "~2.24.0",
         "react-native-get-random-values": "~1.11.0",
         "react-native-google-mobile-ads": "^15.7.0",
