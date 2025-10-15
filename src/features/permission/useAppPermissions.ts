@@ -136,7 +136,12 @@ async function requestATT(): Promise<PermissionRequestResult> {
     const before = await getTrackingPermissionsAsync();
 
     if (before.status === PermissionStatus.GRANTED) {
-        return { ok: true, missing: [], requested: false, details: { before } };
+        return {
+            ok: true,
+            missing: [],
+            requested: false,
+            details: { before, after: before },
+        };
     }
 
     const after = await requestTrackingPermissionsAsync();
@@ -148,7 +153,7 @@ async function requestATT(): Promise<PermissionRequestResult> {
         ok,
         missing: ok ? [] : ["App Tracking Transparency"],
         requested: true,
-        details: { after },
+        details: { before, after },
     };
 }
 
@@ -220,9 +225,8 @@ export function useAppPermissions() {
                 PermissionGroup,
                 "HEALTHKIT" | "ADS" | "LOCATION" | "SENSORS"
             >
-        ): Promise<boolean> => {
-            const res = await request(group);
-            return res.ok;
+        ): Promise<PermissionRequestResult> => {
+            return await request(group);
         },
         [request]
     );
