@@ -7,6 +7,17 @@ import os
 fileprivate final class WCBridge: NSObject, WCSessionDelegate {
   weak var module: ExpoWatchModule?
   private let logger = Logger(subsystem: "ExpoWatchModule", category: "WC")
+  
+  fileprivate let iso: ISO8601DateFormatter = {
+    let f = ISO8601DateFormatter()
+    f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return f
+  }()
+
+  fileprivate func parseISO(_ v: Any?) -> Date? {
+    guard let s = v as? String else { return nil }
+    return iso.date(from: s)
+  }
 
   func activate() {
     guard WCSession.isSupported() else { return }
@@ -21,22 +32,24 @@ fileprivate final class WCBridge: NSObject, WCSessionDelegate {
     activate()
     guard WCSession.isSupported() else { return false }
     let s = WCSession.default
-
-    // 페어링/설치 안됐으면 전송하지 않음(조용히 실패)
     guard s.isPaired, s.isWatchAppInstalled else { return false }
 
-    guard let data = try? JSONSerialization.data(withJSONObject: dict) else {
+    var payload = dict
+    if payload["eventTs"] == nil {
+      payload["eventTs"] = iso.string(from: Date()) 
+    }
+
+    guard let data = try? JSONSerialization.data(withJSONObject: payload) else {
       return false
     }
 
     if s.isReachable {
       s.sendMessageData(data, replyHandler: nil) { err in
-        // 에러도 사용자에겐 조용히: 필요하면 debug 로깅
         self.logger.debug("sendMessageData failed: \(err.localizedDescription)")
       }
       return true
     } else {
-      s.transferUserInfo(dict) // 지연 전송 큐에 올림
+      s.transferUserInfo(payload)
       return true
     }
   }
@@ -66,12 +79,7 @@ fileprivate final class WCBridge: NSObject, WCSessionDelegate {
   private func forward(_ obj: [String: Any]) {
     let type = (obj["type"] as? String) ?? inferTypeFallback(obj)
     switch type {
-      case "bpm":
-        if let bpm = obj["bpm"] as? Double {
-          module?.emit("heartRate", ["bpm": bpm, "ts": obj["ts"] ?? NSNull()])
-        }
       case "state":
-        // 상태 이벤트는 그대로 내보내되, 원본 필드를 유지
         module?.emit("watchState", [
           "state": obj["state"] ?? NSNull(),
           "reason": obj["reason"] ?? NSNull(),
@@ -101,11 +109,10 @@ public final class ExpoWatchModule: Module {
 
     OnCreate {
       self.wc.module = self
-      self.wc.activate() // ← 추가
+      self.wc.activate()
     }
 
     Events("heartRate", "watchState")
-
     OnStartObserving { self.hasListeners = true }
     OnStopObserving  { self.hasListeners = false }
     
@@ -130,19 +137,24 @@ public final class ExpoWatchModule: Module {
       }
     }
 
-    AsyncFunction("pauseWatch")  { () -> Bool in
-      let ok = await self.wc.sendCommand(["cmd": "pause"])
-      return ok // false 여도 조용히 반환
+    AsyncFunction("startWorkout") { (activity: String, eventTs: String?) -> Bool in
+      await self.wc.sendCommand([
+        "cmd": "start",
+        "activity": activity,
+        "eventTs": eventTs as Any
+      ])
     }
 
-    AsyncFunction("resumeWatch") { () -> Bool in
-      let ok = await self.wc.sendCommand(["cmd": "resume"])
-      return ok
+    AsyncFunction("pauseWatch")  { (eventTs: String?) -> Bool in
+      await self.wc.sendCommand(["cmd": "pause", "eventTs": eventTs as Any])
     }
 
-    AsyncFunction("stopWatch")   { () -> Bool in
-      let ok = await self.wc.sendCommand(["cmd": "stop"])
-      return ok
+    AsyncFunction("resumeWatch") { (eventTs: String?) -> Bool in
+      await self.wc.sendCommand(["cmd": "resume", "eventTs": eventTs as Any])
+    }
+
+    AsyncFunction("stopWatch")   { (eventTs: String?) -> Bool in
+      await self.wc.sendCommand(["cmd": "stop", "eventTs": eventTs as Any])
     }
 
     Function("activateWC") { self.wc.activate() }
