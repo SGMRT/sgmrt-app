@@ -50,7 +50,7 @@ function RootLayout() {
         "SpoqaHanSansNeo-Bold": require("@/assets/fonts/SpoqaHanSansNeo-Bold.ttf"),
     });
 
-    const { status, error } = useBootstrapApp(isLoggedIn, loaded);
+    const { status, error } = useBootstrapApp(isLoggedIn, loaded, true);
     const shouldShowAd = useShouldShowAd();
 
     useEffect(() => {
@@ -90,8 +90,7 @@ function RootLayout() {
                                 name="run"
                                 options={{ gestureEnabled: false }}
                             />
-                            {/* <Stack.Screen name="test" /> */}
-                            <Stack.Screen name="watchtest" />
+                            <Stack.Screen name="test" />
                         </Stack>
                         {shouldShowAd && <CompactNativeAdRow />}
                         <Toast config={toastConfig} />

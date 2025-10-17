@@ -171,8 +171,8 @@ const config = {
             [
                 "react-native-google-mobile-ads",
                 {
-                    androidAppId: process.env.ADS_ANDROID_APP_ID,
-                    iosAppId: process.env.ADS_IOS_APP_ID,
+                    androidAppId: process.env.ADS_ANDROID_APP_ID || "dev",
+                    iosAppId: process.env.ADS_IOS_APP_ID || "dev",
                     skAdNetworkItems: [
                         "cstr6suwn9.skadnetwork",
                         "4fzdc2evr5.skadnetwork",
@@ -251,10 +251,10 @@ const config = {
             [
                 "react-native-fbsdk-next",
                 {
-                    appID: process.env.FB_APP_ID,
+                    appID: process.env.FB_APP_ID || "dev",
                     displayName: "ghostrun",
-                    scheme: process.env.FB_SCHEME,
-                    clientToken: process.env.FB_CLIENT_TOKEN,
+                    scheme: process.env.FB_SCHEME || "dev",
+                    clientToken: process.env.FB_CLIENT_TOKEN || "dev",
                     advertiserIDCollectionEnabled: true,
                     autoLogAppEventsEnabled: true,
                     iosUserTrackingPermission:

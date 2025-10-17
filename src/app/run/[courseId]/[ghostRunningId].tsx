@@ -36,7 +36,6 @@ import {
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
-import * as amplitude from "@amplitude/analytics-react-native";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";

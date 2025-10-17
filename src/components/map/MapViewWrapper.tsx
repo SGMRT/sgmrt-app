@@ -13,7 +13,14 @@ import {
 import { useCallback, useRef, useState } from "react";
 import { Image as RNImage, StyleSheet, View } from "react-native";
 
-import { ArrowP, ArrowW, Bearing, Puck2, Puck3 } from "@/assets/icons/icons";
+import {
+    ArrowP,
+    ArrowW,
+    Bearing,
+    Puck,
+    Puck2,
+    Puck3,
+} from "@/assets/icons/icons";
 import colors from "@/src/theme/colors";
 import ControlPannel from "./ControlPannel";
 
@@ -134,6 +141,9 @@ export default function MapViewWrapper({
                     <Image name="bearingImage">
                         <RNImage source={Bearing} style={styles.bearing} />
                     </Image>
+                    <Image name="puck">
+                        <RNImage source={Puck} />
+                    </Image>
                     <Image name="puck2">
                         <RNImage source={Puck2} />
                     </Image>
@@ -171,6 +181,7 @@ export default function MapViewWrapper({
                         center ? [center.longitude, center.latitude] : undefined
                     }
                     zoomLevel={zoom}
+                    followPitch={100}
                     ref={cameraRef}
                 />
                 <ShapeSource
