@@ -183,13 +183,7 @@ export async function saveRunning({
     ghostRunningId,
     courseId,
 }: SaveRunningProps) {
-    if (
-        !userDashboardData ||
-        userDashboardData.totalDistance === 0 ||
-        userDashboardData.averagePace === 0 ||
-        telemetries.filter((telemetry) => telemetry.isRunning).at(-1)?.pace ===
-            0
-    ) {
+    if (!userDashboardData || userDashboardData.totalDistance < 100) {
         showCompactToast("러닝 거리가 너무 짧습니다.");
         return;
     }

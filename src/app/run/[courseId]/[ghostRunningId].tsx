@@ -303,11 +303,13 @@ export default function Run() {
                     ghostRunningId: saveGhostId,
                     courseId: saveCourseId,
                 });
+
                 setRunSaveResult({
                     runningId: response.runningId,
                     courseId: saveCourseId,
                     ghostRunningId: saveGhostId,
                 });
+
                 if (withRouting) {
                     router.replace({
                         pathname:

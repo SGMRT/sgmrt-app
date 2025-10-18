@@ -23,11 +23,7 @@ import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
 import { devLog } from "../utils/devLog";
 
 const env =
-    process.env.NODE_ENV === "development"
-        ? "DEVELOPMENT"
-        : process.env.EAS_BUILD_PROFILE === "production"
-        ? "PRODUCTION"
-        : "STAGING";
+    process.env.NODE_ENV === "development" ? "DEVELOPMENT" : "PRODUCTION";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 amplitude.init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || "", undefined, {

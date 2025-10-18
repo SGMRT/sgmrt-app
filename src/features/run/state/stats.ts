@@ -45,7 +45,6 @@ const PACE_WINDOW_MS = 10_000;
 const MAX_SPEED_MPS = 15;
 const MIN_VALID_DIST_M = 0.3;
 const ALT_THRESHOLD_M = 0;
-const MAX_VALID_PACE_SEC_PER_KM = 1200;
 const MIN_ACCEPT_DT_SEC = 0.8;
 
 function clampGlitch(distM: number, dtSec: number): number {
@@ -61,7 +60,6 @@ function secPerKmFrom(distM: number, dtSec: number): number | null {
     const v = distM / dtSec;
     if (v <= 0) return null;
     const pace = 1000 / v;
-    if (pace > MAX_VALID_PACE_SEC_PER_KM) return null;
     return pace;
 }
 
