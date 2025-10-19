@@ -35,9 +35,9 @@ const alphaFromTau = (tauSec: number, dtSec: number) =>
 export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
     const {
         posTauSec = 0.12,
-        headingTauSec = 0.18,
+        headingTauSec = 0.03,
         maxTurnRateDps = 180,
-        visualFps = 30,
+        visualFps = 120,
     } = opts;
 
     const visualIntervalMs = 1000 / visualFps;
@@ -255,8 +255,13 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
         rafRef.current = null;
         pausedTsRef.current = null;
         setProgress(0);
+        setPose({
+            x: samples[0].x,
+            y: samples[0].y,
+            heading: headingBetween(samples[0], samples[1] ?? samples[0]),
+        });
         setState("idle");
-    }, []);
+    }, [samples]);
 
     useEffect(
         () => () => {

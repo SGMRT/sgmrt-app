@@ -1,7 +1,6 @@
 import { GhostIcon } from "@/assets/svgs/svgs";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import { Typography } from "@/src/components/ui/Typography";
-import colors from "@/src/theme/colors";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import {
     Camera,
@@ -13,10 +12,13 @@ import {
     Terrain,
 } from "@rnmapbox/maps";
 import { Link } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import type { Sample } from "./hooks/useReplay";
-import { buildActiveGradient } from "./utils/gradient";
+
+const CAM_ANIM = 500;
+const CAM_PITCH = 40;
+const CAM_ZOOM = 16;
 
 type Props = {
     data: Sample[];
@@ -25,9 +27,8 @@ type Props = {
     progress: number;
     heading?: number;
     cameraRef?: React.RefObject<Camera | null>;
+    onMapReady?: () => void;
 };
-
-const CAM_ANIM = 1000;
 
 export default function ReplayMap({
     data,
@@ -37,8 +38,10 @@ export default function ReplayMap({
     heading = 0,
     cameraRef,
 }: Props) {
-    const routeFC = useMemo(
-        () => ({
+    const initialPosition = useRef({ latitude: lat, longitude: lng });
+
+    const routeFC = useMemo(() => {
+        return {
             type: "FeatureCollection" as const,
             features: [
                 {
@@ -50,19 +53,44 @@ export default function ReplayMap({
                     },
                 },
             ],
-        }),
-        [data]
-    );
+        };
+    }, [data]);
 
-    const activeGradient = buildActiveGradient(progress, colors.primary);
+    const activeRouteFC = {
+        type: "FeatureCollection" as const,
+        features: [
+            {
+                type: "Feature" as const,
+                properties: {},
+                geometry: {
+                    type: "LineString" as const,
+                    coordinates: data
+                        .slice(0, Math.floor(progress * data.length))
+                        .map((d) => [d.x, d.y]),
+                },
+            },
+        ],
+    };
+
+    const onMapReady = useCallback(() => {
+        if (!cameraRef?.current) return;
+
+        cameraRef.current.setCamera({
+            centerCoordinate: [lng, lat],
+            zoomLevel: CAM_ZOOM,
+            pitch: CAM_PITCH,
+            heading: heading,
+        });
+    }, [lng, lat, heading, cameraRef]);
 
     useEffect(() => {
         if (!cameraRef?.current) return;
+
         cameraRef.current.setCamera({
             centerCoordinate: [lng, lat],
-            zoomLevel: 16,
-            pitch: 65,
-            heading,
+            zoomLevel: CAM_ZOOM,
+            pitch: CAM_PITCH,
+            heading: heading,
             animationDuration: CAM_ANIM,
         });
     }, [lng, lat, heading, cameraRef]);
@@ -72,17 +100,19 @@ export default function ReplayMap({
             <MapViewWrapper
                 showPuck={false}
                 controlEnabled={false}
-                center={{ latitude: lat, longitude: lng }}
+                center={initialPosition.current}
                 cameraRef={cameraRef}
-                zoom={16}
+                zoom={CAM_ZOOM}
+                maxZoomLevel={CAM_ZOOM}
                 attributionEnabled={false}
+                onDidFinishLoadingMap={onMapReady}
             >
                 <StyleImport
                     id="basemap"
                     config={{
                         theme: "monochrome",
                         lightPreset: "night",
-                        showPlaceLabels: false as any,
+                        showPlaceLabels: true as any,
                         showRoadLabels: false as any,
                         showPointOfInterestLabels: false as any,
                         showTransitLabels: false as any,
@@ -109,12 +139,16 @@ export default function ReplayMap({
                                 style={mapboxStyles.inactiveLineLayer}
                                 aboveLayerID="z-index-1"
                             />
+                        </ShapeSource>
+
+                        <ShapeSource
+                            id="route-active"
+                            shape={activeRouteFC}
+                            lineMetrics={1 as any}
+                        >
                             <LineLayer
                                 id="route-active"
-                                style={{
-                                    ...mapboxStyles.activeLineLayer,
-                                    lineGradient: activeGradient,
-                                }}
+                                style={mapboxStyles.activeLineLayer}
                                 aboveLayerID="z-index-2"
                             />
                         </ShapeSource>

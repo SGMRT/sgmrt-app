@@ -1,7 +1,7 @@
 import { Typography } from "@/src/components/ui/Typography";
 import { Camera } from "@rnmapbox/maps";
 import { SplashScreen } from "expo-router";
-import { useCallback, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Pressable, Text, View } from "react-native";
 import dummyData from "./dummy.json";
 import { useReplay, type Sample } from "./hooks/useReplay";
@@ -30,17 +30,6 @@ export default function ReplayScreen() {
     const data = useMemo<Sample[]>(() => dummyData as Sample[], []);
     const { state, progress, position, play, pause, reset, durationMs } =
         useReplay(data);
-
-    const playWithCamera = useCallback(() => {
-        cameraRef.current?.setCamera({
-            centerCoordinate: [position.x, position.y],
-            zoomLevel: 16,
-            pitch: 65,
-            heading: position.heading,
-        });
-
-        play();
-    }, [play, position]);
 
     return (
         <View style={{ flex: 1, backgroundColor: "black" }}>
@@ -71,7 +60,7 @@ export default function ReplayScreen() {
                 </Text>
                 <View style={{ flexDirection: "row" }}>
                     {state !== "playing" ? (
-                        <Btn onPress={playWithCamera} label="▶︎ Play" />
+                        <Btn onPress={play} label="▶︎ Play" />
                     ) : (
                         <Btn onPress={pause} label="⏸ Pause" />
                     )}
