@@ -267,7 +267,7 @@ export const CoursesWithFilter = ({
                     <DualFilter
                         description="보기 방식"
                         firstLabel="목록"
-                        secondLabel="갤러리"
+                        secondLabel="앨범"
                         onPressFirst={() => onPressViewType("list")}
                         onPressSecond={() => onPressViewType("gallery")}
                         selected={selectedView === "list" ? "first" : "second"}

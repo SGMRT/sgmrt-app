@@ -2,7 +2,7 @@ import { BackIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { endOfDay, startOfDay } from "@/src/utils/formatDate";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { Divider } from "./Divider";
 import Section from "./Section";
@@ -139,8 +139,6 @@ export const GoRunCalendar = ({
                 selected: true,
                 startingDay: true,
                 endingDay: true,
-                color: "#404512",
-                textColor: colors.white,
             };
             return marked;
         }
@@ -151,8 +149,6 @@ export const GoRunCalendar = ({
             const k = formatKey(cur);
             marked[k] = {
                 selected: true,
-                color: "#404512",
-                textColor: colors.white,
             };
             cur.setDate(cur.getDate() + 1);
         }
@@ -180,17 +176,70 @@ export const GoRunCalendar = ({
                 theme={{
                     backgroundColor: "#171717",
                     calendarBackground: "#171717",
-                    textDayFontFamily: "Pretendard-Medium",
-                    textDayFontSize: 18,
-                    selectedDayTextColor: colors.white,
-                    dayTextColor: colors.gray[40],
-                    todayTextColor: colors.gray[40],
                 }}
                 onDayPress={handleDayPress}
+                dayComponent={DayComponent}
             />
         </Section>
     );
 };
+
+const DayComponent = (day: any) => {
+    //boolean
+    const isStartingDay = !!day.marking?.startingDay;
+    const isEndingDay = !!day.marking?.endingDay;
+    const isInPeriod = !!day.marking?.selected;
+
+    const isSoloPeriod = isStartingDay && isEndingDay;
+    const isSelected = isStartingDay || isEndingDay || isInPeriod;
+
+    return (
+        <TouchableOpacity
+            onPress={() => day.onPress(day.date)}
+            onLongPress={() => day.onLongPress(day.date)}
+            style={[
+                styles.DayContainer,
+                isSelected && styles.DaySelected,
+                isStartingDay && styles.DayStarting,
+                isEndingDay && styles.DayEnding,
+                isSoloPeriod && styles.DaySoloPeriod,
+            ]}
+        >
+            <Typography
+                variant="subhead1"
+                color={isSelected ? "white" : "gray40"}
+            >
+                {day.date.day}
+            </Typography>
+            <View style={styles.Dot} />
+        </TouchableOpacity>
+    );
+};
+
+const styles = StyleSheet.create({
+    DayContainer: {
+        paddingTop: 5,
+        paddingBottom: 8,
+        width: 40,
+        alignItems: "center",
+        justifyContent: "center",
+        marginVertical: -5,
+        marginHorizontal: 0,
+    },
+    DaySelected: { backgroundColor: "#404512", width: "101%" },
+    DayStarting: {
+        borderTopLeftRadius: 10,
+        borderBottomLeftRadius: 10,
+    },
+    DayEnding: { borderTopRightRadius: 10, borderBottomRightRadius: 10 },
+    DaySoloPeriod: { borderRadius: 10, width: 40 },
+    Dot: {
+        width: 2,
+        height: 2,
+        backgroundColor: colors.gray[40],
+        borderRadius: 100,
+    },
+});
 
 const CustomHeader = (item: any) => {
     const monthObj = new Date(item.month);
@@ -208,9 +257,10 @@ const CustomHeader = (item: any) => {
                 >
                     <Pressable onPress={() => item.addMonth(-1)}>
                         <BackIcon
-                            height={16.2}
-                            width={8.1}
                             style={{ transform: [{ rotate: "0deg" }] }}
+                            color={colors.gray[40]}
+                            width={20}
+                            height={20}
                         />
                     </Pressable>
                     <Typography
@@ -226,9 +276,10 @@ const CustomHeader = (item: any) => {
                     </Typography>
                     <Pressable onPress={() => item.addMonth(1)}>
                         <BackIcon
-                            height={16.2}
-                            width={8.1}
                             style={{ transform: [{ rotate: "180deg" }] }}
+                            color={colors.gray[40]}
+                            width={20}
+                            height={20}
                         />
                     </Pressable>
                 </View>
@@ -239,6 +290,7 @@ const CustomHeader = (item: any) => {
                     flexDirection: "row",
                     justifyContent: "space-between",
                     paddingHorizontal: 16,
+                    marginBottom: 8,
                 }}
             >
                 {["일", "월", "화", "수", "목", "금", "토"].map((day) => (

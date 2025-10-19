@@ -50,7 +50,7 @@ export const FilterBar = ({
             {view && (
                 <ButtonWithIcon
                     icon={<ShowIcon />}
-                    title={selectedView === "list" ? "목록" : "갤러리"}
+                    title={selectedView === "list" ? "목록" : "앨범"}
                     onPress={() => onClickFilter("view")}
                     variant="body2"
                     color="gray20"
