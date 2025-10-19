@@ -143,7 +143,7 @@ const ShareContent = memo(function ShareContent({
     return (
         <View style={[styles.shareCard, { backgroundColor }]}>
             <View style={styles.shareCardHeader}>
-                <Typography variant="share_subhead" color="white">
+                <Typography variant="display2" color="white">
                     {title}
                 </Typography>
                 <View style={{ flexDirection: "row", gap: 5 }}>

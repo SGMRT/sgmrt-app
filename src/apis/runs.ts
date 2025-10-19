@@ -152,3 +152,15 @@ export async function getRuns(request: RunsRequest): Promise<RunResponse[]> {
         throw error;
     }
 }
+
+export async function getRunsByCourse(
+    courseId: number
+): Promise<RunResponse[]> {
+    try {
+        const response = await server.get(`runs/courses/${courseId}`);
+        return response.data;
+    } catch (error) {
+        errorLog(error);
+        throw error;
+    }
+}
