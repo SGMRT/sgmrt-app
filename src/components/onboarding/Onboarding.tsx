@@ -22,11 +22,12 @@ export type Step = {
 interface OnboardingProps {
     steps: Step[];
     show: boolean;
-    handleClose: () => void;
+    handleClose?: () => void;
     confettiRef?: React.RefObject<ConfettiMethods | null>;
     nextTitle?: string;
     endTitle?: string;
     canSlide?: boolean;
+    showButton?: boolean;
 }
 
 const PAGE_H_PADDING = 16.5 * 2;
@@ -39,6 +40,7 @@ export const Onboarding = ({
     nextTitle = "다음",
     endTitle = "시작하기",
     canSlide = false,
+    showButton = true,
 }: OnboardingProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const listRef = useRef<FlatList<Step>>(null);
@@ -52,7 +54,7 @@ export const Onboarding = ({
 
     const handlePress = () => {
         if (currentIndex === lastIndex) {
-            handleClose();
+            handleClose?.();
         } else {
             const next = currentIndex + 1;
             listRef.current?.scrollToIndex({ index: next, animated: true });
@@ -148,20 +150,26 @@ export const Onboarding = ({
                         )}
                     />
 
-                    <DotProgress
-                        progress={currentIndex}
-                        total={steps.length}
-                        handlePress={(index) => onDotPress(index)}
-                    />
+                    {steps.length > 1 && (
+                        <DotProgress
+                            progress={currentIndex}
+                            total={steps.length}
+                            handlePress={(index) => onDotPress(index)}
+                        />
+                    )}
 
-                    <Button
-                        title={
-                            currentIndex === lastIndex ? endTitle : nextTitle
-                        }
-                        onPress={handlePress}
-                        containerStyle={styles.buttonContainer}
-                        style={styles.button}
-                    />
+                    {showButton && (
+                        <Button
+                            title={
+                                currentIndex === lastIndex
+                                    ? endTitle
+                                    : nextTitle
+                            }
+                            onPress={handlePress}
+                            containerStyle={styles.buttonContainer}
+                            style={styles.button}
+                        />
+                    )}
                 </View>
             </View>
         </Modal>
