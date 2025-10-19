@@ -1,4 +1,10 @@
-import { HomeIcon, MapIcon, SaveIcon, ShareIcon } from "@/assets/svgs/svgs";
+import {
+    HomeIcon,
+    MapIcon,
+    QuitIcon,
+    SaveIcon,
+    ShareIcon,
+} from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import {
     Pressable,
@@ -12,7 +18,7 @@ import { Typography } from "./Typography";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;
-    iconType: "map" | "home" | "share" | "save";
+    iconType: "map" | "home" | "share" | "save" | "quit";
     containerStyle?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
@@ -49,9 +55,16 @@ export default function ButtonWithIcon({
                     </>
                 ) : iconType === "save" ? (
                     <>
-                        <SaveIcon />
-                        <Typography variant="mini" color="gray40">
+                        <SaveIcon color={colors.white} />
+                        <Typography variant="mini" color="white">
                             기록 저장
+                        </Typography>
+                    </>
+                ) : iconType === "quit" ? (
+                    <>
+                        <QuitIcon color={colors.white} />
+                        <Typography variant="mini" color="white">
+                            종료하기
                         </Typography>
                     </>
                 ) : (

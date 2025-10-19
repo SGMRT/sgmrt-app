@@ -4,8 +4,9 @@ import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import StyledChart from "../../chart/StyledChart";
@@ -31,6 +32,21 @@ export default function BottomCourseInfoModal({
 }: BottomCourseInfoModalProps) {
     const [ghostSelected, setGhostSelected] = useState(false);
     const { requestOrAlert, requestOptional } = useAppPermissions();
+    const hasRunCourseRef = useRef(false);
+    const [showGhostGuide, setShowGhostGuide] = useState(false);
+
+    // 코스 러닝 쓴 적 있는지 로컬에 저장하고 없으면 false로 설정
+    useEffect(() => {
+        (async () => {
+            const hasRunCourse = await AsyncStorage.getItem("hasRunCourse");
+            if (hasRunCourse === "true") {
+                hasRunCourseRef.current = true;
+            } else {
+                hasRunCourseRef.current = false;
+            }
+        })();
+    }, []);
+
     useEffect(() => {
         if (course?.myGhostInfo) {
             setGhostSelected(true);
@@ -56,7 +72,7 @@ export default function BottomCourseInfoModal({
             unit: "m",
         },
     ];
-    0;
+
     const ghostStats = [
         {
             description: "시간",
@@ -75,11 +91,26 @@ export default function BottomCourseInfoModal({
 
     const router = useRouter();
 
+    const handleRun = async () => {
+        bottomSheetRef.current?.dismiss();
+        if (
+            ghostSelected &&
+            course?.myGhostInfo &&
+            course?.myGhostInfo.runningId !== -1
+        ) {
+            router.push(`/run/${course?.id}/${course?.myGhostInfo.runningId}`);
+        } else {
+            router.push(`/run/${course?.id}/-1`);
+        }
+    };
+
     if (!course) {
         return null;
     }
 
-    return (
+    return showGhostGuide ? (
+        <GhostMakeGuide handleRun={handleRun} />
+    ) : (
         <View>
             <CourseInfoSection
                 courseName={course?.name ?? ""}
@@ -115,23 +146,45 @@ export default function BottomCourseInfoModal({
                     if (!ok) {
                         return;
                     }
-                    bottomSheetRef.current?.dismiss();
-                    if (
-                        ghostSelected &&
-                        course?.myGhostInfo &&
-                        course?.myGhostInfo.runningId !== -1
-                    ) {
-                        router.push(
-                            `/run/${course?.id}/${course?.myGhostInfo.runningId}`
-                        );
+
+                    if (!hasRunCourseRef.current) {
+                        setShowGhostGuide(true);
                     } else {
-                        router.push(`/run/${course?.id}/-1`);
+                        handleRun();
                     }
                 }}
             />
         </View>
     );
 }
+
+const GhostMakeGuide = ({ handleRun }: { handleRun: () => void }) => {
+    const handleClose = async () => {
+        await AsyncStorage.setItem("hasRunCourse", "true");
+        handleRun();
+    };
+    return (
+        <View style={{ gap: 35 }}>
+            <Typography
+                variant="sectionhead"
+                color="white"
+                style={{ textAlign: "center" }}
+            >
+                내 고스트가 필요한가요?{"\n"}기록을 고스트로 남기고 싶다면
+                {"\n"}
+                일시정지 없이 완주해야 해요
+            </Typography>
+            <Button
+                style={{
+                    marginHorizontal: 16.5,
+                }}
+                type="active"
+                title="네, 확인했어요"
+                onPress={handleClose}
+            />
+        </View>
+    );
+};
 
 const GhostSection = ({
     ghost,

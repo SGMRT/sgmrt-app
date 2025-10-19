@@ -55,6 +55,8 @@ import SaveIcon from "./save.svg";
 
 import DotIcon from "./dot.svg";
 
+import QuitIcon from "./quit.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -78,6 +80,7 @@ export {
     MenuIcon,
     PlayIcon,
     ProfileIcon,
+    QuitIcon,
     SaveIcon,
     ScrollTopIcon,
     ShareIcon,
