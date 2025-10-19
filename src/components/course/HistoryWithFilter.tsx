@@ -450,10 +450,10 @@ const RunHistoryItem = ({
             <View style={{ gap: 2 }}>
                 <View style={styles.nameContainer}>
                     {mode === "GHOST" && (
-                        <View style={styles.iconContainer}>
+                        <View style={styles.iconCompactContainer}>
                             <GhostIcon
-                                width={12}
-                                height={12}
+                                width={13}
+                                height={8.13}
                                 color={colors.primary}
                             />
                         </View>
@@ -559,6 +559,14 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
+    },
+    iconCompactContainer: {
+        width: 22,
+        height: 22,
+        borderRadius: 6,
+        backgroundColor: "rgba(226, 255, 0, 0.2)",
+        justifyContent: "center",
+        alignItems: "center",
     },
     iconContainer: {
         width: 34,

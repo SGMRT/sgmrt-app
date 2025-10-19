@@ -1,5 +1,5 @@
 import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
-import { getCourse } from "@/src/apis";
+import { getCourse, getRunsByCourse } from "@/src/apis";
 import { CourseDetailResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostRow } from "@/src/components/map/courseInfo/GhostRow";
@@ -21,7 +21,7 @@ import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,6 +31,7 @@ export default function Result() {
 
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
+    const [haveRuns, setHaveRuns] = useState(false);
 
     const [showInfo, setShowInfo] = useState(false);
 
@@ -97,6 +98,16 @@ export default function Result() {
         }
     }, [course?.name]);
 
+    useEffect(() => {
+        getRunsByCourse(Number(courseId))
+            .then((runs) => {
+                setHaveRuns(runs.length > 0);
+            })
+            .catch((error) => {
+                devLog("getRunsByCourse error: ", error);
+            });
+    }, [courseId]);
+
     return (
         course && (
             <>
@@ -143,21 +154,30 @@ export default function Result() {
                                 chartPointIndex={chartPointIndex}
                                 yKey="alt"
                             />
-                            <TouchableOpacity
-                                onPress={() => {
-                                    router.replace(`/stats`);
-                                }}
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    marginVertical: 12,
-                                }}
-                            >
-                                <Typography variant="body2" color="gray40">
-                                    내 기록 보기
-                                </Typography>
-                                <ChevronIcon color={colors.gray[40]} />
-                            </TouchableOpacity>
+                            {haveRuns && (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        router.replace({
+                                            pathname: "/stats",
+                                            params: {
+                                                courseId: courseId ?? undefined,
+                                                courseName:
+                                                    course?.name ?? undefined,
+                                            },
+                                        });
+                                    }}
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        marginVertical: 12,
+                                    }}
+                                >
+                                    <Typography variant="body2" color="gray40">
+                                        내 기록 보기
+                                    </Typography>
+                                    <ChevronIcon color={colors.gray[40]} />
+                                </TouchableOpacity>
+                            )}
                         </View>
 
                         {/* 내 페이스 및 코스 정보 파트 */}
