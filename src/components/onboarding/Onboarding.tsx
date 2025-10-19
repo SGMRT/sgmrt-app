@@ -26,6 +26,7 @@ interface OnboardingProps {
     confettiRef?: React.RefObject<ConfettiMethods | null>;
     nextTitle?: string;
     endTitle?: string;
+    canSlide?: boolean;
 }
 
 const PAGE_H_PADDING = 16.5 * 2;
@@ -37,6 +38,7 @@ export const Onboarding = ({
     confettiRef,
     nextTitle = "다음",
     endTitle = "시작하기",
+    canSlide = false,
 }: OnboardingProps) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const listRef = useRef<FlatList<Step>>(null);
@@ -103,6 +105,7 @@ export const Onboarding = ({
                         horizontal
                         decelerationRate="fast"
                         pagingEnabled
+                        scrollEnabled={canSlide}
                         showsHorizontalScrollIndicator={false}
                         disableIntervalMomentum
                         getItemLayout={(_, index) => ({
