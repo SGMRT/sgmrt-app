@@ -34,8 +34,8 @@ const alphaFromTau = (tauSec: number, dtSec: number) =>
 
 export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
     const {
-        posTauSec = 0.12,
-        headingTauSec = 0.03,
+        posTauSec = 0,
+        headingTauSec = 0.3,
         maxTurnRateDps = 180,
         visualFps = 120,
     } = opts;
@@ -260,6 +260,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
             y: samples[0].y,
             heading: headingBetween(samples[0], samples[1] ?? samples[0]),
         });
+        lastVisualPushRef.current = 0;
         setState("idle");
     }, [samples]);
 
