@@ -17,7 +17,7 @@ import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import {
     SharedValue,
@@ -43,7 +43,6 @@ interface HomeMapProps {
 }
 
 const ZOOM_THRESHOLD = 14.5;
-const CAMERA_LATITUDE_OFFSET = 0.006;
 const BOTTOM_BAR_HEIGHT = 155;
 const TAB_BAR_HEIGHT = 130;
 
@@ -71,12 +70,14 @@ export default function HomeMap({
     const { uuid } = useAuthStore();
 
     const firstRenderRef = useRef(true);
+    const updateMapRef = useRef(true);
 
     const handlePresentModalPress = () => {
         mapBottomSheetRef.current?.present();
     };
 
     const onClickCourse = (course: CourseResponse) => {
+        updateMapRef.current = false;
         setActiveCourse(course);
 
         trackAmplitude("course_detail_view", {
@@ -93,21 +94,29 @@ export default function HomeMap({
         const center = calculateCenter(coordinates);
         const zoomLevel = calculateZoomLevelFromSize(
             center.size,
-            center.latitude - CAMERA_LATITUDE_OFFSET
+            center.latitude
         );
 
         cameraRef.current?.setCamera({
-            centerCoordinate: [
-                center.longitude,
-                center.latitude - CAMERA_LATITUDE_OFFSET,
-            ],
+            centerCoordinate: [center.longitude, center.latitude],
             zoomLevel: zoomLevel,
+            padding: {
+                paddingTop: 0,
+                paddingBottom: 200,
+                paddingLeft: 0,
+                paddingRight: 0,
+            },
         });
     };
 
-    const [bounds, setBounds] = useState<VisibleBounds | null>(null);
     const [center, setCenter] = useState<Position | null>(null);
-    const [distance, setDistance] = useState(10);
+    const [distance, setDistance] = useState(5000);
+
+    const lastRef = useRef({
+        center: null as Position | null,
+        distance: 5000,
+    });
+
     const cameraRef = useRef<Camera>(null);
 
     const onZoomLevelChanged = useCallback(
@@ -132,43 +141,45 @@ export default function HomeMap({
     });
 
     const onRegionDidChange = (event: any) => {
-        const newCenter = event.properties.center;
-        const visibleBounds = event.properties.bounds;
+        if (!updateMapRef.current) return;
 
-        const { sw, ne } = bounds ?? visibleBounds;
+        const newCenter: Position = event.properties.center;
+        const visibleBounds: VisibleBounds = event.properties.bounds;
 
-        if (bounds !== null) {
-            const leftBound = sw[0];
-            const rightBound = ne[0];
-            const bottomBound = sw[1];
-            const topBound = ne[1];
+        const [centerLng, centerLat] = newCenter;
+        const { sw, ne } = visibleBounds;
 
-            const [centerLng, centerLat] = newCenter;
+        const horiz = getDistance(
+            { lat: centerLat, lng: sw[0] },
+            { lat: centerLat, lng: ne[0] }
+        );
 
-            const isCenterInsideBounds =
-                centerLng >= leftBound &&
-                centerLng <= rightBound &&
-                centerLat >= bottomBound &&
-                centerLat <= topBound;
+        const vert = getDistance(
+            { lat: sw[1], lng: centerLng },
+            { lat: ne[1], lng: centerLng }
+        );
 
-            const dist = Math.max(
-                Math.round(
-                    getDistance(
-                        { lat: centerLat, lng: leftBound },
-                        { lat: centerLat, lng: rightBound }
-                    ) / 1000
-                ),
-                1
-            );
+        const minSide = Math.min(horiz, vert);
+        const radius = Math.min(Math.round(minSide / 2), 10000);
 
-            if (!isCenterInsideBounds) {
-                setDistance(dist);
-                setCenter(newCenter);
-                setBounds(visibleBounds);
-            }
-        } else {
-            setBounds(visibleBounds);
+        if (!lastRef.current.center) {
+            setDistance(radius);
             setCenter(newCenter);
+            lastRef.current.center = newCenter;
+            lastRef.current.distance = radius;
+        } else if (
+            getDistance(
+                {
+                    lat: lastRef.current.center[1]!,
+                    lng: lastRef.current.center[0]!,
+                },
+                { lat: newCenter[1]!, lng: newCenter[0]! }
+            ) > 1000
+        ) {
+            setDistance(radius);
+            setCenter(newCenter);
+            lastRef.current.center = newCenter;
+            lastRef.current.distance = radius;
         }
     };
 
@@ -176,27 +187,17 @@ export default function HomeMap({
         queryKey: ["courses", courseType, center, distance],
         queryFn: () => {
             trackAmplitude("main_screen_view", {
-                course_search_radius:
-                    distance * 1000 > 10000 ? 10000 : distance * 1000,
+                course_search_radius: distance,
             });
             return getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
-                radiusM: distance * 1000 > 10000 ? 10000 : distance * 1000,
+                radiusM: distance,
             });
         },
         placeholderData: keepPreviousData,
         enabled: !!center && !!distance,
     });
-
-    // 선택된 코스가 포함되어있는 것을 보장하기 위해 병합
-    const mergedCourses = useMemo(() => {
-        if (!courses) return activeCourse ? [activeCourse] : [];
-        const hasActive =
-            activeCourse && courses.some((c) => c.id === activeCourse.id);
-        if (hasActive) return courses;
-        return activeCourse ? [activeCourse, ...courses] : courses;
-    }, [courses, activeCourse]);
 
     // activeCourse가 변경되었을 때, 실제 코스 데이터에서 찾아서 업데이트
     useEffect(() => {
@@ -249,9 +250,10 @@ export default function HomeMap({
                     devLog("onTap");
                     setActiveCourse(null);
                     mapBottomSheetRef.current?.dismiss();
+                    updateMapRef.current = true;
                 }}
             >
-                {mergedCourses?.map((course) => (
+                {courses?.map((course) => (
                     <CourseMarkers
                         key={course.id}
                         course={course}
@@ -293,7 +295,7 @@ export default function HomeMap({
             >
                 <View style={{ height: 20 }} />
                 <CourseListView
-                    courses={mergedCourses ?? []}
+                    courses={courses ?? []}
                     selectedCourse={activeCourse}
                     onShowCourseInfo={onClickCourseInfo}
                     maxHeight={Dimensions.get("window").height - 500}
@@ -304,7 +306,7 @@ export default function HomeMap({
                 bottomSheetRef={mapBottomSheetRef}
                 modalType={showListView ? "list" : courseType}
                 activeCourse={activeCourse}
-                courses={mergedCourses ?? []}
+                courses={courses ?? []}
                 onClickCourse={onClickCourse}
                 onClickCourseInfo={onClickCourseInfo}
                 backdropOpacity={0.1}
