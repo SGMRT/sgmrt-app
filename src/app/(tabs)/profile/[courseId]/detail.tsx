@@ -1,5 +1,5 @@
 import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
-import { getCourse } from "@/src/apis";
+import { getCourse, getRunsByCourse } from "@/src/apis";
 import { CourseDetailResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { GhostRow } from "@/src/components/map/courseInfo/GhostRow";
@@ -97,6 +97,23 @@ export default function Result() {
         }
     }, [course?.name]);
 
+    const courseIdNumber = useMemo(() => {
+        return Number(courseId);
+    }, [courseId]);
+
+    const isCourseIdValid = useMemo(() => {
+        return courseId !== "-1" && courseId !== undefined && courseId !== null;
+    }, [courseId]);
+
+    const { data: haveRuns = false } = useQuery({
+        queryKey: ["runsByCourse", courseIdNumber],
+        queryFn: async () => {
+            const runs = await getRunsByCourse(courseIdNumber);
+            return runs.length > 0;
+        },
+        enabled: isCourseIdValid,
+    });
+
     return (
         course && (
             <>
@@ -143,21 +160,30 @@ export default function Result() {
                                 chartPointIndex={chartPointIndex}
                                 yKey="alt"
                             />
-                            <TouchableOpacity
-                                onPress={() => {
-                                    router.replace(`/stats`);
-                                }}
-                                style={{
-                                    flexDirection: "row",
-                                    alignItems: "center",
-                                    marginVertical: 12,
-                                }}
-                            >
-                                <Typography variant="body2" color="gray40">
-                                    내 기록 보기
-                                </Typography>
-                                <ChevronIcon color={colors.gray[40]} />
-                            </TouchableOpacity>
+                            {haveRuns && (
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        router.push({
+                                            pathname: "/stats",
+                                            params: {
+                                                courseId: courseId ?? undefined,
+                                                courseName:
+                                                    course?.name ?? undefined,
+                                            },
+                                        });
+                                    }}
+                                    style={{
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        marginVertical: 12,
+                                    }}
+                                >
+                                    <Typography variant="body2" color="gray40">
+                                        내 기록 보기
+                                    </Typography>
+                                    <ChevronIcon color={colors.gray[40]} />
+                                </TouchableOpacity>
+                            )}
                         </View>
 
                         {/* 내 페이스 및 코스 정보 파트 */}

@@ -147,8 +147,8 @@ export const typographyStyles = StyleSheet.create({
     },
     mini: {
         fontFamily: "SpoqaHanSansNeo-Regular",
-        fontSize: 8,
-        lineHeight: 12,
+        fontSize: 10,
+        lineHeight: 15,
         letterSpacing: -0.6,
     },
     advertiser: {

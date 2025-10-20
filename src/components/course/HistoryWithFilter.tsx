@@ -195,7 +195,9 @@ export const HistoryWithFilter = ({
                                     }
                                     name={history.name}
                                     courseName={
-                                        history.courseInfo?.name ?? null
+                                        selectedFilter === "date"
+                                            ? history.courseInfo?.name ?? null
+                                            : getDate(history.startedAt)
                                     }
                                     distance={history.recordInfo.distance}
                                     duration={history.recordInfo.duration}
@@ -240,6 +242,7 @@ export const HistoryWithFilter = ({
                                     }}
                                     isSelected={false}
                                     startedAt={history.startedAt}
+                                    selectedFilter={selectedFilter}
                                 />
                             )
                         )}
@@ -292,7 +295,7 @@ export const HistoryWithFilter = ({
                 {bottomSheetType === "view" && (
                     <DualFilter
                         firstLabel="목록"
-                        secondLabel="갤러리"
+                        secondLabel="앨범"
                         onPressFirst={() => onPressViewType("list")}
                         onPressSecond={() => onPressViewType("gallery")}
                         selected={selectedView === "list" ? "first" : "second"}
@@ -316,12 +319,14 @@ interface RunHistoryGalleryItemProps {
     onShowHistory: () => void;
     isSelected: boolean;
     startedAt: number;
+    selectedFilter: "date" | "course";
 }
 
 const RunHistoryGalleryItem = ({
     mode,
     imageUrl,
     name,
+    courseName,
     distance,
     duration,
     averagePace,
@@ -329,10 +334,21 @@ const RunHistoryGalleryItem = ({
     onShowHistory,
     isSelected,
     startedAt,
+    selectedFilter,
 }: RunHistoryGalleryItemProps) => {
     return (
         <TouchableOpacity style={styles.container} onPress={onShowHistory}>
             <View style={styles.imageContainer}>
+                {mode === "GHOST" && (
+                    <View style={styles.iconContainer}>
+                        <GhostIcon
+                            width={20}
+                            height={12}
+                            color={colors.primary}
+                        />
+                    </View>
+                )}
+
                 <Image
                     source={imageUrl ? { uri: imageUrl } : DefaultLogo}
                     style={styles.image}
@@ -341,21 +357,22 @@ const RunHistoryGalleryItem = ({
             <View style={styles.contentContainer}>
                 <View style={styles.contentHeader}>
                     <View style={styles.nameContainer}>
-                        {mode === "GHOST" && (
-                            <View style={styles.iconContainer}>
-                                <GhostIcon
-                                    width={12}
-                                    height={12}
-                                    color={colors.primary}
-                                />
-                            </View>
-                        )}
-                        <Typography
-                            variant="subhead1"
-                            color={isSelected ? "primary" : "gray20"}
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                flex: 1,
+                            }}
                         >
-                            {name}
-                        </Typography>
+                            <Typography
+                                variant="subhead1"
+                                color={isSelected ? "primary" : "gray20"}
+                            >
+                                {name}
+                            </Typography>
+                            <ChevronIcon color={colors.gray[40]} />
+                        </View>
                     </View>
                 </View>
                 <View>
@@ -389,24 +406,16 @@ const RunHistoryGalleryItem = ({
                             {cadence}spm
                         </Typography>
                     </View>
-                    <TouchableOpacity
-                        onPress={onShowHistory}
-                        style={styles.dateContainer}
-                    >
+                    <View style={styles.dateContainer}>
                         <Typography
                             variant="body3"
                             color={isSelected ? "gray20" : "gray40"}
                         >
-                            {getDate(startedAt)}
+                            {selectedFilter === "date"
+                                ? courseName ?? ""
+                                : getDate(startedAt)}
                         </Typography>
-                        <ChevronIcon
-                            color={
-                                isSelected ? colors.gray[20] : colors.gray[40]
-                            }
-                            width={18}
-                            height={18}
-                        />
-                    </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </TouchableOpacity>
@@ -441,10 +450,10 @@ const RunHistoryItem = ({
             <View style={{ gap: 2 }}>
                 <View style={styles.nameContainer}>
                     {mode === "GHOST" && (
-                        <View style={styles.iconContainer}>
+                        <View style={styles.iconCompactContainer}>
                             <GhostIcon
-                                width={12}
-                                height={12}
+                                width={13}
+                                height={8.13}
                                 color={colors.primary}
                             />
                         </View>
@@ -551,13 +560,25 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: 6,
     },
-    iconContainer: {
+    iconCompactContainer: {
         width: 22,
         height: 22,
         borderRadius: 6,
         backgroundColor: "rgba(226, 255, 0, 0.2)",
         justifyContent: "center",
         alignItems: "center",
+    },
+    iconContainer: {
+        width: 34,
+        height: 34,
+        borderRadius: 10,
+        backgroundColor: "rgba(226, 255, 0, 0.2)",
+        justifyContent: "center",
+        alignItems: "center",
+        position: "absolute",
+        left: 4,
+        top: 4,
+        zIndex: 10,
     },
     content: {
         flexDirection: "row",
