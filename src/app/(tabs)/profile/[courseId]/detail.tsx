@@ -163,7 +163,7 @@ export default function Result() {
                             {haveRuns && (
                                 <TouchableOpacity
                                     onPress={() => {
-                                        router.replace({
+                                        router.push({
                                             pathname: "/stats",
                                             params: {
                                                 courseId: courseId ?? undefined,

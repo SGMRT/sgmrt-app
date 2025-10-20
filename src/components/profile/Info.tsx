@@ -459,6 +459,7 @@ const CadenceAssistControl = ({ isEnabled }: { isEnabled: boolean }) => {
         <View style={styles.cadenceAssistControl}>
             {/* -10 버튼 */}
             <TouchableOpacity
+                disabled={!isEnabled}
                 onPress={() => decCadenceTarget(10)}
                 onLongPress={() => decCadenceTarget(10)}
                 style={[
@@ -491,6 +492,7 @@ const CadenceAssistControl = ({ isEnabled }: { isEnabled: boolean }) => {
 
             {/* +10 버튼 */}
             <TouchableOpacity
+                disabled={!isEnabled}
                 onPress={() => incCadenceTarget(10)}
                 onLongPress={() => incCadenceTarget(10)}
                 style={[

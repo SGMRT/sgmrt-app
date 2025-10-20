@@ -38,7 +38,9 @@ export default function BottomCourseInfoModal({
     // 코스 러닝 쓴 적 있는지 로컬에 저장하고 없으면 false로 설정
     useEffect(() => {
         (async () => {
-            const hasRunCourse = await AsyncStorage.getItem("hasRunCourse");
+            const hasRunCourse = await AsyncStorage.getItem(
+                "sgmrt.hasRunCourse.v1"
+            );
             if (hasRunCourse === "true") {
                 hasRunCourseRef.current = true;
             } else {
@@ -93,6 +95,9 @@ export default function BottomCourseInfoModal({
 
     const handleRun = async () => {
         bottomSheetRef.current?.dismiss();
+        await AsyncStorage.setItem("sgmrt.hasRunCourse.v1", "true");
+        hasRunCourseRef.current = true;
+        setShowGhostGuide(false);
         if (
             ghostSelected &&
             course?.myGhostInfo &&
@@ -159,10 +164,6 @@ export default function BottomCourseInfoModal({
 }
 
 const GhostMakeGuide = ({ handleRun }: { handleRun: () => void }) => {
-    const handleClose = async () => {
-        await AsyncStorage.setItem("hasRunCourse", "true");
-        handleRun();
-    };
     return (
         <View style={{ gap: 35 }}>
             <Typography
@@ -180,7 +181,7 @@ const GhostMakeGuide = ({ handleRun }: { handleRun: () => void }) => {
                 }}
                 type="active"
                 title="네, 확인했어요"
-                onPress={handleClose}
+                onPress={handleRun}
             />
         </View>
     );
