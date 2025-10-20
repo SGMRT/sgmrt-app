@@ -158,7 +158,7 @@ export default function Health() {
                         }
                     /> */}
 
-                    <ListSectionItem
+                    {/* <ListSectionItem
                         title="읽기: 운동"
                         rightElement={
                             <StyledSwitch
@@ -169,7 +169,7 @@ export default function Health() {
                                 onValueChange={handleHealthKitChange}
                             />
                         }
-                    />
+                    /> */}
                 </ListSectionContainer>
             </View>
         </SafeAreaView>
