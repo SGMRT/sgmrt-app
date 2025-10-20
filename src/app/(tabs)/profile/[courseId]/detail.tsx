@@ -21,7 +21,7 @@ import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -31,7 +31,6 @@ export default function Result() {
 
     const scrollViewRef = useRef<ScrollView>(null);
     const router = useRouter();
-    const [haveRuns, setHaveRuns] = useState(false);
 
     const [showInfo, setShowInfo] = useState(false);
 
@@ -98,15 +97,22 @@ export default function Result() {
         }
     }, [course?.name]);
 
-    useEffect(() => {
-        getRunsByCourse(Number(courseId))
-            .then((runs) => {
-                setHaveRuns(runs.length > 0);
-            })
-            .catch((error) => {
-                devLog("getRunsByCourse error: ", error);
-            });
+    const courseIdNumber = useMemo(() => {
+        return Number(courseId);
     }, [courseId]);
+
+    const isCourseIdValid = useMemo(() => {
+        return courseId !== "-1" && courseId !== undefined && courseId !== null;
+    }, [courseId]);
+
+    const { data: haveRuns = false } = useQuery({
+        queryKey: ["runsByCourse", courseIdNumber],
+        queryFn: async () => {
+            const runs = await getRunsByCourse(courseIdNumber);
+            return runs.length > 0;
+        },
+        enabled: isCourseIdValid,
+    });
 
     return (
         course && (
