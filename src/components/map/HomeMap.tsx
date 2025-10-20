@@ -3,14 +3,13 @@ import { CourseResponse } from "@/src/apis/types/course";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
-import { devLog } from "@/src/utils/devLog";
 import {
     calculateCenter,
     calculateZoomLevelFromSize,
     Coordinate,
     getDistance,
 } from "@/src/utils/mapUtils";
-import * as amplitude from "@amplitude/analytics-react-native";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetHandle, BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
@@ -33,7 +32,6 @@ import { Typography } from "../ui/Typography";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
-import { trackAmplitude } from "@/src/utils/trackAmplitude";
 
 interface HomeMapProps {
     courseType: "all" | "my";
@@ -246,7 +244,6 @@ export default function HomeMap({
                 logoPosition={{ bottom: TAB_BAR_HEIGHT + 8, left: 10 }}
                 attributionPosition={{ bottom: TAB_BAR_HEIGHT + 6, right: 0 }}
                 onTap={() => {
-                    devLog("onTap");
                     setActiveCourse(null);
                     mapBottomSheetRef.current?.dismiss();
                 }}
