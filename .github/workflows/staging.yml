@@ -1,7 +1,6 @@
 name: 🚀 EAS Staging Build
 
 on:
-    push:
     workflow_dispatch:
 
 jobs:
@@ -9,7 +8,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                profile: ["production"]
+                profile: ["staging"]
 
         steps:
             - name: 🏗️ Checkout repository
