@@ -28,8 +28,17 @@ export default function ReplayScreen() {
     SplashScreen.hideAsync();
     const cameraRef = useRef<Camera | null>(null);
     const data = useMemo<Sample[]>(() => dummyData as Sample[], []);
-    const { state, progress, position, play, pause, reset, durationMs } =
-        useReplay(data);
+    const {
+        state,
+        progress,
+        position,
+        play,
+        pause,
+        reset,
+        durationMs,
+        stepForward,
+        stepBackward,
+    } = useReplay(data);
 
     return (
         <View style={{ flex: 1, backgroundColor: "black" }}>
@@ -63,6 +72,12 @@ export default function ReplayScreen() {
                         <Btn onPress={play} label="▶︎ Play" />
                     ) : (
                         <Btn onPress={pause} label="⏸ Pause" />
+                    )}
+                    {state !== "playing" && (
+                        <Btn onPress={stepForward} label="▶" />
+                    )}
+                    {state !== "playing" && (
+                        <Btn onPress={stepBackward} label="◀" />
                     )}
                     <Btn onPress={reset} label="⟲ Reset" />
                 </View>
