@@ -1,4 +1,4 @@
-name: 🚀 EAS Production Build
+name: 🚀 EAS Staging Build
 
 on:
     workflow_dispatch:
