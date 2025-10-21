@@ -1,4 +1,4 @@
-name: 🚀 EAS Build
+name: 🚀 EAS Production Build
 
 on:
     push:
@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                profile: ["staging", "production"]
+                profile: ["production"]
 
         steps:
             - name: 🏗️ Checkout repository
