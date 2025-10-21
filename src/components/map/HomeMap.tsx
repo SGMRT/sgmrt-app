@@ -29,7 +29,7 @@ import { ActionButton } from "../ui/ActionButton";
 import BottomModal from "../ui/BottomModal";
 import StyledBottomSheet from "../ui/StyledBottomSheet";
 import { Typography } from "../ui/Typography";
-import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal";
+import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
 
