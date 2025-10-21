@@ -57,6 +57,8 @@ import DotIcon from "./dot.svg";
 
 import QuitIcon from "./quit.svg";
 
+import RedoIcon from "./redo.svg";
+
 export {
     AlertIcon,
     AppleIcon,
@@ -81,6 +83,7 @@ export {
     PlayIcon,
     ProfileIcon,
     QuitIcon,
+    RedoIcon,
     SaveIcon,
     ScrollTopIcon,
     ShareIcon,
