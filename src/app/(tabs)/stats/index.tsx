@@ -114,9 +114,6 @@ const UserHistory = ({
         enabled: !!initialCourseId && showPrefaceCourse,
     });
 
-    console.log("courseData", courseData?.length);
-    console.log("showPrefaceCourse", showPrefaceCourse);
-
     if (isLoading) {
         return <></>;
     }
