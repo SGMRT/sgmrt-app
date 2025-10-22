@@ -188,18 +188,28 @@ export default function HomeMap({
         }
     };
 
+    useEffect(() => {
+        trackAmplitude("main_screen_view", {
+            version: "v2",
+        });
+    }, []);
+
     const { data: courses } = useQuery({
         queryKey: ["courses", refreshKey],
-        queryFn: () => {
-            trackAmplitude("main_screen_view", {
-                course_search_radius: distance,
-            });
+        queryFn: async () => {
             markRefreshable(false);
-            return getCourses({
+            const courses = await getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
                 radiusM: distance,
             });
+            trackAmplitude("gotten_courses_info", {
+                lat: center![1]!,
+                lng: center![0]!,
+                distance: distance,
+                courses_count: courses.length,
+            });
+            return courses;
         },
         placeholderData: keepPreviousData,
         enabled: !!center && !!distance,
@@ -221,13 +231,19 @@ export default function HomeMap({
         }
     }, [courses]);
 
-    useEffect(() => {
+    const initializeCenter = useCallback(() => {
+        if (center) return;
+
         Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.BestForNavigation,
         }).then((location) => {
             setCenter([location.coords.longitude, location.coords.latitude]);
         });
-    }, []);
+    }, [center]);
+
+    useEffect(() => {
+        initializeCenter();
+    }, [initializeCenter]);
 
     useEffect(() => {
         setShowListView(false);
