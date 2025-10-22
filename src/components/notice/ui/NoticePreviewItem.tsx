@@ -21,6 +21,15 @@ export const NoticePreviewItem = ({
     const formattedDate = useMemo(() => {
         return formatDate(date);
     }, [date]);
+
+    const parsedContent = useMemo(() => {
+        let parsedContent = content.replace(/\\n/g, "  ");
+        if (parsedContent.startsWith('"') && parsedContent.endsWith('"')) {
+            parsedContent = parsedContent.slice(1, -1);
+        }
+        return parsedContent;
+    }, [content]);
+
     return (
         <Pressable style={styles.noticePreviewContainer} onPress={onPress}>
             <View style={styles.noticePreviewHeader}>
@@ -48,7 +57,7 @@ export const NoticePreviewItem = ({
                 ellipsizeMode="tail"
                 style={styles.noticePreviewContent}
             >
-                {content}
+                {parsedContent}
             </Typography>
         </Pressable>
     );

@@ -1,4 +1,5 @@
 import { getNoticesAll, Notice } from "@/src/apis";
+import localEvent from "@/src/components/notice/localEvent.json";
 import { NoticePreviewList } from "@/src/components/notice/NoticePreviewList";
 import { NoticePageHeader } from "@/src/components/notice/ui/NoticePageHeader";
 import ScrollButton from "@/src/components/ui/ScrollButton";
@@ -8,7 +9,6 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 const PAGE_SIZE = 10;
 
 export default function NoticePage() {
@@ -34,13 +34,29 @@ export default function NoticePage() {
             staleTime: 30_000,
         });
 
+    const mergedData = useMemo<Notice[]>(() => {
+        return [
+            ...(data?.pages.flatMap((p) => p.content) ?? []),
+            localEvent && new Date(localEvent.endAt).getTime() > Date.now()
+                ? (localEvent as unknown as Notice)
+                : (null as Notice | null),
+        ]
+            .filter((item) => item !== null)
+            .sort(
+                (a, b) =>
+                    new Date(b.startAt).getTime() -
+                    new Date(a.startAt).getTime()
+            );
+    }, [data]);
+
     const items = useMemo<Notice[]>(
         () =>
-            data?.pages.flatMap(
-                (p) =>
-                    p.content.filter((item) => item.type === selectedTab) ?? []
-            ) ?? [],
-        [data, selectedTab]
+            mergedData.filter(
+                (item) =>
+                    item.type === selectedTab ||
+                    item.type === `${selectedTab}_V2`
+            ),
+        [mergedData, selectedTab]
     );
 
     const handleScrollToTop = useCallback(() => {

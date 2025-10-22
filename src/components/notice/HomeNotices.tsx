@@ -1,10 +1,13 @@
 import { dismiss, getNoticesActive, Notice } from "@/src/apis";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import localEvent from "./localEvent.json";
 import { NoticeItem } from "./ui/NoticeItem";
 
 export const HomeNotices = () => {
+    const [localNotice, setLocalNotice] = useState<Notice | null>(null);
     const [activeNotices, setActiveNotices] = useState<Notice[]>([]);
     const router = useRouter();
 
@@ -14,9 +17,7 @@ export const HomeNotices = () => {
     });
 
     useEffect(() => {
-        if (data) {
-            setActiveNotices(data);
-        }
+        if (data) setActiveNotices(data);
     }, [data]);
 
     const handlePress = useCallback(
@@ -27,22 +28,48 @@ export const HomeNotices = () => {
     );
 
     const handleClose = useCallback((noticeId: number) => {
-        setActiveNotices((prev) =>
-            prev.filter((notice) => notice.id !== noticeId)
-        );
+        if (noticeId === -1) {
+            AsyncStorage.setItem("disableLocalNotice", "true");
+            setLocalNotice(null);
+            return;
+        }
+        setActiveNotices((prev) => prev.filter((n) => n.id !== noticeId));
         dismiss(noticeId);
     }, []);
 
-    if (!data || activeNotices.length === 0) {
-        return null;
-    }
+    useEffect(() => {
+        const getLocalNotice = async () => {
+            const status = await AsyncStorage.getItem("disableLocalNotice");
+            if (
+                status !== "true" &&
+                localEvent &&
+                new Date(localEvent.endAt).getTime() > Date.now()
+            ) {
+                setLocalNotice(localEvent as unknown as Notice);
+            } else {
+                setLocalNotice(null);
+            }
+        };
+        getLocalNotice();
+    }, []);
+
+    const mergedNotices = useMemo<Notice[]>(() => {
+        const arr: Notice[] = [];
+        if (localNotice) arr.push(localNotice);
+        if (activeNotices.length) arr.push(...activeNotices);
+        return arr;
+    }, [localNotice, activeNotices]);
+
+    if (mergedNotices.length === 0) return null;
+
+    const top = mergedNotices[0];
 
     return (
         <NoticeItem
-            key={activeNotices[0].id}
-            content={activeNotices[0].title}
-            onPress={() => handlePress(activeNotices[0].id)}
-            onClose={() => handleClose(activeNotices[0].id)}
+            key={top.id}
+            content={top.title}
+            onPress={() => handlePress(top.id)}
+            onClose={() => handleClose(top.id)}
         />
     );
 };
