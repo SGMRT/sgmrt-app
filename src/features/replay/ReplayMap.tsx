@@ -2,6 +2,7 @@ import { GhostIcon } from "@/assets/svgs/svgs";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import { Typography } from "@/src/components/ui/Typography";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
+import { getRunTime } from "@/src/utils/runUtils";
 import {
     Camera,
     LineLayer,
@@ -14,7 +15,7 @@ import {
 import { Link } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
-import type { Sample } from "./hooks/useReplay";
+import type { ReplayStats, Sample } from "./hooks/useReplay";
 
 const CAM_ANIM = 500;
 const CAM_PITCH = 40;
@@ -22,6 +23,7 @@ const CAM_ZOOM = 16;
 
 type Props = {
     data: Sample[];
+    stats: ReplayStats;
     lng: number;
     lat: number;
     progress: number;
@@ -32,6 +34,7 @@ type Props = {
 
 export default function ReplayMap({
     data,
+    stats,
     lng,
     lat,
     progress,
@@ -177,6 +180,27 @@ export default function ReplayMap({
                 )}
             </MapViewWrapper>
             <GhostIcon width={24} height={24} style={styles.ghostIcon} />
+            <View
+                style={{
+                    position: "absolute",
+                    top: 10,
+                    right: 10,
+                    gap: 4,
+                    alignItems: "flex-end",
+                }}
+            >
+                <Typography variant="headline" color="gray40">
+                    {(stats.distanceM / 1000).toFixed(2)} km
+                </Typography>
+                {/* <Typography variant="headline" color="gray40">
+                    {stats.progress > 0
+                        ? getFormattedPace(stats.paceSec)
+                        : "0'00''"}
+                </Typography> */}
+                <Typography variant="headline" color="gray40">
+                    {getRunTime(stats.elapsedMs / 1000, "HH:MM:SS")}
+                </Typography>
+            </View>
             <Typography
                 variant="caption1"
                 color="gray40"

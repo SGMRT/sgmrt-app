@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type Sample = { x: number; y: number; timeStamp?: number };
+export type Sample = {
+    x: number;
+    y: number;
+    d: number;
+    p: number;
+    c: number;
+    t: number;
+};
+export type ReplayStats = {
+    distanceM: number;
+    paceSec: number;
+    cadenceSpm: number;
+    elapsedMs: number;
+    progress: number;
+};
 export type PlayState = "idle" | "playing" | "paused" | "finished";
 
 export type ReplayOptions = {
@@ -38,14 +52,17 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
     const visualIntervalMs = 1000 / visualFps;
 
     const [state, setState] = useState<PlayState>("idle");
+    const [stats, setStats] = useState<ReplayStats>({
+        distanceM: 0,
+        paceSec: 0,
+        cadenceSpm: 0,
+        elapsedMs: 0,
+        progress: 0,
+    });
     const [progress, setProgress] = useState(0); // 0..1
 
-    const hasTime =
-        samples.length > 1 && typeof samples[0].timeStamp === "number";
-    const t0 = hasTime ? (samples[0].timeStamp as number) : 0;
-    const tN = hasTime
-        ? (samples[samples.length - 1].timeStamp as number)
-        : (samples.length - 1) * (1000 / 60);
+    const t0 = 0;
+    const tN = (samples.length - 1) * (1000 / 60);
     const total = Math.max(1, tN - t0);
 
     // ----- 재생 상태 refs -----
@@ -83,48 +100,25 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
 
     const getPoseAt = useCallback(
         (ts: number) => {
-            if (samples.length === 0) return { x: 0, y: 0, heading: 0 };
+            if (samples.length === 0)
+                return { x: 0, y: 0, d: 0, p: 0, c: 0, t: 0, heading: 0 };
 
-            if (!hasTime) {
-                // 60Hz 가정 시퀀스
-                const idxFloat = ts / (1000 / 60);
-                const i = Math.floor(idxFloat);
-                const t = Math.min(1, Math.max(0, idxFloat - i));
-                const a = samples[Math.min(i, samples.length - 1)];
-                const b = samples[Math.min(i + 1, samples.length - 1)];
-                return {
-                    x: lerp(a.x, b.x, t),
-                    y: lerp(a.y, b.y, t),
-                    heading: headingBetween(a, b),
-                };
-            }
-
-            if (ts <= t0) {
-                const a = samples[0],
-                    b = samples[1] ?? samples[0];
-                return { x: a.x, y: a.y, heading: headingBetween(a, b) };
-            }
-            if (ts >= tN) {
-                const a =
-                    samples[samples.length - 2] ?? samples[samples.length - 1];
-                const b = samples[samples.length - 1];
-                return { x: b.x, y: b.y, heading: headingBetween(a, b) };
-            }
-
-            let i = 1;
-            while (i < samples.length && (samples[i].timeStamp as number) < ts)
-                i++;
-            const right = samples[i],
-                left = samples[i - 1];
-            const seg =
-                (right.timeStamp as number) - (left.timeStamp as number) || 1;
-            const t = (ts - (left.timeStamp as number)) / seg;
-            const x = lerp(left.x, right.x, t);
-            const y = lerp(left.y, right.y, t);
-            const heading = headingBetween(left, right);
-            return { x, y, heading };
+            const idxFloat = ts / (1000 / 60);
+            const i = Math.floor(idxFloat);
+            const t = Math.min(1, Math.max(0, idxFloat - i));
+            const a = samples[Math.min(i, samples.length - 1)];
+            const b = samples[Math.min(i + 1, samples.length - 1)];
+            return {
+                x: lerp(a.x, b.x, t),
+                y: lerp(a.y, b.y, t),
+                d: lerp(a.d, b.d, t),
+                p: lerp(a.p, b.p, t),
+                c: lerp(a.c, b.c, t),
+                t: lerp(a.t, b.t, t),
+                heading: headingBetween(a, b),
+            };
         },
-        [samples, hasTime, t0, tN]
+        [samples]
     );
 
     // ----- 단일 틱(앞/뒤) 공용 로직 -----
@@ -213,7 +207,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
 
             const p = (ts - t0) / total;
 
-            // 🔑 여기서 스로틀링 적용
+            // 여기서 스로틀링 적용
             const now = performance.now();
             if (
                 forcePush ||
@@ -222,6 +216,13 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
                 lastVisualPushRef.current = now;
                 setProgress(p);
                 setPose({ x: sx, y: sy, heading: sh });
+                setStats({
+                    distanceM: raw.d,
+                    paceSec: raw.p,
+                    cadenceSpm: raw.c,
+                    elapsedMs: raw.t,
+                    progress: p,
+                });
             }
         },
         [
@@ -298,7 +299,13 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
         const a = samples[0];
         const b = samples[1] ?? a;
         const h0 = a && b ? headingBetween(a, b) : 0;
-
+        setStats({
+            distanceM: a?.d ?? 0,
+            paceSec: a?.p ?? 0,
+            cadenceSpm: a?.c ?? 0,
+            elapsedMs: t0,
+            progress: 0,
+        });
         currLogicalTsRef.current = t0;
         smoothXRef.current = a?.x ?? 0;
         smoothYRef.current = a?.y ?? 0;
@@ -316,7 +323,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
 
     // ----- 스텝 API -----
     // “한 프레임”의 논리적 길이 (타임스탬프가 없으면 60Hz 기준)
-    const frameMs = hasTime ? visualIntervalMs : 1000 / 60;
+    const frameMs = visualIntervalMs;
 
     const stepForward = useCallback(() => {
         advanceBy(frameMs);
@@ -359,6 +366,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
         play,
         pause,
         reset,
+        stats,
         durationMs: total,
         // 새로 추가된 단일-프레임 컨트롤
         stepForward,

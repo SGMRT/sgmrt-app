@@ -41,6 +41,7 @@ const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
         isNegative = true;
         runTime = -runTime;
     }
+    runTime = Math.round(runTime);
     const hours = Math.floor(runTime / 3600);
     const minutes = Math.floor((runTime % 3600) / 60);
     const seconds = runTime % 60;
