@@ -1,4 +1,4 @@
-import { StyleProp, ViewStyle } from "react-native";
+import { SvgProps } from "react-native-svg";
 import AddIcon from "./add.svg";
 import AlertIcon from "./alert.svg";
 import AppleIcon from "./apple.svg";
@@ -11,6 +11,7 @@ import TrashIcon from "./delete.svg";
 import DotIcon from "./dot.svg";
 import EditIcon from "./edit-alt.svg";
 import ElipsisVerticalIcon from "./elipsis.svg";
+import FlagIcon from "./flag.svg";
 import LocateMe from "./focus.svg";
 import GhostIconRaw from "./g.svg";
 import HeartIcon from "./heart.svg";
@@ -31,19 +32,16 @@ import ShareIcon from "./share.svg";
 import ShowIcon from "./show.svg";
 import FilterIcon from "./slider.svg";
 import StatsIcon from "./stats.svg";
+import TimerIcon from "./timer.svg";
 import ToastCheckIcon from "./toast-check.svg";
 import ToastInfoIcon from "./toast-info.svg";
 import UserIcon from "./user.svg";
+import VoltIcon from "./volt.svg";
 import SpeakerIcon from "./volume_max.svg";
 
-const GhostIcon = ({
-    color = "#E2FF00",
-    style,
-}: {
-    color?: string;
-    style?: StyleProp<ViewStyle>;
-}) => {
-    return <GhostIconRaw color={color} style={style} />;
+// svg 옵션 상속
+const GhostIcon = ({ color, style, ...props }: SvgProps) => {
+    return <GhostIconRaw color={color} style={style} {...props} />;
 };
 
 export {
@@ -59,6 +57,7 @@ export {
     EditIcon,
     ElipsisVerticalIcon,
     FilterIcon,
+    FlagIcon,
     GhostIcon,
     HeartIcon,
     HomeIcon,
@@ -78,9 +77,11 @@ export {
     ShowIcon,
     SpeakerIcon,
     StatsIcon,
+    TimerIcon,
     ToastCheckIcon,
     ToastInfoIcon,
     TrashIcon,
     UnlockIcon,
     UserIcon,
+    VoltIcon,
 };

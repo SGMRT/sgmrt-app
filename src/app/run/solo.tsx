@@ -225,7 +225,7 @@ export default function Run() {
                         style={[styles.timeText, { color: colors.white }]}
                         entering={FadeIn.duration(1000)}
                     >
-                        {getRunTime(Math.round(elapsedMs / 1000), "MM:SS")}
+                        {getRunTime(Math.round(elapsedMs / 1000), "HH:MM:SS")}
                     </Animated.Text>
                 )}
             </TopBlurView>
