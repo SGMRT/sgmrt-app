@@ -1,4 +1,4 @@
-import { DefaultProfileIcon } from "@/assets/icons/icons";
+import { BreezeFace } from "@/assets/icons/icons";
 import { TrashIcon } from "@/assets/svgs/svgs";
 import { ProgressBar } from "@/src/components/ui/ProgressBar";
 import { Typography } from "@/src/components/ui/Typography";
@@ -27,7 +27,7 @@ export const AIGhostRow = ({
     const avatar = isCreating ? (
         <View style={styles.avatar} />
     ) : (
-        <Image source={DefaultProfileIcon} style={styles.avatar} />
+        <Image source={BreezeFace} style={styles.avatar} />
     );
 
     const handleDelete = () => {
@@ -97,5 +97,6 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 100,
         backgroundColor: "#333333",
+        boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },
 });

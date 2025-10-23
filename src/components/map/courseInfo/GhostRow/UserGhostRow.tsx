@@ -56,6 +56,8 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 100,
+        backgroundColor: "#333333",
+        boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },
     icon: {
         position: "absolute",
