@@ -10,6 +10,7 @@ import Countdown from "@/src/components/ui/Countdown";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
+import { TextWithSub } from "@/src/components/ui/TextWithSub";
 import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
@@ -521,24 +522,11 @@ export default function Run() {
                     ) : (
                         <View style={{ marginVertical: 30 }}>
                             {runShotType === "share" && (
-                                <View
-                                    style={{
-                                        marginBottom: 30,
-                                        alignItems: "center",
-                                        gap: 4,
-                                    }}
-                                >
-                                    <Typography
-                                        variant="sectionhead"
-                                        color="white"
-                                    >
-                                        {courseName} 완주에 성공했어요!
-                                    </Typography>
-                                    <Typography variant="body3" color="gray40">
-                                        완주한 기록은 내 기록에서 확인할 수
-                                        있어요.
-                                    </Typography>
-                                </View>
+                                <TextWithSub
+                                    title={courseName}
+                                    sub="완주한 기록은 내 기록에서 확인할 수 있어요."
+                                    containerStyle={{ marginBottom: 30 }}
+                                />
                             )}
                             <StatsIndicator
                                 stats={statsForUI}

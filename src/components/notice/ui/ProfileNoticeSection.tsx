@@ -24,6 +24,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "flex-start",
         backgroundColor: "#171717",
+        borderRadius: 8,
     },
     chevron: {
         marginLeft: "auto",

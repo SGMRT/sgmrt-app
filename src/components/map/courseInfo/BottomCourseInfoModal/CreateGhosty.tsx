@@ -2,68 +2,200 @@ import { HeartIcon } from "@/assets/svgs/svgs";
 import { Button } from "@/src/components/ui/Button";
 import { LevelCheck } from "@/src/components/ui/LevelCheck";
 import { ProgressLing } from "@/src/components/ui/ProgressLing";
+import { TextWithSub } from "@/src/components/ui/TextWithSub";
 import { Typography } from "@/src/components/ui/Typography";
-import { useEffect, useState } from "react";
+import { Dispatch, useEffect, useReducer, useState } from "react";
 import { View } from "react-native";
 
-export const CreateGhosty = () => {
-    const [step, setStep] = useState(0);
+enum RunExperience {
+    ADVANCED = "상급자",
+    INTERMEDIATE = "중급자",
+    BEGINNER = "입문자",
+}
 
-    const next = () => setStep((prev) => prev + 1);
-    const prev = () => setStep((prev) => Math.max(0, prev - 1));
+enum RunPurpose {
+    RECOVERY_JOGGING = "감각을 찾는 회복 러닝",
+    STAMINA = "꾸준히 달리며 체력 증진",
+    SPEED = "속도를 높이고 한계에 도전",
+    MARATHON = "긴 여정을 달리는 마라톤",
+    FREE = "기분 가는 대로 달리기",
+}
+
+enum Condition {
+    LEVEL_1 = 1,
+    LEVEL_2 = 2,
+    LEVEL_3 = 3,
+    LEVEL_4 = 4,
+    LEVEL_5 = 5,
+}
+
+const initialState: {
+    experience: RunExperience | null;
+    ghosty: RunPurpose | null;
+    condition: Condition | null;
+} = {
+    experience: RunExperience.ADVANCED,
+    ghosty: RunPurpose.RECOVERY_JOGGING,
+    condition: Condition.LEVEL_1,
+};
+
+const reducer = (
+    state: typeof initialState,
+    action: {
+        type: "setExperience" | "setGhosty" | "setCondition";
+        payload: RunExperience | RunPurpose | Condition | null;
+    }
+): typeof initialState => {
+    switch (action.type) {
+        case "setExperience":
+            return { ...state, experience: action.payload as RunExperience };
+        case "setGhosty":
+            return { ...state, ghosty: action.payload as RunPurpose };
+        case "setCondition":
+            return { ...state, condition: action.payload as Condition };
+        default:
+            return state;
+    }
+};
+
+export const CreateGhosty = ({ handleClose }: { handleClose: () => void }) => {
+    const [step, setStep] = useState<number | null>(null);
+
+    const [state, dispatch] = useReducer(reducer, initialState);
+
+    const next = () =>
+        setStep((prev) => Math.min((prev ?? 0) + 1, steps.length - 1));
 
     const steps = [
-        <StepSelectGhosty />,
-        <StepConditionCheck />,
-        <StepCreating onComplete={next} />,
-        <StepComplete />,
-        <StepGhostySummary />,
+        <StepCheckExperience state={state} dispatch={dispatch} />,
+        <StepSelectGhosty state={state} dispatch={dispatch} />,
+        <StepConditionCheck state={state} dispatch={dispatch} />,
+        <StepCreating />,
     ];
+
+    useEffect(() => {
+        (async () => {
+            const hasRunHistory = false;
+            setStep(hasRunHistory ? 1 : 0);
+        })();
+    }, []);
+
+    if (step === null) return <View />;
 
     return (
         <View>
             {steps[step]}
-
-            <Button type="active" title="다음" onPress={next} />
+            <Button
+                type="active"
+                title={step === steps.length - 1 ? "네, 좋아요" : "다음"}
+                onPress={step === steps.length - 1 ? handleClose : next}
+            />
         </View>
     );
 };
 
-const StepSelectGhosty = () => {
+const StepCheckExperience = ({
+    dispatch,
+    state,
+}: {
+    state: typeof initialState;
+    dispatch: Dispatch<{ type: "setExperience"; payload: RunExperience }>;
+}) => {
+    const handleExperience = (experience: RunExperience) => {
+        dispatch({ type: "setExperience", payload: experience });
+    };
+
     return (
-        <View style={{ marginBottom: 30 }}>
-            <Typography
-                variant="sectionhead"
-                color="white"
-                style={{ textAlign: "center", marginBottom: 10 }}
-            >
-                소고기마라탕 코스를 함께할{"\n"}고스티를 선택해 주세요
-            </Typography>
+        <View>
+            <TextWithSub
+                title="러닝 경험이 있으신가요?"
+                sub="첫 러닝 이후엔 고스티가 이전 기록을 참고할게요"
+                containerStyle={{ marginBottom: 30 }}
+            />
+            <View style={{ gap: 10, marginBottom: 30 }}>
+                {Object.values(RunExperience).map((experience) => (
+                    <Button
+                        key={experience}
+                        title={experience}
+                        onPress={() => handleExperience(experience)}
+                        containerStyle={{
+                            height: 58,
+                            paddingTop: 0,
+                        }}
+                        type={
+                            state.experience === experience
+                                ? "dark-active"
+                                : "dark-inactive"
+                        }
+                    />
+                ))}
+            </View>
         </View>
     );
 };
 
-const StepConditionCheck = () => {
-    const [level, setLevel] = useState(1);
+const StepSelectGhosty = ({
+    dispatch,
+    state,
+}: {
+    state: typeof initialState;
+    dispatch: Dispatch<{ type: "setGhosty"; payload: RunPurpose }>;
+}) => {
+    const handleGhosty = (ghosty: RunPurpose) => {
+        dispatch({ type: "setGhosty", payload: ghosty });
+    };
+
+    return (
+        <View>
+            <TextWithSub
+                title="고스티의 특성을 선택해 주세요"
+                sub="소고기마라탕을 함꼐할 고스티들이에요"
+                containerStyle={{ marginBottom: 30 }}
+            />
+            <View style={{ gap: 10, marginBottom: 30 }}>
+                {Object.values(RunPurpose).map((ghosty) => (
+                    <Button
+                        key={ghosty}
+                        title={ghosty}
+                        onPress={() => handleGhosty(ghosty)}
+                        containerStyle={{
+                            height: 58,
+                            paddingTop: 0,
+                        }}
+                        type={
+                            state.ghosty === ghosty
+                                ? "dark-active"
+                                : "dark-inactive"
+                        }
+                    />
+                ))}
+            </View>
+        </View>
+    );
+};
+
+const StepConditionCheck = ({
+    state,
+    dispatch,
+}: {
+    state: typeof initialState;
+    dispatch: Dispatch<{ type: "setCondition"; payload: Condition }>;
+}) => {
+    const handleCondition = (condition: Condition) => {
+        dispatch({ type: "setCondition", payload: condition });
+    };
 
     return (
         <View style={{ alignItems: "center", gap: 10, marginBottom: 32 }}>
-            <View style={{ gap: 4, marginBottom: 10 }}>
-                <Typography
-                    variant="sectionhead"
-                    color="white"
-                    style={{ textAlign: "center" }}
-                >
-                    오늘의 컨디션은 어떤가요?{"\n"}고스티가 참고할게요
-                </Typography>
-                <Typography variant="body3" color="gray40">
-                    나쁨, 좋음을 기준으로 5단계 중 선택해 주세요
-                </Typography>
-            </View>
+            <TextWithSub
+                title={`오늘의 컨디션은 어떤가요?\n고스티가 참고할게요`}
+                sub="나쁨, 좋음을 기준으로 5단계 중 선택해 주세요"
+                containerStyle={{ marginBottom: 10 }}
+            />
             <LevelCheck
                 maxLevel={5}
-                level={level}
-                setLevel={setLevel}
+                level={state.condition ?? 0}
+                setLevel={(level) => handleCondition(level as Condition)}
                 label={{ left: "나쁨", right: "좋음", gap: 23 }}
                 icon={{ icon: <HeartIcon />, gap: 14 }}
                 style={{ marginVertical: 19 }}
@@ -72,72 +204,19 @@ const StepConditionCheck = () => {
     );
 };
 
-const messages = [
-    `고스티를 부르고 있어요${"\n"}잠시만 기다려 주세요`,
-    `고스티가 코스를 살피고 있어요${"\n"}준비운동은 하셨나요?`,
-    `고스티가 신발 끈을 묶고 있어요${"\n"}곧 러닝이 시작돼요`,
-];
-
-const StepCreating = ({ onComplete }: { onComplete: () => void }) => {
-    const [message, setMessage] = useState(messages[0]);
-
-    const [progress, setProgress] = useState(0.4);
-
-    // 프로그래스 시뮬레이션
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setProgress((prev) => prev + 0.01);
-        }, 100);
-        return () => clearInterval(interval);
-    }, []);
-
-    useEffect(() => {
-        if (progress >= 1) {
-            onComplete();
-        }
-
-        if (progress >= 0.4 && progress < 0.8) {
-            setMessage(messages[1]);
-        } else if (progress >= 0.8) {
-            setMessage(messages[2]);
-        }
-    }, [progress]);
-
+const StepCreating = () => {
     return (
-        <View style={{ gap: 5, marginBottom: 29, alignItems: "center" }}>
+        <View style={{ marginBottom: 45, alignItems: "center" }}>
             <Typography
                 variant="sectionhead"
                 color="white"
-                style={{ textAlign: "center", marginBottom: 20 }}
+                style={{ textAlign: "center", marginBottom: 30 }}
             >
-                {message}
+                어떤 고스티가 함께할까요?{"\n"}고스티가 준비되면 알려드릴게요
             </Typography>
             <View style={{ alignItems: "center" }}>
                 <ProgressLing containerSize={80} />
-                <Typography variant="body3" color="gray40">
-                    {Math.round(progress * 100)}%
-                </Typography>
             </View>
-        </View>
-    );
-};
-
-const StepComplete = () => {
-    return (
-        <View>
-            <Typography variant="sectionhead" color="white">
-                고스티를 만들었어요
-            </Typography>
-        </View>
-    );
-};
-
-const StepGhostySummary = () => {
-    return (
-        <View>
-            <Typography variant="sectionhead" color="white">
-                고스티 요약
-            </Typography>
         </View>
     );
 };

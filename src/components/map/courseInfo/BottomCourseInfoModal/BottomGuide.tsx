@@ -49,7 +49,7 @@ export const BottomGuide = ({
         case "ghost":
             return <GhostGuide show={true} handleClose={handleClose} />;
         case "create":
-            return <CreateGhosty />;
+            return <CreateGhosty handleClose={handleClose} />;
         case "ghosty":
             return <View />;
     }
