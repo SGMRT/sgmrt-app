@@ -1,5 +1,6 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { GhostIcon } from "@/assets/svgs/svgs";
+import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 import { Divider } from "../../ui/Divider";
@@ -34,7 +35,9 @@ export const RunningRecord = ({
                         }
                         style={styles.avatar}
                     />
-                    {!isMine && <GhostIcon style={styles.icon} />}
+                    {!isMine && (
+                        <GhostIcon color={colors.primary} style={styles.icon} />
+                    )}
                 </View>
                 <Divider direction="vertical" />
                 <StatRow

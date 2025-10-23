@@ -23,11 +23,17 @@ export default function BottomCourseInfoModal({
     bottomSheetRef,
     course,
 }: BottomCourseInfoModalProps) {
+    const router = useRouter();
     const [route, setRoute] = useState<SheetRoute>("info");
     const [guideType, setGuideType] = useState<GuideType>("run");
     const [selectedGhost, setSelectedGhost] = useState<"user" | "ai" | null>(
         null
     );
+    const [aiGhost, setAiGhost] = useState<any>({
+        name: "브리즈",
+        pace: "8'23''",
+        isCreating: false,
+    });
     const { requestOrAlert, requestOptional } = useAppPermissions();
 
     useEffect(() => {
@@ -72,8 +78,6 @@ export default function BottomCourseInfoModal({
         },
     ];
 
-    const router = useRouter();
-
     const onClickGuide = (guideType: GuideType) => {
         setGuideType(guideType);
         setRoute("guide");
@@ -102,19 +106,13 @@ export default function BottomCourseInfoModal({
         }
     };
 
-    if (!course) {
-        return null;
-    }
-
-    const [aiGhost, setAiGhost] = useState<any>({
-        name: "브리즈",
-        pace: "8'23''",
-        isCreating: false,
-    });
-
     const handleGhostSelect = (ghost: "user" | "ai" | null) => {
         setSelectedGhost((prev) => (prev === ghost ? null : ghost));
     };
+
+    if (!course) {
+        return null;
+    }
 
     return route === "guide" ? (
         <BottomGuide

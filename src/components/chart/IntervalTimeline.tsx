@@ -23,8 +23,8 @@ export default function IntervalTimeline({
     fastColor = colors.primary,
     slowColor = colors.gray[40],
 }: IntervalTimelineProps) {
-    const segments = sets.map((s) => s.run);
     const [containerW, setContainerW] = useState(0);
+    const segments = sets.map((s) => s.run);
 
     const paceRange = useMemo(() => getPaceRange(segments), [segments]);
     const totalMinutes = useMemo(() => getTotalMinutes(segments), [segments]);
