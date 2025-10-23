@@ -32,10 +32,20 @@ export const UserCount = ({
                 style={{
                     flexDirection: "row",
                     alignItems: "center",
+                    justifyContent: "center",
                 }}
             >
                 <UserIcon color={iconColor} />
-                <Typography variant={variant} color={color}>
+
+                <Typography
+                    variant={variant}
+                    color={color}
+                    style={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        textAlign: "center",
+                    }}
+                >
                     {userCount}
                 </Typography>
             </View>

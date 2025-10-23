@@ -130,12 +130,13 @@ export default function Result() {
                         {/* 제목 파트 */}
                         <View style={styles.titleContainer}>
                             <View style={styles.titleInputContainer}>
-                                <Typography variant="subhead3" color="white">
+                                <Typography variant="headline" color="white">
                                     {course?.name}
                                 </Typography>
                                 <Divider />
                                 <UserCount
                                     userCount={course?.totalRunsCount ?? 0}
+                                    variant="body2"
                                 />
                             </View>
                             <ShareButton
