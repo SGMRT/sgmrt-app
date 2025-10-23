@@ -19,7 +19,7 @@ export const BottomGuide = ({
     switch (type) {
         case "run":
             return (
-                <View style={{ gap: 35 }}>
+                <View style={{ gap: 35, marginTop: 10 }}>
                     <Typography
                         variant="sectionhead"
                         color="white"
