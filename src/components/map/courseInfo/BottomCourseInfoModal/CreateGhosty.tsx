@@ -67,10 +67,22 @@ export const CreateGhosty = ({ handleClose }: { handleClose: () => void }) => {
         setStep((prev) => Math.min((prev ?? 0) + 1, steps.length - 1));
 
     const steps = [
-        <StepCheckExperience state={state} dispatch={dispatch} />,
-        <StepSelectGhosty state={state} dispatch={dispatch} />,
-        <StepConditionCheck state={state} dispatch={dispatch} />,
-        <StepCreating />,
+        <StepCheckExperience
+            key="check-experience"
+            state={state}
+            dispatch={dispatch}
+        />,
+        <StepSelectGhosty
+            key="select-ghosty"
+            state={state}
+            dispatch={dispatch}
+        />,
+        <StepConditionCheck
+            key="condition-check"
+            state={state}
+            dispatch={dispatch}
+        />,
+        <StepCreating key="creating" />,
     ];
 
     useEffect(() => {
@@ -149,7 +161,7 @@ const StepSelectGhosty = ({
         <View>
             <TextWithSub
                 title="고스티의 특성을 선택해 주세요"
-                sub="소고기마라탕을 함꼐할 고스티들이에요"
+                sub="소고기마라탕을 함께할 고스티들이에요"
                 containerStyle={{ marginBottom: 30 }}
             />
             <View style={{ gap: 10, marginBottom: 30 }}>
