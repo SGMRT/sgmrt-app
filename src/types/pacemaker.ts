@@ -3,10 +3,10 @@ type Pacemaker = {
     goalKm: number;
     expectedTime: number;
     initialMessage: string;
-    sets: Set[];
+    sets: PaceSet[];
 };
 
-type Set = {
+type PaceSet = {
     setNum: number;
     message: string;
     run: SegmentInfo;
@@ -19,4 +19,4 @@ type SegmentInfo = {
     paceMinKm: number;
 };
 
-export type { Pacemaker, SegmentInfo, Set };
+export type { Pacemaker, PaceSet, SegmentInfo };

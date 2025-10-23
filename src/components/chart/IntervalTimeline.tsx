@@ -1,11 +1,11 @@
 import colors from "@/src/theme/colors";
-import { SegmentInfo, Set } from "@/src/types/pacemaker";
-import { useMemo, useState } from "react";
+import { PaceSet, SegmentInfo } from "@/src/types/pacemaker";
+import { Fragment, useMemo, useState } from "react";
 import { LayoutChangeEvent, View } from "react-native";
 import { Typography } from "../ui/Typography";
 
 type IntervalTimelineProps = {
-    sets: Set[];
+    sets: PaceSet[];
     gap?: number;
     minBarHeight?: number;
     maxBarHeight?: number;
@@ -99,7 +99,6 @@ export default function IntervalTimeline({
     ]);
 
     const onLayout = (event: LayoutChangeEvent) => {
-        console.log("onLayout", event.nativeEvent.layout.width);
         setContainerW(event.nativeEvent.layout.width);
     };
 
@@ -133,9 +132,8 @@ export default function IntervalTimeline({
                 }}
             >
                 {bars.map((bar, i) => (
-                    <>
+                    <Fragment key={bar.key}>
                         <View
-                            key={bar.key}
                             style={{
                                 width: bar.width + (i % 2 === 1 ? -4 : -2),
                                 alignItems: "center",
@@ -180,7 +178,7 @@ export default function IntervalTimeline({
                                 />
                             </View>
                         )}
-                    </>
+                    </Fragment>
                 ))}
             </View>
         </View>
@@ -215,6 +213,9 @@ const heightForPace = (
     maxBarHeight: number
 ) => {
     const [fast, slow] = paceRange;
+    if (slow === fast) {
+        return Math.round((minBarHeight + maxBarHeight) / 2);
+    }
     const t = Math.max(0, Math.min(1, (slow - pace) / (slow - fast)));
     return Math.round(minBarHeight + (maxBarHeight - minBarHeight) * t);
 };

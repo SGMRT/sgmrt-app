@@ -11,7 +11,7 @@ export const TextWithSub = ({
     containerStyle?: StyleProp<ViewStyle>;
 }) => {
     return (
-        <View style={[containerStyle, { gap: 4, alignItems: "center" }]}>
+        <View style={[{ gap: 4, alignItems: "center" }, containerStyle]}>
             <Typography
                 variant="sectionhead"
                 color="white"
