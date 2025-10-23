@@ -80,7 +80,7 @@ export default function Ghosty() {
                     <PlanSummary
                         distanceKm={plan.goalKm}
                         estimatedTime={plan.expectedTime * 60}
-                        pace={(plan.expectedTime / plan.goalKm) * 60}
+                        pace={plan.expectedTime / plan.goalKm}
                     />
                     <PlanSection style={styles.planInterval}>
                         <IntervalTimeline sets={plan.sets} />
@@ -118,7 +118,7 @@ const PlanSummary = ({
             <Divider direction="vertical" />
             <PlanItem
                 icon={<VoltIcon />}
-                value={getFormattedPace(Math.floor(pace))}
+                value={getFormattedPace(Math.floor(pace * 60))}
                 description="페이스"
             />
         </PlanSection>
