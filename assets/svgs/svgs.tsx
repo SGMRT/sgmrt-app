@@ -44,6 +44,8 @@ const GhostIcon = ({ color, style, ...props }: SvgProps) => {
     return <GhostIconRaw color={color} style={style} {...props} />;
 };
 
+import RedoIcon from "./redo.svg";
+
 export {
     AddIcon,
     AlertIcon,
@@ -71,6 +73,7 @@ export {
     PlayIcon,
     ProfileIcon,
     QuitIcon,
+    RedoIcon,
     SaveIcon,
     ScrollTopIcon,
     ShareIcon,

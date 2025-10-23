@@ -1,14 +1,30 @@
-import { BackIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
+import { getRunningDays } from "@/src/apis";
+import { MonthlyStatusResponse } from "@/src/apis/types/run";
 import { endOfDay, startOfDay } from "@/src/utils/formatDate";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Calendar } from "react-native-calendars";
-import { Divider } from "./Divider";
-import Section from "./Section";
-import { Typography } from "./Typography";
+import Section from "../ui/Section";
+import { CustomHeader } from "./CustomHeader";
+import { DayComponent } from "./DayComponent";
+import {
+    formatKey,
+    parseYM,
+    runningDaysKey,
+    shiftYM,
+} from "./utils/calendarUtils";
 
 type DateRange = { startDate: Date; endDate: Date };
+
+const fetchRunningDays = async ({
+    queryKey,
+}: {
+    queryKey: ReturnType<typeof runningDaysKey>;
+}) => {
+    const [, y, m] = queryKey;
+    const data = await getRunningDays(y, m);
+    return (data ?? []) as MonthlyStatusResponse;
+};
 
 export const GoRunCalendar = ({
     period,
@@ -76,13 +92,6 @@ export const GoRunCalendar = ({
         setPeriod,
     ]);
 
-    const formatKey = (d: Date) => {
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        return `${yyyy}-${mm}-${dd}`;
-    };
-
     const handleDayPress = (day: { dateString: string }) => {
         const selected = new Date(day.dateString);
         const s = startOfDay(selected);
@@ -122,6 +131,42 @@ export const GoRunCalendar = ({
         // 3) 아무 것도 없는 상태: 시작 지정
         setChangedPeriod({ startDate: s, endDate: null });
     };
+
+    const initialDate = useMemo(
+        () => formatKey(period.startDate ?? new Date()),
+        [period.startDate]
+    );
+    const [currentDate, setCurrentDate] = useState<string>(initialDate);
+    const { y, m } = useMemo(() => parseYM(currentDate), [currentDate]);
+    const queryClient = useQueryClient();
+
+    const { data: currentMonthData } = useQuery({
+        queryKey: runningDaysKey(y, m),
+        queryFn: fetchRunningDays,
+        staleTime: 5 * 60 * 1000,
+        gcTime: 30 * 60 * 1000,
+        initialData: () => queryClient.getQueryData(runningDaysKey(y, m)) ?? [],
+    });
+
+    useEffect(() => {
+        const targets = [shiftYM(y, m, -1), shiftYM(y, m, 1)];
+        targets.forEach(({ y: yy, m: mm }) => {
+            queryClient.prefetchQuery({
+                queryKey: runningDaysKey(yy, mm),
+                queryFn: fetchRunningDays,
+                staleTime: 5 * 60 * 1000,
+            });
+        });
+    }, [y, m, queryClient]);
+
+    const runSet = useMemo(() => {
+        const toKey = (d: { day: number; hasRun: boolean }) => {
+            const dd = String(d.day).padStart(2, "0");
+            const mm = String(m).padStart(2, "0");
+            return `${y}-${mm}-${dd}`;
+        };
+        return new Set((currentMonthData ?? []).map(toKey as any));
+    }, [currentMonthData, y, m]);
 
     const markedDates = useMemo(() => {
         const marked: Record<string, any> = {};
@@ -163,16 +208,29 @@ export const GoRunCalendar = ({
         return marked;
     }, [changedPeriod.startDate, changedPeriod.endDate]);
 
+    const mergedMarkedDates = useMemo(() => {
+        const next = { ...markedDates };
+        runSet.forEach((k) => {
+            if (typeof k !== "string") return;
+            next[k] = { ...(next[k] ?? {}), run: true };
+        });
+        return next;
+    }, [markedDates, runSet]);
+
     return (
         <Section containerStyle={{ marginBottom: 30, marginHorizontal: 16.5 }}>
             <Calendar
+                current={initialDate}
+                onMonthChange={(d) => {
+                    setCurrentDate(d.dateString);
+                }}
                 style={{ backgroundColor: "#171717" }}
                 monthFormat="yyyy년 M월"
                 customHeader={CustomHeader}
                 enableSwipeMonths
                 hideExtraDays
                 markingType="period"
-                markedDates={markedDates}
+                markedDates={mergedMarkedDates}
                 theme={{
                     backgroundColor: "#171717",
                     calendarBackground: "#171717",
@@ -181,124 +239,5 @@ export const GoRunCalendar = ({
                 dayComponent={DayComponent}
             />
         </Section>
-    );
-};
-
-const DayComponent = (day: any) => {
-    //boolean
-    const isStartingDay = !!day.marking?.startingDay;
-    const isEndingDay = !!day.marking?.endingDay;
-    const isInPeriod = !!day.marking?.selected;
-
-    const isSoloPeriod = isStartingDay && isEndingDay;
-    const isSelected = isStartingDay || isEndingDay || isInPeriod;
-
-    return (
-        <TouchableOpacity
-            onPress={() => day.onPress(day.date)}
-            onLongPress={() => day.onLongPress(day.date)}
-            style={[
-                styles.DayContainer,
-                isSelected && styles.DaySelected,
-                isStartingDay && styles.DayStarting,
-                isEndingDay && styles.DayEnding,
-                isSoloPeriod && styles.DaySoloPeriod,
-            ]}
-        >
-            <Typography
-                variant="subhead1"
-                color={isSelected ? "white" : "gray40"}
-            >
-                {day.date.day}
-            </Typography>
-            <View style={styles.Dot} />
-        </TouchableOpacity>
-    );
-};
-
-const styles = StyleSheet.create({
-    DayContainer: {
-        paddingTop: 5,
-        paddingBottom: 8,
-        width: 40,
-        alignItems: "center",
-        justifyContent: "center",
-        marginVertical: -5,
-        marginHorizontal: 0,
-    },
-    DaySelected: { backgroundColor: "#404512", width: "101%" },
-    DayStarting: {
-        borderTopLeftRadius: 10,
-        borderBottomLeftRadius: 10,
-    },
-    DayEnding: { borderTopRightRadius: 10, borderBottomRightRadius: 10 },
-    DaySoloPeriod: { borderRadius: 10, width: 40 },
-    Dot: {
-        width: 2,
-        height: 2,
-        backgroundColor: colors.gray[40],
-        borderRadius: 100,
-    },
-});
-
-const CustomHeader = (item: any) => {
-    const monthObj = new Date(item.month);
-    const year = monthObj.getFullYear();
-    const month = monthObj.getMonth() + 1;
-    return (
-        <View>
-            <View style={{ gap: 10, marginBottom: 20 }}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                    }}
-                >
-                    <Pressable onPress={() => item.addMonth(-1)}>
-                        <BackIcon
-                            style={{ transform: [{ rotate: "0deg" }] }}
-                            color={colors.gray[40]}
-                            width={20}
-                            height={20}
-                        />
-                    </Pressable>
-                    <Typography
-                        variant="headline"
-                        color="white"
-                        style={{
-                            paddingVertical: 8,
-                            backgroundColor: "#171717",
-                            textAlign: "center",
-                        }}
-                    >
-                        {year}년 {month}월
-                    </Typography>
-                    <Pressable onPress={() => item.addMonth(1)}>
-                        <BackIcon
-                            style={{ transform: [{ rotate: "180deg" }] }}
-                            color={colors.gray[40]}
-                            width={20}
-                            height={20}
-                        />
-                    </Pressable>
-                </View>
-                <Divider direction="horizontal" />
-            </View>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    paddingHorizontal: 16,
-                    marginBottom: 8,
-                }}
-            >
-                {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
-                    <Typography variant="body2" color="gray40" key={day}>
-                        {day}
-                    </Typography>
-                ))}
-            </View>
-        </View>
     );
 };
