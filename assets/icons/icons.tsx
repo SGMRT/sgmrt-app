@@ -14,10 +14,15 @@ import TouchText from "./touch.png";
 import ArrowP from "./arrow-p.png";
 import ArrowW from "./arrow-w.png";
 
+import BreezeFace from "./ghosty/breeze-face.png";
+import Breeze from "./ghosty/breeze.png";
+
 export {
     ArrowP,
     ArrowW,
     Bearing,
+    Breeze,
+    BreezeFace,
     DefaultLogo,
     DefaultProfileIcon,
     Direction,

@@ -2,7 +2,7 @@ import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
 import { getCourse, getRunsByCourse } from "@/src/apis";
 import { CourseDetailResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
-import { GhostRow } from "@/src/components/map/courseInfo/GhostRow";
+import { UserGhostRow } from "@/src/components/map/courseInfo/GhostRow/UserGhostRow";
 import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
@@ -130,12 +130,13 @@ export default function Result() {
                         {/* 제목 파트 */}
                         <View style={styles.titleContainer}>
                             <View style={styles.titleInputContainer}>
-                                <Typography variant="subhead3" color="white">
+                                <Typography variant="headline" color="white">
                                     {course?.name}
                                 </Typography>
                                 <Divider />
                                 <UserCount
                                     userCount={course?.totalRunsCount ?? 0}
+                                    variant="body2"
                                 />
                             </View>
                             <ShareButton
@@ -245,12 +246,12 @@ export default function Result() {
                                     </TouchableOpacity>
                                 }
                             >
-                                <GhostRow
+                                <UserGhostRow
                                     profileUrl={
                                         course?.myGhostInfo?.runnerProfileUrl ??
                                         ""
                                     }
-                                    ghostStats={[
+                                    stats={[
                                         {
                                             description: "시간",
                                             value: getRunTime(

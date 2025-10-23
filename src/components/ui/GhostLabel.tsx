@@ -1,4 +1,5 @@
 import { GhostIcon } from "@/assets/svgs/svgs";
+import colors from "@/src/theme/colors";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 
 interface GhostLabelProps {
@@ -14,7 +15,7 @@ export default function GhostLabel({
 }: GhostLabelProps) {
     return (
         <View style={[styles.logoContainer, style]}>
-            <GhostIcon width={width} height={height} />
+            <GhostIcon color={colors.primary} width={width} height={height} />
         </View>
     );
 }
