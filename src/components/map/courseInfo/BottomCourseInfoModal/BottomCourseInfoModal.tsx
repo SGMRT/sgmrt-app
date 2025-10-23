@@ -25,12 +25,14 @@ export default function BottomCourseInfoModal({
 }: BottomCourseInfoModalProps) {
     const [route, setRoute] = useState<SheetRoute>("info");
     const [guideType, setGuideType] = useState<GuideType>("run");
-    const [ghostSelected, setGhostSelected] = useState(false);
+    const [selectedGhost, setSelectedGhost] = useState<"user" | "ai" | null>(
+        null
+    );
     const { requestOrAlert, requestOptional } = useAppPermissions();
 
     useEffect(() => {
         if (course?.myGhostInfo) {
-            setGhostSelected(true);
+            setSelectedGhost("user");
         }
     }, [course]);
 
@@ -87,7 +89,7 @@ export default function BottomCourseInfoModal({
         } else {
             bottomSheetRef.current?.dismiss();
             if (
-                ghostSelected &&
+                selectedGhost === "user" &&
                 course?.myGhostInfo &&
                 course?.myGhostInfo.runningId !== -1
             ) {
@@ -103,6 +105,12 @@ export default function BottomCourseInfoModal({
     if (!course) {
         return null;
     }
+
+    const [aiGhost, setAiGhost] = useState<any>({
+        name: "브리즈",
+        pace: "8'23''",
+        isCreating: false,
+    });
 
     return route === "guide" ? (
         <BottomGuide
@@ -123,9 +131,13 @@ export default function BottomCourseInfoModal({
             <View style={{ height: course?.myGhostInfo ? 20 : 30 }} />
 
             <GhostSection
-                ghost={course?.myGhostInfo}
-                ghostSelected={ghostSelected}
-                onSwitchChange={setGhostSelected}
+                userGhost={course?.myGhostInfo}
+                aiGhost={aiGhost}
+                onDeleteAiGhost={() => {
+                    setAiGhost(null);
+                }}
+                selectedGhost={selectedGhost}
+                onSwitchChange={setSelectedGhost}
                 ghostStats={ghostStats}
                 onClickGuide={onClickGuide}
             />
@@ -135,7 +147,13 @@ export default function BottomCourseInfoModal({
                     marginHorizontal: 16.5,
                 }}
                 type="active"
-                title={ghostSelected ? "고스트와 러닝" : "이 코스로 러닝"}
+                title={
+                    selectedGhost === "user"
+                        ? "고스트와 러닝"
+                        : selectedGhost === "ai"
+                        ? "고스티와 러닝"
+                        : "이 코스로 러닝"
+                }
                 onPress={async () => {
                     const hk = await requestOptional("HEALTHKIT");
 

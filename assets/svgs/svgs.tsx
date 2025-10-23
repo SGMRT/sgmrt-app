@@ -1,3 +1,4 @@
+import { StyleProp, ViewStyle } from "react-native";
 import AddIcon from "./add.svg";
 import AlertIcon from "./alert.svg";
 import AppleIcon from "./apple.svg";
@@ -11,7 +12,7 @@ import DotIcon from "./dot.svg";
 import EditIcon from "./edit-alt.svg";
 import ElipsisVerticalIcon from "./elipsis.svg";
 import LocateMe from "./focus.svg";
-import GhostIcon from "./g.svg";
+import GhostIconRaw from "./g.svg";
 import HeartIcon from "./heart.svg";
 import HomeIcon from "./home.svg";
 import InfoIcon from "./info.svg";
@@ -34,6 +35,16 @@ import ToastCheckIcon from "./toast-check.svg";
 import ToastInfoIcon from "./toast-info.svg";
 import UserIcon from "./user.svg";
 import SpeakerIcon from "./volume_max.svg";
+
+const GhostIcon = ({
+    color = "#E2FF00",
+    style,
+}: {
+    color?: string;
+    style?: StyleProp<ViewStyle>;
+}) => {
+    return <GhostIconRaw color={color} style={style} />;
+};
 
 export {
     AddIcon,
