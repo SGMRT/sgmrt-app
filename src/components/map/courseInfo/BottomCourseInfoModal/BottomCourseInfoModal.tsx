@@ -112,6 +112,10 @@ export default function BottomCourseInfoModal({
         isCreating: false,
     });
 
+    const handleGhostSelect = (ghost: "user" | "ai" | null) => {
+        setSelectedGhost((prev) => (prev === ghost ? null : ghost));
+    };
+
     return route === "guide" ? (
         <BottomGuide
             type={guideType}
@@ -137,7 +141,7 @@ export default function BottomCourseInfoModal({
                     setAiGhost(null);
                 }}
                 selectedGhost={selectedGhost}
-                onSwitchChange={setSelectedGhost}
+                onSwitchChange={handleGhostSelect}
                 ghostStats={ghostStats}
                 onClickGuide={onClickGuide}
             />
