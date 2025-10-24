@@ -147,7 +147,7 @@ async function bootstrapAnalytics({
 export function useBootstrapApp(
     isLoggedIn: boolean,
     loadedFonts: boolean,
-    testMode: boolean = false
+    testMode: boolean = true
 ) {
     const router = useRouter();
     const [status, setStatus] = useState<Status>("idle");
@@ -185,7 +185,7 @@ export function useBootstrapApp(
                 if (cancelled) return;
                 if (testMode) {
                     devLog("replace to /test");
-                    router.replace("/test");
+                    router.replace("/profile/1389/ghosty");
                     return;
                 } else if (isLoggedIn) {
                     devLog("replace to /(tabs)/home");

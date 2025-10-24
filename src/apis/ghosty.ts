@@ -101,3 +101,17 @@ export async function deletePacemaker(pacemakerId: number): Promise<void> {
         throw handleError(error);
     }
 }
+
+export async function markPacemakerAsRun(
+    pacemakerId: number,
+    runningId: number
+): Promise<void> {
+    try {
+        await server.post(`pacemaker/after-running`, {
+            pacemakerId,
+            runningId,
+        });
+    } catch (error) {
+        throw handleError(error);
+    }
+}

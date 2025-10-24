@@ -7,13 +7,18 @@ interface GhostyRateLimitResponse {
     count: number;
 }
 
-type VDOTLevel = "ADVANCED" | "INTERMEDIATE" | "BEGINNER";
+enum VDOTLevel {
+    ADVANCED = "상급자",
+    INTERMEDIATE = "중급자",
+    BEGINNER = "입문자",
+}
+
 enum GhostyType {
-    RECOVERY_JOGGING = "RECOVERY_JOGGING",
-    STAMINA = "STAMINA",
-    SPEED = "SPEED",
-    MARATHON = "MARATHON",
-    FREE = "FREE",
+    RECOVERY_JOGGING = "감각을 찾는 회복 러닝",
+    STAMINA = "꾸준히 달리며 체력 증진",
+    SPEED = "속도를 높이고 한계에 도전",
+    MARATHON = "긴 여정을 달리는 마라톤",
+    FREE = "기분 가는 대로 달리기",
 }
 
 enum Condition {
@@ -59,21 +64,23 @@ type Pacemaker = {
 };
 
 interface PacemakerDetailResponse {
-    processingStatus: "PROCESSING" | "SUCCEEDED" | "FAILED";
+    processingStatus: "PROCEESSING" | "SUCCEEDED" | "FAILED";
     pacemakerResponse: Pacemaker;
 }
 
 interface PacemakerByCourseIdResponse {
-    processingStatus: "PROCESSING" | "SUCCEEDED" | "FAILED";
+    processingStatus: "PROCEEDING" | "COMPLETED" | "FAILED";
     pacemakerSummaryResponse: {
         id: number;
         pace: number;
     };
 }
 
-export type {
+export {
+    Condition,
     CreateGhostyRequest,
     GhostyRateLimitResponse,
+    GhostyType,
     Pacemaker,
     PacemakerByCourseIdResponse,
     PacemakerDetailResponse,

@@ -1,15 +1,20 @@
 import { Breeze } from "@/assets/icons/icons";
 import { FlagIcon, TimerIcon, VoltIcon } from "@/assets/svgs/svgs";
-import IntervalTimeline from "@/src/components/chart/IntervalTimeline";
+import {
+    getCourse,
+    getPacemakerByCourseId,
+    getPacemakerDetail,
+} from "@/src/apis";
+import IntervalTimeline from "@/src/components/chart/interval/IntervalTimeline";
 import { Button } from "@/src/components/ui/Button";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import Section from "@/src/components/ui/Section";
 import { Typography } from "@/src/components/ui/Typography";
-import { Pacemaker } from "@/src/types/pacemaker";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { useState } from "react";
+import { useLocalSearchParams } from "expo-router";
 import {
     ScrollView,
     StyleProp,
@@ -19,35 +24,32 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const pacemaker: Pacemaker = {
-    summary: "소고기마라탕 플랜",
-    goalKm: 12.1,
-    expectedTime: 60,
-    initialMessage: "아직은 어린 고스티예요",
-    sets: [
-        {
-            setNum: 1,
-            message: "warmup",
-            run: { startKm: 0, endKm: 0.5, paceMinKm: 6.5 },
-        },
-        {
-            setNum: 2,
-            message: "훈련에 대한 설명",
-            run: { startKm: 0.3, endKm: 11.6, paceMinKm: 4.8 },
-        },
-        {
-            setNum: 3,
-            message: "cooldown",
-            run: { startKm: 11.6, endKm: 12.1, paceMinKm: 5.5 },
-        },
-    ],
-};
-
 export default function Ghosty() {
-    const [plan, setPlan] = useState<Pacemaker>(pacemaker);
+    const { courseId } = useLocalSearchParams();
+
+    console.log(courseId);
+
+    const { data: course } = useQuery({
+        queryKey: ["course", Number(courseId)],
+        queryFn: () => getCourse(Number(courseId)),
+    });
+
+    const { data: pacemakerSummary } = useQuery({
+        queryKey: ["pacemaker", Number(courseId)],
+        queryFn: () => getPacemakerByCourseId(Number(courseId)),
+    });
+
+    const { data: pacemakerDetail, isLoading } = useQuery({
+        queryKey: ["pacemakerDetail", Number(courseId)],
+        queryFn: () =>
+            getPacemakerDetail(
+                pacemakerSummary?.pacemakerSummaryResponse.id ?? 0
+            ),
+    });
+
     return (
         <SafeAreaView style={styles.flexibleContainer}>
-            <Header titleText="소고기마라탕" />
+            <Header titleText={course?.name ?? ""} />
             <ScrollView
                 contentContainerStyle={styles.scrollViewContentContainer}
                 style={styles.flexibleContainer}
@@ -70,7 +72,7 @@ export default function Ghosty() {
                     </Typography>
                 </Section>
                 <Section
-                    title="소고기마라탕 플랜"
+                    title={(course?.name ?? "") + " 플랜"}
                     titleColor="white"
                     titleVariant="sectionhead"
                     containerStyle={styles.planContainer}
@@ -78,13 +80,22 @@ export default function Ghosty() {
                     centerTitle
                 >
                     <PlanSummary
-                        distanceKm={plan.goalKm}
-                        estimatedTime={plan.expectedTime * 60}
-                        pace={plan.expectedTime / plan.goalKm}
+                        distanceKm={
+                            pacemakerDetail?.pacemakerResponse.goalKm ?? 0
+                        }
+                        estimatedTime={
+                            pacemakerDetail?.pacemakerResponse
+                                .expectedMinutes ?? 0
+                        }
+                        pace={pacemakerDetail?.pacemakerResponse.pace ?? 0}
                     />
-                    <PlanSection style={styles.planInterval}>
-                        <IntervalTimeline sets={plan.sets} />
-                    </PlanSection>
+                    {pacemakerDetail?.pacemakerResponse && (
+                        <PlanSection style={styles.planInterval}>
+                            <IntervalTimeline
+                                pacemaker={pacemakerDetail?.pacemakerResponse}
+                            />
+                        </PlanSection>
+                    )}
                 </Section>
             </ScrollView>
             <Button title="고스티와 러닝 시작" onPress={() => {}} topStroke />
@@ -111,7 +122,7 @@ const PlanSummary = ({
             <Divider direction="vertical" />
             <PlanItem
                 icon={<TimerIcon />}
-                value={getRunTime(Math.floor(estimatedTime), "MM:SS")}
+                value={getRunTime(Math.floor(estimatedTime * 60), "MM:SS")}
                 description="예상 시간"
             />
 

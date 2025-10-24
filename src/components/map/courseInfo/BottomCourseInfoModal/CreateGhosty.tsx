@@ -1,41 +1,27 @@
 import { HeartIcon } from "@/assets/svgs/svgs";
+import { getVDOTInfo, postGhosty, postVDOTInfo } from "@/src/apis";
+import { CourseResponse } from "@/src/apis/types/course";
+import { Condition, GhostyType, VDOTLevel } from "@/src/apis/types/ghosty";
 import { Button } from "@/src/components/ui/Button";
 import { LevelCheck } from "@/src/components/ui/LevelCheck";
 import { ProgressLing } from "@/src/components/ui/ProgressLing";
 import { TextWithSub } from "@/src/components/ui/TextWithSub";
+import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
+import { useLocationInfoStore } from "@/src/store/locationInfo";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dispatch, useEffect, useReducer, useState } from "react";
 import { View } from "react-native";
-
-enum RunExperience {
-    ADVANCED = "상급자",
-    INTERMEDIATE = "중급자",
-    BEGINNER = "입문자",
-}
-
-enum RunPurpose {
-    RECOVERY_JOGGING = "감각을 찾는 회복 러닝",
-    STAMINA = "꾸준히 달리며 체력 증진",
-    SPEED = "속도를 높이고 한계에 도전",
-    MARATHON = "긴 여정을 달리는 마라톤",
-    FREE = "기분 가는 대로 달리기",
-}
-
-enum Condition {
-    LEVEL_1 = 1,
-    LEVEL_2 = 2,
-    LEVEL_3 = 3,
-    LEVEL_4 = 4,
-    LEVEL_5 = 5,
-}
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const initialState: {
-    experience: RunExperience | null;
-    ghosty: RunPurpose | null;
-    condition: Condition | null;
+    experience: VDOTLevel | null;
+    ghosty: GhostyType;
+    condition: Condition;
 } = {
-    experience: RunExperience.ADVANCED,
-    ghosty: RunPurpose.RECOVERY_JOGGING,
+    experience: null,
+    ghosty: GhostyType.RECOVERY_JOGGING,
     condition: Condition.LEVEL_1,
 };
 
@@ -43,14 +29,14 @@ const reducer = (
     state: typeof initialState,
     action: {
         type: "setExperience" | "setGhosty" | "setCondition";
-        payload: RunExperience | RunPurpose | Condition | null;
+        payload: VDOTLevel | GhostyType | Condition | null;
     }
 ): typeof initialState => {
     switch (action.type) {
         case "setExperience":
-            return { ...state, experience: action.payload as RunExperience };
+            return { ...state, experience: action.payload as VDOTLevel };
         case "setGhosty":
-            return { ...state, ghosty: action.payload as RunPurpose };
+            return { ...state, ghosty: action.payload as GhostyType };
         case "setCondition":
             return { ...state, condition: action.payload as Condition };
         default:
@@ -58,13 +44,72 @@ const reducer = (
     }
 };
 
-export const CreateGhosty = ({ handleClose }: { handleClose: () => void }) => {
+export const CreateGhosty = ({
+    course,
+    handleClose,
+}: {
+    course: CourseResponse;
+    handleClose: () => void;
+}) => {
+    const queryClient = useQueryClient();
+    const { temperature } = useLocationInfoStore();
     const [step, setStep] = useState<number | null>(null);
-
     const [state, dispatch] = useReducer(reducer, initialState);
+    const bottom = useSafeAreaInsets().bottom;
 
-    const next = () =>
+    const handleNext = async () => {
+        if (step === steps.length - 2) {
+            await handleCreateGhosty();
+        }
         setStep((prev) => Math.min((prev ?? 0) + 1, steps.length - 1));
+    };
+
+    const handleCreateGhosty = async () => {
+        try {
+            if (state.experience) {
+                await postVDOTInfo(
+                    Object.keys(VDOTLevel).find(
+                        (key) =>
+                            VDOTLevel[key as keyof typeof VDOTLevel] ===
+                            state.experience
+                    ) as VDOTLevel
+                );
+            }
+            const { pacemakerId } = await postGhosty({
+                // key값
+                type: Object.keys(GhostyType).find(
+                    (key) =>
+                        GhostyType[key as keyof typeof GhostyType] ===
+                        state.ghosty
+                ) as GhostyType,
+                targetDistance: Number((course.distance / 1000).toFixed(1)),
+                condition: state.condition,
+                temperature: temperature ?? 18,
+                courseId: course.id,
+            });
+            const pacemaker = {
+                id: pacemakerId,
+                creatingAt: new Date().toISOString(),
+            };
+            await AsyncStorage.setItem(
+                `pacemaker.creating`,
+                JSON.stringify({
+                    courseId: course.id,
+                    creatingAt: new Date().toISOString(),
+                })
+            );
+            await AsyncStorage.setItem(
+                `pacemaker.${course.id}`,
+                JSON.stringify(pacemaker)
+            );
+            await queryClient.invalidateQueries({
+                queryKey: ["pacemaker", course.id],
+            });
+        } catch (error) {
+            showToast("info", error as string, bottom);
+            handleClose();
+        }
+    };
 
     const steps = [
         <StepCheckExperience
@@ -87,8 +132,8 @@ export const CreateGhosty = ({ handleClose }: { handleClose: () => void }) => {
 
     useEffect(() => {
         (async () => {
-            const hasRunHistory = false;
-            setStep(hasRunHistory ? 1 : 0);
+            const { valid } = await getVDOTInfo();
+            setStep(valid ? 1 : 0);
         })();
     }, []);
 
@@ -100,7 +145,7 @@ export const CreateGhosty = ({ handleClose }: { handleClose: () => void }) => {
             <Button
                 type="active"
                 title={step === steps.length - 1 ? "네, 좋아요" : "다음"}
-                onPress={step === steps.length - 1 ? handleClose : next}
+                onPress={step === steps.length - 1 ? handleClose : handleNext}
             />
         </View>
     );
@@ -111,9 +156,9 @@ const StepCheckExperience = ({
     state,
 }: {
     state: typeof initialState;
-    dispatch: Dispatch<{ type: "setExperience"; payload: RunExperience }>;
+    dispatch: Dispatch<{ type: "setExperience"; payload: VDOTLevel }>;
 }) => {
-    const handleExperience = (experience: RunExperience) => {
+    const handleExperience = (experience: VDOTLevel) => {
         dispatch({ type: "setExperience", payload: experience });
     };
 
@@ -125,7 +170,7 @@ const StepCheckExperience = ({
                 containerStyle={{ marginBottom: 30 }}
             />
             <View style={{ gap: 10, marginBottom: 30 }}>
-                {Object.values(RunExperience).map((experience) => (
+                {Object.values(VDOTLevel).map((experience) => (
                     <Button
                         key={experience}
                         title={experience}
@@ -151,9 +196,9 @@ const StepSelectGhosty = ({
     state,
 }: {
     state: typeof initialState;
-    dispatch: Dispatch<{ type: "setGhosty"; payload: RunPurpose }>;
+    dispatch: Dispatch<{ type: "setGhosty"; payload: GhostyType }>;
 }) => {
-    const handleGhosty = (ghosty: RunPurpose) => {
+    const handleGhosty = (ghosty: GhostyType) => {
         dispatch({ type: "setGhosty", payload: ghosty });
     };
 
@@ -165,7 +210,7 @@ const StepSelectGhosty = ({
                 containerStyle={{ marginBottom: 30 }}
             />
             <View style={{ gap: 10, marginBottom: 30 }}>
-                {Object.values(RunPurpose).map((ghosty) => (
+                {Object.values(GhostyType).map((ghosty) => (
                     <Button
                         key={ghosty}
                         title={ghosty}

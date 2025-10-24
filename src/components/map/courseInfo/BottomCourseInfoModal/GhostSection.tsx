@@ -1,6 +1,10 @@
+import { getGhostyRateLimit } from "@/src/apis";
+import { PacemakerByCourseIdResponse } from "@/src/apis/types/ghosty";
 import Section from "@/src/components/ui/Section";
 import { Stat } from "@/src/components/ui/StatRow";
 import { StyledSwitch } from "@/src/components/ui/StyledSwitch";
+import { getFormattedPace } from "@/src/utils/runUtils";
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { AIGhostRow } from "../GhostRow/AIGhostRow";
 import { CreateGhostyButton } from "../GhostRow/CreateGhostyButton";
@@ -8,8 +12,9 @@ import { UserGhostRow } from "../GhostRow/UserGhostRow";
 import { GuideType } from "./BottomCourseInfoModal";
 
 interface GhostSectionProps {
+    courseId: number;
     userGhost: any;
-    aiGhost?: any;
+    aiGhost?: PacemakerByCourseIdResponse | null;
     onDeleteAiGhost?: () => void;
     selectedGhost: "user" | "ai" | null;
     onSwitchChange: (value: "user" | "ai" | null) => void;
@@ -18,6 +23,7 @@ interface GhostSectionProps {
 }
 
 export const GhostSection = ({
+    courseId,
     userGhost,
     aiGhost,
     onDeleteAiGhost,
@@ -26,6 +32,14 @@ export const GhostSection = ({
     ghostStats,
     onClickGuide,
 }: GhostSectionProps) => {
+    const [remainingCount, setRemainingCount] = useState(0);
+
+    useEffect(() => {
+        getGhostyRateLimit().then((response) => {
+            setRemainingCount(response.count);
+        });
+    }, []);
+
     return (
         <Section
             title="내 고스트"
@@ -54,9 +68,12 @@ export const GhostSection = ({
                 )}
                 {aiGhost ? (
                     <AIGhostRow
-                        name={aiGhost.name}
-                        pace={aiGhost.pace}
-                        isCreating={aiGhost.isCreating}
+                        courseId={courseId}
+                        name={"브리즈"}
+                        pace={getFormattedPace(
+                            (aiGhost.pacemakerSummaryResponse?.pace ?? 0) * 60
+                        )}
+                        isCreating={aiGhost.processingStatus === "PROCEEDING"}
                         onDelete={onDeleteAiGhost ?? (() => {})}
                         active={selectedGhost === "ai"}
                         onSelect={() => onSwitchChange("ai")}
@@ -65,6 +82,7 @@ export const GhostSection = ({
                     <CreateGhostyButton
                         onPress={() => onClickGuide("create")}
                         onClickGuide={() => onClickGuide("ghosty")}
+                        remainingCount={remainingCount}
                     />
                 )}
             </View>

@@ -4,14 +4,17 @@ import { Typography } from "@/src/components/ui/Typography";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View } from "react-native";
 import { CreateGhosty } from "./CreateGhosty";
+import { CourseResponse } from "@/src/apis/types/course";
 
 interface BottomGuideProps {
+    course: CourseResponse;
     type: "run" | "ghost" | "ghosty" | "create";
     handleClose: () => void;
     handleRun: () => void;
 }
 
 export const BottomGuide = ({
+    course,
     type,
     handleClose,
     handleRun,
@@ -49,7 +52,7 @@ export const BottomGuide = ({
         case "ghost":
             return <GhostGuide show={true} handleClose={handleClose} />;
         case "create":
-            return <CreateGhosty handleClose={handleClose} />;
+            return <CreateGhosty course={course} handleClose={handleClose} />;
         case "ghosty":
             return <View />;
     }
