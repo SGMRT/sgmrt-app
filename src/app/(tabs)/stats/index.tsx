@@ -1,16 +1,18 @@
-import { getRuns } from "@/src/apis";
+import { getRuns, getRunsByCourse } from "@/src/apis";
 import { RunResponse } from "@/src/apis/types/run";
 import { HistoryWithFilter } from "@/src/components/course/HistoryWithFilter";
 import Header from "@/src/components/ui/Header";
 import TabBar from "@/src/components/ui/TabBar";
 import { Typography } from "@/src/components/ui/Typography";
 import { endOfDay, startOfDay } from "@/src/utils/formatDate";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { SafeAreaView, View } from "react-native";
 
 export default function Stats() {
+    const { courseId, courseName } = useLocalSearchParams();
+
     const router = useRouter();
     const handleRecordClick = (record: RunResponse) => {
         router.push(
@@ -25,6 +27,8 @@ export default function Stats() {
             <Header titleText="내 기록" hasBackButton={false} />
             <View style={{ flex: 1, marginTop: 20 }}>
                 <UserHistory
+                    initialCourseId={courseId ? Number(courseId) : null}
+                    initialCourseName={courseName ? String(courseName) : null}
                     onClickItem={handleRecordClick}
                     shouldRefresh={false}
                 />
@@ -35,16 +39,29 @@ export default function Stats() {
 }
 
 const UserHistory = ({
+    initialCourseId,
+    initialCourseName,
     onClickItem,
     shouldRefresh,
 }: {
+    initialCourseId: number | null;
+    initialCourseName: string | null;
     onClickItem: (history: RunResponse) => void;
     shouldRefresh: boolean;
 }) => {
-    // 검색 기간과 필터 타입을 상위에서 관리하여 서버 요청에 반영
-    // 시작 날 00시 00분
-    // 종료 날 23시 59분 59초
-    const [searchPeriod, setSearchPeriod] = useState<{
+    const [showPrefaceCourse, setShowPrefaceCourse] = useState(
+        !!initialCourseId
+    );
+
+    useEffect(() => {
+        if (initialCourseId) {
+            setShowPrefaceCourse(true);
+            setSelectedFilter("course");
+            setShowPrefaceCourse(true);
+        }
+    }, [initialCourseId]);
+
+    const [searchPeriod, _setSearchPeriod] = useState<{
         startDate: Date;
         endDate: Date;
     }>({
@@ -54,9 +71,18 @@ const UserHistory = ({
         endDate: endOfDay(new Date()),
     });
 
-    const [selectedFilter, setSelectedFilter] = useState<"date" | "course">(
-        "date"
+    const [selectedFilter, _setSelectedFilter] = useState<"date" | "course">(
+        initialCourseId ? "course" : "date"
     );
+
+    const setSearchPeriod = (next: { startDate: Date; endDate: Date }) => {
+        setShowPrefaceCourse(false);
+        _setSearchPeriod(next);
+    };
+    const setSelectedFilter = (next: "date" | "course") => {
+        setShowPrefaceCourse(false);
+        _setSelectedFilter(next);
+    };
 
     const startEpoch = searchPeriod.startDate.getTime();
     const endEpoch = searchPeriod.endDate.getTime();
@@ -71,6 +97,22 @@ const UserHistory = ({
         hasNextPage,
         isFetchingNextPage,
     } = useGetRuns(startEpoch, endEpoch, filteredBy, shouldRefresh);
+
+    const { data: courseData } = useQuery({
+        queryKey: ["coursePreface", initialCourseId],
+        queryFn: () => getRunsByCourse(initialCourseId ?? 0),
+        select: (data) => {
+            return data.map((r) => ({
+                ...r,
+                courseInfo: {
+                    id: initialCourseId ?? 0,
+                    name: initialCourseName ?? "",
+                    isPublic: true,
+                },
+            }));
+        },
+        enabled: !!initialCourseId && showPrefaceCourse,
+    });
 
     if (isLoading) {
         return <></>;
@@ -90,9 +132,18 @@ const UserHistory = ({
 
     const flatPages: RunResponse[] = data ?? [];
 
+    const viewData: RunResponse[] =
+        !showPrefaceCourse || !initialCourseId || !courseData?.length
+            ? flatPages
+            : [
+                  ...(courseData ?? []),
+                  ...flatPages.filter(
+                      (r) => r.courseInfo?.id !== Number(initialCourseId)
+                  ),
+              ];
     return (
         <HistoryWithFilter
-            data={flatPages}
+            data={viewData}
             onClickItem={onClickItem}
             hasNextPage={hasNextPage}
             fetchNextPage={fetchNextPage}

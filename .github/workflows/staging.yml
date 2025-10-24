@@ -1,0 +1,53 @@
+name: 🚀 EAS Staging Build
+
+on:
+    workflow_dispatch:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                profile: ["staging"]
+
+        steps:
+            - name: 🏗️ Checkout repository
+              uses: actions/checkout@v4
+
+            - name: 🧱 Setup Node.js 20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20.x
+                  cache: npm
+
+            - name: 🧰 Setup Expo & EAS
+              uses: expo/expo-github-action@v8
+              with:
+                  expo-version: latest
+                  eas-version: latest
+                  token: ${{ secrets.EXPO_TOKEN }}
+
+            - name: 📦 Install dependencies
+              run: npm ci
+
+            - name: 🔐 Create GoogleService-Info.plist
+              run: |
+                  set -e
+                  echo "${{ secrets.GOOGLE_SERVICES_INFO_BASE64 }}" | base64 -d > GoogleService-Info.plist
+
+            - name: 🌿 Inject Runtime Environment Variables
+              run: |
+                   echo "EXPO_PUBLIC_KAKAO_APP_KEY=${{ secrets.KAKAO_APP_KEY }}" >> $GITHUB_ENV
+    
+                   # === AdMob ===
+                   echo "ADS_IOS_APP_ID=${{ secrets.ADS_IOS_APP_ID }}" >> $GITHUB_ENV
+                   echo "ADS_ANDROID_APP_ID=${{ secrets.ADS_ANDROID_APP_ID }}" >> $GITHUB_ENV
+    
+                   # === Facebook SDK ===
+                   echo "FB_APP_ID=${{ secrets.FB_APP_ID }}" >> $GITHUB_ENV
+                   echo "FB_SCHEME=${{ secrets.FB_SCHEME }}" >> $GITHUB_ENV
+                   echo "FB_CLIENT_TOKEN=${{ secrets.FB_CLIENT_TOKEN }}" >> $GITHUB_ENV
+
+            - name: 🚀 Build iOS App with EAS
+              run: |
+                  eas build --non-interactive --platform ios --profile "${{ matrix.profile }}" --auto-submit

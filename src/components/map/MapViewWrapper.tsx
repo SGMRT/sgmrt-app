@@ -39,6 +39,7 @@ interface MapViewWrapperProps {
     zoom?: number;
     showPuck?: boolean;
     onRegionDidChange?: (event: any) => void;
+    onDidFinishLoadingMap?: () => void;
     ref?: React.RefObject<MapView | null>;
     cameraRef?: React.RefObject<Camera | null>;
     logoEnabled?: boolean;
@@ -58,6 +59,7 @@ export default function MapViewWrapper({
     zoom = 12,
     showPuck = true,
     onRegionDidChange,
+    onDidFinishLoadingMap,
     ref,
     cameraRef,
     logoEnabled = true,
@@ -137,7 +139,9 @@ export default function MapViewWrapper({
                 onTouchMove={() => {
                     touchCapturedRef.current = false;
                 }}
-                onDidFinishLoadingMap={onDidFinishLoadingMap}
+                onDidFinishLoadingMap={() => {
+                    onDidFinishLoadingMap?.();
+                }}
             >
                 <Images>
                     <Image name="topImage">

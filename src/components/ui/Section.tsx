@@ -21,6 +21,7 @@ interface SectionProps {
     shortcutTitle?: string;
     onClickInfo?: () => void;
     onPress?: () => void;
+    centerTitle?: boolean;
 }
 
 export default function Section({
@@ -34,6 +35,7 @@ export default function Section({
     shortcutTitle,
     onClickInfo,
     onPress,
+    centerTitle = false,
 }: SectionProps) {
     return (
         <View style={[styles.container, containerStyle]}>
@@ -44,6 +46,7 @@ export default function Section({
                             <Typography
                                 variant={titleVariant}
                                 color={titleColor}
+                                style={centerTitle && styles.centerTitle}
                             >
                                 {title}
                             </Typography>
@@ -99,5 +102,9 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 4,
+    },
+    centerTitle: {
+        textAlign: "center",
+        width: "100%",
     },
 });

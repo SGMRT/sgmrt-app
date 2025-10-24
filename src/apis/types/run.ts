@@ -125,3 +125,8 @@ export type RunResponse = {
     ghostRunningId: number | null;
     screenShotUrl: string | null;
 };
+
+export type MonthlyStatusResponse = {
+    day: number;
+    hasRun: boolean;
+}[];

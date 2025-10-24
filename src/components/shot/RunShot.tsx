@@ -1,6 +1,7 @@
 import { GhostIcon } from "@/assets/svgs/svgs";
 import { Telemetry } from "@/src/apis/types/run";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
+import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { forwardRef, memo, useImperativeHandle, useRef } from "react";
 import { StyleSheet, View } from "react-native";
@@ -143,7 +144,7 @@ const ShareContent = memo(function ShareContent({
     return (
         <View style={[styles.shareCard, { backgroundColor }]}>
             <View style={styles.shareCardHeader}>
-                <Typography variant="share_subhead" color="white">
+                <Typography variant="display2" color="white">
                     {title}
                 </Typography>
                 <View style={{ flexDirection: "row", gap: 5 }}>
@@ -166,7 +167,12 @@ const ShareContent = memo(function ShareContent({
                     logoPosition={{ bottom: 10, left: 10 }}
                     attributionPosition={{ bottom: 10, left: 100 }}
                 />
-                <GhostIcon width={20} height={20} style={styles.ghostIcon} />
+                <GhostIcon
+                    color={colors.primary}
+                    width={20}
+                    height={20}
+                    style={styles.ghostIcon}
+                />
             </View>
 
             <StatRow

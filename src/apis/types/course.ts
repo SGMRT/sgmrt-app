@@ -129,6 +129,7 @@ export interface UserCourseInfo {
     createdAt: number;
     totalRunsCount: number;
     distance: number;
+    elevationGain: number;
     averageCompletionTime: number;
     averageFinisherPace: number;
     averageFinisherCadence: number;

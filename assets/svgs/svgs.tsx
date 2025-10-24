@@ -1,61 +1,53 @@
-import LocateMe from "./focus.svg";
-
-import BackIcon from "./back.svg";
-import ChevronIcon from "./chevron.svg";
-
-import ToastCheckIcon from "./toast-check.svg";
-import ToastInfoIcon from "./toast-info.svg";
-
-import EditIcon from "./edit-alt.svg";
-import ShareIcon from "./share.svg";
-
-import AppleIcon from "./apple.svg";
-import KakaoIcon from "./kakao.svg";
-
-import CheckIcon from "./check.svg";
-
-import TrashIcon from "./delete.svg";
-import UserIcon from "./user.svg";
-
-import ElipsisVerticalIcon from "./elipsis.svg";
-
+import { SvgProps } from "react-native-svg";
+import AddIcon from "./add.svg";
 import AlertIcon from "./alert.svg";
-
-import ListIcon from "./list.svg";
-
-import FilterIcon from "./slider.svg";
-
+import AppleIcon from "./apple.svg";
+import BackIcon from "./back.svg";
 import CalendarIcon from "./calendar.svg";
-
-import ScrollTopIcon from "./scroll.svg";
-
-import GhostIcon from "./g.svg";
-
+import CheckIcon from "./check.svg";
+import ChevronIcon from "./chevron.svg";
+import CloseIcon from "./close.svg";
+import TrashIcon from "./delete.svg";
+import DotIcon from "./dot.svg";
+import EditIcon from "./edit-alt.svg";
+import ElipsisVerticalIcon from "./elipsis.svg";
+import FlagIcon from "./flag.svg";
+import LocateMe from "./focus.svg";
+import GhostIconRaw from "./g.svg";
+import HeartIcon from "./heart.svg";
+import HomeIcon from "./home.svg";
+import InfoIcon from "./info.svg";
+import KakaoIcon from "./kakao.svg";
+import ListIcon from "./list.svg";
 import LockIcon from "./lock_close.svg";
 import UnlockIcon from "./lock_open.svg";
-
-import HomeIcon from "./home.svg";
 import MapIcon from "./map.svg";
-import ProfileIcon from "./profile.svg";
-import StatsIcon from "./stats.svg";
-
 import MenuIcon from "./menu.svg";
-
 import PlayIcon from "./play.svg";
-
+import ProfileIcon from "./profile.svg";
+import QuitIcon from "./quit.svg";
+import SaveIcon from "./save.svg";
+import ScrollTopIcon from "./scroll.svg";
+import ShareIcon from "./share.svg";
+import ShowIcon from "./show.svg";
+import FilterIcon from "./slider.svg";
+import StatsIcon from "./stats.svg";
+import TimerIcon from "./timer.svg";
+import ToastCheckIcon from "./toast-check.svg";
+import ToastInfoIcon from "./toast-info.svg";
+import UserIcon from "./user.svg";
+import VoltIcon from "./volt.svg";
 import SpeakerIcon from "./volume_max.svg";
 
-import ShowIcon from "./show.svg";
+// svg 옵션 상속
+const GhostIcon = ({ color, style, ...props }: SvgProps) => {
+    return <GhostIconRaw color={color} style={style} {...props} />;
+};
 
-import CloseIcon from "./close.svg";
-
-import InfoIcon from "./info.svg";
-
-import SaveIcon from "./save.svg";
-
-import DotIcon from "./dot.svg";
+import RedoIcon from "./redo.svg";
 
 export {
+    AddIcon,
     AlertIcon,
     AppleIcon,
     BackIcon,
@@ -67,7 +59,9 @@ export {
     EditIcon,
     ElipsisVerticalIcon,
     FilterIcon,
+    FlagIcon,
     GhostIcon,
+    HeartIcon,
     HomeIcon,
     InfoIcon,
     KakaoIcon,
@@ -78,15 +72,19 @@ export {
     MenuIcon,
     PlayIcon,
     ProfileIcon,
+    QuitIcon,
+    RedoIcon,
     SaveIcon,
     ScrollTopIcon,
     ShareIcon,
     ShowIcon,
     SpeakerIcon,
     StatsIcon,
+    TimerIcon,
     ToastCheckIcon,
     ToastInfoIcon,
     TrashIcon,
     UnlockIcon,
     UserIcon,
+    VoltIcon,
 };

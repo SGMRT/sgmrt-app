@@ -2,6 +2,7 @@ import { errorLog } from "../utils/devLog";
 import { getDataFromS3, parseJsonl } from "./common";
 import server from "./instance";
 import {
+    MonthlyStatusResponse,
     RecordInfo,
     RunResponse,
     RunsRequest,
@@ -146,6 +147,33 @@ export async function getRuns(request: RunsRequest): Promise<RunResponse[]> {
         const response = await server.get(`runs`, {
             params: request,
         });
+        return response.data;
+    } catch (error) {
+        errorLog(error);
+        throw error;
+    }
+}
+
+export async function getRunsByCourse(
+    courseId: number
+): Promise<RunResponse[]> {
+    try {
+        const response = await server.get(`runs/courses/${courseId}`);
+        return response.data;
+    } catch (error) {
+        errorLog(error);
+        throw error;
+    }
+}
+
+export async function getRunningDays(
+    year: number,
+    month: number
+): Promise<MonthlyStatusResponse> {
+    try {
+        const response = await server.get(
+            `runs/monthly/status?year=${year}&month=${month}`
+        );
         return response.data;
     } catch (error) {
         errorLog(error);

@@ -481,7 +481,7 @@ export default function Result() {
                                             value: getRunTime(
                                                 comperison?.ghostRunInfo
                                                     .recordInfo.duration ?? 0,
-                                                "MM:SS"
+                                                "HH:MM:SS"
                                             ),
                                         },
                                         {
@@ -514,7 +514,7 @@ export default function Result() {
                                             value: getRunTime(
                                                 comperison?.myRunInfo.recordInfo
                                                     .duration ?? 0,
-                                                "MM:SS"
+                                                "HH:MM:SS"
                                             ),
                                         },
                                         {

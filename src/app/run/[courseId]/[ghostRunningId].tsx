@@ -10,6 +10,7 @@ import Countdown from "@/src/components/ui/Countdown";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
+import { TextWithSub } from "@/src/components/ui/TextWithSub";
 import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
@@ -302,11 +303,13 @@ export default function Run() {
                     ghostRunningId: saveGhostId,
                     courseId: saveCourseId,
                 });
+
                 setRunSaveResult({
                     runningId: response.runningId,
                     courseId: saveCourseId,
                     ghostRunningId: saveGhostId,
                 });
+
                 if (withRouting) {
                     router.replace({
                         pathname:
@@ -412,7 +415,10 @@ export default function Run() {
                     >
                         {context.status === "READY"
                             ? "3"
-                            : getRunTime(Math.round(elapsedMs / 1000), "MM:SS")}
+                            : getRunTime(
+                                  Math.round(elapsedMs / 1000),
+                                  "HH:MM:SS"
+                              )}
                     </Animated.Text>
                 )}
             </TopBlurView>
@@ -498,7 +504,7 @@ export default function Run() {
                 animatedPosition={heightVal}
             >
                 <View>
-                    {isFirst ? (
+                    {isFirst || context.status === "PAUSED_OFFCOURSE" ? (
                         <View
                             style={{
                                 alignItems: "center",
@@ -506,33 +512,24 @@ export default function Run() {
                                 marginBottom: 65,
                             }}
                         >
-                            <Typography variant="sectionhead" color="white">
-                                러닝 기록을 위해
-                            </Typography>
-                            <Typography variant="sectionhead" color="white">
-                                코스 시작 지점으로 이동해 주세요
+                            <Typography
+                                variant="sectionhead"
+                                color="white"
+                                style={{ textAlign: "center" }}
+                            >
+                                {context.status !== "PAUSED_OFFCOURSE"
+                                    ? `러닝 기록을 위해\n코스 시작 지점으로 이동해주세요`
+                                    : `10분 뒤 자동 종료돼요\n러닝을 이어서 진행하기 위해\n이탈 지점으로 돌아가 주세요`}
                             </Typography>
                         </View>
                     ) : (
                         <View style={{ marginVertical: 30 }}>
                             {runShotType === "share" && (
-                                <View
-                                    style={{
-                                        marginBottom: 30,
-                                        alignItems: "center",
-                                        gap: 4,
-                                    }}
-                                >
-                                    <Typography
-                                        variant="sectionhead"
-                                        color="white"
-                                    >
-                                        {courseName} 완주에 성공했어요!
-                                    </Typography>
-                                    <Typography variant="body3" color="gray40">
-                                        달린 기록은 자동 저장됩니다
-                                    </Typography>
-                                </View>
+                                <TextWithSub
+                                    title={courseName}
+                                    sub="완주한 기록은 내 기록에서 확인할 수 있어요."
+                                    containerStyle={{ marginBottom: 30 }}
+                                />
                             )}
                             <StatsIndicator
                                 stats={statsForUI}
@@ -547,58 +544,30 @@ export default function Run() {
             </StyledBottomSheet>
             {runShotType === "thumbnail" ? (
                 <>
-                    {context.status !== "PAUSED_USER" &&
-                    context.status !== "PAUSED_OFFCOURSE" ? (
+                    {context.status === "IDLE" ||
+                    context.status === "READY" ||
+                    context.status === "STOPPED" ||
+                    context.status === "COMPLETION_PENDING" ? (
                         <Button
-                            disabled={context.status === "IDLE"}
-                            title={
-                                context.status === "READY"
-                                    ? "나가기"
-                                    : "일시정지"
-                            }
-                            onPress={() => {
-                                if (context.status === "READY") {
-                                    controls.stop();
-                                    router.back();
-                                } else {
-                                    Alert.alert(
-                                        "러닝을 일시정지하시겠습니까?",
-                                        "일시정지 후 다시 시작한 러닝은 고스트를 생성할 수 없습니다.",
-                                        [
-                                            {
-                                                text: "계속하기",
-                                                style: "default",
-                                            },
-                                            {
-                                                text: "일시정지",
-                                                style: "destructive",
-                                                onPress: () => {
-                                                    controls.pauseUser();
-                                                },
-                                            },
-                                        ]
-                                    );
-                                }
+                            title="러닝 종료"
+                            onPress={async () => {
+                                controls.stop();
+                                router.back();
                             }}
                             type="red"
                         />
-                    ) : (
+                    ) : context.status === "RUNNING" ||
+                      context.status === "RUNNING_EXTENDED" ? (
                         <ButtonWithIcon
-                            iconType="save"
-                            disabled={context.status === "PAUSED_OFFCOURSE"}
-                            onPressIcon={() => {
+                            iconType="quit"
+                            onPressIcon={async () => {
                                 Alert.alert(
-                                    "러닝을 종료하시겠습니까?",
-                                    "500m 이하의 러닝은 저장되지 않습니다.",
+                                    "러닝을 종료할까요?",
+                                    "500m 이하의 러닝은 저장되지 않아요",
                                     [
-                                        { text: "계속하기", style: "default" },
                                         {
-                                            text:
-                                                context.stats.totalDistanceM <
-                                                500
-                                                    ? "나가기"
-                                                    : "기록 저장",
-                                            style: "destructive",
+                                            text: "저장하기",
+                                            style: "default",
                                             onPress: () => {
                                                 if (
                                                     context.stats
@@ -607,20 +576,121 @@ export default function Run() {
                                                     controls.stop();
                                                     router.back();
                                                 } else {
-                                                    setWithRouting(true);
                                                     requestSave();
                                                 }
+                                            },
+                                        },
+                                        {
+                                            text: "뒤로가기",
+                                            style: "destructive",
+                                        },
+                                    ]
+                                );
+                            }}
+                            title="일시정지"
+                            onPress={async () => {
+                                Alert.alert(
+                                    "러닝을 일시정지할까요?",
+                                    "일시정지 후 이어 달린 기록은 고스트가 생성되지 않아요",
+                                    [
+                                        {
+                                            text: "계속러닝",
+                                            style: "default",
+                                        },
+                                        {
+                                            text: "일시정지",
+                                            style: "destructive",
+                                            onPress: () => {
+                                                controls.pauseUser();
                                             },
                                         },
                                     ]
                                 );
                             }}
-                            title="이어서 러닝"
-                            onPress={() => {
-                                controls.resume();
-                            }}
+                            type="red"
                         />
-                    )}
+                    ) : context.status === "PAUSED_USER" ? (
+                        <ButtonWithIcon
+                            iconType="quit"
+                            onPressIcon={async () => {
+                                Alert.alert(
+                                    "러닝을 종료할까요?",
+                                    "500m 이하의 러닝은 저장되지 않아요",
+                                    [
+                                        {
+                                            text: "저장하기",
+                                            style: "default",
+                                            onPress: () => {
+                                                if (
+                                                    context.stats
+                                                        .totalDistanceM < 500
+                                                ) {
+                                                    controls.stop();
+                                                    router.back();
+                                                } else {
+                                                    requestSave();
+                                                }
+                                            },
+                                        },
+                                        {
+                                            text: "뒤로가기",
+                                            style: "destructive",
+                                        },
+                                    ]
+                                );
+                            }}
+                            title="이어서 러닝"
+                            onPress={async () => {
+                                Alert.alert(
+                                    "러닝을 이어서 시작할까요?",
+                                    "계속러닝을 누르면 이어서 러닝이 가능해요",
+                                    [
+                                        { text: "취소", style: "default" },
+                                        {
+                                            text: "계속러닝",
+                                            style: "destructive",
+                                            onPress: () => {
+                                                controls.resume();
+                                            },
+                                        },
+                                    ]
+                                );
+                            }}
+                            type="active"
+                        />
+                    ) : context.status === "PAUSED_OFFCOURSE" ? (
+                        <Button
+                            title="러닝 종료"
+                            onPress={async () => {
+                                Alert.alert(
+                                    "러닝을 종료할까요?",
+                                    "500m 이하의 러닝은 저장되지 않아요",
+                                    [
+                                        {
+                                            text: "저장하기",
+                                            style: "default",
+                                            onPress: () => {
+                                                if (
+                                                    context.stats
+                                                        .totalDistanceM < 500
+                                                ) {
+                                                    controls.stop();
+                                                    router.back();
+                                                } else {
+                                                    requestSave();
+                                                }
+                                            },
+                                        },
+                                        {
+                                            text: "뒤로가기",
+                                            style: "destructive",
+                                        },
+                                    ]
+                                );
+                            }}
+                            type="red"
+                        />
+                    ) : null}
                 </>
             ) : (
                 <>

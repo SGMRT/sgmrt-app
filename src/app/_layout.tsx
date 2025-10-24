@@ -20,14 +20,11 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
 import { useShouldShowAd } from "../components/ads/useShouldShowAd";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
+import { useAppPermissions } from "../features/permission/useAppPermissions";
 import { devLog } from "../utils/devLog";
 
 const env =
-    process.env.NODE_ENV === "development"
-        ? "DEVELOPMENT"
-        : process.env.EAS_BUILD_PROFILE === "production"
-        ? "PRODUCTION"
-        : "STAGING";
+    process.env.NODE_ENV === "development" ? "DEVELOPMENT" : "PRODUCTION";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 amplitude.init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || "", undefined, {
@@ -50,11 +47,13 @@ function RootLayout() {
         "SpoqaHanSansNeo-Bold": require("@/assets/fonts/SpoqaHanSansNeo-Bold.ttf"),
     });
 
-    const { status, error } = useBootstrapApp(isLoggedIn, loaded, true);
+    const { status, error } = useBootstrapApp(isLoggedIn, loaded);
+    const { requestOptional } = useAppPermissions();
     const shouldShowAd = useShouldShowAd();
 
     useEffect(() => {
         if (status !== "idle") {
+            const hk = requestOptional("HEALTHKIT");
             devLog(`[bootstrap] status=${status}`, error ?? "");
         }
     }, [status, error]);

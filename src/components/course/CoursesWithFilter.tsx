@@ -7,12 +7,12 @@ import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
+import { GoRunCalendar } from "../calendar/GoRunCalendar";
 import BottomModal from "../ui/BottomModal";
 import { Divider } from "../ui/Divider";
 import { DualFilter } from "../ui/DualFilter";
 import EmptyListView from "../ui/EmptyListView";
 import { FilterBar } from "../ui/FilterBar";
-import { GoRunCalendar } from "../ui/GoRunCalendar";
 import RadioButton from "../ui/RadioButton";
 import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
@@ -216,7 +216,7 @@ export const CoursesWithFilter = ({
                                     key={course.id}
                                     courseName={course.name}
                                     distance={course.distance / 1000}
-                                    elevation={0}
+                                    elevation={course.elevationGain ?? 0}
                                     index={index}
                                     userCount={course.totalRunsCount}
                                     maxLength={item.data.length}
@@ -267,7 +267,7 @@ export const CoursesWithFilter = ({
                     <DualFilter
                         description="보기 방식"
                         firstLabel="목록"
-                        secondLabel="갤러리"
+                        secondLabel="앨범"
                         onPressFirst={() => onPressViewType("list")}
                         onPressSecond={() => onPressViewType("gallery")}
                         selected={selectedView === "list" ? "first" : "second"}

@@ -35,28 +35,32 @@ const canShare = (objectType: string) => {
     }
 };
 
-const getRunTime = (runTime: number, format: "HH:MM:SS" | "MM:SS") => {
+const getRunTime = (
+    runTime: number,
+    format: "HH:MM:SS" | "MM:SS" = "HH:MM:SS"
+) => {
     let isNegative = false;
     if (runTime < 0) {
         isNegative = true;
         runTime = -runTime;
     }
-    runTime = Math.round(runTime);
+
     const hours = Math.floor(runTime / 3600);
     const minutes = Math.floor((runTime % 3600) / 60);
-    const seconds = runTime % 60;
+    const seconds = Math.floor(runTime % 60);
 
-    if (hours > 0) {
-        return `${isNegative ? "-" : ""}${hours
-            .toString()
-            .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
-            .toString()
-            .padStart(2, "0")}`;
-    } else {
-        return `${isNegative ? "-" : ""}${minutes
+    const prefix = isNegative ? "-" : "";
+
+    if (format === "HH:MM:SS") {
+        return `${prefix}${hours.toString().padStart(2, "0")}:${minutes
             .toString()
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     }
+
+    const totalMinutes = hours * 60 + minutes;
+    return `${prefix}${totalMinutes.toString().padStart(2, "0")}:${seconds
+        .toString()
+        .padStart(2, "0")}`;
 };
 
 function getPace(timeInSec: number, distanceInMeters: number): number {
@@ -184,13 +188,7 @@ export async function saveRunning({
     ghostRunningId,
     courseId,
 }: SaveRunningProps) {
-    if (
-        !userDashboardData ||
-        userDashboardData.totalDistance === 0 ||
-        userDashboardData.averagePace === 0 ||
-        telemetries.filter((telemetry) => telemetry.isRunning).at(-1)?.pace ===
-            0
-    ) {
+    if (!userDashboardData || userDashboardData.totalDistance < 100) {
         showCompactToast("러닝 거리가 너무 짧습니다.");
         return;
     }

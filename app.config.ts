@@ -4,7 +4,7 @@ const config = {
     expo: {
         name: "고스트러너",
         slug: "ghostrunner",
-        version: "1.0.2",
+        version: "1.0.3",
         orientation: "portrait",
         icon: isStaging
             ? "./assets/images/icon-staging.png"
@@ -35,7 +35,7 @@ const config = {
                 usesNonExemptEncryption: false,
             },
             googleServicesFile:
-                process.env.GOOGLE_SERVICES_INFO ||
+                process.env.GOOGLE_SERVICES_INFO ??
                 "./GoogleService-Info.plist",
             usesAppleSignIn: true,
             appleTeamId: "365VK6PJ7V",
@@ -55,7 +55,7 @@ const config = {
             },
             edgeToEdgeEnabled: true,
             googleServicesFile:
-                process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
+                process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json",
         },
         updates: {
             url: "https://u.expo.dev/2cb16511-b095-499b-b82f-be1d7afaeea4",
