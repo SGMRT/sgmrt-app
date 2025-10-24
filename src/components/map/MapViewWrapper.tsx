@@ -46,7 +46,6 @@ interface MapViewWrapperProps {
     logoPosition?: any;
     attributionEnabled?: boolean;
     attributionPosition?: any;
-    onDidFinishLoadingMap?: () => void;
     onTap?: () => void;
 }
 
@@ -59,7 +58,6 @@ export default function MapViewWrapper({
     zoom = 12,
     showPuck = true,
     onRegionDidChange,
-    onDidFinishLoadingMap,
     ref,
     cameraRef,
     logoEnabled = true,
@@ -190,7 +188,6 @@ export default function MapViewWrapper({
                         center ? [center.longitude, center.latitude] : undefined
                     }
                     zoomLevel={zoom}
-                    followPitch={100}
                     ref={cameraRef}
                 />
                 <ShapeSource

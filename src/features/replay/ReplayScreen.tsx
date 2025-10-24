@@ -8,8 +8,9 @@ import { Pressable, Text, View } from "react-native";
 import Share from "react-native-share";
 import ViewShot from "react-native-view-shot";
 import dummyData from "./dummy.json";
-import { useReplay, type Sample } from "./hooks/useReplay";
+import { useReplay } from "./hooks/useReplay";
 import ReplayMap from "./ReplayMap";
+import { Sample } from "./types";
 
 const Btn = ({ label, onPress }: { label: string; onPress: () => void }) => (
     <Pressable

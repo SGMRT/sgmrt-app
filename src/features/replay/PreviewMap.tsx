@@ -1,9 +1,8 @@
-import { GhostIcon } from "@/assets/svgs/svgs";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
+import { ProgressBar } from "@/src/components/ui/ProgressBar";
 import { Typography } from "@/src/components/ui/Typography";
 import colors from "@/src/theme/colors";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
-import { getRunTime } from "@/src/utils/runUtils";
 import {
     Camera,
     LineLayer,
@@ -16,32 +15,35 @@ import {
 import { Link } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
-import { ReplayStats, Sample } from "./types";
+import { Sample } from "./types";
 
-const CAM_ANIM = 500;
-const CAM_PITCH = 50;
-const CAM_ZOOM = 16;
-
-type Props = {
-    data: Sample[];
-    stats: ReplayStats;
+type PreviewMapProps = {
+    route: Sample[];
     lng: number;
     lat: number;
-    progress: number;
     heading?: number;
     cameraRef?: React.RefObject<Camera | null>;
-    onMapReady?: () => void;
+    progress: number;
+    zoomLevel?: number;
+    pitch?: number;
+    seekToProgress?: (p: number) => void;
+    pause?: () => void;
+    play?: () => void;
 };
 
-export default function ReplayMap({
-    data,
-    stats,
+export default function PreviewMap({
+    route,
     lng,
     lat,
-    progress,
     heading = 0,
     cameraRef,
-}: Props) {
+    progress,
+    zoomLevel = 16,
+    pitch = 50,
+    seekToProgress,
+    pause,
+    play,
+}: PreviewMapProps) {
     const initialPosition = useRef({ latitude: lat, longitude: lng });
 
     const routeFC = useMemo(() => {
@@ -53,12 +55,12 @@ export default function ReplayMap({
                     properties: {},
                     geometry: {
                         type: "LineString" as const,
-                        coordinates: data.map((d) => [d.x, d.y]),
+                        coordinates: route.map((r) => [r.x, r.y]),
                     },
                 },
             ],
         };
-    }, [data]);
+    }, [route]);
 
     const activeRouteFC = {
         type: "FeatureCollection" as const,
@@ -68,9 +70,14 @@ export default function ReplayMap({
                 properties: {},
                 geometry: {
                     type: "LineString" as const,
-                    coordinates: data
-                        .slice(0, Math.floor(progress * data.length))
-                        .map((d) => [d.x, d.y]),
+                    coordinates: route
+                        .slice(
+                            0,
+                            Math.floor(
+                                Math.max(0, progress - 0.001) * route.length
+                            )
+                        )
+                        .map((r) => [r.x, r.y]),
                 },
             },
         ],
@@ -81,8 +88,8 @@ export default function ReplayMap({
 
         cameraRef.current.setCamera({
             centerCoordinate: [lng, lat],
-            zoomLevel: CAM_ZOOM,
-            pitch: CAM_PITCH,
+            zoomLevel: zoomLevel,
+            pitch: pitch,
             heading: heading,
         });
     }, [lng, lat, heading, cameraRef]);
@@ -92,24 +99,25 @@ export default function ReplayMap({
 
         cameraRef.current.setCamera({
             centerCoordinate: [lng, lat],
-            zoomLevel: CAM_ZOOM,
-            pitch: CAM_PITCH,
+            zoomLevel: zoomLevel,
+            pitch: pitch,
             heading: heading,
-            animationDuration: CAM_ANIM,
+            animationDuration: 500,
         });
     }, [lng, lat, heading, cameraRef]);
 
     return (
-        <View style={{ width: "100%", aspectRatio: 0.75 }}>
+        <View style={{ width: "100%", flex: 1 }}>
             <MapViewWrapper
                 showPuck={false}
                 controlEnabled={false}
                 center={initialPosition.current}
                 cameraRef={cameraRef}
-                zoom={CAM_ZOOM}
-                maxZoomLevel={CAM_ZOOM}
+                zoom={zoomLevel}
+                maxZoomLevel={zoomLevel}
                 attributionEnabled={false}
                 onDidFinishLoadingMap={onMapReady}
+                logoPosition={{ top: 10, left: 10 }}
             >
                 <StyleImport
                     id="basemap"
@@ -128,10 +136,8 @@ export default function ReplayMap({
                     url="mapbox://mapbox.mapbox-terrain-dem-v1"
                     tileSize={512}
                 />
-
                 <Terrain sourceID="dem" style={{ exaggeration: 1.4 }} />
-
-                {data.length >= 2 && (
+                {route.length >= 2 && (
                     <>
                         <ShapeSource
                             id="route"
@@ -180,33 +186,6 @@ export default function ReplayMap({
                     </>
                 )}
             </MapViewWrapper>
-            <GhostIcon
-                color={colors.primary}
-                width={24}
-                height={24}
-                style={styles.ghostIcon}
-            />
-            <View
-                style={{
-                    position: "absolute",
-                    top: 10,
-                    right: 10,
-                    gap: 4,
-                    alignItems: "flex-end",
-                }}
-            >
-                <Typography variant="headline" color="gray40">
-                    {(stats.distanceM / 1000).toFixed(2)} km
-                </Typography>
-                {/* <Typography variant="headline" color="gray40">
-                    {stats.progress > 0
-                        ? getFormattedPace(stats.paceSec)
-                        : "0'00''"}
-                </Typography> */}
-                <Typography variant="headline" color="gray40">
-                    {getRunTime(stats.elapsedMs / 1000, "HH:MM:SS")}
-                </Typography>
-            </View>
             <Typography
                 variant="caption1"
                 color="gray40"
@@ -217,19 +196,37 @@ export default function ReplayMap({
                     © OpenStreetMap
                 </Link>
             </Typography>
+            <View
+                style={{
+                    position: "absolute",
+                    bottom: 18,
+                    left: 18,
+                    right: 18,
+                }}
+            >
+                <ProgressBar
+                    progress={Math.max(0, Math.min(1, progress))}
+                    backgroundColor={colors.gray[60]}
+                    duration={0.5}
+                    controller={true}
+                    onChange={(p) => {
+                        pause?.();
+                        seekToProgress?.(p);
+                    }}
+                    onCommit={(p) => {
+                        seekToProgress?.(p);
+                        play?.();
+                    }}
+                />
+            </View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    ghostIcon: {
-        position: "absolute",
-        top: 10,
-        left: 10,
-    },
     attribution: {
         position: "absolute",
-        bottom: 10,
+        top: 10,
         right: 10,
     },
 });

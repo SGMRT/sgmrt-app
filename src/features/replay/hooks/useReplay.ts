@@ -1,53 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-
-export type Sample = {
-    x: number;
-    y: number;
-    d: number;
-    p: number;
-    c: number;
-    t: number;
-};
-export type ReplayStats = {
-    distanceM: number;
-    paceSec: number;
-    cadenceSpm: number;
-    elapsedMs: number;
-    progress: number;
-};
-export type PlayState = "idle" | "playing" | "paused" | "finished";
-
-export type ReplayOptions = {
-    posTauSec?: number; // 좌표 스무딩 시간상수
-    headingTauSec?: number; // 헤딩 스무딩 시간상수
-    maxTurnRateDps?: number; // 최대 회전 속도
-    posDeadbandUnits?: number; // 좌표 데드밴드
-    maxPosSpeedUnitsPerSec?: number; // 최대 속도
-    visualFps?: number; // 업데이트 FPS
-};
-
-// 선형 보간
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-// 라디안 → 도
-const toDeg = (r: number) => (r * 180) / Math.PI;
-// 두 점 사이의 헤딩 계산 (0°=북쪽 기준)
-const headingBetween = (
-    a: { x: number; y: number },
-    b: { x: number; y: number }
-) => (toDeg(Math.atan2(b.x - a.x, b.y - a.y)) + 360) % 360;
-
-// -180..180로 정규화
-const norm180 = (deg: number) => {
-    let d = ((((deg + 180) % 360) + 360) % 360) - 180;
-    return d === -180 ? 180 : d;
-};
-
-// 시간상수 → EMA 알파 (dt: 초)
-const alphaFromTau = (tauSec: number, dtSec: number) =>
-    tauSec <= 0 ? 1 : 1 - Math.exp(-dtSec / tauSec);
+import { PlayState, ReplayOptions, ReplayStats, Sample } from "../types";
+import { alphaFromTau, headingBetween, lerp, norm180 } from "../utils";
 
 export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
-    const { headingTauSec = 0.3, maxTurnRateDps = 180, visualFps = 24 } = opts;
+    const {
+        headingTauSec = 0.1,
+        maxTurnRateDps = 180,
+        visualFps = 120,
+        timeScale = 0.95,
+    } = opts;
 
     const visualIntervalMs = 1000 / visualFps;
 
@@ -55,6 +16,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
     const [stats, setStats] = useState<ReplayStats>({
         distanceM: 0,
         paceSec: 0,
+        elevation: 0,
         cadenceSpm: 0,
         elapsedMs: 0,
         progress: 0,
@@ -62,7 +24,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
     const [progress, setProgress] = useState(0); // 0..1
 
     const t0 = 0;
-    const tN = (samples.length - 1) * (1000 / 60);
+    const tN = (samples.length - 1) * (2000 / 60);
     const total = Math.max(1, tN - t0);
 
     // ----- 재생 상태 refs -----
@@ -101,9 +63,9 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
     const getPoseAt = useCallback(
         (ts: number) => {
             if (samples.length === 0)
-                return { x: 0, y: 0, d: 0, p: 0, c: 0, t: 0, heading: 0 };
+                return { x: 0, y: 0, d: 0, p: 0, e: 0, c: 0, t: 0, heading: 0 };
 
-            const idxFloat = ts / (1000 / 60);
+            const idxFloat = ts / (2000 / 60);
             const i = Math.floor(idxFloat);
             const t = Math.min(1, Math.max(0, idxFloat - i));
             const a = samples[Math.min(i, samples.length - 1)];
@@ -113,6 +75,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
                 y: lerp(a.y, b.y, t),
                 d: lerp(a.d, b.d, t),
                 p: lerp(a.p, b.p, t),
+                e: lerp(a.e, b.e, t),
                 c: lerp(a.c, b.c, t),
                 t: lerp(a.t, b.t, t),
                 heading: headingBetween(a, b),
@@ -219,6 +182,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
                 setStats({
                     distanceM: raw.d,
                     paceSec: raw.p,
+                    elevation: raw.e,
                     cadenceSpm: raw.c,
                     elapsedMs: raw.t,
                     progress: p,
@@ -257,21 +221,11 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
 
         const tick = () => {
             const now = performance.now();
-            const elapsed = now - startWallRef.current;
-            const dtSec = Math.max(
-                0,
-                (now - (lastWallRef.current ?? now)) / 1000
-            );
-            lastWallRef.current = now;
-
+            const elapsed = (now - startWallRef.current) * timeScale;
             const ts = baseTsRef.current + elapsed;
-
-            // 한 프레임 분량 경과만큼 advance 처리 (EMA/캡 동일하게)
             const dtMs = Math.max(0, ts - currLogicalTsRef.current);
-            if (dtMs > 0) {
-                advanceBy(dtMs);
-            }
 
+            if (dtMs > 0) advanceBy(dtMs);
             if (currLogicalTsRef.current >= tN) {
                 setState("finished");
                 setProgress(1);
@@ -302,6 +256,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
         setStats({
             distanceM: a?.d ?? 0,
             paceSec: a?.p ?? 0,
+            elevation: a?.e ?? 0,
             cadenceSpm: a?.c ?? 0,
             elapsedMs: t0,
             progress: 0,
@@ -358,6 +313,56 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
         },
         []
     );
+
+    useEffect(() => {
+        // samples가 비어있으면 기본값으로 초기화
+        if (samples.length === 0) {
+            setStats({
+                distanceM: 0,
+                paceSec: 0,
+                elevation: 0,
+                cadenceSpm: 0,
+                elapsedMs: 0,
+                progress: 0,
+            });
+            currLogicalTsRef.current = t0;
+            smoothXRef.current = 0;
+            smoothYRef.current = 0;
+            smoothHRef.current = 0;
+            setProgress(0);
+            setPose({ x: 0, y: 0, heading: 0 });
+            setState("idle");
+            return;
+        }
+
+        // samples가 채워졌다면 첫 포인트 기반으로 재초기화
+        const a = samples[0];
+        const b = samples[1] ?? a;
+        const h0 = headingBetween(a, b);
+
+        // 러닝 중이면 멈추기
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        pausedTsRef.current = null;
+
+        currLogicalTsRef.current = t0;
+        smoothXRef.current = a.x;
+        smoothYRef.current = a.y;
+        smoothHRef.current = h0;
+
+        setProgress(0);
+        setPose({ x: a.x, y: a.y, heading: h0 });
+        setStats({
+            distanceM: a.d ?? 0,
+            paceSec: a.p ?? 0,
+            elevation: a.e ?? 0,
+            cadenceSpm: a.c ?? 0,
+            elapsedMs: 0,
+            progress: 0,
+        });
+        setState("idle");
+        lastVisualPushRef.current = 0;
+    }, [samples, t0]);
 
     return {
         state,
