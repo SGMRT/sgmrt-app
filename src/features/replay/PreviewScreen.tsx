@@ -3,19 +3,19 @@ import { Button } from "@/src/components/ui/Button";
 import Header from "@/src/components/ui/Header";
 import Section from "@/src/components/ui/Section";
 import StatRow from "@/src/components/ui/StatRow";
+import { interpolateTelemetries } from "@/src/utils/interpolateTelemetries";
+import { normalizeTimestamps } from "@/src/utils/normalizeTimestamps";
 import { Camera } from "@rnmapbox/maps";
 import { useQuery } from "@tanstack/react-query";
-import { router, SplashScreen, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { useMemo, useRef } from "react";
 import { Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useReplay } from "./hooks/useReplay";
 import PreviewMap from "./PreviewMap";
 
-const PreviewScreen = () => {
-    SplashScreen.hideAsync();
+const PreviewScreen = ({ courseId }: { courseId: number }) => {
     const cameraRef = useRef<Camera | null>(null);
-    const { courseId = "100" } = useLocalSearchParams();
 
     const { data: course } = useQuery({
         queryKey: ["course", courseId],
@@ -23,9 +23,17 @@ const PreviewScreen = () => {
         enabled: !!courseId,
     });
 
+    const interpolatedTelemetries = useMemo(() => {
+        return interpolateTelemetries(
+            normalizeTimestamps(course?.telemetries ?? []),
+            1000,
+            1
+        );
+    }, [course]);
+
     const samples = useMemo(() => {
         return (
-            course?.telemetries?.map((telemetry) => ({
+            interpolatedTelemetries?.map((telemetry) => ({
                 x: telemetry.lng,
                 y: telemetry.lat,
                 d: telemetry.dist,
@@ -35,7 +43,7 @@ const PreviewScreen = () => {
                 t: telemetry.timeStamp,
             })) ?? []
         );
-    }, [course]);
+    }, [interpolatedTelemetries]);
 
     const {
         state,
@@ -46,7 +54,7 @@ const PreviewScreen = () => {
         reset,
         stats,
         seekToProgress,
-    } = useReplay(samples, {});
+    } = useReplay(course?.distance ?? 0, samples, {});
 
     return (
         <SafeAreaView style={{ flex: 1, gap: 20 }}>
@@ -63,7 +71,6 @@ const PreviewScreen = () => {
                         pause();
                     } else if (state === "finished") {
                         reset();
-                        play();
                     } else {
                         play();
                     }

@@ -1,6 +1,7 @@
+import { SplashScreen } from "expo-router";
 import PreviewScreen from "../features/replay/PreviewScreen";
 
 export default function Test() {
-    //
-    return <PreviewScreen />;
+    SplashScreen.hideAsync();
+    return <PreviewScreen courseId={1} />;
 }

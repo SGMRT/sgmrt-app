@@ -1,16 +1,46 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PlayState, ReplayOptions, ReplayStats, Sample } from "../types";
-import { alphaFromTau, headingBetween, lerp, norm180 } from "../utils";
+import {
+    alphaFromTau,
+    buildVirtualTimeline,
+    headingBetween,
+    lerp,
+    norm180,
+} from "../utils";
 
-export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
+export function useReplay(
+    totalDistance: number,
+    samples: Sample[],
+    opts: ReplayOptions = {}
+) {
     const {
         headingTauSec = 0.1,
         maxTurnRateDps = 180,
-        visualFps = 120,
+        visualFps = 60,
         timeScale = 0.95,
+        timelineMode = "distance",
     } = opts;
 
+    let virtualDurationMs = totalDistance * 5;
+
     const visualIntervalMs = 1000 / visualFps;
+
+    const timelineRef = useRef<{ T: number[]; t0: number; tN: number }>({
+        T: [0],
+        t0: 0,
+        tN: 0,
+    });
+
+    useEffect(() => {
+        const tl = buildVirtualTimeline(samples, totalDistance, {
+            mode: timelineMode,
+            virtualDurationMs: virtualDurationMs,
+        });
+        timelineRef.current = { T: tl.T, t0: tl.t0, tN: tl.tN };
+
+        currLogicalTsRef.current = tl.t0;
+        setProgress(0);
+    }, [samples, totalDistance, timelineMode, virtualDurationMs]);
 
     const [state, setState] = useState<PlayState>("idle");
     const [stats, setStats] = useState<ReplayStats>({
@@ -23,18 +53,16 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
     });
     const [progress, setProgress] = useState(0); // 0..1
 
-    const t0 = 0;
-    const tN = (samples.length - 1) * (2000 / 60);
+    const t0 = timelineRef.current.t0;
+    const tN = timelineRef.current.tN;
     const total = Math.max(1, tN - t0);
 
-    // ----- 재생 상태 refs -----
     const rafRef = useRef<number | null>(null);
-    const baseTsRef = useRef<number>(0); // 재생 시작 시점의 논리 시간
+    const baseTsRef = useRef<number>(0);
     const pausedTsRef = useRef<number | null>(null);
     const startWallRef = useRef<number>(0);
     const lastWallRef = useRef<number | null>(null);
 
-    // 단일-틱/스텝을 위한 “현재 논리 시간”과 “스무딩 포즈”를 refs로 유지
     const currLogicalTsRef = useRef<number>(t0);
     const smoothXRef = useRef<number>(samples[0]?.x ?? 0);
     const smoothYRef = useRef<number>(samples[0]?.y ?? 0);
@@ -62,22 +90,46 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
 
     const getPoseAt = useCallback(
         (ts: number) => {
-            if (samples.length === 0)
+            const T = timelineRef.current.T;
+            const n = samples.length;
+            if (n === 0)
                 return { x: 0, y: 0, d: 0, p: 0, e: 0, c: 0, t: 0, heading: 0 };
+            if (n === 1) {
+                const a = samples[0];
+                return {
+                    x: a.x,
+                    y: a.y,
+                    d: a.d ?? 0,
+                    p: a.p ?? 0,
+                    e: a.e ?? 0,
+                    c: a.c ?? 0,
+                    t: 0,
+                    heading: 0,
+                };
+            }
 
-            const idxFloat = ts / (2000 / 60);
-            const i = Math.floor(idxFloat);
-            const t = Math.min(1, Math.max(0, idxFloat - i));
-            const a = samples[Math.min(i, samples.length - 1)];
-            const b = samples[Math.min(i + 1, samples.length - 1)];
+            let lo = 0,
+                hi = n - 1;
+            while (lo + 1 < hi) {
+                const mid = (lo + hi) >> 1;
+                if (T[mid] <= ts) lo = mid;
+                else hi = mid;
+            }
+            const i = Math.max(0, Math.min(n - 2, lo));
+            const a = samples[i];
+            const b = samples[i + 1];
+
+            const span = Math.max(1, T[i + 1] - T[i]);
+            const f = Math.max(0, Math.min(1, (ts - T[i]) / span));
+
             return {
-                x: lerp(a.x, b.x, t),
-                y: lerp(a.y, b.y, t),
-                d: lerp(a.d, b.d, t),
-                p: lerp(a.p, b.p, t),
-                e: lerp(a.e, b.e, t),
-                c: lerp(a.c, b.c, t),
-                t: lerp(a.t, b.t, t),
+                x: lerp(a.x, b.x, f),
+                y: lerp(a.y, b.y, f),
+                d: lerp(a.d, b.d, f),
+                p: lerp(a.p, b.p, f),
+                e: lerp(a.e, b.e, f),
+                c: lerp(a.c, b.c, f),
+                t: lerp(0, tN, (ts - t0) / (tN - t0)),
                 heading: headingBetween(a, b),
             };
         },
@@ -184,7 +236,7 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
                     paceSec: raw.p,
                     elevation: raw.e,
                     cadenceSpm: raw.c,
-                    elapsedMs: raw.t,
+                    elapsedMs: ts - t0,
                     progress: p,
                 });
             }
@@ -310,6 +362,8 @@ export function useReplay(samples: Sample[], opts: ReplayOptions = {}) {
     useEffect(
         () => () => {
             if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+            setState("idle");
         },
         []
     );

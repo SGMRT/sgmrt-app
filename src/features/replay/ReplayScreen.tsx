@@ -45,7 +45,7 @@ export default function ReplayScreen() {
         durationMs,
         stepForward,
         stepBackward,
-    } = useReplay(data, {});
+    } = useReplay(1, data, {});
 
     const capturedUrisRef = useRef<string[]>([]);
 

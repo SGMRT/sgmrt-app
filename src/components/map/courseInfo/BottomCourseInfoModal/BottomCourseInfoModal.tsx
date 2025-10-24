@@ -1,4 +1,5 @@
 import { CourseResponse } from "@/src/apis/types/course";
+import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -6,7 +7,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
-import { Button } from "../../../ui/Button";
 import { BottomGuide } from "./BottomGuide";
 import { CourseInfoSection } from "./CourseInfoSection";
 import { GhostSection } from "./GhostSection";
@@ -144,7 +144,8 @@ export default function BottomCourseInfoModal({
                 onClickGuide={onClickGuide}
             />
 
-            <Button
+            <ButtonWithIcon
+                iconType="flag"
                 style={{
                     marginHorizontal: 16.5,
                 }}
@@ -169,6 +170,10 @@ export default function BottomCourseInfoModal({
                     }
 
                     handleRun();
+                }}
+                onPressIcon={() => {
+                    bottomSheetRef.current?.dismiss();
+                    router.push(`/profile/${course?.id}/preview`);
                 }}
             />
         </View>

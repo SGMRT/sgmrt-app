@@ -44,6 +44,7 @@ const GhostIcon = ({ color, style, ...props }: SvgProps) => {
     return <GhostIconRaw color={color} style={style} {...props} />;
 };
 
+import Flag2Icon from "./flag2.svg";
 import RedoIcon from "./redo.svg";
 
 export {
@@ -59,6 +60,7 @@ export {
     EditIcon,
     ElipsisVerticalIcon,
     FilterIcon,
+    Flag2Icon,
     FlagIcon,
     GhostIcon,
     HeartIcon,

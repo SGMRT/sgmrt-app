@@ -38,7 +38,7 @@ export default function PreviewMap({
     heading = 0,
     cameraRef,
     progress,
-    zoomLevel = 16,
+    zoomLevel = 15.5,
     pitch = 50,
     seekToProgress,
     pause,
@@ -62,27 +62,6 @@ export default function PreviewMap({
         };
     }, [route]);
 
-    const activeRouteFC = {
-        type: "FeatureCollection" as const,
-        features: [
-            {
-                type: "Feature" as const,
-                properties: {},
-                geometry: {
-                    type: "LineString" as const,
-                    coordinates: route
-                        .slice(
-                            0,
-                            Math.floor(
-                                Math.max(0, progress - 0.001) * route.length
-                            )
-                        )
-                        .map((r) => [r.x, r.y]),
-                },
-            },
-        ],
-    };
-
     const onMapReady = useCallback(() => {
         if (!cameraRef?.current) return;
 
@@ -105,6 +84,26 @@ export default function PreviewMap({
             animationDuration: 500,
         });
     }, [lng, lat, heading, cameraRef]);
+
+    const clamped = Math.max(0.002, Math.min(0.998, progress));
+
+    const gradientExpr = useMemo(
+        () =>
+            [
+                "interpolate",
+                ["linear"],
+                ["line-progress"],
+                0,
+                colors.primary,
+                clamped - 0.001,
+                colors.primary,
+                clamped + 0.001,
+                "rgba(255,255,255,0.5)",
+                1,
+                "rgba(255,255,255,0.5)",
+            ] as const,
+        [clamped, colors.primary]
+    );
 
     return (
         <View style={{ width: "100%", flex: 1 }}>
@@ -146,20 +145,12 @@ export default function PreviewMap({
                         >
                             <LineLayer
                                 id="route-inactive"
-                                style={mapboxStyles.inactiveLineLayer}
+                                style={{
+                                    ...mapboxStyles.inactiveLineLayer,
+                                    lineGradient: gradientExpr as any,
+                                    lineOpacity: 1,
+                                }}
                                 aboveLayerID="z-index-1"
-                            />
-                        </ShapeSource>
-
-                        <ShapeSource
-                            id="route-active"
-                            shape={activeRouteFC}
-                            lineMetrics={1 as any}
-                        >
-                            <LineLayer
-                                id="route-active"
-                                style={mapboxStyles.activeLineLayer}
-                                aboveLayerID="z-index-2"
                             />
                         </ShapeSource>
 

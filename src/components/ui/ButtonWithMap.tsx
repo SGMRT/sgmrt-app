@@ -1,4 +1,5 @@
 import {
+    Flag2Icon,
     HomeIcon,
     MapIcon,
     QuitIcon,
@@ -18,7 +19,7 @@ import { Typography } from "./Typography";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;
-    iconType: "map" | "home" | "share" | "save" | "quit";
+    iconType: "map" | "home" | "share" | "save" | "quit" | "flag";
     containerStyle?: StyleProp<ViewStyle>;
     topStroke?: boolean;
 }
@@ -65,6 +66,13 @@ export default function ButtonWithIcon({
                         <QuitIcon color={colors.white} />
                         <Typography variant="mini" color="white">
                             종료하기
+                        </Typography>
+                    </>
+                ) : iconType === "flag" ? (
+                    <>
+                        <Flag2Icon />
+                        <Typography variant="mini2" color="white">
+                            코스 미리보기
                         </Typography>
                     </>
                 ) : (

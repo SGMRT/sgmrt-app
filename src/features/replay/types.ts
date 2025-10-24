@@ -25,6 +25,10 @@ type ReplayOptions = {
     maxPosSpeedUnitsPerSec?: number; // 최대 속도
     visualFps?: number; // 업데이트 FPS
     timeScale?: number; // 시간 스케일
+    timelineMode?: "distance" | "pace";
+    virtualDurationMs?: number;
 };
 
-export type { PlayState, ReplayOptions, ReplayStats, Sample };
+type PathCursor = { i: number; f: number };
+
+export type { PathCursor, PlayState, ReplayOptions, ReplayStats, Sample };
