@@ -20,6 +20,7 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
 import { useShouldShowAd } from "../components/ads/useShouldShowAd";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
+import { useAppPermissions } from "../features/permission/useAppPermissions";
 import { devLog } from "../utils/devLog";
 
 const env =
@@ -47,10 +48,12 @@ function RootLayout() {
     });
 
     const { status, error } = useBootstrapApp(isLoggedIn, loaded);
+    const { requestOptional } = useAppPermissions();
     const shouldShowAd = useShouldShowAd();
 
     useEffect(() => {
         if (status !== "idle") {
+            const hk = requestOptional("HEALTHKIT");
             devLog(`[bootstrap] status=${status}`, error ?? "");
         }
     }, [status, error]);
