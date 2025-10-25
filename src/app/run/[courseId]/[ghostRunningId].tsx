@@ -79,7 +79,7 @@ export default function Run() {
         courseId: number | undefined;
     } | null>(null);
 
-    const { courseId, ghostRunningId } = useLocalSearchParams();
+    const { courseId, ghostRunningId, ghostyId } = useLocalSearchParams();
     const isGhostRunning = ghostRunningId !== "-1";
     const [courseSegments, setCourseSegments] = useState<Segment>();
 

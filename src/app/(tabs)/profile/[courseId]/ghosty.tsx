@@ -14,7 +14,7 @@ import { Typography } from "@/src/components/ui/Typography";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
     ScrollView,
     StyleProp,
@@ -26,8 +26,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Ghosty() {
     const { courseId } = useLocalSearchParams();
-
-    console.log(courseId);
+    const router = useRouter();
 
     const { data: course } = useQuery({
         queryKey: ["course", Number(courseId)],
@@ -98,7 +97,21 @@ export default function Ghosty() {
                     )}
                 </Section>
             </ScrollView>
-            <Button title="고스티와 러닝 시작" onPress={() => {}} topStroke />
+            <Button
+                title="고스티와 러닝 시작"
+                onPress={() => {
+                    router.push({
+                        pathname: "/run/[courseId]/[ghostRunningId]",
+                        params: {
+                            courseId: courseId as string,
+                            ghostRunningId: "-1",
+                            ghostyId:
+                                pacemakerSummary?.pacemakerSummaryResponse.id,
+                        },
+                    });
+                }}
+                topStroke
+            />
         </SafeAreaView>
     );
 }
