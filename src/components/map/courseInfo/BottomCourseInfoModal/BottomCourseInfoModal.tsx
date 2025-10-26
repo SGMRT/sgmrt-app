@@ -1,6 +1,7 @@
 import { deletePacemaker, getPacemakerByCourseId } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
+import { usePacemakerQueue } from "@/src/features/pacemaker/queueStore";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -32,6 +33,8 @@ export default function BottomCourseInfoModal({
     const [selectedGhost, setSelectedGhost] = useState<"user" | "ai" | null>(
         null
     );
+    const { findByCourseId, findByPacemakerId, setStatus, removeJob } =
+        usePacemakerQueue();
 
     const { data: pacemaker } = useQuery({
         queryKey: ["pacemaker", course?.id],
@@ -45,8 +48,16 @@ export default function BottomCourseInfoModal({
                 (pacemaker.processingStatus === "COMPLETED" ||
                     pacemaker.processingStatus === "FAILED")
             ) {
-                await AsyncStorage.removeItem(`pacemaker.${course?.id}`);
-                await AsyncStorage.removeItem(`pacemaker.creating`);
+                const job = findByCourseId(course?.id ?? 0);
+                if (job) {
+                    setStatus(
+                        job.jobId,
+                        pacemaker.processingStatus,
+                        pacemaker.processingStatus === "FAILED"
+                            ? "Failed to create pacemaker"
+                            : undefined
+                    );
+                }
             } else if (
                 pacemaker &&
                 pacemaker.processingStatus === "PROCEEDING"
@@ -55,7 +66,7 @@ export default function BottomCourseInfoModal({
                     queryClient.invalidateQueries({
                         queryKey: ["pacemaker", course?.id],
                     });
-                }, 5000);
+                }, 2000);
                 return () => clearTimeout(timeout);
             }
         })();

@@ -2,8 +2,8 @@ import { BreezeFace } from "@/assets/icons/icons";
 import { TrashIcon } from "@/assets/svgs/svgs";
 import { ProgressBar } from "@/src/components/ui/ProgressBar";
 import { Typography } from "@/src/components/ui/Typography";
+import { usePacemakerQueue } from "@/src/features/pacemaker/queueStore";
 import colors from "@/src/theme/colors";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
@@ -32,16 +32,16 @@ export const AIGhostRow = ({
     onSelect,
 }: AIGhostRowProps) => {
     const [progress, setProgress] = useState(0);
+    const { findByCourseId } = usePacemakerQueue();
 
     useEffect(() => {
         let interval: any;
 
         (async () => {
-            const value = await AsyncStorage.getItem(`pacemaker.${courseId}`);
-            if (!value) return;
+            const job = findByCourseId(courseId);
+            if (!job) return;
 
-            const data = JSON.parse(value);
-            const startTime = new Date(data.creatingAt).getTime();
+            const startTime = new Date(job.queuedAt).getTime();
 
             interval = setInterval(() => {
                 const now = Date.now();

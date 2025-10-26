@@ -8,8 +8,8 @@ import { ProgressLing } from "@/src/components/ui/ProgressLing";
 import { TextWithSub } from "@/src/components/ui/TextWithSub";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
+import { usePacemakerQueue } from "@/src/features/pacemaker/queueStore";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dispatch, useEffect, useReducer, useState } from "react";
 import { View } from "react-native";
@@ -51,6 +51,7 @@ export const CreateGhosty = ({
     course: CourseResponse;
     handleClose: () => void;
 }) => {
+    const { addJob } = usePacemakerQueue();
     const queryClient = useQueryClient();
     const { temperature } = useLocationInfoStore();
     const [step, setStep] = useState<number | null>(null);
@@ -87,24 +88,15 @@ export const CreateGhosty = ({
                 temperature: temperature ?? 18,
                 courseId: course.id,
             });
-            const pacemaker = {
-                id: pacemakerId,
-                creatingAt: new Date().toISOString(),
-            };
-            await AsyncStorage.setItem(
-                `pacemaker.creating`,
-                JSON.stringify({
-                    courseId: course.id,
-                    creatingAt: new Date().toISOString(),
-                })
-            );
-            await AsyncStorage.setItem(
-                `pacemaker.${course.id}`,
-                JSON.stringify(pacemaker)
-            );
+            const job = addJob({
+                pacemakerId,
+                courseId: course.id,
+                status: "PROCEEDING",
+            });
             await queryClient.invalidateQueries({
                 queryKey: ["pacemaker", course.id],
             });
+            return job.jobId;
         } catch (error) {
             showToast("info", error as string, bottom);
             handleClose();
