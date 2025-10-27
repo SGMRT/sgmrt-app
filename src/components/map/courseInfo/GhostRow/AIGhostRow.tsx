@@ -9,8 +9,8 @@ import { useEffect, useState } from "react";
 import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
 
-const CREATE_DURATION_MS = 2 * 60 * 1000; // 2분
-const MAX_PROGRESS = 0.9; // 95%
+const CREATE_DURATION_MS = 2 * 60 * 1000 + 30 * 1000; // 2분 30초
+const MAX_PROGRESS = 0.5; // 95%
 
 interface AIGhostRowProps {
     courseId: number;
