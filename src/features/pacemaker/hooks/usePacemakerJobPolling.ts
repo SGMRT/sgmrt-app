@@ -24,7 +24,7 @@ export function usePacemakerJobPolling({
 
     // queued 된지 1분 30초 이상 된 애들만 폴링
     const pendingJobs = useMemo(
-        () => jobs.filter((j) => j.status === "PROCESSING"),
+        () => jobs.filter((j) => j.status === "PROCEEDING"),
         [jobs]
     );
 
@@ -69,8 +69,8 @@ export function usePacemakerJobPolling({
                         return;
                     }
 
-                    if (status === "SUCCEED" || status === "COMPLETED") {
-                        setStatus(job.jobId, "SUCCEED");
+                    if (status === "COMPLETED") {
+                        setStatus(job.jobId, "COMPLETED");
                         await queryClient.invalidateQueries({
                             queryKey: ["pacemaker", job.courseId],
                         });

@@ -2,7 +2,7 @@ export type PacemakerJob = {
     jobId: string;
     pacemakerId: number;
     courseId: number;
-    status: "PROCESSING" | "SUCCEED" | "FAILED";
+    status: "PROCEEDING" | "COMPLETED" | "FAILED";
     queuedAt: string;
     updatedAt: string;
     error?: string;

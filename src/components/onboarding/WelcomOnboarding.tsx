@@ -19,6 +19,10 @@ const steps: Step[] = [
         image: require("@/assets/images/onboarding/onboarding_4.png"),
     },
     {
+        title: "나의 러닝메이트 고스티 생성으로\n맞춤 플랜을 제공받아보세요",
+        image: require("@/assets/images/onboarding/onboarding_ghosty.png"),
+    },
+    {
         title: "모든 준비가 끝났어요\n어제의 나를 뛰어넘을 준비가 되셨나요?",
         subTitle: "내 정보는 마이페이지의 회원 정보에서 변경 가능해요",
         image: require("@/assets/images/onboarding/onboarding_5.png"),

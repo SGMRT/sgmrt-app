@@ -21,7 +21,7 @@ type Actions = {
     patchJob: (jobId: string, patch: Partial<PacemakerJob>) => void;
     setStatus: (
         jobId: string,
-        status: "PROCESSING" | "SUCCEED" | "FAILED",
+        status: "PROCEEDING" | "COMPLETED" | "FAILED",
         error?: string
     ) => void;
     removeJob: (jobId: string) => void;
@@ -88,10 +88,10 @@ export const usePacemakerQueue = create<State & Actions>()(
                     return get().jobs;
                 },
                 findInProgress: () => {
-                    return get().jobs.filter((j) => j.status === "PROCESSING");
+                    return get().jobs.filter((j) => j.status === "PROCEEDING");
                 },
                 findCompleted: () => {
-                    return get().jobs.filter((j) => j.status === "SUCCEED");
+                    return get().jobs.filter((j) => j.status === "COMPLETED");
                 },
                 findByCourseId: (courseId) => {
                     return get().jobs.find((j) => j.courseId === courseId);

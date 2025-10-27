@@ -11,13 +11,6 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const backoff = (attempt: number, baseMs: number, maxMs: number) =>
     Math.min(maxMs, baseMs * Math.pow(2, attempt)) + Math.random() * 200;
 
-// 서버 오타 방지: PROCEESSING -> PROCESSING
-function normalizeStatus(s: string | undefined) {
-    if (!s) return s;
-    if (s.toUpperCase() === "PROCEESSING") return "PROCESSING";
-    return s.toUpperCase();
-}
-
 /**
  * - postGhosty 성공 후 detail.processingStatus가 FAILED면 새로 생성해서 재시도
  * - PROCESSING 또는 SUCCEEDED면 즉시 pacemakerId 반환
@@ -39,9 +32,8 @@ export async function createGhostyWithRetries(
             // 2) 상태 한 번만 확인
             try {
                 const detail = await getPacemakerDetail(pacemakerId);
-                const status = normalizeStatus(detail.processingStatus);
 
-                if (status === "FAILED") {
+                if (detail.processingStatus === "FAILED") {
                     lastError = new Error("Pacemaker processing FAILED");
                 } else {
                     return pacemakerId;

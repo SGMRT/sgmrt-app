@@ -91,7 +91,7 @@ export const CreateGhosty = ({
             const job = addJob({
                 pacemakerId,
                 courseId: course.id,
-                status: "PROCESSING",
+                status: "PROCEEDING",
             });
             await queryClient.invalidateQueries({
                 queryKey: ["pacemaker", course.id],

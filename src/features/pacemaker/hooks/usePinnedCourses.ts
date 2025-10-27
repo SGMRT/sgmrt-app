@@ -15,7 +15,7 @@ export function usePinnedCourses({ baseCourses }: UsePinnedCoursesOptions) {
     const pinnedIds = useMemo(() => {
         const ids = new Set<number>();
         for (const j of jobs) {
-            if (j.status === "PROCESSING" || j.status === "SUCCEED") {
+            if (j.status === "PROCEEDING" || j.status === "COMPLETED") {
                 ids.add(j.courseId);
             }
         }

@@ -64,7 +64,7 @@ type Pacemaker = {
 };
 
 interface PacemakerDetailResponse {
-    processingStatus: "PROCESSING" | "SUCCEED" | "COMPLETED" | "FAILED";
+    processingStatus: "PROCEEDING" | "COMPLETED" | "FAILED";
     pacemakerResponse: Pacemaker;
 }
 
