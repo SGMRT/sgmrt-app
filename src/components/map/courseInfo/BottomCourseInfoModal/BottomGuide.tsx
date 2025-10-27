@@ -1,10 +1,11 @@
+import { CourseResponse } from "@/src/apis/types/course";
+import { CreateGhostyGuide } from "@/src/components/onboarding/CreateGhostyGuide";
 import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
 import { Button } from "@/src/components/ui/Button";
 import { Typography } from "@/src/components/ui/Typography";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View } from "react-native";
 import { CreateGhosty } from "./CreateGhosty";
-import { CourseResponse } from "@/src/apis/types/course";
 
 interface BottomGuideProps {
     course: CourseResponse;
@@ -54,6 +55,6 @@ export const BottomGuide = ({
         case "create":
             return <CreateGhosty course={course} handleClose={handleClose} />;
         case "ghosty":
-            return <View />;
+            return <CreateGhostyGuide show={true} handleClose={handleClose} />;
     }
 };

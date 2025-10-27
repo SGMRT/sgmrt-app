@@ -59,9 +59,11 @@ export default function Ghosty() {
                     <Typography variant="headline" color="white">
                         브리즈가 생성되었어요
                     </Typography>
-                    <Image source={Breeze} style={styles.ghostyImage} />
+                    <View style={styles.ghostyImageContainer}>
+                        <Image source={Breeze} style={styles.ghostyImage} />
+                    </View>
                 </View>
-                <Section containerStyle={styles.ghostyMessageContainer}>
+                {/* <Section containerStyle={styles.ghostyMessageContainer}>
                     <Typography
                         variant="body1"
                         color="gray20"
@@ -71,7 +73,7 @@ export default function Ghosty() {
                         러닝을 즐기다 보면{"\n"}
                         어느새 성장해있을지도 몰라요!
                     </Typography>
-                </Section>
+                </Section> */}
                 <Section
                     title={(course?.name ?? "") + " 플랜"}
                     titleColor="white"
@@ -97,6 +99,15 @@ export default function Ghosty() {
                             />
                         </PlanSection>
                     )}
+                    <PlanSection>
+                        <Typography
+                            variant="caption1"
+                            color="gray20"
+                            style={{ textAlign: "center" }}
+                        >
+                            {pacemakerDetail?.pacemakerResponse.summary}
+                        </Typography>
+                    </PlanSection>
                 </Section>
             </ScrollView>
             <Button
@@ -145,7 +156,7 @@ const PlanSummary = ({
             <PlanItem
                 icon={<VoltIcon />}
                 value={getFormattedPace(Math.floor(pace * 60))}
-                description="페이스"
+                description="최고 페이스"
             />
         </PlanSection>
     );
@@ -210,7 +221,10 @@ const styles = StyleSheet.create({
     ghostyContainer: {
         width: "100%",
         alignItems: "center",
-        paddingHorizontal: 62,
+    },
+    ghostyImageContainer: {
+        alignItems: "center",
+        marginHorizontal: 95,
     },
     ghostyImage: {
         width: "100%",

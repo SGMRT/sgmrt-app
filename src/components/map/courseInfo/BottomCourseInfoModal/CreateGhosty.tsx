@@ -113,6 +113,7 @@ export const CreateGhosty = ({
         />,
         <StepSelectGhosty
             key="select-ghosty"
+            courseName={course.name ?? "코스"}
             state={state}
             dispatch={dispatch}
         />,
@@ -187,9 +188,11 @@ const StepCheckExperience = ({
 };
 
 const StepSelectGhosty = ({
+    courseName,
     dispatch,
     state,
 }: {
+    courseName: string;
     state: typeof initialState;
     dispatch: Dispatch<{ type: "setGhosty"; payload: GhostyType }>;
 }) => {
@@ -201,7 +204,7 @@ const StepSelectGhosty = ({
         <View>
             <TextWithSub
                 title="고스티의 특성을 선택해 주세요"
-                sub="소고기마라탕을 함께할 고스티들이에요"
+                sub={`${courseName}을 함께할 고스티들이에요`}
                 containerStyle={{ marginBottom: 30 }}
             />
             <View style={{ gap: 10, marginBottom: 30 }}>

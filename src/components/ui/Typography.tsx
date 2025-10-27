@@ -115,7 +115,6 @@ export const typographyStyles = StyleSheet.create({
         lineHeight: 18,
         letterSpacing: -0.6,
     },
-
     share_subhead: {
         fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 14.7,

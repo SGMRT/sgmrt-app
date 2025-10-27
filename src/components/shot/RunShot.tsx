@@ -157,7 +157,7 @@ const ShareContent = memo(function ShareContent({
                 </View>
             </View>
 
-            <View style={styles.mapContainer}>
+            <View style={[styles.mapContainer, { width, height }]}>
                 <ResultCourseMap
                     telemetries={telemetries}
                     onReady={onMapReady}
@@ -222,6 +222,7 @@ const styles = StyleSheet.create({
         position: "relative",
     },
     statsContainer: {
+        alignItems: "flex-start",
         justifyContent: "center",
         marginHorizontal: 6.5,
         gap: 12,
