@@ -86,7 +86,7 @@ export const AIGhostRow = ({
                 고스티가 준비중 이에요
             </Typography>
             <View style={{ marginVertical: 8 }}>
-                <ProgressBar progress={progress} />
+                <ProgressBar progress={progress} controller={false} />
             </View>
         </View>
     ) : (
