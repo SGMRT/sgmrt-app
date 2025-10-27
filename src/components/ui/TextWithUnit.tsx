@@ -36,7 +36,17 @@ export default function TextWithUnit({
     return (
         <View style={[styles.container, style, { alignItems: align }]}>
             <View style={styles.valueContainer}>
-                <Typography variant={variant} color={color}>
+                <Typography
+                    numberOfLines={1}
+                    ellipsizeMode="clip"
+                    variant={variant}
+                    color={color}
+                    style={{
+                        overflow: "visible",
+                        textOverflow: "ellipsis",
+                        flexWrap: "nowrap",
+                    }}
+                >
                     {value}
                 </Typography>
                 {unit && (
