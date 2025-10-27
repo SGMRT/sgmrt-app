@@ -33,13 +33,18 @@ export default function BottomCourseInfoModal({
     const [selectedGhost, setSelectedGhost] = useState<"user" | "ai" | null>(
         null
     );
-    const { findByCourseId, findByPacemakerId, setStatus, removeJob } =
-        usePacemakerQueue();
+    const { findByCourseId, setStatus, removeJob } = usePacemakerQueue();
 
-    const { data: pacemaker } = useQuery({
+    const { data: pacemaker, refetch } = useQuery({
         queryKey: ["pacemaker", course?.id],
         queryFn: () => getPacemakerByCourseId(course?.id ?? 0),
     });
+
+    useEffect(() => {
+        refetch().catch((error) => {
+            console.error(error);
+        });
+    }, [course?.id]);
 
     useEffect(() => {
         (async () => {
@@ -63,11 +68,11 @@ export default function BottomCourseInfoModal({
                 pacemaker.processingStatus === "PROCEEDING"
             ) {
                 const timeout = setTimeout(() => {
-                    queryClient.invalidateQueries({
-                        queryKey: ["pacemaker", course?.id],
-                    });
+                    refetch();
                 }, 2000);
                 return () => clearTimeout(timeout);
+            } else if (!pacemaker) {
+                setSelectedGhost((prev) => (prev === "ai" ? null : prev));
             }
         })();
     }, [pacemaker]);
@@ -189,6 +194,10 @@ export default function BottomCourseInfoModal({
                     await deletePacemaker(
                         pacemaker?.pacemakerSummaryResponse.id ?? 0
                     );
+                    const pacemakerJob = findByCourseId(course?.id ?? 0);
+                    if (pacemakerJob) {
+                        removeJob(pacemakerJob.jobId);
+                    }
                     await queryClient.invalidateQueries({
                         queryKey: ["pacemaker", course?.id],
                     });

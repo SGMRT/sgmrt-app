@@ -1,13 +1,14 @@
 import { HeartIcon } from "@/assets/svgs/svgs";
-import { getVDOTInfo, postGhosty, postVDOTInfo } from "@/src/apis";
+import { getVDOTInfo, postVDOTInfo } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
 import { Condition, GhostyType, VDOTLevel } from "@/src/apis/types/ghosty";
 import { Button } from "@/src/components/ui/Button";
 import { LevelCheck } from "@/src/components/ui/LevelCheck";
 import { ProgressLing } from "@/src/components/ui/ProgressLing";
 import { TextWithSub } from "@/src/components/ui/TextWithSub";
-import { showToast } from "@/src/components/ui/toastConfig";
+import { showCompactToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
+import { createGhostyWithRetries } from "@/src/features/pacemaker/createGhostyWithRetries";
 import { usePacemakerQueue } from "@/src/features/pacemaker/queueStore";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { useQueryClient } from "@tanstack/react-query";
@@ -76,8 +77,7 @@ export const CreateGhosty = ({
                     ) as VDOTLevel
                 );
             }
-            const { pacemakerId } = await postGhosty({
-                // key값
+            const pacemakerId = await createGhostyWithRetries({
                 type: Object.keys(GhostyType).find(
                     (key) =>
                         GhostyType[key as keyof typeof GhostyType] ===
@@ -98,7 +98,7 @@ export const CreateGhosty = ({
             });
             return job.jobId;
         } catch (error) {
-            showToast("info", error as string, bottom);
+            showCompactToast("고스티 생성에 실패했습니다. 다시 시도해주세요.");
             handleClose();
         }
     };

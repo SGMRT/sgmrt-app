@@ -47,11 +47,13 @@ export const GhostSection = ({
             containerStyle={styles.ghostInfoSection}
             onClickInfo={() => onClickGuide("ghost")}
             titleRightChildren={
-                userGhost && (
+                (userGhost || aiGhost) && (
                     <StyledSwitch
                         isSelected={selectedGhost !== null}
                         onValueChange={(value) => {
-                            onSwitchChange(value ? "user" : null);
+                            onSwitchChange(
+                                value ? (userGhost ? "user" : "ai") : null
+                            );
                         }}
                     />
                 )

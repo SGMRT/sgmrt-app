@@ -135,7 +135,7 @@ const PlanSummary = ({
             <Divider direction="vertical" />
             <PlanItem
                 icon={<TimerIcon />}
-                value={getRunTime(Math.floor(estimatedTime * 60), "MM:SS")}
+                value={getRunTime(Math.floor(estimatedTime * 60), "HH:MM:SS")}
                 description="예상 시간"
             />
 

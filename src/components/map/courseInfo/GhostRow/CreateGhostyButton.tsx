@@ -35,6 +35,7 @@ export const CreateGhostyButton = ({
             }
             rightAccessory={
                 <TouchableOpacity
+                    disabled={remainingCount === 0}
                     onPress={onPress}
                     style={{ marginRight: 13.5 }}
                 >

@@ -21,6 +21,7 @@ type Actions = {
         error?: string
     ) => void;
     removeJob: (jobId: string) => void;
+    removeAllJobs: () => void;
     findAll: () => PacemakerJob[];
     findInProgress: () => PacemakerJob[];
     findCompleted: () => PacemakerJob[];
@@ -74,6 +75,9 @@ export const usePacemakerQueue = create<State & Actions>()(
                 set((s) => ({
                     jobs: s.jobs.filter((j) => j.jobId !== jobId),
                 }));
+            },
+            removeAllJobs: () => {
+                set({ jobs: [] });
             },
             findAll: () => {
                 return get().jobs;

@@ -27,8 +27,6 @@ export function usePinnedCourses({ baseCourses }: UsePinnedCoursesOptions) {
         [pinnedIds, baseCourses]
     );
 
-    console.log("missingIds", missingIds);
-
     const results = useQueries({
         queries: missingIds.map((id) => ({
             queryKey: ["course", id],

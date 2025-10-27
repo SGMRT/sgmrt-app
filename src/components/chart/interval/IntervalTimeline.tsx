@@ -32,6 +32,10 @@ export default function IntervalTimeline({
     const coolSet = sets[sets.length - 1];
     const mainSets = sets.slice(1, -1);
 
+    for (const set of sets) {
+        console.log("set", set.message, set.pace);
+    }
+
     // 높이: 페이스가 빠를수록(숫자 작을수록) 더 높게
     const paceRange = useMemo<[number, number]>(
         () => getPaceRange(sets),
@@ -73,11 +77,13 @@ export default function IntervalTimeline({
     const warmColor = pacemaker.pace >= warmSet.pace ? fastColor : slowColor;
     const mainColors = useMemo(
         () =>
-            mainSets.map((s) =>
-                pacemaker.pace >= s.pace ? fastColor : slowColor
-            ),
+            mainSets.map((s) => {
+                if (s.pace === 0) return slowColor;
+                return pacemaker.pace >= s.pace ? fastColor : slowColor;
+            }),
         [mainSets, pacemaker.pace, fastColor, slowColor]
     );
+
     const coolColor = pacemaker.pace >= coolSet.pace ? fastColor : slowColor;
 
     return (
@@ -124,7 +130,7 @@ export default function IntervalTimeline({
                     }}
                 >
                     <Typography variant="caption1" color="white">
-                        {`${warmMin} min`}
+                        {`${Math.round(warmMin)} min`}
                     </Typography>
                     <Typography
                         variant="caption1"
@@ -148,7 +154,7 @@ export default function IntervalTimeline({
                     }}
                 >
                     <Typography variant="caption1" color="white">
-                        {`${totalMainMin} min`}
+                        {`${Math.round(totalMainMin)} min`}
                     </Typography>
                     <Typography
                         variant="caption1"
@@ -170,7 +176,7 @@ export default function IntervalTimeline({
                     }}
                 >
                     <Typography variant="caption1" color="white">
-                        {`${coolMin} min`}
+                        {`${Math.round(coolMin)} min`}
                     </Typography>
                     <Typography
                         variant="caption1"

@@ -2,8 +2,12 @@ import { RunSet } from "@/src/apis/types/ghosty";
 
 /** pace 범위(min, max) — 결과 동일 보장 (원본 로직 그대로) */
 export const getPaceRange = (sets: RunSet[]): [number, number] => {
-    const minP = sets.reduce((acc, s) => Math.min(acc, s.pace), Infinity);
-    const maxP = sets.reduce((acc, s) => Math.max(acc, s.pace), -Infinity);
+    const minP = sets
+        .filter((s) => s.pace > 0)
+        .reduce((acc, s) => Math.min(acc, s.pace), Infinity);
+    const maxP = sets
+        .filter((s) => s.pace > 0)
+        .reduce((acc, s) => Math.max(acc, s.pace), -Infinity);
     return [minP, maxP];
 };
 
@@ -17,6 +21,7 @@ export const heightForPace = (
     if (maxP === minP) return Math.round((minBarHeight + maxBarHeight) / 2);
     // pace가 작을수록(빠를수록) t가 1에 가까워짐
     const t = Math.max(0, Math.min(1, (maxP - pace) / (maxP - minP)));
+    if (pace === 0) return minBarHeight;
     return Math.round(minBarHeight + (maxBarHeight - minBarHeight) * t);
 };
 
