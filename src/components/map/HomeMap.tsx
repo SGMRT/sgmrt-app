@@ -1,6 +1,6 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
-import { usePinnedCourses } from "@/src/features/pacemaker/usePinnedCourses";
+import { usePinnedCourses } from "@/src/features/pacemaker/hooks/usePinnedCourses";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";

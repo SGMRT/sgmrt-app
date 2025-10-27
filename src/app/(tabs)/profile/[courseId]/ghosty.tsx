@@ -38,12 +38,14 @@ export default function Ghosty() {
         queryFn: () => getPacemakerByCourseId(Number(courseId)),
     });
 
-    const { data: pacemakerDetail, isLoading } = useQuery({
-        queryKey: ["pacemakerDetail", Number(courseId)],
+    const { data: pacemakerDetail } = useQuery({
+        queryKey: [
+            "pacemakerDetail",
+            pacemakerSummary?.pacemakerSummaryResponse.id!,
+        ],
         queryFn: () =>
-            getPacemakerDetail(
-                pacemakerSummary?.pacemakerSummaryResponse.id ?? 0
-            ),
+            getPacemakerDetail(pacemakerSummary?.pacemakerSummaryResponse.id!),
+        enabled: !!pacemakerSummary?.pacemakerSummaryResponse.id,
     });
 
     return (

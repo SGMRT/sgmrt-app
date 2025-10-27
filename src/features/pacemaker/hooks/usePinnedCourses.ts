@@ -3,7 +3,7 @@ import { getCourse } from "@/src/apis";
 import { CourseDetailResponse, CourseResponse } from "@/src/apis/types/course";
 import { useQueries } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { usePacemakerQueue } from "./queueStore";
+import { usePacemakerQueue } from "../store/queueStore";
 
 type UsePinnedCoursesOptions = {
     baseCourses: CourseResponse[];
@@ -15,7 +15,7 @@ export function usePinnedCourses({ baseCourses }: UsePinnedCoursesOptions) {
     const pinnedIds = useMemo(() => {
         const ids = new Set<number>();
         for (const j of jobs) {
-            if (j.status === "PROCEEDING" || j.status === "COMPLETED") {
+            if (j.status === "PROCESSING" || j.status === "SUCCEED") {
                 ids.add(j.courseId);
             }
         }

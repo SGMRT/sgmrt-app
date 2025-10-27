@@ -1,7 +1,7 @@
 import { deletePacemaker, getPacemakerByCourseId } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
-import { usePacemakerQueue } from "@/src/features/pacemaker/queueStore";
+import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -35,47 +35,10 @@ export default function BottomCourseInfoModal({
     );
     const { findByCourseId, setStatus, removeJob } = usePacemakerQueue();
 
-    const { data: pacemaker, refetch } = useQuery({
+    const { data: pacemaker } = useQuery({
         queryKey: ["pacemaker", course?.id],
         queryFn: () => getPacemakerByCourseId(course?.id ?? 0),
     });
-
-    useEffect(() => {
-        refetch().catch((error) => {
-            console.error(error);
-        });
-    }, [course?.id]);
-
-    useEffect(() => {
-        (async () => {
-            if (
-                pacemaker &&
-                (pacemaker.processingStatus === "COMPLETED" ||
-                    pacemaker.processingStatus === "FAILED")
-            ) {
-                const job = findByCourseId(course?.id ?? 0);
-                if (job) {
-                    setStatus(
-                        job.jobId,
-                        pacemaker.processingStatus,
-                        pacemaker.processingStatus === "FAILED"
-                            ? "Failed to create pacemaker"
-                            : undefined
-                    );
-                }
-            } else if (
-                pacemaker &&
-                pacemaker.processingStatus === "PROCEEDING"
-            ) {
-                const timeout = setTimeout(() => {
-                    refetch();
-                }, 2000);
-                return () => clearTimeout(timeout);
-            } else if (!pacemaker) {
-                setSelectedGhost((prev) => (prev === "ai" ? null : prev));
-            }
-        })();
-    }, [pacemaker]);
 
     const { requestOrAlert, requestOptional } = useAppPermissions();
 

@@ -47,7 +47,7 @@ export const GhostSection = ({
             containerStyle={styles.ghostInfoSection}
             onClickInfo={() => onClickGuide("ghost")}
             titleRightChildren={
-                (userGhost || aiGhost) && (
+                (userGhost || aiGhost?.processingStatus === "COMPLETED") && (
                     <StyledSwitch
                         isSelected={selectedGhost !== null}
                         onValueChange={(value) => {
@@ -77,8 +77,15 @@ export const GhostSection = ({
                         )}
                         isCreating={aiGhost.processingStatus === "PROCEEDING"}
                         onDelete={onDeleteAiGhost ?? (() => {})}
-                        active={selectedGhost === "ai"}
-                        onSelect={() => onSwitchChange("ai")}
+                        active={
+                            selectedGhost === "ai" &&
+                            aiGhost.processingStatus === "COMPLETED"
+                        }
+                        onSelect={() => {
+                            if (aiGhost.processingStatus === "COMPLETED") {
+                                onSwitchChange("ai");
+                            }
+                        }}
                     />
                 ) : (
                     <CreateGhostyButton

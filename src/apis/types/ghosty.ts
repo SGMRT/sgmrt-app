@@ -64,12 +64,12 @@ type Pacemaker = {
 };
 
 interface PacemakerDetailResponse {
-    processingStatus: "PROCEESSING" | "SUCCEEDED" | "FAILED";
+    processingStatus: "PROCESSING" | "SUCCEED" | "COMPLETED" | "FAILED";
     pacemakerResponse: Pacemaker;
 }
 
 interface PacemakerByCourseIdResponse {
-    processingStatus: "PROCEEDING" | "COMPLETED" | "FAILED";
+    processingStatus: "PROCEEDING" | "COMPLETED";
     pacemakerSummaryResponse: {
         id: number;
         pace: number;

@@ -9,12 +9,11 @@ import { TextWithSub } from "@/src/components/ui/TextWithSub";
 import { showCompactToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import { createGhostyWithRetries } from "@/src/features/pacemaker/createGhostyWithRetries";
-import { usePacemakerQueue } from "@/src/features/pacemaker/queueStore";
+import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dispatch, useEffect, useReducer, useState } from "react";
 import { View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const initialState: {
     experience: VDOTLevel | null;
@@ -57,7 +56,7 @@ export const CreateGhosty = ({
     const { temperature } = useLocationInfoStore();
     const [step, setStep] = useState<number | null>(null);
     const [state, dispatch] = useReducer(reducer, initialState);
-    const bottom = useSafeAreaInsets().bottom;
+    const [isCreating, setIsCreating] = useState(false);
 
     const handleNext = async () => {
         if (step === steps.length - 2) {
@@ -68,6 +67,7 @@ export const CreateGhosty = ({
 
     const handleCreateGhosty = async () => {
         try {
+            setIsCreating(true);
             if (state.experience) {
                 await postVDOTInfo(
                     Object.keys(VDOTLevel).find(
@@ -91,7 +91,7 @@ export const CreateGhosty = ({
             const job = addJob({
                 pacemakerId,
                 courseId: course.id,
-                status: "PROCEEDING",
+                status: "PROCESSING",
             });
             await queryClient.invalidateQueries({
                 queryKey: ["pacemaker", course.id],
@@ -100,6 +100,8 @@ export const CreateGhosty = ({
         } catch (error) {
             showCompactToast("고스티 생성에 실패했습니다. 다시 시도해주세요.");
             handleClose();
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -118,6 +120,7 @@ export const CreateGhosty = ({
             key="condition-check"
             state={state}
             dispatch={dispatch}
+            isCreating={isCreating}
         />,
         <StepCreating key="creating" />,
     ];
@@ -226,9 +229,11 @@ const StepSelectGhosty = ({
 const StepConditionCheck = ({
     state,
     dispatch,
+    isCreating,
 }: {
     state: typeof initialState;
     dispatch: Dispatch<{ type: "setCondition"; payload: Condition }>;
+    isCreating: boolean;
 }) => {
     const handleCondition = (condition: Condition) => {
         dispatch({ type: "setCondition", payload: condition });
@@ -236,19 +241,27 @@ const StepConditionCheck = ({
 
     return (
         <View style={{ alignItems: "center", gap: 10, marginBottom: 32 }}>
-            <TextWithSub
-                title={`오늘의 컨디션은 어떤가요?\n고스티가 참고할게요`}
-                sub="나쁨, 좋음을 기준으로 5단계 중 선택해 주세요"
-                containerStyle={{ marginBottom: 10 }}
-            />
-            <LevelCheck
-                maxLevel={5}
-                level={state.condition ?? 0}
-                setLevel={(level) => handleCondition(level as Condition)}
-                label={{ left: "나쁨", right: "좋음", gap: 23 }}
-                icon={{ icon: <HeartIcon />, gap: 14 }}
-                style={{ marginVertical: 19 }}
-            />
+            {isCreating ? (
+                <ProgressLing containerSize={80} />
+            ) : (
+                <>
+                    <TextWithSub
+                        title={`오늘의 컨디션은 어떤가요?\n고스티가 참고할게요`}
+                        sub="나쁨, 좋음을 기준으로 5단계 중 선택해 주세요"
+                        containerStyle={{ marginBottom: 10 }}
+                    />
+                    <LevelCheck
+                        maxLevel={5}
+                        level={state.condition ?? 0}
+                        setLevel={(level) =>
+                            handleCondition(level as Condition)
+                        }
+                        label={{ left: "나쁨", right: "좋음", gap: 23 }}
+                        icon={{ icon: <HeartIcon />, gap: 14 }}
+                        style={{ marginVertical: 19 }}
+                    />
+                </>
+            )}
         </View>
     );
 };
