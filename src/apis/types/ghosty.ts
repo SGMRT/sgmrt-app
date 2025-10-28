@@ -21,6 +21,14 @@ enum GhostyType {
     FREE = "기분 가는 대로 달리기",
 }
 
+const GhostyTypeMap = {
+    [GhostyType.RECOVERY_JOGGING]: "RECOVERY_JOGGING",
+    [GhostyType.STAMINA]: "STAMINA",
+    [GhostyType.SPEED]: "SPEED",
+    [GhostyType.MARATHON]: "MARATHON",
+    [GhostyType.FREE]: "FREE",
+};
+
 enum Condition {
     LEVEL_1 = 1,
     LEVEL_2 = 2,
@@ -28,6 +36,8 @@ enum Condition {
     LEVEL_4 = 4,
     LEVEL_5 = 5,
 }
+
+type ProcessStatus = "PROCEEDING" | "COMPLETED" | "FAILED";
 
 interface CreateGhostyRequest {
     type: GhostyType;
@@ -53,6 +63,7 @@ type TimeTable = {
 
 type Pacemaker = {
     id: number;
+    runningType: keyof typeof GhostyTypeMap;
     summary: string;
     norm: string;
     goalKm: number;
@@ -61,17 +72,19 @@ type Pacemaker = {
     pace: number;
     sets: RunSet[];
     timeTable: TimeTable;
+    runningTip: string;
 };
 
 interface PacemakerDetailResponse {
-    processingStatus: "PROCEEDING" | "COMPLETED" | "FAILED";
+    processingStatus: ProcessStatus;
     pacemakerResponse: Pacemaker;
 }
 
 interface PacemakerByCourseIdResponse {
-    processingStatus: "PROCEEDING" | "COMPLETED";
+    processingStatus: Exclude<ProcessStatus, "FAILED">;
     pacemakerSummaryResponse: {
         id: number;
+        runningType: keyof typeof GhostyTypeMap;
         pace: number;
     };
 }
@@ -81,6 +94,7 @@ export {
     CreateGhostyRequest,
     GhostyRateLimitResponse,
     GhostyType,
+    GhostyTypeMap,
     Pacemaker,
     PacemakerByCourseIdResponse,
     PacemakerDetailResponse,

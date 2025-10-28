@@ -3,8 +3,9 @@ import { PacemakerByCourseIdResponse } from "@/src/apis/types/ghosty";
 import Section from "@/src/components/ui/Section";
 import { Stat } from "@/src/components/ui/StatRow";
 import { StyledSwitch } from "@/src/components/ui/StyledSwitch";
+import { convertToName } from "@/src/features/pacemaker/utils/convertToName";
 import { getFormattedPace } from "@/src/utils/runUtils";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { AIGhostRow } from "../GhostRow/AIGhostRow";
 import { CreateGhostyButton } from "../GhostRow/CreateGhostyButton";
@@ -33,6 +34,9 @@ export const GhostSection = ({
     onClickGuide,
 }: GhostSectionProps) => {
     const [remainingCount, setRemainingCount] = useState(0);
+    const ghostyName = useMemo(() => {
+        return convertToName(aiGhost?.pacemakerSummaryResponse?.runningType);
+    }, [aiGhost?.pacemakerSummaryResponse?.runningType]);
 
     useEffect(() => {
         getGhostyRateLimit().then((response) => {
@@ -71,7 +75,7 @@ export const GhostSection = ({
                 {aiGhost ? (
                     <AIGhostRow
                         courseId={courseId}
-                        name={"브리즈"}
+                        name={ghostyName}
                         pace={getFormattedPace(
                             (aiGhost.pacemakerSummaryResponse?.pace ?? 0) * 60
                         )}

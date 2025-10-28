@@ -32,10 +32,6 @@ export default function IntervalTimeline({
     const coolSet = sets[sets.length - 1];
     const mainSets = sets.slice(1, -1);
 
-    for (const set of sets) {
-        console.log("set", set.message, set.pace);
-    }
-
     // 높이: 페이스가 빠를수록(숫자 작을수록) 더 높게
     const paceRange = useMemo<[number, number]>(
         () => getPaceRange(sets),

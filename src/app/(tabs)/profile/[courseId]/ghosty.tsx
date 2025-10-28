@@ -11,10 +11,12 @@ import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import Section from "@/src/components/ui/Section";
 import { Typography } from "@/src/components/ui/Typography";
+import { convertToName } from "@/src/features/pacemaker/utils/convertToName";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useMemo } from "react";
 import {
     ScrollView,
     StyleProp,
@@ -48,6 +50,13 @@ export default function Ghosty() {
         enabled: !!pacemakerSummary?.pacemakerSummaryResponse.id,
     });
 
+    // useMemo
+    const ghostyName = useMemo(() => {
+        return convertToName(
+            pacemakerSummary?.pacemakerSummaryResponse.runningType
+        );
+    }, [pacemakerSummary?.pacemakerSummaryResponse.runningType]);
+
     return (
         <SafeAreaView style={styles.flexibleContainer}>
             <Header titleText={course?.name ?? ""} />
@@ -57,7 +66,7 @@ export default function Ghosty() {
             >
                 <View style={styles.ghostyContainer}>
                     <Typography variant="headline" color="white">
-                        브리즈가 생성되었어요
+                        {ghostyName}가 생성되었어요
                     </Typography>
                     <View style={styles.ghostyImageContainer}>
                         <Image source={Breeze} style={styles.ghostyImage} />
@@ -105,7 +114,7 @@ export default function Ghosty() {
                             color="gray20"
                             style={{ textAlign: "center" }}
                         >
-                            {pacemakerDetail?.pacemakerResponse.summary}
+                            {pacemakerDetail?.pacemakerResponse.runningTip}
                         </Typography>
                     </PlanSection>
                 </Section>
