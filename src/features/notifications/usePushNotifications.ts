@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { Linking } from "react-native";
 import { registerForPushNotificationsAsync } from "./notifications";
 
-type UrlItem = { version: string | null; url: string };
+type UrlItem = { version: string | null; url: string | null };
 type Payload = { urls: UrlItem[] };
 
 const isInternalRoute = (url: string) => url.startsWith("/");
@@ -36,7 +36,7 @@ function redirectFromNotification(notification: Notifications.Notification) {
         target = urls.find((u) => u.version === null || u.version === "");
     }
 
-    if (!target || !target.url) return;
+    if (!target || !target.url || target.url === "") return;
 
     if (isInternalRoute(target.url)) {
         trackAmplitude("notification_redirect", {
