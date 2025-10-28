@@ -417,7 +417,7 @@ export default function Run() {
                             ? "3"
                             : getRunTime(
                                   Math.round(elapsedMs / 1000),
-                                  "HH:MM:SS"
+                                  "HH:MM:SS_IF_HH_EXISTS"
                               )}
                     </Animated.Text>
                 )}

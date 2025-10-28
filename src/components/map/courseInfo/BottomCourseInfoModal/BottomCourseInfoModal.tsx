@@ -71,7 +71,10 @@ export default function BottomCourseInfoModal({
     const ghostStats = [
         {
             description: "시간",
-            value: getRunTime(course?.myGhostInfo?.duration ?? 0, "HH:MM:SS"),
+            value: getRunTime(
+                course?.myGhostInfo?.duration ?? 0,
+                "HH:MM:SS_IF_HH_EXISTS"
+            ),
         },
         {
             description: "페이스",

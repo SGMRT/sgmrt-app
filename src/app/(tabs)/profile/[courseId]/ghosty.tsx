@@ -28,6 +28,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Ghosty() {
     const { courseId } = useLocalSearchParams();
+    console.log(courseId);
     const router = useRouter();
 
     const { data: course } = useQuery({

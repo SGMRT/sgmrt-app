@@ -37,7 +37,10 @@ const canShare = (objectType: string) => {
 
 const getRunTime = (
     runTime: number,
-    format: "HH:MM:SS" | "MM:SS" = "HH:MM:SS"
+    format:
+        | "HH:MM:SS"
+        | "MM:SS"
+        | "HH:MM:SS_IF_HH_EXISTS" = "HH:MM:SS_IF_HH_EXISTS"
 ) => {
     let isNegative = false;
     if (runTime < 0) {
@@ -51,7 +54,10 @@ const getRunTime = (
 
     const prefix = isNegative ? "-" : "";
 
-    if (format === "HH:MM:SS") {
+    if (
+        format === "HH:MM:SS" ||
+        (format === "HH:MM:SS_IF_HH_EXISTS" && hours > 0)
+    ) {
         return `${prefix}${hours.toString().padStart(2, "0")}:${minutes
             .toString()
             .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;

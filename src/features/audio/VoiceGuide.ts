@@ -264,7 +264,10 @@ class VoiceGuide {
             }
             case "run/complete": {
                 const prefix = "코스를 완주했습니다. ";
-                const time = getRunTime(event.totalTime, "HH:MM:SS").split(":");
+                const time = getRunTime(
+                    event.totalTime,
+                    "HH:MM:SS_IF_HH_EXISTS"
+                ).split(":");
                 const timeText =
                     "시간 " +
                     (time.length === 3
@@ -305,7 +308,10 @@ class VoiceGuide {
             }
             case "run/stop": {
                 const prefix = "러닝을 종료했습니다. ";
-                const time = getRunTime(event.totalTime, "HH:MM:SS").split(":");
+                const time = getRunTime(
+                    event.totalTime,
+                    "HH:MM:SS_IF_HH_EXISTS"
+                ).split(":");
                 const timeText =
                     "시간 " +
                     (time.length === 3
@@ -356,7 +362,10 @@ class VoiceGuide {
             }
             case "run/distance": {
                 const prefix = "거리 " + event.distanceKM + "km";
-                const time = getRunTime(event.totalTime, "HH:MM:SS").split(":");
+                const time = getRunTime(
+                    event.totalTime,
+                    "HH:MM:SS_IF_HH_EXISTS"
+                ).split(":");
                 const timeText =
                     " 시간 " +
                     (time.length === 3

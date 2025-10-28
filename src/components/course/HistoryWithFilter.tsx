@@ -388,7 +388,7 @@ const RunHistoryGalleryItem = ({
                             variant="body1"
                             color={isSelected ? "gray20" : "gray40"}
                         >
-                            {getRunTime(duration, "HH:MM:SS")}
+                            {getRunTime(duration, "HH:MM:SS_IF_HH_EXISTS")}
                         </Typography>
                     </View>
                     <View style={styles.content}>
@@ -500,7 +500,7 @@ const RunHistoryItem = ({
                         variant="body2"
                         color={isSelected ? "gray20" : "gray40"}
                     >
-                        {getRunTime(duration, "HH:MM:SS")}
+                        {getRunTime(duration, "HH:MM:SS_IF_HH_EXISTS")}
                     </Typography>
                     <Divider />
                     <Typography
