@@ -1,4 +1,4 @@
-import { getCourse, getRun } from "@/src/apis";
+import { getCourse, getRun, markPacemakerAsRun } from "@/src/apis";
 import { SoloRunGetResponse, Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
@@ -15,8 +15,10 @@ import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
+import { voiceGuide } from "@/src/features/audio/VoiceGuide";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
 import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
+import { usePacemaker } from "@/src/features/pacemaker/hooks/usePacemaker";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { buildUserRecordData } from "@/src/features/run/state/record";
@@ -81,6 +83,7 @@ export default function Run() {
 
     const { courseId, ghostRunningId, ghostyId } = useLocalSearchParams();
     const isGhostRunning = ghostRunningId !== "-1";
+    const [courseTelemetry, setCourseTelemetry] = useState<Telemetry[]>([]);
     const [courseSegments, setCourseSegments] = useState<Segment>();
 
     const ghostRecordRef = useRef<SoloRunGetResponse | null>(null);
@@ -88,6 +91,15 @@ export default function Run() {
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
     const { context, controls } = useRunningSession();
+    const { ghostyTelemetry, ghostySegment } = usePacemaker({
+        pacemakerId: Number(ghostyId),
+        courseTelemetry,
+        context,
+        timestamp: context.stats.totalTimeMs,
+        onSpeak: (text) => {
+            voiceGuide.announce({ type: "ghosty", message: text });
+        },
+    });
 
     useRunVoice(context);
 
@@ -130,6 +142,7 @@ export default function Run() {
         (async () => {
             const response = await getCourse(Number(courseId));
             setCourseName(response.name);
+            setCourseTelemetry(response.telemetries);
             setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
             controls.start("COURSE", isGhostRunning ? "GHOST" : "PLAIN", {
                 distanceMeters: response.distance,
@@ -311,6 +324,13 @@ export default function Run() {
                     ghostRunningId: saveGhostId,
                 });
 
+                if (ghostyId && response.runningId) {
+                    await markPacemakerAsRun(
+                        Number(ghostyId),
+                        response.runningId
+                    );
+                }
+
                 if (withRouting) {
                     router.replace({
                         pathname:
@@ -436,6 +456,14 @@ export default function Run() {
                         aboveLayerID="z-index-3"
                     />
                 ))}
+                {ghostySegment && (
+                    <RunningLine
+                        id="ghosty-segment"
+                        segment={ghostySegment}
+                        color="red"
+                        aboveLayerID="z-index-2"
+                    />
+                )}
                 {courseSegments && (
                     <RunningLine
                         id="course"
@@ -498,6 +526,27 @@ export default function Run() {
                                 aboveLayerID="z-index-2"
                             />
                         ))}
+                {ghostyTelemetry && (
+                    <ShapeSource
+                        id="ghosty-puck"
+                        shape={{
+                            type: "Point",
+                            coordinates: [
+                                ghostyTelemetry.lng,
+                                ghostyTelemetry.lat,
+                            ],
+                        }}
+                    >
+                        <SymbolLayer
+                            id="ghost-puck-layer"
+                            style={{
+                                iconImage: "puck3",
+                                iconAllowOverlap: true,
+                            }}
+                            aboveLayerID="z-index-5"
+                        />
+                    </ShapeSource>
+                )}
             </MapViewWrapper>
 
             <StyledBottomSheet
@@ -535,8 +584,13 @@ export default function Run() {
                             <StatsIndicator
                                 stats={statsForUI}
                                 color="gray20"
-                                ghost={isGhostRunning}
-                                ghostTelemetry={ghostCoordinator?.ghostPoint}
+                                ghost={isGhostRunning || !!ghostyTelemetry}
+                                ghostType={ghostyTelemetry ? "ghosty" : "ghost"}
+                                ghostTelemetry={
+                                    ghostyTelemetry
+                                        ? ghostyTelemetry
+                                        : ghostCoordinator?.ghostPoint
+                                }
                                 end={runShotType === "share"}
                             />
                         </View>

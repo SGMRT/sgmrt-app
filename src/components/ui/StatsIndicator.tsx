@@ -7,6 +7,7 @@ import TextWithUnit from "./TextWithUnit";
 interface StatsIndicatorProps {
     stats: { label: string; value: string | number; unit: string }[];
     ghostTelemetry?: Telemetry | null;
+    ghostType?: "ghosty" | "ghost";
     color?: "gray20" | "gray40";
     ghost?: boolean;
     end?: boolean;
@@ -15,6 +16,7 @@ interface StatsIndicatorProps {
 export default function StatsIndicator({
     stats,
     ghostTelemetry,
+    ghostType = "ghost",
     ghost,
     color = "gray40",
     end = false,
@@ -105,6 +107,15 @@ export default function StatsIndicator({
                     );
                 }
                 case "케이던스": {
+                    if (ghostType === "ghosty") {
+                        return (
+                            <TextWithUnit
+                                value={""}
+                                unit=""
+                                variant="subhead1"
+                            />
+                        );
+                    }
                     const mySpm = asNum(stat.value);
                     const ghSpm = ghostTelemetryToUse.cadence;
                     if (!isFinite(mySpm) || !isFinite(ghSpm)) return null;

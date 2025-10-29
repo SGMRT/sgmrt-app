@@ -60,8 +60,7 @@ export function selectStatsDisplay(context: RunContext) {
     const stats = context.stats;
     const km = (stats.totalDistanceM ?? 0) / 1000;
     const formatPace = (sec: number | null) => {
-        if (!sec || sec <= 0 || !Number.isFinite(sec) || sec >= 1800)
-            return "-'-''";
+        if (!sec || sec <= 0 || !Number.isFinite(sec)) return "-'-''";
         const minutes = Math.floor(sec / 60);
         const seconds = Math.floor(sec % 60);
         return `${minutes}’${seconds.toString().padStart(2, "0")}”`;

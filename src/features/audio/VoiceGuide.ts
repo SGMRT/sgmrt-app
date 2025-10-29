@@ -68,6 +68,7 @@ export type VoiceEvent =
           totalCalories: number | null;
           avgPace: number | null;
       }
+    | { type: "ghosty"; message: string }
     | {
           type: "custom";
           text: string;
@@ -388,6 +389,13 @@ class VoiceGuide {
                     text: event.text,
                     priority: event.priority,
                     cooldownKey: event.cooldownKey,
+                };
+            }
+            case "ghosty": {
+                return {
+                    text: event.message,
+                    priority: "CRITICAL",
+                    cooldownKey: "ghosty",
                 };
             }
             default: {
