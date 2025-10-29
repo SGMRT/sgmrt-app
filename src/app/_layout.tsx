@@ -22,6 +22,7 @@ import { useShouldShowAd } from "../components/ads/useShouldShowAd";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
 import PacemakerPollingWrapper from "../features/pacemaker/PacemakerPollingWrapper";
 import { useAppPermissions } from "../features/permission/useAppPermissions";
+import UpdateGate from "../updates/UpdateGate";
 import { devLog } from "../utils/devLog";
 
 const env =
@@ -49,6 +50,7 @@ function RootLayout() {
     });
 
     const { status, error } = useBootstrapApp(isLoggedIn, loaded);
+    const bootReady = status === "done" || status === "error";
     const { requestOptional } = useAppPermissions();
     const shouldShowAd = useShouldShowAd();
 
@@ -96,6 +98,10 @@ function RootLayout() {
                         {shouldShowAd && <CompactNativeAdRow />}
                         <Toast config={toastConfig} />
                     </BottomSheetModalProvider>
+                    <UpdateGate
+                        bootReady={bootReady}
+                        reloadNonCritical={false}
+                    />
                 </QueryClientProvider>
             </ThemeProvider>
         </GestureHandlerRootView>
