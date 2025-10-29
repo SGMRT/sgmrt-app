@@ -90,7 +90,7 @@ export async function getPacemakerDetail(
         const response = await server.get(`pacemaker/${pacemakerId}`);
         return response.data;
     } catch (error) {
-        throw handleError(error);
+        throw error;
     }
 }
 
@@ -107,7 +107,7 @@ export async function markPacemakerAsRun(
     runningId: number
 ): Promise<void> {
     try {
-        await server.post(`pacemaker/after-running`, {
+        await server.patch(`pacemaker/after-running`, {
             pacemakerId,
             runningId,
         });

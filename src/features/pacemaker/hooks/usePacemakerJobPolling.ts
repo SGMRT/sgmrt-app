@@ -1,6 +1,7 @@
 import { getPacemakerDetail } from "@/src/apis";
 import { devLog } from "@/src/utils/devLog";
 import { useQueryClient } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { shallow } from "zustand/shallow";
 import { usePacemakerQueue } from "../store/queueStore";
@@ -78,6 +79,18 @@ export function usePacemakerJobPolling({
                             queryKey: ["pacemakerDetail", job.pacemakerId],
                         });
                         return;
+                    }
+                } catch (error) {
+                    if (isAxiosError(error)) {
+                        const status = error.response?.status;
+                        if (status === 404) {
+                            setStatus(
+                                job.jobId,
+                                "FAILED",
+                                "Pacemaker not found"
+                            );
+                            return;
+                        }
                     }
                 } finally {
                     inFlight.current.delete(job.pacemakerId);
