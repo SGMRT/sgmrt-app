@@ -147,7 +147,7 @@ async function bootstrapAnalytics({
 export function useBootstrapApp(
     isLoggedIn: boolean,
     loadedFonts: boolean,
-    testMode: boolean = false
+    testMode: boolean = true
 ) {
     const router = useRouter();
     const [status, setStatus] = useState<Status>("idle");

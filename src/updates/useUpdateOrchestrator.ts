@@ -36,29 +36,48 @@ export function useUpdateOrchestrator({
     // critical 판정: next.extra.criticalIndex > current.extra.criticalIndex
     const isCritical = useMemo(() => {
         const next =
-            (availableUpdate?.manifest as any)?.extra?.criticalIndex ?? 0;
+            (availableUpdate?.manifest as any)?.extra?.expoClient?.extra
+                ?.criticalIndex ?? 0;
         const curr =
-            (currentlyRunning?.manifest as any)?.extra?.criticalIndex ?? 0;
+            (currentlyRunning?.manifest as any)?.extra?.expoClient?.extra
+                ?.criticalIndex ?? 0;
         return Number(next) > Number(curr);
     }, [availableUpdate?.manifest, currentlyRunning?.manifest]);
 
     const checkOnce = async () => {
         try {
             setChecking(true);
+
+            // 1) 업데이트 할 것이 있는지 체크
             const res = await Updates.checkForUpdateAsync();
+
+            // 2) 업데이트 할 것이 없으면 종료
             if (!res.isAvailable) return;
 
-            if (isCritical) {
-                onCriticalStart?.(); // 전면 오버레이 띄우기
+            const nextManifest: any = res.manifest ?? {};
+            const currManifest: any = (currentlyRunning?.manifest as any) ?? {};
+            const nextCritical = Number(
+                nextManifest?.extra?.expoClient?.extra?.criticalIndex ?? 0
+            );
+            const currCritical = Number(
+                currManifest?.extra?.expoClient?.extra?.criticalIndex ?? 0
+            );
+            const critical = nextCritical > currCritical;
+
+            // 3) 다운로드
+            if (critical) {
+                onCriticalStart?.();
                 await Updates.fetchUpdateAsync();
-                onCriticalDone?.(); // 오버레이 닫기
-                await Updates.reloadAsync(); // 바로 재시작
+
+                onCriticalDone?.();
+
+                // 4) 즉시 재시작 (강제업뎃)
+                await Updates.reloadAsync();
             } else {
-                await Updates.fetchUpdateAsync(); // 조용히 다운로드만
+                await Updates.fetchUpdateAsync(); // 조용히 다운로드
                 onNonCriticalDownloaded?.();
-                if (reloadNonCritical) {
-                    await Updates.reloadAsync();
-                }
+
+                if (reloadNonCritical) await Updates.reloadAsync();
             }
         } catch (e) {
             onError?.(e);

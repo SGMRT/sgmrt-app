@@ -5,7 +5,7 @@ const spawnAsync = require("@expo/spawn-async");
 const projectRoot = path.resolve(__dirname, "..");
 
 // 현재 크리티컬 인덱스를 가져오고, 필요한 경우 증가시킨다
-async function getAndMaybeBumpCriticalIndex(shouldBump: boolean) {
+async function getAndMaybeBumpCriticalIndex(shouldBump) {
     const p = path.join(projectRoot, ".criticalIndex");
     let v = 0;
     try {
@@ -16,9 +16,14 @@ async function getAndMaybeBumpCriticalIndex(shouldBump: boolean) {
     return next;
 }
 
-async () => {
+async function main() {
     const args = process.argv.slice(2);
-    const opts = { message: "", channel: "main", critical: false };
+    const opts = {
+        message: "",
+        channel: "main",
+        critical: false,
+        platform: "all",
+    };
 
     for (let i = 0; i < args.length; i++) {
         const a = args[i];
@@ -26,11 +31,13 @@ async () => {
         else if (a === "-c" || a === "--critical") opts.critical = true;
         else if (a === "-ch" || a === "--channel")
             opts.channel = args[++i] || "main";
+        else if (a === "-p" || a === "--platform")
+            opts.platform = args[++i] || "all";
     }
 
     if (!opts.message) {
         console.log(
-            'Usage: node scripts/push-update.js -m "message" [--critical] [--channel main]'
+            'Usage: node scripts/push-update.js -m "message" [--critical] [--channel production|staging|preview] [--platform ios|android|all]'
         );
         process.exit(1);
     }
@@ -43,13 +50,35 @@ async () => {
     };
 
     console.log(
-        `Pushing update with critical index ${criticalIndex} to channel ${opts.channel}`
+        `Pushing update with critical index ${criticalIndex} to channel ${opts.channel} (platform: ${opts.platform})`
     );
     console.log(`Options: ${JSON.stringify(opts)}`);
 
-    await spawnAsync(
-        "eas",
-        ["update", "--message", opts.message, "--channel", opts.channel],
-        { stdio: "inherit", cwd: projectRoot, env }
-    );
-};
+    // 플랫폼별로 나누어 실행
+    const platforms =
+        opts.platform === "all"
+            ? ["ios", "android"]
+            : [opts.platform.toLowerCase()];
+
+    for (const p of platforms) {
+        console.log(`\nRunning EAS update for ${p.toUpperCase()}...`);
+        await spawnAsync(
+            "eas",
+            [
+                "update",
+                "--message",
+                opts.message,
+                "--channel",
+                opts.channel,
+                "--platform",
+                p,
+            ],
+            { stdio: "inherit", cwd: projectRoot, env }
+        );
+    }
+}
+
+main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});
