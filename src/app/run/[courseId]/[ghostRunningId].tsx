@@ -116,6 +116,7 @@ export default function Run() {
         timestamp: context.stats.totalTimeMs,
         controls,
         simulateSpeed: 1.0,
+        enabled: isGhostRunning,
     });
 
     const triggerCapture = useCallback(() => {

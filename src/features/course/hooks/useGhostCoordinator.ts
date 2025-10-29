@@ -38,6 +38,7 @@ interface GhostCoordinatorProps {
     timestamp: number;
     controls: Controls;
     simulateSpeed?: number;
+    enabled?: boolean;
 }
 
 export function useGhostCoordinator(
@@ -51,7 +52,12 @@ export function useGhostCoordinator(
         timestamp,
         controls,
         simulateSpeed,
+        enabled = true,
     } = props;
+
+    if (!enabled) return null;
+
+    console.log("hi");
 
     const ghostLegIndexRef = useRef(0);
     const prevTimestampRef = useRef<number | null>(null);
