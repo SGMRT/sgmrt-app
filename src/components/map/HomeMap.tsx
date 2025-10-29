@@ -147,6 +147,8 @@ export default function HomeMap({
     );
 
     const onRegionDidChange = (event: any) => {
+        if (!center) return;
+
         const newCenter: Position = event.properties.center;
         const visibleBounds: VisibleBounds = event.properties.bounds;
 

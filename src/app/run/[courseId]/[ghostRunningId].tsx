@@ -1,5 +1,10 @@
-import { getCourse, getRun, markPacemakerAsRun } from "@/src/apis";
-import { SoloRunGetResponse, Telemetry } from "@/src/apis/types/run";
+import {
+    getCourse,
+    getPacemakerDetail,
+    getRun,
+    markPacemakerAsRun,
+} from "@/src/apis";
+import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -15,10 +20,9 @@ import { showCompactToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
-import { voiceGuide } from "@/src/features/audio/VoiceGuide";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
 import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
-import { usePacemaker } from "@/src/features/pacemaker/hooks/usePacemaker";
+import { mapPacemakerToTelemety } from "@/src/features/pacemaker/utils/pacemakerTelemetry";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { buildUserRecordData } from "@/src/features/run/state/record";
@@ -82,24 +86,17 @@ export default function Run() {
     } | null>(null);
 
     const { courseId, ghostRunningId, ghostyId } = useLocalSearchParams();
+
     const isGhostRunning = ghostRunningId !== "-1";
-    const [courseTelemetry, setCourseTelemetry] = useState<Telemetry[]>([]);
+    const isGhostyRunning = !!ghostyId;
+
     const [courseSegments, setCourseSegments] = useState<Segment>();
 
-    const ghostRecordRef = useRef<SoloRunGetResponse | null>(null);
+    const ghostTelemetryRef = useRef<Telemetry[]>([]);
     const hasSavedRef = useRef<boolean>(false);
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
     const { context, controls } = useRunningSession();
-    const { ghostyTelemetry, ghostySegment } = usePacemaker({
-        pacemakerId: Number(ghostyId),
-        courseTelemetry,
-        context,
-        timestamp: context.stats.totalTimeMs,
-        onSpeak: (text) => {
-            voiceGuide.announce({ type: "ghosty", message: text });
-        },
-    });
 
     useRunVoice(context);
 
@@ -122,13 +119,13 @@ export default function Run() {
 
     const ghostCoordinator = useGhostCoordinator({
         legs,
-        ghostTelemetry: ghostRecordRef.current?.telemetries ?? [],
+        ghostTelemetry: ghostTelemetryRef.current,
         myPoint: context.telemetries[context.telemetries.length - 1],
         myLegIndex: legIndex,
         timestamp: context.stats.totalTimeMs,
         controls,
         simulateSpeed: 1.0,
-        enabled: isGhostRunning,
+        enabled: isGhostRunning || isGhostyRunning,
     });
 
     const triggerCapture = useCallback(() => {
@@ -142,15 +139,25 @@ export default function Run() {
         (async () => {
             const response = await getCourse(Number(courseId));
             setCourseName(response.name);
-            setCourseTelemetry(response.telemetries);
             setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
             controls.start("COURSE", isGhostRunning ? "GHOST" : "PLAIN", {
                 distanceMeters: response.distance,
             });
+            if (isGhostyRunning) {
+                const ghosty = mapPacemakerToTelemety({
+                    pacemaker: (await getPacemakerDetail(Number(ghostyId)))
+                        .pacemakerResponse,
+                    telemetries: response.telemetries,
+                });
+                if (ghosty) {
+                    ghostTelemetryRef.current = ghosty.sample();
+                }
+            }
+
             initializeCourse(response.telemetries, response.courseCheckpoints);
             if (isGhostRunning) {
                 const ghostRecord = await getRun(Number(ghostRunningId));
-                ghostRecordRef.current = ghostRecord;
+                ghostTelemetryRef.current = ghostRecord?.telemetries ?? [];
             }
         })();
     }, [courseId, initializeCourse, controls, isGhostRunning, ghostRunningId]);
@@ -456,14 +463,6 @@ export default function Run() {
                         aboveLayerID="z-index-3"
                     />
                 ))}
-                {ghostySegment && (
-                    <RunningLine
-                        id="ghosty-segment"
-                        segment={ghostySegment}
-                        color="red"
-                        aboveLayerID="z-index-2"
-                    />
-                )}
                 {courseSegments && (
                     <RunningLine
                         id="course"
@@ -492,28 +491,29 @@ export default function Run() {
                         />
                     </ShapeSource>
                 )}
-                {isGhostRunning && ghostCoordinator?.ghostPoint && (
-                    <ShapeSource
-                        id="ghost-puck"
-                        shape={{
-                            type: "Point",
-                            coordinates: [
-                                ghostCoordinator.ghostPoint.lng,
-                                ghostCoordinator.ghostPoint.lat,
-                            ],
-                        }}
-                    >
-                        <SymbolLayer
-                            id="ghost-puck-layer"
-                            style={{
-                                iconImage: "puck3",
-                                iconAllowOverlap: true,
+                {(isGhostRunning || isGhostyRunning) &&
+                    ghostCoordinator?.ghostPoint && (
+                        <ShapeSource
+                            id="ghost-puck"
+                            shape={{
+                                type: "Point",
+                                coordinates: [
+                                    ghostCoordinator.ghostPoint.lng,
+                                    ghostCoordinator.ghostPoint.lat,
+                                ],
                             }}
-                            aboveLayerID="z-index-5"
-                        />
-                    </ShapeSource>
-                )}
-                {isGhostRunning &&
+                        >
+                            <SymbolLayer
+                                id="ghost-puck-layer"
+                                style={{
+                                    iconImage: "puck3",
+                                    iconAllowOverlap: true,
+                                }}
+                                aboveLayerID="z-index-5"
+                            />
+                        </ShapeSource>
+                    )}
+                {(isGhostRunning || isGhostyRunning) &&
                     ghostCoordinator?.ghostSegments &&
                     ghostCoordinator.ghostSegments
                         .filter((segment) => segment.isRunning)
@@ -523,30 +523,9 @@ export default function Run() {
                                 id={"ghost-segment-" + index}
                                 segment={segment}
                                 color="red"
-                                aboveLayerID="z-index-2"
+                                aboveLayerID="z-index-7"
                             />
                         ))}
-                {ghostyTelemetry && (
-                    <ShapeSource
-                        id="ghosty-puck"
-                        shape={{
-                            type: "Point",
-                            coordinates: [
-                                ghostyTelemetry.lng,
-                                ghostyTelemetry.lat,
-                            ],
-                        }}
-                    >
-                        <SymbolLayer
-                            id="ghost-puck-layer"
-                            style={{
-                                iconImage: "puck3",
-                                iconAllowOverlap: true,
-                            }}
-                            aboveLayerID="z-index-5"
-                        />
-                    </ShapeSource>
-                )}
             </MapViewWrapper>
 
             <StyledBottomSheet
@@ -584,13 +563,9 @@ export default function Run() {
                             <StatsIndicator
                                 stats={statsForUI}
                                 color="gray20"
-                                ghost={isGhostRunning || !!ghostyTelemetry}
-                                ghostType={ghostyTelemetry ? "ghosty" : "ghost"}
-                                ghostTelemetry={
-                                    ghostyTelemetry
-                                        ? ghostyTelemetry
-                                        : ghostCoordinator?.ghostPoint
-                                }
+                                ghost={isGhostRunning || isGhostyRunning}
+                                ghostType={isGhostyRunning ? "ghosty" : "ghost"}
+                                ghostTelemetry={ghostCoordinator?.ghostPoint}
                                 end={runShotType === "share"}
                             />
                         </View>
