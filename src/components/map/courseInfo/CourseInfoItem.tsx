@@ -66,7 +66,10 @@ export default function CourseInfoItem({
                             unit: "km",
                         },
                         {
-                            value: getRunTime(duration, "HH:MM:SS"),
+                            value: getRunTime(
+                                duration,
+                                "HH:MM:SS_IF_HH_EXISTS"
+                            ),
                         },
                         {
                             value: getFormattedPace(averagePace),

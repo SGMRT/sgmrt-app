@@ -365,7 +365,7 @@ const CourseItem = ({
                         variant="body2"
                         color={isSelected ? "gray20" : "gray40"}
                     >
-                        {getRunTime(duration, "HH:MM:SS")}
+                        {getRunTime(duration, "HH:MM:SS_IF_HH_EXISTS")}
                     </Typography>
                     <Divider />
                     <Typography

@@ -1,9 +1,12 @@
+import { deletePacemaker, getPacemakerByCourseId } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
+import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -23,17 +26,20 @@ export default function BottomCourseInfoModal({
     bottomSheetRef,
     course,
 }: BottomCourseInfoModalProps) {
+    const queryClient = useQueryClient();
     const router = useRouter();
     const [route, setRoute] = useState<SheetRoute>("info");
     const [guideType, setGuideType] = useState<GuideType>("run");
     const [selectedGhost, setSelectedGhost] = useState<"user" | "ai" | null>(
         null
     );
-    const [aiGhost, setAiGhost] = useState<any>({
-        name: "브리즈",
-        pace: "8'23''",
-        isCreating: false,
+    const { findByCourseId, setStatus, removeJob } = usePacemakerQueue();
+
+    const { data: pacemaker } = useQuery({
+        queryKey: ["pacemaker", course?.id],
+        queryFn: () => getPacemakerByCourseId(course?.id ?? 0),
     });
+
     const { requestOrAlert, requestOptional } = useAppPermissions();
 
     useEffect(() => {
@@ -65,7 +71,10 @@ export default function BottomCourseInfoModal({
     const ghostStats = [
         {
             description: "시간",
-            value: getRunTime(course?.myGhostInfo?.duration ?? 0, "HH:MM:SS"),
+            value: getRunTime(
+                course?.myGhostInfo?.duration ?? 0,
+                "HH:MM:SS_IF_HH_EXISTS"
+            ),
         },
         {
             description: "페이스",
@@ -87,6 +96,16 @@ export default function BottomCourseInfoModal({
         const hasRunCourse = await AsyncStorage.getItem(
             "sgmrt.hasRunCourse.v1"
         );
+
+        if (
+            selectedGhost === "ai" &&
+            pacemaker &&
+            pacemaker.pacemakerSummaryResponse.id
+        ) {
+            bottomSheetRef.current?.dismiss();
+            router.push(`/profile/${course?.id}/ghosty`);
+            return;
+        }
 
         if (hasRunCourse !== "true") {
             onClickGuide("run");
@@ -116,6 +135,7 @@ export default function BottomCourseInfoModal({
 
     return route === "guide" ? (
         <BottomGuide
+            course={course}
             type={guideType}
             handleClose={() => setRoute("info")}
             handleRun={handleRun}
@@ -133,10 +153,20 @@ export default function BottomCourseInfoModal({
             <View style={{ height: course?.myGhostInfo ? 20 : 30 }} />
 
             <GhostSection
+                courseId={course.id}
                 userGhost={course?.myGhostInfo}
-                aiGhost={aiGhost}
-                onDeleteAiGhost={() => {
-                    setAiGhost(null);
+                aiGhost={pacemaker}
+                onDeleteAiGhost={async () => {
+                    await deletePacemaker(
+                        pacemaker?.pacemakerSummaryResponse.id ?? 0
+                    );
+                    const pacemakerJob = findByCourseId(course?.id ?? 0);
+                    if (pacemakerJob) {
+                        removeJob(pacemakerJob.jobId);
+                    }
+                    await queryClient.invalidateQueries({
+                        queryKey: ["pacemaker", course?.id],
+                    });
                 }}
                 selectedGhost={selectedGhost}
                 onSwitchChange={handleGhostSelect}

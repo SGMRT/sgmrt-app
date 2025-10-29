@@ -6,14 +6,16 @@ import ScrollButton from "@/src/components/ui/ScrollButton";
 import TabBar from "@/src/components/ui/TabBar";
 import { FlashListRef } from "@shopify/flash-list";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 const PAGE_SIZE = 10;
 
 export default function NoticePage() {
+    const { tab = "general" } = useLocalSearchParams();
     const [selectedTab, setSelectedTab] = useState<"GENERAL" | "EVENT">(
-        "GENERAL"
+        tab === "event" ? "EVENT" : "GENERAL"
     );
     const listRef = useRef<FlashListRef<Notice>>(null);
 

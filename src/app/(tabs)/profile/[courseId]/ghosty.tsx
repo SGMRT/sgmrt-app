@@ -1,15 +1,22 @@
 import { Breeze } from "@/assets/icons/icons";
 import { FlagIcon, TimerIcon, VoltIcon } from "@/assets/svgs/svgs";
-import IntervalTimeline from "@/src/components/chart/IntervalTimeline";
+import {
+    getCourse,
+    getPacemakerByCourseId,
+    getPacemakerDetail,
+} from "@/src/apis";
+import IntervalTimeline from "@/src/components/chart/interval/IntervalTimeline";
 import { Button } from "@/src/components/ui/Button";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import Section from "@/src/components/ui/Section";
 import { Typography } from "@/src/components/ui/Typography";
-import { Pacemaker } from "@/src/types/pacemaker";
+import { convertToName } from "@/src/features/pacemaker/utils/convertToName";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
+import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useMemo } from "react";
 import {
     ScrollView,
     StyleProp,
@@ -19,46 +26,53 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const pacemaker: Pacemaker = {
-    summary: "소고기마라탕 플랜",
-    goalKm: 12.1,
-    expectedTime: 60,
-    initialMessage: "아직은 어린 고스티예요",
-    sets: [
-        {
-            setNum: 1,
-            message: "warmup",
-            run: { startKm: 0, endKm: 0.5, paceMinKm: 6.5 },
-        },
-        {
-            setNum: 2,
-            message: "훈련에 대한 설명",
-            run: { startKm: 0.3, endKm: 11.6, paceMinKm: 4.8 },
-        },
-        {
-            setNum: 3,
-            message: "cooldown",
-            run: { startKm: 11.6, endKm: 12.1, paceMinKm: 5.5 },
-        },
-    ],
-};
-
 export default function Ghosty() {
-    const [plan, setPlan] = useState<Pacemaker>(pacemaker);
+    const { courseId } = useLocalSearchParams();
+    const router = useRouter();
+
+    const { data: course } = useQuery({
+        queryKey: ["course", Number(courseId)],
+        queryFn: () => getCourse(Number(courseId)),
+    });
+
+    const { data: pacemakerSummary } = useQuery({
+        queryKey: ["pacemaker", Number(courseId)],
+        queryFn: () => getPacemakerByCourseId(Number(courseId)),
+    });
+
+    const { data: pacemakerDetail } = useQuery({
+        queryKey: [
+            "pacemakerDetail",
+            pacemakerSummary?.pacemakerSummaryResponse.id!,
+        ],
+        queryFn: () =>
+            getPacemakerDetail(pacemakerSummary?.pacemakerSummaryResponse.id!),
+        enabled: !!pacemakerSummary?.pacemakerSummaryResponse.id,
+    });
+
+    // useMemo
+    const ghostyName = useMemo(() => {
+        return convertToName(
+            pacemakerSummary?.pacemakerSummaryResponse.runningType
+        );
+    }, [pacemakerSummary?.pacemakerSummaryResponse.runningType]);
+
     return (
         <SafeAreaView style={styles.flexibleContainer}>
-            <Header titleText="소고기마라탕" />
+            <Header titleText={course?.name ?? ""} />
             <ScrollView
                 contentContainerStyle={styles.scrollViewContentContainer}
                 style={styles.flexibleContainer}
             >
                 <View style={styles.ghostyContainer}>
                     <Typography variant="headline" color="white">
-                        브리즈가 생성되었어요
+                        {ghostyName}가 생성되었어요
                     </Typography>
-                    <Image source={Breeze} style={styles.ghostyImage} />
+                    <View style={styles.ghostyImageContainer}>
+                        <Image source={Breeze} style={styles.ghostyImage} />
+                    </View>
                 </View>
-                <Section containerStyle={styles.ghostyMessageContainer}>
+                {/* <Section containerStyle={styles.ghostyMessageContainer}>
                     <Typography
                         variant="body1"
                         color="gray20"
@@ -68,9 +82,9 @@ export default function Ghosty() {
                         러닝을 즐기다 보면{"\n"}
                         어느새 성장해있을지도 몰라요!
                     </Typography>
-                </Section>
+                </Section> */}
                 <Section
-                    title="소고기마라탕 플랜"
+                    title={(course?.name ?? "") + " 플랜"}
                     titleColor="white"
                     titleVariant="sectionhead"
                     containerStyle={styles.planContainer}
@@ -78,16 +92,48 @@ export default function Ghosty() {
                     centerTitle
                 >
                     <PlanSummary
-                        distanceKm={plan.goalKm}
-                        estimatedTime={plan.expectedTime * 60}
-                        pace={plan.expectedTime / plan.goalKm}
+                        distanceKm={
+                            pacemakerDetail?.pacemakerResponse.goalKm ?? 0
+                        }
+                        estimatedTime={
+                            pacemakerDetail?.pacemakerResponse
+                                .expectedMinutes ?? 0
+                        }
+                        pace={pacemakerDetail?.pacemakerResponse.pace ?? 0}
                     />
-                    <PlanSection style={styles.planInterval}>
-                        <IntervalTimeline sets={plan.sets} />
+                    {pacemakerDetail?.pacemakerResponse && (
+                        <PlanSection style={styles.planInterval}>
+                            <IntervalTimeline
+                                pacemaker={pacemakerDetail?.pacemakerResponse}
+                            />
+                        </PlanSection>
+                    )}
+                    <PlanSection>
+                        <Typography
+                            variant="caption1"
+                            color="gray20"
+                            style={{ textAlign: "center" }}
+                        >
+                            {pacemakerDetail?.pacemakerResponse.runningTip}
+                        </Typography>
                     </PlanSection>
                 </Section>
             </ScrollView>
-            <Button title="고스티와 러닝 시작" onPress={() => {}} topStroke />
+            <Button
+                title="고스티와 러닝 시작"
+                onPress={() => {
+                    router.push({
+                        pathname: "/run/[courseId]/[ghostRunningId]",
+                        params: {
+                            courseId: courseId as string,
+                            ghostRunningId: "-1",
+                            ghostyId:
+                                pacemakerSummary?.pacemakerSummaryResponse.id,
+                        },
+                    });
+                }}
+                topStroke
+            />
         </SafeAreaView>
     );
 }
@@ -111,7 +157,7 @@ const PlanSummary = ({
             <Divider direction="vertical" />
             <PlanItem
                 icon={<TimerIcon />}
-                value={getRunTime(Math.floor(estimatedTime), "MM:SS")}
+                value={getRunTime(Math.floor(estimatedTime * 60), "HH:MM:SS")}
                 description="예상 시간"
             />
 
@@ -119,7 +165,7 @@ const PlanSummary = ({
             <PlanItem
                 icon={<VoltIcon />}
                 value={getFormattedPace(Math.floor(pace * 60))}
-                description="페이스"
+                description="최고 페이스"
             />
         </PlanSection>
     );
@@ -184,7 +230,10 @@ const styles = StyleSheet.create({
     ghostyContainer: {
         width: "100%",
         alignItems: "center",
-        paddingHorizontal: 62,
+    },
+    ghostyImageContainer: {
+        alignItems: "center",
+        marginHorizontal: 95,
     },
     ghostyImage: {
         width: "100%",

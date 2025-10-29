@@ -20,6 +20,7 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
 import { useShouldShowAd } from "../components/ads/useShouldShowAd";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
+import PacemakerPollingWrapper from "../features/pacemaker/PacemakerPollingWrapper";
 import { useAppPermissions } from "../features/permission/useAppPermissions";
 import { devLog } from "../utils/devLog";
 
@@ -73,6 +74,7 @@ function RootLayout() {
                 }}
             >
                 <QueryClientProvider client={queryClient}>
+                    <PacemakerPollingWrapper />
                     <BottomSheetModalProvider>
                         <PushNotificationGate />
                         <Stack

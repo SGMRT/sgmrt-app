@@ -150,7 +150,7 @@ export const Onboarding = ({
                         )}
                     />
 
-                    {steps.length > 1 && (
+                    {steps.length > 0 && (
                         <DotProgress
                             progress={currentIndex}
                             total={steps.length}

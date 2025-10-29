@@ -122,7 +122,7 @@ export function updateStats(
     // --- 스텝 증분 ---
     const deltaSteps = sample.steps?.deltaSteps ?? 0;
 
-    if (deltaSteps > 0) {
+    if (deltaSteps > 0 || (deltaSteps === 0 && next._totalSteps === 0)) {
         if (next._stepInvalid) {
             next._stepInvalid = false;
         } else {
@@ -151,6 +151,7 @@ export function updateStats(
             : 0;
 
     const sumDist = next._window.reduce((a, b) => a + b.dist, 0);
+
     const rawPace = secPerKmFrom(sumDist, winTimeSec);
 
     let rawCadence = sample.steps ? (sample.steps.last5sSteps / 5) * 60 : null;

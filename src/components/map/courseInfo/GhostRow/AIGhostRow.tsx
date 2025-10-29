@@ -2,12 +2,18 @@ import { BreezeFace } from "@/assets/icons/icons";
 import { TrashIcon } from "@/assets/svgs/svgs";
 import { ProgressBar } from "@/src/components/ui/ProgressBar";
 import { Typography } from "@/src/components/ui/Typography";
+import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
+import { useEffect, useState } from "react";
 import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
 
+const CREATE_DURATION_MS = 2 * 60 * 1000 + 30 * 1000; // 2분 30초
+const MAX_PROGRESS = 0.98; // 98%
+
 interface AIGhostRowProps {
+    courseId: number;
     name: string;
     pace: string;
     isCreating: boolean;
@@ -17,6 +23,7 @@ interface AIGhostRowProps {
 }
 
 export const AIGhostRow = ({
+    courseId,
     name,
     pace,
     isCreating,
@@ -24,6 +31,32 @@ export const AIGhostRow = ({
     onDelete,
     onSelect,
 }: AIGhostRowProps) => {
+    const [progress, setProgress] = useState(0);
+    const { findByCourseId } = usePacemakerQueue();
+
+    useEffect(() => {
+        let interval: any;
+
+        (async () => {
+            const job = findByCourseId(courseId);
+            if (!job) return;
+
+            const startTime = new Date(job.queuedAt).getTime();
+
+            interval = setInterval(() => {
+                const now = Date.now();
+                const elapsed = now - startTime;
+                const ratio = elapsed / CREATE_DURATION_MS;
+
+                // 95%까지만 증가
+                const newProgress = Math.min(ratio, MAX_PROGRESS);
+                setProgress(newProgress);
+            }, 1000);
+        })();
+
+        return () => clearInterval(interval);
+    }, [courseId]);
+
     const avatar = isCreating ? (
         <View style={styles.avatar} />
     ) : (
@@ -53,7 +86,7 @@ export const AIGhostRow = ({
                 고스티가 준비중 이에요
             </Typography>
             <View style={{ marginVertical: 8 }}>
-                <ProgressBar progress={0.8} />
+                <ProgressBar progress={progress} controller={false} />
             </View>
         </View>
     ) : (

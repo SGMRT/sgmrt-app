@@ -157,7 +157,7 @@ const ShareContent = memo(function ShareContent({
                 </View>
             </View>
 
-            <View style={styles.mapContainer}>
+            <View style={[styles.mapContainer, { width, height }]}>
                 <ResultCourseMap
                     telemetries={telemetries}
                     onReady={onMapReady}
@@ -169,8 +169,8 @@ const ShareContent = memo(function ShareContent({
                 />
                 <GhostIcon
                     color={colors.primary}
-                    width={20}
-                    height={20}
+                    width={24}
+                    height={15}
                     style={styles.ghostIcon}
                 />
             </View>
@@ -186,7 +186,7 @@ const ShareContent = memo(function ShareContent({
                     unitVariant: "share_stat_unit",
                     descriptionVariant: "share_stat_description",
                     align: "center",
-                    style: { width: 77.07 },
+                    style: { minWidth: 78 },
                 }}
                 divider={false}
             />
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     },
     shareCard: {
         padding: 16,
-        paddingBottom: 36,
+        paddingBottom: 29,
         flexDirection: "column",
     },
     shareCardHeader: {
@@ -215,14 +215,17 @@ const styles = StyleSheet.create({
     },
     ghostIcon: {
         position: "absolute",
-        bottom: 16,
-        right: 16,
+        bottom: 13,
+        right: 13,
     },
     mapContainer: {
         position: "relative",
     },
     statsContainer: {
-        justifyContent: "space-between",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        marginHorizontal: 6.5,
+        gap: 12,
         marginTop: 25,
     },
 });

@@ -44,6 +44,7 @@ export default function PreviewMap({
     pause,
     play,
 }: PreviewMapProps) {
+    const mapReadyRef = useRef(false);
     const initialPosition = useRef({ latitude: lat, longitude: lng });
 
     const routeFC = useMemo(() => {
@@ -63,7 +64,9 @@ export default function PreviewMap({
     }, [route]);
 
     const onMapReady = useCallback(() => {
-        if (!cameraRef?.current) return;
+        if (!cameraRef?.current || mapReadyRef.current) return;
+        play?.();
+        mapReadyRef.current = true;
 
         cameraRef.current.setCamera({
             centerCoordinate: [lng, lat],
@@ -71,7 +74,7 @@ export default function PreviewMap({
             pitch: pitch,
             heading: heading,
         });
-    }, [lng, lat, heading, cameraRef]);
+    }, [lng, lat, heading, cameraRef, play]);
 
     useEffect(() => {
         if (!cameraRef?.current) return;
@@ -115,8 +118,8 @@ export default function PreviewMap({
                 zoom={zoomLevel}
                 maxZoomLevel={zoomLevel}
                 attributionEnabled={false}
-                onDidFinishLoadingMap={onMapReady}
                 logoPosition={{ top: 10, left: 10 }}
+                onRegionDidChange={onMapReady}
             >
                 <StyleImport
                     id="basemap"

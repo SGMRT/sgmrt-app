@@ -1,5 +1,6 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
+import { usePinnedCourses } from "@/src/features/pacemaker/hooks/usePinnedCourses";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
@@ -146,6 +147,8 @@ export default function HomeMap({
     );
 
     const onRegionDidChange = (event: any) => {
+        if (!center) return;
+
         const newCenter: Position = event.properties.center;
         const visibleBounds: VisibleBounds = event.properties.bounds;
 
@@ -215,21 +218,26 @@ export default function HomeMap({
         enabled: !!center && !!distance,
     });
 
+    const { mergedCourses, isLoading: isPinnedCoursesLoading } =
+        usePinnedCourses({ baseCourses: courses ?? [] });
+
     // activeCourse가 변경되었을 때, 실제 코스 데이터에서 찾아서 업데이트
     useEffect(() => {
-        if (!activeCourse || !courses) return;
-        const canonicalCourse = courses.find((c) => c.id === activeCourse.id);
+        if (!activeCourse || !mergedCourses) return;
+        const canonicalCourse = mergedCourses.find(
+            (c) => c.id === activeCourse.id
+        );
         if (canonicalCourse && canonicalCourse !== activeCourse) {
             setActiveCourse(canonicalCourse);
         }
-    }, [activeCourse, courses]);
+    }, [activeCourse, mergedCourses]);
 
     useEffect(() => {
-        if (firstRenderRef.current && courses) {
+        if (firstRenderRef.current && mergedCourses) {
             firstRenderRef.current = false;
-            setActiveCourse(courses[0]);
+            setActiveCourse(mergedCourses[0]);
         }
-    }, [courses]);
+    }, [mergedCourses]);
 
     const initializeCenter = useCallback(() => {
         if (center) return;
@@ -259,6 +267,10 @@ export default function HomeMap({
         handlePresentModalPress();
     };
 
+    if (isPinnedCoursesLoading) {
+        return <></>;
+    }
+
     return (
         <>
             <MapViewWrapper
@@ -273,7 +285,7 @@ export default function HomeMap({
                     mapBottomSheetRef.current?.dismiss();
                 }}
             >
-                {courses?.map((course) => (
+                {mergedCourses?.map((course) => (
                     <CourseMarkers
                         key={course.id}
                         course={course}
@@ -315,7 +327,7 @@ export default function HomeMap({
             >
                 <View style={{ height: 20 }} />
                 <CourseListView
-                    courses={courses ?? []}
+                    courses={mergedCourses ?? []}
                     selectedCourse={activeCourse}
                     onShowCourseInfo={onClickCourseInfo}
                     maxHeight={Dimensions.get("window").height - 500}
@@ -326,7 +338,7 @@ export default function HomeMap({
                 bottomSheetRef={mapBottomSheetRef}
                 modalType={showListView ? "list" : courseType}
                 activeCourse={activeCourse}
-                courses={courses ?? []}
+                courses={mergedCourses ?? []}
                 onClickCourse={onClickCourse}
                 onClickCourseInfo={onClickCourseInfo}
                 backdropOpacity={0.1}

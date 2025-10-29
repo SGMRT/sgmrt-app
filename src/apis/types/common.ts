@@ -10,7 +10,14 @@ interface GetPresignedUrlResponse {
     objectKey: string;
 }
 
+interface CustomError {
+    code: string;
+    message: string;
+    fieldErrorsInfos: any;
+}
+
 export type {
+    CustomError,
     GetPresignedUrlRequest,
     GetPresignedUrlResponse,
     PresignedUrlType,

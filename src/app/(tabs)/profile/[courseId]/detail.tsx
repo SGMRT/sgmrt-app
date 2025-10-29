@@ -256,8 +256,7 @@ export default function Result() {
                                             description: "시간",
                                             value: getRunTime(
                                                 course?.myGhostInfo?.duration ??
-                                                    0,
-                                                "HH:MM:SS"
+                                                    0
                                             ),
                                         },
                                         {

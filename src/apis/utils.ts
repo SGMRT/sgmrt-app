@@ -1,5 +1,7 @@
+import { isAxiosError } from "axios";
 import { errorLog } from "../utils/devLog";
 import { getDataFromS3, parseJsonl } from "./common";
+import { CustomError } from "./types/common";
 import { CourseResponse } from "./types/course";
 import { Telemetry, TelemetryCompact } from "./types/run";
 
@@ -95,3 +97,41 @@ export function decodeTelemetry(t: TelemetryCompact): Telemetry {
 export const encodeTelemetries = (arr: Telemetry[]) => arr.map(encodeTelemetry);
 export const decodeTelemetries = (arr: TelemetryCompact[]) =>
     arr.map(decodeTelemetry);
+
+const isCustomError = (error: unknown): error is CustomError => {
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        "code" in error &&
+        "message" in error
+    );
+};
+
+export function handleError(error: unknown) {
+    if (!isAxiosError(error)) throw error;
+    if (isCustomError(error.response?.data)) {
+        const customError = error.response?.data as CustomError;
+        switch (customError.code) {
+            case "G-001":
+                throw new Error("[G-001] 유효하지 않은 요청입니다.");
+            case "G-002":
+                throw new Error("[G-002] 이미 존재하는 요청입니다.");
+            case "G-007":
+                throw new Error("[G-007] 잘못된 입력값입니다.");
+            case "M-001":
+                throw new Error("[M-001] 회원 정보 조회를 실패했습니다.");
+            case "M-005":
+                throw new Error(
+                    "[M-005] 회원의 러닝 정보가 존재하지 않습니다."
+                );
+            case "C-001":
+                throw new Error("[C-001] 코스 정보 조회를 실패했습니다.");
+            default:
+                throw new Error(`[${customError.code}] ${customError.message}`);
+        }
+    }
+    if (error.response?.status === 429) {
+        throw new Error("[429] 요청 횟수를 초과했습니다.");
+    }
+    throw error;
+}
