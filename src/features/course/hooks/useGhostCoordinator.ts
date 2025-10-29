@@ -57,8 +57,6 @@ export function useGhostCoordinator(
 
     if (!enabled) return null;
 
-    console.log("hi");
-
     const ghostLegIndexRef = useRef(0);
     const prevTimestampRef = useRef<number | null>(null);
     const prevLeaderRef = useRef<"ME" | "GHOST" | "TIED">("TIED");
