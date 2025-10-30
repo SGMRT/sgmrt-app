@@ -32,7 +32,7 @@ export default function UpdateLoadingOverlay({
     messages = DEFAULT_MESSAGES,
     messageIntervalMs = 5000,
     dotsIntervalMs = 1000,
-    maxDots = 0,
+    maxDots = 3,
 }: Props) {
     const { bottom } = useSafeAreaInsets();
 

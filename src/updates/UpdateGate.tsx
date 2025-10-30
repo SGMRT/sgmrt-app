@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import UpdateLoadingOverlay from "./UpdateLoadingOverlay";
 import { useUpdateOrchestrator } from "./useUpdateOrchestrator";
 type Props = {
@@ -13,7 +13,7 @@ export default function UpdateGate({
     const [overlay, setOverlay] = useState(false);
 
     const { checkOnce } = useUpdateOrchestrator({
-        checkOnForeground: true,
+        checkOnForeground: false,
         reloadNonCritical,
         onCriticalStart: () => setOverlay(true),
         onCriticalDone: () => setOverlay(false),
@@ -21,15 +21,20 @@ export default function UpdateGate({
         onError: () => setOverlay(false),
     });
 
+    const checkOnceRef = useRef(checkOnce);
+    useEffect(() => {
+        checkOnceRef.current = checkOnce;
+    }, [checkOnce]);
+
     // 부팅 직후 1회 체크
     useEffect(() => {
         if (bootReady) {
             const t = setTimeout(() => {
-                checkOnce();
+                checkOnceRef.current?.();
             }, 500);
             return () => clearTimeout(t);
         }
-    }, [bootReady, checkOnce]);
+    }, [bootReady]);
 
-    return <UpdateLoadingOverlay visible={overlay} />;
+    return <UpdateLoadingOverlay visible={overlay} maxDots={0} />;
 }

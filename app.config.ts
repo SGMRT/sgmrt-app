@@ -270,7 +270,6 @@ const config = {
                 },
             ],
             "expo-font",
-            "expo-web-browser",
         ],
         experiments: {
             typedRoutes: true,
