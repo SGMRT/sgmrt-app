@@ -69,6 +69,9 @@ export function useUpdateOrchestrator({
                 onCriticalStart?.();
                 await Updates.fetchUpdateAsync();
 
+                // 딜레이 삽입
+                await new Promise((resolve) => setTimeout(resolve, 10000));
+
                 onCriticalDone?.();
 
                 // 4) 즉시 재시작 (강제업뎃)

@@ -27,6 +27,7 @@ export async function getNoticesAll(
     size = 10
 ): Promise<GetNoticesResponse> {
     const response = await server.get(`/notices`, {
+        apiVersion: "v2",
         params: {
             page,
             size,
@@ -36,19 +37,27 @@ export async function getNoticesAll(
 }
 
 export async function getNotice(noticeId: number): Promise<Notice> {
-    const response = await server.get(`/notices/${noticeId}`);
+    const response = await server.get(`/notices/${noticeId}`, {
+        apiVersion: "v2",
+    });
     return response.data;
 }
 
 export async function getNoticesActive(): Promise<Notice[]> {
-    const response = await server.get(`/notices/active`);
+    const response = await server.get(`/notices/active`, { apiVersion: "v2" });
     return response.data;
 }
 
 export async function dismiss(noticeId: number) {
-    const response = await server.post(`/notices/${noticeId}/dismissal`, {
-        dismissDays: null,
-    });
+    const response = await server.post(
+        `/notices/${noticeId}/dismissal`,
+        {
+            dismissDays: null,
+        },
+        {
+            apiVersion: "v2",
+        }
+    );
     return response.data;
 }
 

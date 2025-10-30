@@ -157,11 +157,7 @@ export default function Run() {
                 const pacemakerDetail = await getPacemakerDetail(
                     Number(ghostyId)
                 );
-                pacemakerDetail?.pacemakerResponse?.sets.map((set) => {
-                    console.log("[set] start", set.startPoint);
-                    console.log("[set] end", set.endPoint);
-                    console.log("[set] pace", set.pace);
-                });
+
                 const ghosty = mapPacemakerToTelemety({
                     pacemaker: pacemakerDetail?.pacemakerResponse,
                     telemetries: response.telemetries,
