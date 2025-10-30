@@ -185,7 +185,7 @@ export function useBootstrapApp(
                 if (cancelled) return;
                 if (testMode) {
                     devLog("replace to /test");
-                    router.replace("/profile/1389/preview");
+                    router.replace("/test");
                     // router.replace("/profile/1389/ghosty");
                     return;
                 } else if (isLoggedIn) {

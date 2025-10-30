@@ -16,6 +16,8 @@ const config = {
             eas: {
                 projectId: "2cb16511-b095-499b-b82f-be1d7afaeea4",
             },
+            criticalIndex: Number(process.env.CRITICAL_INDEX ?? 0),
+            defaultChannel: process.env.UPDATE_CHANNEL ?? "main",
         },
         owner: "sgmrt",
         splash: {
@@ -59,6 +61,7 @@ const config = {
         },
         updates: {
             url: "https://u.expo.dev/2cb16511-b095-499b-b82f-be1d7afaeea4",
+            checkAutomatically: "NEVER",
         },
         runtimeVersion: {
             policy: "appVersion",
@@ -116,6 +119,11 @@ const config = {
                 {
                     ios: {
                         useFrameworks: "static",
+                        forceStaticLinking: [
+                            "RNFBApp",
+                            "RNFBAuth",
+                            "RNFBFirestore",
+                        ],
                     },
                     android: {
                         extraMavenRepos: [
@@ -261,6 +269,7 @@ const config = {
                         "앱 이용 통계를 기반으로 한 맞춤형 광고를 제공하기 위해 기기 식별자 사용에 동의할 수 있습니다. 동의 여부와 관계없이 기본 기능은 이용할 수 있습니다.",
                 },
             ],
+            "expo-font",
         ],
         experiments: {
             typedRoutes: true,
