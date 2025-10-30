@@ -4,6 +4,7 @@ import {
     getRun,
     markPacemakerAsRun,
 } from "@/src/apis";
+import { PacemakerDetailResponse } from "@/src/apis/types/ghosty";
 import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
@@ -22,6 +23,7 @@ import { Typography } from "@/src/components/ui/Typography";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
 import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
+import { usePacerByDistance } from "@/src/features/pacemaker/hooks/usePacemakerByDistance";
 import { mapPacemakerToTelemety } from "@/src/features/pacemaker/utils/pacemakerTelemetry";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
@@ -93,6 +95,7 @@ export default function Run() {
     const [courseSegments, setCourseSegments] = useState<Segment>();
 
     const ghostTelemetryRef = useRef<Telemetry[]>([]);
+    const pacemakerDetailRef = useRef<PacemakerDetailResponse | null>(null);
     const hasSavedRef = useRef<boolean>(false);
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
@@ -128,6 +131,13 @@ export default function Run() {
         enabled: isGhostRunning || isGhostyRunning,
     });
 
+    const pacerInfo = usePacerByDistance({
+        pacer: pacemakerDetailRef.current?.pacemakerResponse,
+        currentDistM: context.stats.totalDistanceM,
+        distanceScale: 1000,
+        enabled: isGhostyRunning,
+    });
+
     const triggerCapture = useCallback(() => {
         runShotRef.current
             ?.capture()
@@ -144,12 +154,20 @@ export default function Run() {
                 distanceMeters: response.distance,
             });
             if (isGhostyRunning) {
+                const pacemakerDetail = await getPacemakerDetail(
+                    Number(ghostyId)
+                );
+                pacemakerDetail?.pacemakerResponse?.sets.map((set) => {
+                    console.log("[set] start", set.startPoint);
+                    console.log("[set] end", set.endPoint);
+                    console.log("[set] pace", set.pace);
+                });
                 const ghosty = mapPacemakerToTelemety({
-                    pacemaker: (await getPacemakerDetail(Number(ghostyId)))
-                        .pacemakerResponse,
+                    pacemaker: pacemakerDetail?.pacemakerResponse,
                     telemetries: response.telemetries,
                 });
                 if (ghosty) {
+                    pacemakerDetailRef.current = pacemakerDetail;
                     ghostTelemetryRef.current = ghosty.sample();
                 }
             }
@@ -566,6 +584,9 @@ export default function Run() {
                                 ghost={isGhostRunning || isGhostyRunning}
                                 ghostType={isGhostyRunning ? "ghosty" : "ghost"}
                                 ghostTelemetry={ghostCoordinator?.ghostPoint}
+                                targetPace={
+                                    pacerInfo.currentPaceSecPerKm ?? undefined
+                                }
                                 end={runShotType === "share"}
                             />
                         </View>

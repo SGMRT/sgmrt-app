@@ -5,7 +5,7 @@ import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
 import { useEffect, useMemo, useRef } from "react";
 import { InteractionManager } from "react-native";
-import { voiceGuide } from "../../audio/VoiceGuide";
+import { voice } from "../../audio/voice";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { CourseLeg } from "../types/courseLeg";
 import {
@@ -197,8 +197,8 @@ export function useGhostCoordinator(
 
         // 네이티브/전역 업데이트
         controls.setLiveActivityMessage(text, "INFO");
-        voiceGuide.announce({
-            type: "run/ghost-change-leader",
+        voice.dispatch({
+            type: "ghost/change-leader",
             leader,
             deltaM: Math.abs(deltaM),
         });
@@ -220,8 +220,8 @@ export function useGhostCoordinator(
         const bucket = Math.floor(myProgressM / 500);
         if (bucket <= lastProgressBucketRef.current) return;
         lastProgressBucketRef.current = bucket;
-        voiceGuide.announce({
-            type: "run/ghost-periodic",
+        voice.dispatch({
+            type: "ghost/periodic",
             leader,
             deltaM: Math.abs(deltaM),
             progressM: myProgressM,
