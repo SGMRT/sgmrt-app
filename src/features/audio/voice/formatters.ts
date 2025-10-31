@@ -47,7 +47,7 @@ export function formatEvent(e: Event): Utterance[] {
                     canBarge: true,
                     interruptLower: true,
                     cooldownKey: `nav/enter-leg`,
-                    runKind: "START",
+                    navKind: "KEEP",
                 }),
             ];
 
@@ -60,7 +60,7 @@ export function formatEvent(e: Event): Utterance[] {
                     canBarge: true,
                     interruptLower: true,
                     cooldownKey: `run/start`,
-                    navKind: "KEEP",
+                    runKind: "START",
                 }),
             ];
         case "run/resume":

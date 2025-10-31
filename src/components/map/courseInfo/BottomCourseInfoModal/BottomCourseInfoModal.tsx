@@ -33,30 +33,33 @@ export default function BottomCourseInfoModal({
     const [selectedGhost, setSelectedGhost] = useState<"user" | "ai" | null>(
         null
     );
-    const { findByCourseId, removeJob, addJob } = usePacemakerQueue();
+    const { findByCourseId, setStatus, removeJob, addJob } =
+        usePacemakerQueue();
 
     const { data: pacemaker } = useQuery({
         queryKey: ["pacemaker", course?.id],
-        queryFn: async () => {
-            const pacemaker = await getPacemakerByCourseId(course!.id);
-            const job = findByCourseId(course!.id);
-            if (pacemaker) {
-                if (!job) {
-                    addJob({
-                        courseId: course!.id,
-                        pacemakerId: pacemaker.pacemakerSummaryResponse.id,
-                        status: pacemaker.processingStatus,
-                    });
-                }
-            } else {
-                if (job) {
-                    removeJob(job.jobId);
-                }
-            }
-            return pacemaker;
-        },
+        queryFn: () => getPacemakerByCourseId(course?.id!),
         enabled: !!course?.id,
     });
+
+    useEffect(() => {
+        if (!course?.id) return;
+        const job = findByCourseId(course.id);
+
+        if (pacemaker) {
+            if (!job) {
+                addJob({
+                    courseId: course.id,
+                    pacemakerId: pacemaker.pacemakerSummaryResponse.id,
+                    status: pacemaker.processingStatus,
+                });
+            }
+        } else {
+            if (job) {
+                removeJob(job.jobId);
+            }
+        }
+    }, [course?.id, pacemaker]);
 
     const { requestOrAlert, requestOptional } = useAppPermissions();
 

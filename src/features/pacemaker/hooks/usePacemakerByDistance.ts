@@ -1,8 +1,6 @@
 // src/features/pacemaker/hooks/usePacerByDistance.ts
 import { Pacemaker } from "@/src/apis/types/ghosty";
-import { useEffect, useMemo, useRef } from "react";
-import { voice } from "../../audio/voice";
-import type { Event } from "../../audio/voice/types";
+import { useMemo, useRef } from "react";
 
 function parseMinDotSecToSec(input: number | string): number {
     const raw = String(input).trim();
@@ -59,42 +57,42 @@ export function usePacerByDistance({
         return s ?? null;
     }, [enabled, sets, currentDistM]);
 
-    // 1) 첫 세트 진입 시 initialMessage 1회
-    useEffect(() => {
-        if (
-            !enabled ||
-            !pacer?.initialMessage ||
-            initialSpokenRef.current ||
-            sets.length === 0
-        )
-            return;
-        const first = sets[0];
-        if (currentDistM >= first.startM && currentDistM <= first.endM) {
-            initialSpokenRef.current = true;
-            voice.dispatch({
-                type: "pacer/script",
-                script: pacer.initialMessage,
-                priority: "NORMAL",
-            } as Event);
-        }
-    }, [enabled, pacer?.initialMessage, sets, currentDistM]);
+    // // 1) 첫 세트 진입 시 initialMessage 1회
+    // useEffect(() => {
+    //     if (
+    //         !enabled ||
+    //         !pacer?.initialMessage ||
+    //         initialSpokenRef.current ||
+    //         sets.length === 0
+    //     )
+    //         return;
+    //     const first = sets[0];
+    //     if (currentDistM >= first.startM && currentDistM <= first.endM) {
+    //         initialSpokenRef.current = true;
+    //         voice.dispatch({
+    //             type: "pacer/script",
+    //             script: pacer.initialMessage,
+    //             priority: "NORMAL",
+    //         } as Event);
+    //     }
+    // }, [enabled, pacer?.initialMessage, sets, currentDistM]);
 
-    // 2) 세트 시작 지점 진입 시 메시지 1회 (dist만 기준)
-    useEffect(() => {
-        if (!enabled || !currentSet) return;
-        const { idx, startM, message } = currentSet;
-        // "해당 세트 범위에 들어왔고 아직 안 말했으면" 발화
-        if (currentDistM >= startM && !spokenSetStart.current.has(idx)) {
-            spokenSetStart.current.add(idx);
-            if (message.trim()) {
-                voice.dispatch({
-                    type: "pacer/script",
-                    script: message,
-                    priority: "NORMAL",
-                } as Event);
-            }
-        }
-    }, [enabled, currentSet, currentDistM]);
+    // // 2) 세트 시작 지점 진입 시 메시지 1회 (dist만 기준)
+    // useEffect(() => {
+    //     if (!enabled || !currentSet) return;
+    //     const { idx, startM, message } = currentSet;
+    //     // "해당 세트 범위에 들어왔고 아직 안 말했으면" 발화
+    //     if (currentDistM >= startM && !spokenSetStart.current.has(idx)) {
+    //         spokenSetStart.current.add(idx);
+    //         if (message.trim()) {
+    //             voice.dispatch({
+    //                 type: "pacer/script",
+    //                 script: message,
+    //                 priority: "NORMAL",
+    //             } as Event);
+    //         }
+    //     }
+    // }, [enabled, currentSet, currentDistM]);
 
     return {
         /** UI에 띄울 현재 세트 목표 페이스(sec/km). 없으면 null */
