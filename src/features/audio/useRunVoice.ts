@@ -1,7 +1,7 @@
 import { devLog } from "@/src/utils/devLog";
 import { useEffect, useRef } from "react";
 import { RunContext } from "../run/state/context";
-import { voiceGuide } from "./VoiceGuide";
+import { voice } from "./voice";
 
 export function useRunVoice(context: RunContext) {
     const prevStatus = useRef(context.status);
@@ -12,7 +12,7 @@ export function useRunVoice(context: RunContext) {
 
         if (currentKm > 0 && currentKm > lastKmSpokenRef.current) {
             lastKmSpokenRef.current = currentKm;
-            voiceGuide.announce({
+            voice.dispatch({
                 type: "run/distance",
                 distanceKM: String(currentKm),
                 totalTime: Math.round(context.stats.totalTimeMs / 1000),
@@ -36,48 +36,48 @@ export function useRunVoice(context: RunContext) {
             switch (curr) {
                 case "RUNNING": {
                     if (prev === "IDLE" || prev == null || prev === "READY") {
-                        voiceGuide.announce({
+                        voice.dispatch({
                             type: "run/start",
                             mode: context.mode,
                         });
                     }
                     if (prev === "PAUSED_OFFCOURSE" || prev === "PAUSED_USER") {
-                        voiceGuide.announce({ type: "run/resume" });
+                        voice.dispatch({ type: "run/resume" });
                     }
                     break;
                 }
                 case "RUNNING_EXTENDED":
-                    voiceGuide.announce({ type: "run/extend" });
+                    voice.dispatch({ type: "run/extend" });
                     break;
                 case "PAUSED_USER":
-                    voiceGuide.announce({ type: "run/pause", reason: "user" });
+                    voice.dispatch({ type: "run/pause", reason: "user" });
                     break;
                 case "PAUSED_OFFCOURSE":
-                    voiceGuide.announce({
+                    voice.dispatch({
                         type: "run/pause",
                         reason: "offcourse",
                     });
                     break;
                 case "COMPLETION_PENDING":
-                    voiceGuide.announce({
+                    voice.dispatch({
                         type: "run/complete",
                         totalTime: Math.round(context.stats.totalTimeMs / 1000),
                         totalDistance: context.stats.totalDistanceM,
                         totalCalories: context.stats.calories,
                         avgPace: context.stats.avgPaceSecPerKm,
                     });
-                    voiceGuide.clearQueue();
+                    voice.clearQueue();
                     break;
                 case "STOPPED":
                     if (prevStatus.current === "COMPLETION_PENDING") return;
-                    voiceGuide.announce({
+                    voice.dispatch({
                         type: "run/stop",
                         totalTime: Math.round(context.stats.totalTimeMs / 1000),
                         totalDistance: context.stats.totalDistanceM,
                         totalCalories: context.stats.calories,
                         avgPace: context.stats.avgPaceSecPerKm,
                     });
-                    voiceGuide.clearQueue();
+                    voice.clearQueue();
                     break;
             }
             prevStatus.current = curr;

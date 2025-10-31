@@ -4,6 +4,7 @@ import {
     getRun,
     markPacemakerAsRun,
 } from "@/src/apis";
+import { PacemakerDetailResponse } from "@/src/apis/types/ghosty";
 import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
@@ -22,6 +23,8 @@ import { Typography } from "@/src/components/ui/Typography";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useCourseProgress } from "@/src/features/course/hooks/useCourseProgress";
 import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordinator";
+import { usePacerByDistance } from "@/src/features/pacemaker/hooks/usePacemakerByDistance";
+import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import { mapPacemakerToTelemety } from "@/src/features/pacemaker/utils/pacemakerTelemetry";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
@@ -93,10 +96,13 @@ export default function Run() {
     const [courseSegments, setCourseSegments] = useState<Segment>();
 
     const ghostTelemetryRef = useRef<Telemetry[]>([]);
+    const pacemakerDetailRef = useRef<PacemakerDetailResponse | null>(null);
     const hasSavedRef = useRef<boolean>(false);
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
     const { context, controls } = useRunningSession();
+
+    const { removeJob, findByCourseId } = usePacemakerQueue();
 
     useRunVoice(context);
 
@@ -128,6 +134,13 @@ export default function Run() {
         enabled: isGhostRunning || isGhostyRunning,
     });
 
+    const pacerInfo = usePacerByDistance({
+        pacer: pacemakerDetailRef.current?.pacemakerResponse,
+        currentDistM: context.stats.totalDistanceM,
+        distanceScale: 1000,
+        enabled: isGhostyRunning,
+    });
+
     const triggerCapture = useCallback(() => {
         runShotRef.current
             ?.capture()
@@ -144,12 +157,16 @@ export default function Run() {
                 distanceMeters: response.distance,
             });
             if (isGhostyRunning) {
+                const pacemakerDetail = await getPacemakerDetail(
+                    Number(ghostyId)
+                );
+
                 const ghosty = mapPacemakerToTelemety({
-                    pacemaker: (await getPacemakerDetail(Number(ghostyId)))
-                        .pacemakerResponse,
+                    pacemaker: pacemakerDetail?.pacemakerResponse,
                     telemetries: response.telemetries,
                 });
                 if (ghosty) {
+                    pacemakerDetailRef.current = pacemakerDetail;
                     ghostTelemetryRef.current = ghosty.sample();
                 }
             }
@@ -336,6 +353,16 @@ export default function Run() {
                         Number(ghostyId),
                         response.runningId
                     );
+                    queryClient.invalidateQueries({
+                        queryKey: ["pacemaker", Number(courseId)],
+                    });
+                    queryClient.invalidateQueries({
+                        queryKey: ["pacemakerDetail", Number(ghostyId)],
+                    });
+                    const job = findByCourseId(Number(courseId));
+                    if (job) {
+                        removeJob(job.jobId);
+                    }
                 }
 
                 if (withRouting) {
@@ -460,7 +487,7 @@ export default function Run() {
                         id={segment.id ?? String(index)}
                         segment={segment}
                         color={segment.isRunning ? "green" : "red"}
-                        aboveLayerID="z-index-3"
+                        aboveLayerID="z-index-4"
                     />
                 ))}
                 {courseSegments && (
@@ -523,7 +550,7 @@ export default function Run() {
                                 id={"ghost-segment-" + index}
                                 segment={segment}
                                 color="red"
-                                aboveLayerID="z-index-7"
+                                aboveLayerID="z-index-3"
                             />
                         ))}
             </MapViewWrapper>
@@ -566,6 +593,9 @@ export default function Run() {
                                 ghost={isGhostRunning || isGhostyRunning}
                                 ghostType={isGhostyRunning ? "ghosty" : "ghost"}
                                 ghostTelemetry={ghostCoordinator?.ghostPoint}
+                                targetPace={
+                                    pacerInfo.currentPaceSecPerKm ?? undefined
+                                }
                                 end={runShotType === "share"}
                             />
                         </View>
