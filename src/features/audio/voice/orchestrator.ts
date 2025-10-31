@@ -95,10 +95,6 @@ export class VoiceOrchestrator {
                 (u.navKind === "APPROACH" && shouldKillPacerOnApproach) ||
                 clearPacerOnAnyNav;
             if (killPacer) {
-                if (this.speaking?.channel === "PACER") {
-                    this.tts.stop();
-                    this.speaking = null;
-                }
                 this.queue = this.queue.filter((q) => q.channel !== "PACER");
             }
             if (
