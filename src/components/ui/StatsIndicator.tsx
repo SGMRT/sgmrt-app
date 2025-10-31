@@ -140,7 +140,7 @@ export default function StatsIndicator({
 
     return (
         <View style={{ alignItems: "center", gap: 20 }}>
-            {targetPace !== undefined && (
+            {targetPace !== undefined && !end && (
                 <TextWithUnit
                     value={
                         "구간 목표 페이스: " + getFormattedPace(targetPace ?? 0)
