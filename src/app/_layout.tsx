@@ -16,9 +16,7 @@ import "@features/run/task/location.task";
 
 import PushNotificationGate from "../features/notifications/PushNotificationGate";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
-import { Alert } from "react-native";
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
 import { useShouldShowAd } from "../components/ads/useShouldShowAd";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
@@ -55,17 +53,6 @@ function RootLayout() {
     const bootReady = status === "done" || status === "error";
     const { requestOptional } = useAppPermissions();
     const shouldShowAd = useShouldShowAd();
-
-    useEffect(() => {
-        (async () => {
-            const res = (await AsyncStorage.getItem("update_test")) ?? "false";
-            if (res !== "true") {
-                Alert.alert("이걸 봤다면 업데이트가 된거에용");
-
-                await AsyncStorage.setItem("update_test", "true");
-            }
-        })();
-    }, []);
 
     useEffect(() => {
         if (status !== "idle") {
