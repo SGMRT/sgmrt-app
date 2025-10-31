@@ -1,6 +1,7 @@
 import { GhostIcon } from "@/assets/svgs/svgs";
 import { Telemetry } from "@/src/apis/types/run";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
+import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { forwardRef, memo, useImperativeHandle, useRef } from "react";
 import { StyleSheet, View } from "react-native";
@@ -143,7 +144,7 @@ const ShareContent = memo(function ShareContent({
     return (
         <View style={[styles.shareCard, { backgroundColor }]}>
             <View style={styles.shareCardHeader}>
-                <Typography variant="share_subhead" color="white">
+                <Typography variant="display2" color="white">
                     {title}
                 </Typography>
                 <View style={{ flexDirection: "row", gap: 5 }}>
@@ -156,7 +157,7 @@ const ShareContent = memo(function ShareContent({
                 </View>
             </View>
 
-            <View style={styles.mapContainer}>
+            <View style={[styles.mapContainer, { width, height }]}>
                 <ResultCourseMap
                     telemetries={telemetries}
                     onReady={onMapReady}
@@ -166,7 +167,12 @@ const ShareContent = memo(function ShareContent({
                     logoPosition={{ bottom: 10, left: 10 }}
                     attributionPosition={{ bottom: 10, left: 100 }}
                 />
-                <GhostIcon width={20} height={20} style={styles.ghostIcon} />
+                <GhostIcon
+                    color={colors.primary}
+                    width={24}
+                    height={15}
+                    style={styles.ghostIcon}
+                />
             </View>
 
             <StatRow
@@ -180,7 +186,7 @@ const ShareContent = memo(function ShareContent({
                     unitVariant: "share_stat_unit",
                     descriptionVariant: "share_stat_description",
                     align: "center",
-                    style: { width: 77.07 },
+                    style: { minWidth: 78 },
                 }}
                 divider={false}
             />
@@ -201,7 +207,7 @@ const styles = StyleSheet.create({
     },
     shareCard: {
         padding: 16,
-        paddingBottom: 36,
+        paddingBottom: 29,
         flexDirection: "column",
     },
     shareCardHeader: {
@@ -209,14 +215,17 @@ const styles = StyleSheet.create({
     },
     ghostIcon: {
         position: "absolute",
-        bottom: 16,
-        right: 16,
+        bottom: 13,
+        right: 13,
     },
     mapContainer: {
         position: "relative",
     },
     statsContainer: {
-        justifyContent: "space-between",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        marginHorizontal: 6.5,
+        gap: 12,
         marginTop: 25,
     },
 });

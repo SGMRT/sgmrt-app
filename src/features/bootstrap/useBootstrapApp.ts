@@ -144,7 +144,11 @@ async function bootstrapAnalytics({
     }
 }
 
-export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
+export function useBootstrapApp(
+    isLoggedIn: boolean,
+    loadedFonts: boolean,
+    testMode: boolean = false
+) {
     const router = useRouter();
     const [status, setStatus] = useState<Status>("idle");
     const [error, setError] = useState<unknown>(null);
@@ -179,7 +183,12 @@ export function useBootstrapApp(isLoggedIn: boolean, loadedFonts: boolean) {
 
                 // 라우팅
                 if (cancelled) return;
-                if (isLoggedIn) {
+                if (testMode) {
+                    devLog("replace to /test");
+                    router.replace("/test");
+                    // router.replace("/profile/1389/ghosty");
+                    return;
+                } else if (isLoggedIn) {
                     devLog("replace to /(tabs)/home");
                     router.replace("/(tabs)/home");
                 } else {

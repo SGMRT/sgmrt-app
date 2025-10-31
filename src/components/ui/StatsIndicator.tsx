@@ -7,6 +7,8 @@ import TextWithUnit from "./TextWithUnit";
 interface StatsIndicatorProps {
     stats: { label: string; value: string | number; unit: string }[];
     ghostTelemetry?: Telemetry | null;
+    targetPace?: number | null;
+    ghostType?: "ghosty" | "ghost";
     color?: "gray20" | "gray40";
     ghost?: boolean;
     end?: boolean;
@@ -15,6 +17,8 @@ interface StatsIndicatorProps {
 export default function StatsIndicator({
     stats,
     ghostTelemetry,
+    targetPace,
+    ghostType = "ghost",
     ghost,
     color = "gray40",
     end = false,
@@ -52,7 +56,12 @@ export default function StatsIndicator({
 
     const renderGhostCompare = useCallback(
         (stat: { label: string; value: string | number; unit: string }) => {
-            if (!isGhostMode || !ghostTelemetryToUse) return null;
+            if (
+                !isGhostMode ||
+                !ghostTelemetryToUse ||
+                targetPace !== undefined
+            )
+                return null;
 
             // 안전 변환
             const asNum = (v: string | number) =>
@@ -126,25 +135,37 @@ export default function StatsIndicator({
                     return null;
             }
         },
-        [isGhostMode, ghostTelemetryToUse, parsePace, signText, end]
+        [isGhostMode, ghostTelemetryToUse, parsePace, signText, end, targetPace]
     );
 
     return (
-        <View style={styles.courseInfoContainer}>
-            {stats.map((stat) => (
-                <View key={stat.label} style={styles.courseInfoItem}>
-                    {renderGhostCompare(stat)}
-                    <TextWithUnit
-                        key={stat.label}
-                        value={stat.value.toString()}
-                        unit={stat.unit}
-                        description={stat.label}
-                        variant="display1"
-                        color={color}
-                        unitVariant="display2"
-                    />
-                </View>
-            ))}
+        <View style={{ alignItems: "center", gap: 20 }}>
+            {targetPace !== undefined && !end && (
+                <TextWithUnit
+                    value={
+                        "구간 목표 페이스: " + getFormattedPace(targetPace ?? 0)
+                    }
+                    unit=""
+                    variant="subhead1"
+                    color="primary"
+                />
+            )}
+            <View style={styles.courseInfoContainer}>
+                {stats.map((stat) => (
+                    <View key={stat.label} style={styles.courseInfoItem}>
+                        {renderGhostCompare(stat)}
+                        <TextWithUnit
+                            key={stat.label}
+                            value={stat.value.toString()}
+                            unit={stat.unit}
+                            description={stat.label}
+                            variant="display1"
+                            color={color}
+                            unitVariant="display2"
+                        />
+                    </View>
+                ))}
+            </View>
         </View>
     );
 }

@@ -25,37 +25,35 @@ export default memo(function Header({
 }: HeaderProps) {
     const router = useRouter();
     return (
-        <View>
-            <View style={[styles.header]}>
-                {hasBackButton && (
-                    <Pressable
-                        onPress={() => (onBack ? onBack() : router.back())}
-                        style={{ width: 20, height: 20 }}
-                    >
-                        <BackIcon />
-                    </Pressable>
-                )}
-                {!hasBackButton && <View style={{ width: 20, height: 20 }} />}
-                {titleComponent ? (
-                    titleComponent
-                ) : (
-                    <Typography variant="subhead2" color="gray20">
-                        {titleText}
-                    </Typography>
-                )}
-                {!onDelete && !rightComponent && (
-                    <View style={{ width: 20, height: 20 }} />
-                )}
-                {onDelete && (
-                    <Pressable onPress={onDelete}>
-                        <TrashIcon
-                            color={deleteColor}
-                            style={{ marginRight: 10 }}
-                        />
-                    </Pressable>
-                )}
-                {rightComponent && rightComponent}
-            </View>
+        <View style={[styles.header]}>
+            {hasBackButton && (
+                <Pressable
+                    onPress={() => (onBack ? onBack() : router.back())}
+                    style={{ width: 20, height: 20 }}
+                >
+                    <BackIcon />
+                </Pressable>
+            )}
+            {!hasBackButton && <View style={{ width: 20, height: 20 }} />}
+            {titleComponent ? (
+                titleComponent
+            ) : (
+                <Typography variant="subhead2" color="gray20">
+                    {titleText}
+                </Typography>
+            )}
+            {!onDelete && !rightComponent && (
+                <View style={{ width: 20, height: 20 }} />
+            )}
+            {onDelete && (
+                <Pressable onPress={onDelete}>
+                    <TrashIcon
+                        color={deleteColor}
+                        style={{ marginRight: 10 }}
+                    />
+                </Pressable>
+            )}
+            {rightComponent && rightComponent}
         </View>
     );
 });

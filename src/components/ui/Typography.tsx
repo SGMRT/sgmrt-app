@@ -19,6 +19,7 @@ export type TypographyVariant =
     | "share_stat_unit"
     | "share_stat_description"
     | "mini"
+    | "mini2"
     | "advertiser";
 
 export type TypographyColor =
@@ -114,7 +115,6 @@ export const typographyStyles = StyleSheet.create({
         lineHeight: 18,
         letterSpacing: -0.6,
     },
-
     share_subhead: {
         fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 14.7,
@@ -123,20 +123,20 @@ export const typographyStyles = StyleSheet.create({
     },
     share_headline: {
         fontFamily: "SpoqaHanSansNeo-Bold",
-        fontSize: 51.41,
-        letterSpacing: -1.1,
-        lineHeight: 77.15,
+        fontSize: 36,
+        letterSpacing: -0.82,
+        lineHeight: 54,
     },
     share_stat: {
         fontFamily: "SpoqaHanSansNeo-Medium",
-        fontSize: 21.58,
-        lineHeight: 32.37,
+        fontSize: 24,
+        lineHeight: 36,
         letterSpacing: -0.46,
     },
     share_stat_unit: {
         fontFamily: "SpoqaHanSansNeo-Regular",
-        fontSize: 18.5,
-        lineHeight: 27.75,
+        fontSize: 18,
+        lineHeight: 27,
         letterSpacing: -0.46,
     },
     share_stat_description: {
@@ -146,6 +146,12 @@ export const typographyStyles = StyleSheet.create({
         letterSpacing: -0.46,
     },
     mini: {
+        fontFamily: "SpoqaHanSansNeo-Regular",
+        fontSize: 10,
+        lineHeight: 15,
+        letterSpacing: -0.6,
+    },
+    mini2: {
         fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 8,
         lineHeight: 12,

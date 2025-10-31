@@ -4,7 +4,7 @@ const config = {
     expo: {
         name: "고스트러너",
         slug: "ghostrunner",
-        version: "1.0.2",
+        version: "1.0.3",
         orientation: "portrait",
         icon: isStaging
             ? "./assets/images/icon-staging.png"
@@ -16,6 +16,8 @@ const config = {
             eas: {
                 projectId: "2cb16511-b095-499b-b82f-be1d7afaeea4",
             },
+            criticalIndex: Number(process.env.CRITICAL_INDEX ?? 0),
+            defaultChannel: process.env.UPDATE_CHANNEL ?? "main",
         },
         owner: "sgmrt",
         splash: {
@@ -35,7 +37,7 @@ const config = {
                 usesNonExemptEncryption: false,
             },
             googleServicesFile:
-                process.env.GOOGLE_SERVICES_INFO ||
+                process.env.GOOGLE_SERVICES_INFO ??
                 "./GoogleService-Info.plist",
             usesAppleSignIn: true,
             appleTeamId: "365VK6PJ7V",
@@ -55,10 +57,11 @@ const config = {
             },
             edgeToEdgeEnabled: true,
             googleServicesFile:
-                process.env.GOOGLE_SERVICES_JSON || "./google-services.json",
+                process.env.GOOGLE_SERVICES_JSON ?? "./google-services.json",
         },
         updates: {
             url: "https://u.expo.dev/2cb16511-b095-499b-b82f-be1d7afaeea4",
+            checkAutomatically: "NEVER",
         },
         runtimeVersion: {
             policy: "appVersion",
@@ -116,6 +119,11 @@ const config = {
                 {
                     ios: {
                         useFrameworks: "static",
+                        forceStaticLinking: [
+                            "RNFBApp",
+                            "RNFBAuth",
+                            "RNFBFirestore",
+                        ],
                     },
                     android: {
                         extraMavenRepos: [
@@ -171,8 +179,8 @@ const config = {
             [
                 "react-native-google-mobile-ads",
                 {
-                    androidAppId: process.env.ADS_ANDROID_APP_ID,
-                    iosAppId: process.env.ADS_IOS_APP_ID,
+                    androidAppId: process.env.ADS_ANDROID_APP_ID || "dev",
+                    iosAppId: process.env.ADS_IOS_APP_ID || "dev",
                     skAdNetworkItems: [
                         "cstr6suwn9.skadnetwork",
                         "4fzdc2evr5.skadnetwork",
@@ -251,16 +259,17 @@ const config = {
             [
                 "react-native-fbsdk-next",
                 {
-                    appID: process.env.FB_APP_ID,
+                    appID: process.env.FB_APP_ID || "dev",
                     displayName: "ghostrun",
-                    scheme: process.env.FB_SCHEME,
-                    clientToken: process.env.FB_CLIENT_TOKEN,
+                    scheme: process.env.FB_SCHEME || "dev",
+                    clientToken: process.env.FB_CLIENT_TOKEN || "dev",
                     advertiserIDCollectionEnabled: true,
                     autoLogAppEventsEnabled: true,
                     iosUserTrackingPermission:
                         "앱 이용 통계를 기반으로 한 맞춤형 광고를 제공하기 위해 기기 식별자 사용에 동의할 수 있습니다. 동의 여부와 관계없이 기본 기능은 이용할 수 있습니다.",
                 },
             ],
+            "expo-font",
         ],
         experiments: {
             typedRoutes: true,

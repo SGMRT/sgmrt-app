@@ -9,6 +9,10 @@ const steps: Step[] = [
         title: "고스트와 나는 색으로 구분돼요\n작은 숫자는 내 과거 기록과의 차이에요",
         image: require("@/assets/images/onboarding/onboarding_4.png"),
     },
+    {
+        title: "나의 러닝메이트 고스티 생성으로\n맞춤 플랜을 제공받아보세요",
+        image: require("@/assets/images/onboarding/onboarding_ghosty.png"),
+    },
 ];
 
 interface GhostGuideProps {

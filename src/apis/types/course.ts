@@ -16,7 +16,7 @@ export interface CourseResponse {
     id: number;
     name: string;
     ownerUuid: string;
-    sourse: "USER" | "OFFICIAL";
+    source: "USER" | "OFFICIAL";
     startLat: number;
     startLng: number;
     routeUrl: string;
@@ -59,6 +59,7 @@ export type Checkpoint = {
 export interface CourseDetailResponse {
     id: number;
     name: string;
+    source: "USER" | "OFFICIAL";
     telemetryUrl: string;
     checkpointsUrl: string;
     distance: number;
@@ -129,6 +130,7 @@ export interface UserCourseInfo {
     createdAt: number;
     totalRunsCount: number;
     distance: number;
+    elevationGain: number;
     averageCompletionTime: number;
     averageFinisherPace: number;
     averageFinisherCadence: number;

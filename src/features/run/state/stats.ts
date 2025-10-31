@@ -45,7 +45,6 @@ const PACE_WINDOW_MS = 10_000;
 const MAX_SPEED_MPS = 15;
 const MIN_VALID_DIST_M = 0.3;
 const ALT_THRESHOLD_M = 0;
-const MAX_VALID_PACE_SEC_PER_KM = 1200;
 const MIN_ACCEPT_DT_SEC = 0.8;
 
 function clampGlitch(distM: number, dtSec: number): number {
@@ -61,7 +60,6 @@ function secPerKmFrom(distM: number, dtSec: number): number | null {
     const v = distM / dtSec;
     if (v <= 0) return null;
     const pace = 1000 / v;
-    if (pace > MAX_VALID_PACE_SEC_PER_KM) return null;
     return pace;
 }
 
@@ -124,7 +122,7 @@ export function updateStats(
     // --- 스텝 증분 ---
     const deltaSteps = sample.steps?.deltaSteps ?? 0;
 
-    if (deltaSteps > 0) {
+    if (deltaSteps > 0 || (deltaSteps === 0 && next._totalSteps === 0)) {
         if (next._stepInvalid) {
             next._stepInvalid = false;
         } else {
@@ -153,6 +151,7 @@ export function updateStats(
             : 0;
 
     const sumDist = next._window.reduce((a, b) => a + b.dist, 0);
+
     const rawPace = secPerKmFrom(sumDist, winTimeSec);
 
     let rawCadence = sample.steps ? (sample.steps.last5sSteps / 5) * 60 : null;

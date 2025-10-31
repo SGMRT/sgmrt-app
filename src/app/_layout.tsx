@@ -20,14 +20,13 @@ import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
 import { useShouldShowAd } from "../components/ads/useShouldShowAd";
 import { useBootstrapApp } from "../features/bootstrap/useBootstrapApp";
+import PacemakerPollingWrapper from "../features/pacemaker/PacemakerPollingWrapper";
+import { useAppPermissions } from "../features/permission/useAppPermissions";
+import UpdateGate from "../updates/UpdateGate";
 import { devLog } from "../utils/devLog";
 
 const env =
-    process.env.NODE_ENV === "development"
-        ? "DEVELOPMENT"
-        : process.env.EAS_BUILD_PROFILE === "production"
-        ? "PRODUCTION"
-        : "STAGING";
+    process.env.NODE_ENV === "development" ? "DEVELOPMENT" : "PRODUCTION";
 
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 amplitude.init(process.env.EXPO_PUBLIC_AMPLITUDE_API_KEY || "", undefined, {
@@ -51,10 +50,13 @@ function RootLayout() {
     });
 
     const { status, error } = useBootstrapApp(isLoggedIn, loaded);
+    const bootReady = status === "done" || status === "error";
+    const { requestOptional } = useAppPermissions();
     const shouldShowAd = useShouldShowAd();
 
     useEffect(() => {
         if (status !== "idle") {
+            const hk = requestOptional("HEALTHKIT");
             devLog(`[bootstrap] status=${status}`, error ?? "");
         }
     }, [status, error]);
@@ -74,6 +76,7 @@ function RootLayout() {
                 }}
             >
                 <QueryClientProvider client={queryClient}>
+                    <PacemakerPollingWrapper />
                     <BottomSheetModalProvider>
                         <PushNotificationGate />
                         <Stack
@@ -90,12 +93,15 @@ function RootLayout() {
                                 name="run"
                                 options={{ gestureEnabled: false }}
                             />
-                            {/* <Stack.Screen name="test" /> */}
-                            <Stack.Screen name="watchtest" />
+                            <Stack.Screen name="test" />
                         </Stack>
                         {shouldShowAd && <CompactNativeAdRow />}
                         <Toast config={toastConfig} />
                     </BottomSheetModalProvider>
+                    <UpdateGate
+                        bootReady={bootReady}
+                        reloadNonCritical={false}
+                    />
                 </QueryClientProvider>
             </ThemeProvider>
         </GestureHandlerRootView>

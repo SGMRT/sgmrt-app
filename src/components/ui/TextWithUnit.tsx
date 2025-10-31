@@ -36,7 +36,13 @@ export default function TextWithUnit({
     return (
         <View style={[styles.container, style, { alignItems: align }]}>
             <View style={styles.valueContainer}>
-                <Typography variant={variant} color={color}>
+                <Typography
+                    variant={variant}
+                    color={color}
+                    style={{
+                        overflow: "visible",
+                    }}
+                >
                     {value}
                 </Typography>
                 {unit && (
@@ -52,6 +58,9 @@ export default function TextWithUnit({
                 <Typography
                     variant={descriptionVariant}
                     color={descriptionColor}
+                    style={{
+                        textAlign: "center",
+                    }}
                 >
                     {description}
                 </Typography>
@@ -67,5 +76,6 @@ const styles = StyleSheet.create({
     valueContainer: {
         flexDirection: "row",
         alignItems: "flex-end",
+        overflow: "visible",
     },
 });

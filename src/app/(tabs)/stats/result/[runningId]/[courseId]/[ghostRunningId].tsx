@@ -165,7 +165,7 @@ export default function Result() {
                 description: "시간",
                 value: getRunTime(
                     runData?.recordInfo.duration ?? 0,
-                    "HH:MM:SS"
+                    "HH:MM:SS_IF_HH_EXISTS"
                 ),
             },
             {
@@ -481,7 +481,7 @@ export default function Result() {
                                             value: getRunTime(
                                                 comperison?.ghostRunInfo
                                                     .recordInfo.duration ?? 0,
-                                                "MM:SS"
+                                                "HH:MM:SS_IF_HH_EXISTS"
                                             ),
                                         },
                                         {
@@ -514,7 +514,7 @@ export default function Result() {
                                             value: getRunTime(
                                                 comperison?.myRunInfo.recordInfo
                                                     .duration ?? 0,
-                                                "MM:SS"
+                                                "HH:MM:SS_IF_HH_EXISTS"
                                             ),
                                         },
                                         {

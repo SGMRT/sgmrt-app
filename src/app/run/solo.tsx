@@ -3,7 +3,6 @@ import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
-import { Button } from "@/src/components/ui/Button";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
@@ -226,7 +225,10 @@ export default function Run() {
                         style={[styles.timeText, { color: colors.white }]}
                         entering={FadeIn.duration(1000)}
                     >
-                        {getRunTime(Math.round(elapsedMs / 1000), "MM:SS")}
+                        {getRunTime(
+                            Math.round(elapsedMs / 1000),
+                            "HH:MM:SS_IF_HH_EXISTS"
+                        )}
                     </Animated.Text>
                 )}
             </TopBlurView>
@@ -259,18 +261,46 @@ export default function Run() {
                 </BottomSheetView>
             </BottomSheet>
             {context.status !== "PAUSED_USER" ? (
-                <Button
+                <ButtonWithIcon
+                    iconType="save"
                     disabled={
                         context.status === "READY" || context.status === "IDLE"
                     }
                     title="일시정지"
-                    onPress={() => {
+                    onPressIcon={() => {
                         Alert.alert(
-                            "러닝을 일시정지하시겠습니까?",
-                            "일시정지 후 다시 시작한 러닝은 고스트를 생성할 수 없습니다.",
+                            "러닝을 저장할까요?",
+                            "500m 이하의 러닝은 저장되지 않아요",
                             [
                                 {
-                                    text: "계속하기",
+                                    text: "저장하기",
+                                    style: "default",
+                                    onPress: () => {
+                                        if (
+                                            context.stats.totalDistanceM < 500
+                                        ) {
+                                            controls.stop();
+                                            router.back();
+                                        } else {
+                                            requestSave();
+                                        }
+                                    },
+                                },
+                                {
+                                    text: "뒤로가기",
+                                    style: "destructive",
+                                },
+                            ]
+                        );
+                    }}
+                    type="red"
+                    onPress={() => {
+                        Alert.alert(
+                            "러닝을 일시정지할까요?",
+                            "일시정지 후 이어 달린 기록은 코스로 만들 수 없어요",
+                            [
+                                {
+                                    text: "계속러닝",
                                     style: "default",
                                 },
                                 {
@@ -283,23 +313,18 @@ export default function Run() {
                             ]
                         );
                     }}
-                    type="red"
                 />
             ) : (
                 <ButtonWithIcon
                     iconType="save"
                     onPressIcon={() => {
                         Alert.alert(
-                            "러닝을 종료하시겠습니까?",
-                            "500m 이하의 러닝은 저장되지 않습니다.",
+                            "러닝을 저장할까요?",
+                            "500m 이하의 러닝은 저장되지 않아요",
                             [
-                                { text: "계속하기", style: "default" },
                                 {
-                                    text:
-                                        context.stats.totalDistanceM < 500
-                                            ? "나가기"
-                                            : "기록 저장",
-                                    style: "destructive",
+                                    text: "저장하기",
+                                    style: "default",
                                     onPress: () => {
                                         if (
                                             context.stats.totalDistanceM < 500
@@ -311,19 +336,23 @@ export default function Run() {
                                         }
                                     },
                                 },
+                                {
+                                    text: "뒤로가기",
+                                    style: "destructive",
+                                },
                             ]
                         );
                     }}
                     title="이어서 러닝"
                     onPress={() => {
                         Alert.alert(
-                            "러닝을 이어서 시작하시겠습니까?",
-                            "일시정지 후 재개한 러닝은 고스트를 생성할 수 없습니다.",
+                            "러닝을 이어서 시작할까요?",
+                            "계속러닝을 누르면 이어서 러닝이 가능해요",
                             [
-                                { text: "취소", style: "cancel" },
+                                { text: "취소", style: "default" },
                                 {
-                                    text: "계속하기",
-                                    style: "default",
+                                    text: "계속러닝",
+                                    style: "destructive",
                                     onPress: () => {
                                         controls.resume();
                                     },

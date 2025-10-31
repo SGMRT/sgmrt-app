@@ -38,7 +38,7 @@ export const showToast = (
 };
 
 export const CompactToast = (props: ToastShowParams) => (
-    <BlurView intensity={14} style={styles.compactContainer}>
+    <BlurView intensity={14} style={styles.baseContainer}>
         <Typography variant="subhead2" color="white">
             {props.text1}
         </Typography>
@@ -46,7 +46,7 @@ export const CompactToast = (props: ToastShowParams) => (
 );
 
 export const SuccessToast = (props: ToastShowParams) => (
-    <BlurView intensity={14} style={styles.container}>
+    <BlurView intensity={14} style={[styles.baseContainer, styles.container]}>
         <ToastCheckIcon />
         <Typography variant="subhead2" color="white">
             {props.text1}
@@ -55,7 +55,7 @@ export const SuccessToast = (props: ToastShowParams) => (
 );
 
 export const InfoToast = (props: ToastShowParams) => (
-    <BlurView intensity={14} style={styles.container}>
+    <BlurView intensity={14} style={[styles.baseContainer, styles.container]}>
         <ToastInfoIcon />
         <Typography variant="subhead2" color="white">
             {props.text1}
@@ -70,24 +70,18 @@ export const toastConfig = {
 };
 
 const styles = StyleSheet.create({
-    container: {
+    baseContainer: {
         backgroundColor: "rgba(92, 92, 92, 0.8)",
-        gap: 8,
-        flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
-        height: 48,
-        paddingHorizontal: 18,
+        height: 52,
+        paddingHorizontal: 20,
         borderRadius: 30,
         overflow: "hidden",
         zIndex: 100,
     },
-    compactContainer: {
-        backgroundColor: "rgba(92, 92, 92, 0.8)",
-        paddingVertical: 8,
-        paddingHorizontal: 18,
-        borderRadius: 30,
-        overflow: "hidden",
-        zIndex: 100,
+    container: {
+        gap: 8,
+        flexDirection: "row",
     },
 });

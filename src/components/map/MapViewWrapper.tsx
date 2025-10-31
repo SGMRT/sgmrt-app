@@ -13,7 +13,14 @@ import {
 import { useCallback, useRef, useState } from "react";
 import { Image as RNImage, StyleSheet, View } from "react-native";
 
-import { ArrowP, ArrowW, Bearing, Puck2, Puck3 } from "@/assets/icons/icons";
+import {
+    ArrowP,
+    ArrowW,
+    Bearing,
+    Puck,
+    Puck2,
+    Puck3,
+} from "@/assets/icons/icons";
 import colors from "@/src/theme/colors";
 import ControlPannel from "./ControlPannel";
 
@@ -28,9 +35,11 @@ interface MapViewWrapperProps {
         latitude: number;
         longitude: number;
     };
+    maxZoomLevel?: number;
     zoom?: number;
     showPuck?: boolean;
     onRegionDidChange?: (event: any) => void;
+    onDidFinishLoadingMap?: () => void;
     ref?: React.RefObject<MapView | null>;
     cameraRef?: React.RefObject<Camera | null>;
     logoEnabled?: boolean;
@@ -55,6 +64,8 @@ export default function MapViewWrapper({
     logoPosition = { bottom: 10, left: 10 },
     attributionEnabled = true,
     attributionPosition = { bottom: 8, right: 0 },
+    maxZoomLevel = 16,
+    onDidFinishLoadingMap,
     onTap,
 }: MapViewWrapperProps) {
     const [phase, setPhase] = useState<TrackPhase>("follow");
@@ -126,6 +137,9 @@ export default function MapViewWrapper({
                 onTouchMove={() => {
                     touchCapturedRef.current = false;
                 }}
+                onDidFinishLoadingMap={() => {
+                    onDidFinishLoadingMap?.();
+                }}
             >
                 <Images>
                     <Image name="topImage">
@@ -133,6 +147,9 @@ export default function MapViewWrapper({
                     </Image>
                     <Image name="bearingImage">
                         <RNImage source={Bearing} style={styles.bearing} />
+                    </Image>
+                    <Image name="puck">
+                        <RNImage source={Puck} />
                     </Image>
                     <Image name="puck2">
                         <RNImage source={Puck2} />
@@ -162,7 +179,7 @@ export default function MapViewWrapper({
                 />
                 <Camera
                     minZoomLevel={10}
-                    maxZoomLevel={16}
+                    maxZoomLevel={maxZoomLevel}
                     followZoomLevel={zoom}
                     animationDuration={0}
                     followUserLocation={followEnabled}

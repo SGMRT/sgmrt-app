@@ -39,11 +39,19 @@ async function refreshAccessToken(): Promise<string> {
     return refreshingPromise;
 }
 
+function withVersionPath(url: string | undefined, version: "v1" | "v2") {
+    if (!url) return `/${version}/`;
+    if (/^https?:\/\//.test(url)) return url;
+    const trimmed = url.replace(/^\?(v1|v2)\//, "").replace(/^\/+/, "");
+    return `/${version}/${trimmed}`;
+}
+
 declare module "axios" {
     interface AxiosRequestConfig {
         canRetry?: boolean;
         retryCount?: number;
         withAuth?: boolean;
+        apiVersion?: "v1" | "v2";
     }
 }
 
@@ -52,7 +60,7 @@ const apiUrl = __DEV__
     : process.env.EXPO_PUBLIC_API_URL;
 
 const server = axios.create({
-    baseURL: apiUrl + "/v1/",
+    baseURL: apiUrl,
     headers: {
         "Content-Type": "application/json",
     },
@@ -61,15 +69,13 @@ const server = axios.create({
 });
 
 server.interceptors.request.use((config) => {
-    if (config.canRetry === undefined) {
-        config.canRetry = true;
-    }
-    if (config.retryCount === undefined) {
-        config.retryCount = 0;
-    }
-    if (config.withAuth === undefined) {
-        config.withAuth = true;
-    }
+    if (config.canRetry === undefined) config.canRetry = true;
+    if (config.retryCount === undefined) config.retryCount = 0;
+    if (config.withAuth === undefined) config.withAuth = true;
+    if (config.apiVersion === undefined) config.apiVersion = "v1";
+
+    config.url = withVersionPath(config.url, config.apiVersion);
+
     const { accessToken } = useAuthStore.getState();
     if (accessToken && config.withAuth) {
         config.headers.Authorization = `Bearer ${accessToken}`;
@@ -184,3 +190,10 @@ server.interceptors.response.use(
 );
 
 export default server;
+
+export function requestV1<T = any>(cfg: import("axios").AxiosRequestConfig) {
+    return server.request<T>({ ...cfg, apiVersion: "v1" });
+}
+export function requestV2<T = any>(cfg: import("axios").AxiosRequestConfig) {
+    return server.request<T>({ ...cfg, apiVersion: "v2" });
+}

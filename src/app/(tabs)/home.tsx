@@ -5,6 +5,7 @@ import HomeMap from "@/src/components/map/HomeMap";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import { HomeNotices } from "@/src/components/notice/HomeNotices";
 import { WelcomeOnboarding } from "@/src/components/onboarding/WelcomOnboarding";
+import { ShuffleButton } from "@/src/components/ui/ShuffleButton";
 import TabBar from "@/src/components/ui/TabBar";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useSplashUntilLocationReady } from "@/src/features/permission/useSplashUntilLocationReady";
@@ -12,6 +13,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Confetti, ConfettiMethods } from "react-native-fast-confetti";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function Home() {
     const [showListView, setShowListView] = useState(false);
@@ -21,6 +23,14 @@ export default function Home() {
 
     const mapBottomSheetRef = useRef<BottomSheetModal>(null);
     const [showOnboarding, setShowOnboarding] = useState(false);
+
+    const [refreshKey, setRefreshKey] = useState(0);
+    const [refreshable, setRefreshable] = useState(false);
+
+    const onShuffle = () => {
+        setRefreshKey(refreshKey + 1);
+        setRefreshable(false);
+    };
 
     useSplashUntilLocationReady();
 
@@ -44,17 +54,25 @@ export default function Home() {
         AsyncStorage.setItem("welcome", "false");
     }, []);
 
+    const { top } = useSafeAreaInsets();
+
     return (
         <View style={styles.container}>
             <TopBlurView>
                 <WeatherInfo />
-                <HomeNotices />
             </TopBlurView>
+            <View style={[styles.bottomContainer, { paddingTop: top + 50 }]}>
+                <HomeNotices />
+                {refreshable && <ShuffleButton onPress={onShuffle} />}
+            </View>
+
             <HomeMap
                 courseType={"all"}
                 showListView={showListView}
                 setShowListView={setShowListView}
                 mapBottomSheetRef={mapBottomSheetRef}
+                refreshKey={refreshKey}
+                onRefreshableChange={setRefreshable}
             />
             <TabBar topRound={false} />
 
@@ -87,5 +105,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         position: "relative",
+    },
+    bottomContainer: {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        zIndex: 100,
     },
 });

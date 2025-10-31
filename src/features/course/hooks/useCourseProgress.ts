@@ -5,7 +5,7 @@ import { showCompactToast } from "@/src/components/ui/toastConfig";
 import { getDistance } from "@/src/utils/mapUtils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Toast from "react-native-toast-message";
-import { voiceGuide } from "../../audio/VoiceGuide";
+import { voice } from "../../audio/voice";
 import { Controls } from "../../run/hooks/useRunningSession";
 import { RunContext } from "../../run/state/context";
 import { selectUserLocation } from "../../run/state/selectors";
@@ -146,7 +146,7 @@ export function useCourseProgress(props: CourseProgressProps) {
                     "WARNING"
                 );
 
-                voiceGuide.announce({
+                voice.dispatch({
                     type: "run/offcourse-warning",
                 });
 
@@ -169,7 +169,7 @@ export function useCourseProgress(props: CourseProgressProps) {
                         "WARNING"
                     );
 
-                    voiceGuide.announce({
+                    voice.dispatch({
                         type: "run/offcourse-warning",
                     });
                 }, OFFCOURSE_NOTIFY_INTERVAL_MS);
@@ -272,7 +272,7 @@ export function useCourseProgress(props: CourseProgressProps) {
             const remaining = remainingAlongLegM(leg.points, current);
             if (remaining <= guideAdvanceM) {
                 approachFiredRef.current.add(legIndex);
-                voiceGuide.announce({
+                voice.dispatch({
                     type: "nav/approach-leg",
                     legIndex,
                     meters: Math.max(
@@ -296,7 +296,7 @@ export function useCourseProgress(props: CourseProgressProps) {
         if (legIndex === legs.length - 1) {
             if (dEnd <= endApproachAlertM && !endApproachAlertRef.current) {
                 endApproachAlertRef.current = true;
-                voiceGuide.announce({
+                voice.dispatch({
                     type: "nav/end-approach-alert",
                     legIndex,
                     meters: Math.max(0, Number(Math.round(dEnd).toFixed(0))),
@@ -331,7 +331,7 @@ export function useCourseProgress(props: CourseProgressProps) {
         if (dEnd <= passCpM) {
             setLegIndex((i) => {
                 const next = Math.min(i + 1, legs.length - 1);
-                voiceGuide.announce({
+                voice.dispatch({
                     type: "nav/enter-leg",
                     legIndex: next,
                     meters: Number(

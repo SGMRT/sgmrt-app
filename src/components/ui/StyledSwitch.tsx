@@ -4,9 +4,11 @@ import { Switch } from "react-native";
 export const StyledSwitch = ({
     isSelected,
     onValueChange,
+    disabled = false,
 }: {
     isSelected: boolean;
     onValueChange: (value: boolean) => void;
+    disabled?: boolean;
 }) => {
     return (
         <Switch
@@ -19,6 +21,7 @@ export const StyledSwitch = ({
             style={{
                 transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
             }}
+            disabled={disabled}
             value={isSelected}
             onValueChange={onValueChange}
         />
