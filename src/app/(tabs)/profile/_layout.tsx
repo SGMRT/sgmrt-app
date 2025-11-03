@@ -1,6 +1,7 @@
-import { Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
 
 export default function ProfileLayout() {
+    SplashScreen.hideAsync();
     return (
         <Stack
             screenOptions={{

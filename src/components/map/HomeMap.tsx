@@ -241,7 +241,6 @@ export default function HomeMap({
 
     const initializeCenter = useCallback(() => {
         if (center) return;
-
         Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.BestForNavigation,
         }).then((location) => {

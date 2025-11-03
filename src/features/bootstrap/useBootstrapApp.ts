@@ -153,7 +153,7 @@ export function useBootstrapApp(
     const [status, setStatus] = useState<Status>("idle");
     const [error, setError] = useState<unknown>(null);
 
-    const { requestOptional } = useAppPermissions();
+    const { requestOptional, requestOrAlert } = useAppPermissions();
 
     const version = useMemo(() => Constants.expoConfig?.version, []);
     const build = useMemo(
@@ -181,6 +181,8 @@ export function useBootstrapApp(
                 // 분석 로깅
                 await bootstrapAnalytics({ version, build });
 
+                await requestOrAlert("LOCATION");
+
                 // 라우팅
                 if (cancelled) return;
                 if (testMode) {
@@ -190,7 +192,7 @@ export function useBootstrapApp(
                     return;
                 } else if (isLoggedIn) {
                     devLog("replace to /(tabs)/home");
-                    router.replace("/(tabs)/home");
+                    // router.replace("/(tabs)/home");
                 } else {
                     devLog("replace to /(auth)/login");
                     router.replace("/(auth)/login");

@@ -26,6 +26,7 @@ export default function BottomCourseInfoModal({
     bottomSheetRef,
     course,
 }: BottomCourseInfoModalProps) {
+    console.log("BottomCourseInfoModal", course?.id);
     const queryClient = useQueryClient();
     const router = useRouter();
     const [route, setRoute] = useState<SheetRoute>("info");
@@ -33,33 +34,13 @@ export default function BottomCourseInfoModal({
     const [selectedGhost, setSelectedGhost] = useState<"user" | "ai" | null>(
         null
     );
-    const { findByCourseId, setStatus, removeJob, addJob } =
-        usePacemakerQueue();
+    const { findByCourseId, removeJob } = usePacemakerQueue();
 
     const { data: pacemaker } = useQuery({
         queryKey: ["pacemaker", course?.id],
         queryFn: () => getPacemakerByCourseId(course?.id!),
         enabled: !!course?.id,
     });
-
-    useEffect(() => {
-        if (!course?.id) return;
-        const job = findByCourseId(course.id);
-
-        if (pacemaker) {
-            if (!job) {
-                addJob({
-                    courseId: course.id,
-                    pacemakerId: pacemaker.pacemakerSummaryResponse.id,
-                    status: pacemaker.processingStatus,
-                });
-            }
-        } else {
-            if (job) {
-                removeJob(job.jobId);
-            }
-        }
-    }, [course?.id, pacemaker]);
 
     const { requestOrAlert, requestOptional } = useAppPermissions();
 

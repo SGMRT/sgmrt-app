@@ -59,6 +59,7 @@ export default function Login() {
                     router.push("/(auth)/register");
                 }
             });
+            router.replace("/(tabs)/home");
         } finally {
             loginInFlight = false;
         }
