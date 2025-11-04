@@ -2,6 +2,7 @@ import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
+import { ShareBottomSheet } from "@/src/components/share/ShareBottomSheet";
 import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
@@ -245,6 +246,7 @@ export default function Run() {
                     />
                 ))}
             </MapViewWrapper>
+
             <BottomSheet
                 backgroundStyle={styles.container}
                 bottomInset={bottom + 70}
@@ -260,6 +262,7 @@ export default function Run() {
                     </View>
                 </BottomSheetView>
             </BottomSheet>
+
             {context.status !== "PAUSED_USER" ? (
                 <ButtonWithIcon
                     iconType="save"
@@ -362,6 +365,8 @@ export default function Run() {
                     }}
                 />
             )}
+
+            <ShareBottomSheet />
         </View>
     );
 }

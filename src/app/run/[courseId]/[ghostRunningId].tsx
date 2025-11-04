@@ -602,6 +602,7 @@ export default function Run() {
                     )}
                 </View>
             </StyledBottomSheet>
+
             {runShotType === "thumbnail" ? (
                 <>
                     {context.status === "IDLE" ||
