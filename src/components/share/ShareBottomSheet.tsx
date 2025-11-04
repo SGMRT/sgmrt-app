@@ -5,11 +5,11 @@ import {
     ShareSimple,
     ShareVideo,
 } from "@/assets/icons/icons";
+import { ShareVariantWithVideo } from "@/src/app/(tabs)/stats/result/[runningId]/[courseId]/[ghostRunningId]";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { BlurView } from "expo-blur";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useRef, useState } from "react";
 import {
     Dimensions,
     ImageSourcePropType,
@@ -24,26 +24,32 @@ import Section from "../ui/Section";
 import { Typography } from "../ui/Typography";
 
 const types = [
-    { title: "기본", asset: ShareDefault },
-    { title: "영상", asset: ShareVideo },
-    { title: "기록투명", asset: ShareRecord },
-    { title: "로고투명", asset: ShareLogo },
-    { title: "심플투명", asset: ShareSimple },
+    { title: "기본", asset: ShareDefault, variant: "default" },
+    { title: "영상", asset: ShareVideo, variant: "video" },
+    { title: "기록투명", asset: ShareRecord, variant: "record" },
+    { title: "로고투명", asset: ShareLogo, variant: "logo" },
+    { title: "심플투명", asset: ShareSimple, variant: "simple" },
 ];
 
-export const ShareBottomSheet = () => {
-    const ref = useRef<BottomSheetModal>(null);
+interface ShareBottomSheetProps {
+    ref: React.RefObject<BottomSheetModal | null>;
+    selected: ShareVariantWithVideo;
+    onSelect: (variant: ShareVariantWithVideo) => void;
+    onShare: () => Promise<void>;
+}
+
+export const ShareBottomSheet = ({
+    ref,
+    selected,
+    onSelect,
+    onShare,
+}: ShareBottomSheetProps) => {
     const { bottom } = useSafeAreaInsets();
     const maxHeight = Dimensions.get("window").height - 250;
-    const [selected, setSelected] = useState<number>(0);
 
     const handlePress = (index: number) => {
-        setSelected(index);
+        onSelect(types[index].variant as ShareVariantWithVideo);
     };
-
-    useEffect(() => {
-        ref.current?.present();
-    }, []);
 
     return (
         <BottomModal
@@ -82,7 +88,7 @@ export const ShareBottomSheet = () => {
                                 title={item.title}
                                 asset={item.asset}
                                 onPress={() => handlePress(index)}
-                                selected={selected === index}
+                                selected={selected === item.variant}
                             />
                         ))}
                     </View>
@@ -99,12 +105,16 @@ export const ShareBottomSheet = () => {
                     pointerEvents="none"
                 >
                     <LinearGradient
-                        colors={["rgba(17, 17, 17, 0)", "rgba(17, 17, 17, 1)"]}
+                        colors={[
+                            "rgba(17, 17, 17, 0)",
+                            "rgba(17, 17, 17, 0)",
+                            "rgba(17, 17, 17, 1)",
+                        ]}
                         style={{ flex: 1 }}
                     />
                 </BlurView>
             </Section>
-            <Button type="active" title="공유하기" onPress={() => {}} />
+            <Button type="active" title="공유하기" onPress={onShare} />
         </BottomModal>
     );
 };

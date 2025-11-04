@@ -1,18 +1,19 @@
-import { GhostIcon } from "@/assets/svgs/svgs";
 import { Telemetry } from "@/src/apis/types/run";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
-import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
-import { forwardRef, memo, useImperativeHandle, useRef } from "react";
+import { forwardRef, memo, useImperativeHandle, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import ViewShot from "react-native-view-shot";
-import StatRow, { Stat } from "../ui/StatRow";
-import { Typography } from "../ui/Typography";
+import { Stat } from "../ui/StatRow";
+import { SHARE_REGISTRY } from "./registry";
+import { ShareVariant } from "./types";
+import DefaultShareContent from "./variants/DefaultShareContent";
 
 type RunShotProps = {
     fileName?: string;
     telemetries: Telemetry[];
     type: "share" | "thumbnail";
+    variant?: ShareVariant;
     onMapReady?: () => void;
 
     title: string;
@@ -21,8 +22,6 @@ type RunShotProps = {
 
     width?: number;
     height?: number;
-
-    backgroundColor?: string;
 };
 
 export type RunShotHandle = {
@@ -38,13 +37,13 @@ const RunShot = forwardRef<RunShotHandle, RunShotProps>(
             fileName,
             telemetries,
             type,
+            variant = "default",
             title,
             distance = "0.00",
             stats = [] as Stat[],
             onMapReady,
             width = DEFAULT_WIDTH,
             height = DEFAULT_HEIGHT,
-            backgroundColor = "#111111",
         },
         ref
     ) => {
@@ -62,6 +61,10 @@ const RunShot = forwardRef<RunShotHandle, RunShotProps>(
                 }
             },
         }));
+
+        const ShareContent = useMemo(() => {
+            return SHARE_REGISTRY[variant] ?? DefaultShareContent;
+        }, [variant]);
 
         return (
             <View pointerEvents="none" style={styles.container} collapsable>
@@ -89,7 +92,6 @@ const RunShot = forwardRef<RunShotHandle, RunShotProps>(
                             distance={distance}
                             width={width}
                             height={height}
-                            backgroundColor={backgroundColor}
                         />
                     )}
                 </ViewShot>
@@ -122,15 +124,13 @@ const ThumbnailContent = memo(function ThumbnailContent({
     );
 });
 
-const ShareContent = memo(function ShareContent({
+const VideoShareContent = memo(function VideoShareContent({
     telemetries,
-    onMapReady,
     width = 360,
     height = 350,
     stats = [] as Stat[],
     title,
     distance,
-    backgroundColor = "#111111",
 }: {
     telemetries: Telemetry[];
     onMapReady?: () => void;
@@ -139,59 +139,8 @@ const ShareContent = memo(function ShareContent({
     stats?: Stat[];
     title: string;
     distance: string | number;
-    backgroundColor?: string;
 }) {
-    return (
-        <View style={[styles.shareCard, { backgroundColor }]}>
-            <View style={styles.shareCardHeader}>
-                <Typography variant="display2" color="white">
-                    {title}
-                </Typography>
-                <View style={{ flexDirection: "row", gap: 5 }}>
-                    <Typography variant="share_headline" color="gray20">
-                        {distance.toString()}
-                    </Typography>
-                    <Typography variant="share_headline" color="gray20">
-                        km
-                    </Typography>
-                </View>
-            </View>
-
-            <View style={[styles.mapContainer, { width, height }]}>
-                <ResultCourseMap
-                    telemetries={telemetries}
-                    onReady={onMapReady}
-                    borderRadius={20}
-                    width={width}
-                    height={height}
-                    logoPosition={{ bottom: 10, left: 10 }}
-                    attributionPosition={{ bottom: 10, left: 100 }}
-                />
-                <GhostIcon
-                    color={colors.primary}
-                    width={24}
-                    height={15}
-                    style={styles.ghostIcon}
-                />
-            </View>
-
-            <StatRow
-                stats={stats}
-                style={styles.statsContainer}
-                options={{
-                    color: "gray20",
-                    unitColor: "gray20",
-                    descriptionColor: "gray60",
-                    variant: "share_stat",
-                    unitVariant: "share_stat_unit",
-                    descriptionVariant: "share_stat_description",
-                    align: "center",
-                    style: { minWidth: 78 },
-                }}
-                divider={false}
-            />
-        </View>
-    );
+    return <></>;
 });
 
 RunShot.displayName = "RunShot";
@@ -201,31 +150,8 @@ export default RunShot;
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
-        top: 0,
+        top: 200,
         left: 0,
         zIndex: -1000,
-    },
-    shareCard: {
-        padding: 16,
-        paddingBottom: 29,
-        flexDirection: "column",
-    },
-    shareCardHeader: {
-        marginBottom: 10,
-    },
-    ghostIcon: {
-        position: "absolute",
-        bottom: 13,
-        right: 13,
-    },
-    mapContainer: {
-        position: "relative",
-    },
-    statsContainer: {
-        alignItems: "flex-start",
-        justifyContent: "center",
-        marginHorizontal: 6.5,
-        gap: 12,
-        marginTop: 25,
     },
 });

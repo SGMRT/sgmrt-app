@@ -1,4 +1,4 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
+import { ChevronIcon, ShareIcon } from "@/assets/svgs/svgs";
 import {
     getCourse,
     getRun,
@@ -11,14 +11,15 @@ import { CourseDetailResponse } from "@/src/apis/types/course";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { RunningRecord } from "@/src/components/map/courseInfo/RunningRecord";
 import ResultCourseMap from "@/src/components/result/ResultCourseMap";
-import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
+import { ShareBottomSheet } from "@/src/components/share/ShareBottomSheet";
+import { ShareVariant } from "@/src/components/share/types";
 import BottomModal from "@/src/components/ui/BottomModal";
 import { Button } from "@/src/components/ui/Button";
 import Header from "@/src/components/ui/Header";
 import NameInput from "@/src/components/ui/NameInput";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import Section from "@/src/components/ui/Section";
-import ShareButton from "@/src/components/ui/ShareButton";
 import StatRow from "@/src/components/ui/StatRow";
 import { StyledButton } from "@/src/components/ui/StyledButton";
 import TabBar from "@/src/components/ui/TabBar";
@@ -47,8 +48,13 @@ import {
 } from "react-native-safe-area-context";
 import Share from "react-native-share";
 
+export type ShareVariantWithVideo = ShareVariant | "video";
+
 export default function Result() {
     const { runningId, courseId, ghostRunningId } = useLocalSearchParams();
+    const [runShotVariant, setRunShotVariant] = useState<ShareVariantWithVideo>(
+        "default" as ShareVariantWithVideo
+    );
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
     const runShotRef = useRef<RunShotHandle>(null);
     const { bottom } = useSafeAreaInsets();
@@ -195,14 +201,24 @@ export default function Result() {
                 value: getFormattedPace(runData?.recordInfo.averagePace ?? 0),
             },
             {
-                description: "케이던스",
-                value: Math.round(runData?.recordInfo.cadence ?? 0),
-                unit: "spm",
+                description: "케이던스(spm)",
+                value:
+                    runData?.recordInfo.cadence ?? 0 > 0
+                        ? Math.round(runData?.recordInfo.cadence ?? 0)
+                        : "--",
             },
             {
-                description: "칼로리",
+                description: "칼로리(kcal)",
                 value: runData?.recordInfo.calories ?? 0,
-                unit: "kcal",
+            },
+            {
+                description: "평균 심박수",
+                value: runData?.recordInfo.bpm ?? "--",
+            },
+            {
+                description: "고도 상승",
+                value:
+                    (runData?.recordInfo.elevationGain ?? 0).toString() + "m",
             },
         ];
     }, [runData]);
@@ -254,6 +270,42 @@ export default function Result() {
             return null;
         }
     }, [runData?.runningName]);
+
+    const shareBottomSheetRef = useRef<BottomSheetModal>(null);
+    const showShareBottomSheet = () => {
+        shareBottomSheetRef.current?.present();
+    };
+    const handleShareBottomSheetSelect = (variant: ShareVariantWithVideo) => {
+        setRunShotVariant(variant);
+    };
+
+    const handleShare = async () => {
+        if (runShotVariant !== "video") {
+            const uri = await captureMap();
+            Share.open({
+                title: runData?.runningName,
+                message: getDate(
+                    runData?.startedAt ?? new Date().getTime()
+                ).trim(),
+                filename: runData?.runningName ?? "run.jpg",
+                url: uri ?? "",
+            })
+                .then((res) => {
+                    devLog(res);
+                    if (res.success) {
+                        trackAmplitude("Run Shared", {
+                            variant: runShotVariant,
+                        });
+                    }
+                })
+                .catch((err) => {
+                    err && devLog(err);
+                });
+            shareBottomSheetRef.current?.dismiss();
+        } else {
+            // TODO: video share
+        }
+    };
 
     useEffect(() => {
         if (!resultTrackRef.current.view) {
@@ -309,32 +361,9 @@ export default function Result() {
                                     }}
                                 />
                             </View>
-                            <Pressable
-                                onPress={async () => {
-                                    const uri = await captureMap();
-                                    Share.open({
-                                        title: runData.runningName,
-                                        message: getDate(
-                                            runData.startedAt
-                                        ).trim(),
-                                        filename:
-                                            "ghostrunner_" + runningId + ".jpg",
-                                        url: uri ?? "",
-                                    })
-                                        .then((res) => {
-                                            devLog(res);
-                                        })
-                                        .catch((err) => {
-                                            err && devLog(err);
-                                        });
-                                }}
-                            >
-                                <ShareButton
-                                    title={runData.runningName}
-                                    message={getDate(runData.startedAt).trim()}
-                                    filename={runData.runningName + ".jpg"}
-                                    getUri={captureMap}
-                                />
+
+                            <Pressable onPress={showShareBottomSheet}>
+                                <ShareIcon />
                             </Pressable>
                         </View>
 
@@ -609,6 +638,12 @@ export default function Result() {
                         type="active"
                     />
                 </BottomModal>
+                <ShareBottomSheet
+                    ref={shareBottomSheetRef}
+                    selected={runShotVariant}
+                    onSelect={handleShareBottomSheetSelect}
+                    onShare={handleShare}
+                />
                 <RunShot
                     ref={runShotRef}
                     title={runData?.runningName}
@@ -617,6 +652,7 @@ export default function Result() {
                     distance={runData.recordInfo.distance.toFixed(2)}
                     type="share"
                     stats={captureStats}
+                    variant={runShotVariant as ShareVariant}
                 />
             </>
         )

@@ -7,6 +7,7 @@ import Puck2 from "./white-puck.png";
 import DefaultProfileIcon from "./default-profile.png";
 import Direction from "./direction.png";
 import DefaultLogo from "./icon.png";
+import LogoWhite from "./logo-white.png";
 import Logo from "./logo.png";
 import Needle from "./needle.png";
 import TouchText from "./touch.png";
@@ -33,6 +34,7 @@ export {
     DefaultProfileIcon,
     Direction,
     Logo,
+    LogoWhite,
     Needle,
     Puck,
     Puck2,
