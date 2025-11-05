@@ -41,7 +41,7 @@ function LogoShareContent({
                         거리
                     </Typography>
                     <Typography variant="share_headline" color="white">
-                        {Number(distance).toFixed(1)} km
+                        {distance ? Number(distance).toFixed(1) : "0.0"} km
                     </Typography>
                 </View>
                 <View style={{ alignItems: "center" }}>

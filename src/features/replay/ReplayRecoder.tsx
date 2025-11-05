@@ -271,13 +271,19 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     useEffect(() => {
         const sub = AppState.addEventListener("change", (s) => {
             appStateRef.current = s;
-            if (s !== "active") stopLoop();
-            else if (recording && !timerRef.current && recordingRef.current) {
+            if (s !== "active") {
+                if (timerRef.current) {
+                    clearTimeout(timerRef.current);
+                    timerRef.current = null;
+                }
+                return;
+            }
+            if (recordingRef.current && !timerRef.current) {
                 timerRef.current = setTimeout(frameLockedLoop, 0);
             }
         });
         return () => sub.remove();
-    }, [recording, frameLockedLoop, stopLoop]);
+    }, [frameLockedLoop]);
 
     useEffect(() => () => stopLoop(), [stopLoop]);
 
@@ -418,7 +424,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                             pause={() => {}}
                             play={() => {}}
                             controlEnabled={false}
-                            captrueMode={true}
+                            captureMode={true}
                         />
                     </View>
 

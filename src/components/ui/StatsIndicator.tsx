@@ -87,11 +87,6 @@ export default function StatsIndicator({
                     );
                 }
                 case "현재 페이스": {
-                    console.log("stat.value", stat.value);
-                    console.log(
-                        "ghostTelemetryToUse.pace",
-                        ghostTelemetryToUse.pace
-                    );
                     const mySec =
                         typeof stat.value === "string"
                             ? parsePace(stat.value)
