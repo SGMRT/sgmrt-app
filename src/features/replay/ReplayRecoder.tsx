@@ -11,6 +11,7 @@ import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
 import { interpolateTelemetries } from "@/src/utils/interpolateTelemetries";
 import { normalizeTimestamps } from "@/src/utils/normalizeTimestamps";
+import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { Camera } from "@rnmapbox/maps";
 import * as FileSystem from "expo-file-system";
 import {
@@ -324,9 +325,15 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                     type: "video/mp4",
                     saveToFiles: false,
                     failOnCancel: false,
-                }).catch((e) => {
-                    showToast("info", "공유에 실패했습니다", 100);
-                });
+                })
+                    .then(() => {
+                        trackAmplitude("Run Shared", {
+                            variant: "video",
+                        });
+                    })
+                    .catch((e) => {
+                        showToast("info", "공유에 실패했습니다", 100);
+                    });
             }
             return path;
         },
