@@ -19,7 +19,7 @@ import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
 import { TextWithSub } from "@/src/components/ui/TextWithSub";
-import { showCompactToast } from "@/src/components/ui/toastConfig";
+import { showCompactToast, showToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
@@ -305,7 +305,7 @@ export default function Run() {
             {
                 description: "케이던스(spm)",
                 value:
-                    context.stats.avgCadenceSpm ?? 0 > 0
+                    (context.stats.avgCadenceSpm ?? 0) > 0
                         ? Math.round(context.stats.avgCadenceSpm ?? 0)
                         : "--",
             },
@@ -452,11 +452,12 @@ export default function Run() {
         try {
             shareBottomSheetRef.current?.dismiss();
             replayRecoderRef.current?.reset();
-            setReplayProgress(0);
+            setReplayProgress(-1);
             await new Promise((resolve) => setTimeout(resolve, 2000));
             await replayRecoderRef.current?.startRecording();
         } catch (e) {
-            console.log("handleShareVideo error: ", e);
+            showToast("info", "공유에 실패했습니다", bottom);
+            setReplayProgress(-1);
         }
     }
 
@@ -559,7 +560,7 @@ export default function Run() {
                 </LoadingLayer>
             )}
             <ShareBottomSheet
-                ref={shareBottomSheetRef}
+                bottomSheetRef={shareBottomSheetRef}
                 selected={runShotVariant}
                 onSelect={handleShareBottomSheetSelect}
                 onShare={handleShare}

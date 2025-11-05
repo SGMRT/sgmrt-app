@@ -32,14 +32,14 @@ const types = [
 ];
 
 interface ShareBottomSheetProps {
-    ref: React.RefObject<BottomSheetModal | null>;
+    bottomSheetRef: React.RefObject<BottomSheetModal | null>;
     selected: ShareVariantWithVideo;
     onSelect: (variant: ShareVariantWithVideo) => void;
     onShare: () => Promise<void>;
 }
 
 export const ShareBottomSheet = ({
-    ref,
+    bottomSheetRef,
     selected,
     onSelect,
     onShare,
@@ -57,7 +57,7 @@ export const ShareBottomSheet = ({
             backdrop
             backdropOpacity={0.1}
             canClose
-            bottomSheetRef={ref}
+            bottomSheetRef={bottomSheetRef}
         >
             <Section
                 title="공유 방식"

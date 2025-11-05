@@ -30,7 +30,7 @@ type PreviewMapProps = {
     pause?: () => void;
     play?: () => void;
     controlEnabled?: boolean;
-    captrueMode?: boolean;
+    captureMode?: boolean;
 };
 
 export default function PreviewMap({
@@ -46,7 +46,7 @@ export default function PreviewMap({
     pause,
     play,
     controlEnabled = true,
-    captrueMode = false,
+    captureMode = false,
 }: PreviewMapProps) {
     const mapReadyRef = useRef(false);
     const initialPosition = useRef({ latitude: lat, longitude: lng });
@@ -88,7 +88,7 @@ export default function PreviewMap({
             zoomLevel: zoomLevel,
             pitch: pitch,
             heading: heading,
-            animationDuration: captrueMode ? 0 : 500,
+            animationDuration: captureMode ? 0 : 500,
         });
     }, [lng, lat, heading, cameraRef]);
 
