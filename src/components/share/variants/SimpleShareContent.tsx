@@ -15,6 +15,8 @@ function SimpleShareContent({
                 backgroundColor: "transparent",
                 gap: 7,
                 alignItems: "center",
+                paddingVertical: 45,
+                paddingHorizontal: 16,
             }}
         >
             <Track

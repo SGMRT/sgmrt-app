@@ -29,6 +29,8 @@ type PreviewMapProps = {
     seekToProgress?: (p: number) => void;
     pause?: () => void;
     play?: () => void;
+    controlEnabled?: boolean;
+    captrueMode?: boolean;
 };
 
 export default function PreviewMap({
@@ -43,6 +45,8 @@ export default function PreviewMap({
     seekToProgress,
     pause,
     play,
+    controlEnabled = true,
+    captrueMode = false,
 }: PreviewMapProps) {
     const mapReadyRef = useRef(false);
     const initialPosition = useRef({ latitude: lat, longitude: lng });
@@ -84,7 +88,7 @@ export default function PreviewMap({
             zoomLevel: zoomLevel,
             pitch: pitch,
             heading: heading,
-            animationDuration: 500,
+            animationDuration: captrueMode ? 0 : 500,
         });
     }, [lng, lat, heading, cameraRef]);
 
@@ -190,29 +194,31 @@ export default function PreviewMap({
                     © OpenStreetMap
                 </Link>
             </Typography>
-            <View
-                style={{
-                    position: "absolute",
-                    bottom: 18,
-                    left: 18,
-                    right: 18,
-                }}
-            >
-                <ProgressBar
-                    progress={Math.max(0, Math.min(1, progress))}
-                    backgroundColor={colors.gray[60]}
-                    duration={0.5}
-                    controller={true}
-                    onChange={(p) => {
-                        pause?.();
-                        seekToProgress?.(p);
+            {controlEnabled && (
+                <View
+                    style={{
+                        position: "absolute",
+                        bottom: 18,
+                        left: 18,
+                        right: 18,
                     }}
-                    onCommit={(p) => {
-                        seekToProgress?.(p);
-                        play?.();
-                    }}
-                />
-            </View>
+                >
+                    <ProgressBar
+                        progress={Math.max(0, Math.min(1, progress))}
+                        backgroundColor={colors.gray[60]}
+                        duration={0.5}
+                        controller={true}
+                        onChange={(p) => {
+                            pause?.();
+                            seekToProgress?.(p);
+                        }}
+                        onCommit={(p) => {
+                            seekToProgress?.(p);
+                            play?.();
+                        }}
+                    />
+                </View>
+            )}
         </View>
     );
 }

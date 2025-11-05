@@ -13,6 +13,8 @@ export default function RecordShareContent({
         <View
             style={{
                 backgroundColor: "transparent",
+                paddingVertical: 120,
+                paddingHorizontal: 16,
                 gap: 60,
             }}
         >

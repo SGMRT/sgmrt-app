@@ -17,6 +17,7 @@ import { ShareVariant } from "@/src/components/share/types";
 import BottomModal from "@/src/components/ui/BottomModal";
 import { Button } from "@/src/components/ui/Button";
 import Header from "@/src/components/ui/Header";
+import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import NameInput from "@/src/components/ui/NameInput";
 import ScrollButton from "@/src/components/ui/ScrollButton";
 import Section from "@/src/components/ui/Section";
@@ -25,6 +26,9 @@ import { StyledButton } from "@/src/components/ui/StyledButton";
 import TabBar from "@/src/components/ui/TabBar";
 import { showToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
+import ReplayRecoder, {
+    ReplayRecorderHandle,
+} from "@/src/features/replay/ReplayRecoder";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
@@ -35,6 +39,7 @@ import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+    Alert,
     Pressable,
     ScrollView,
     StyleSheet,
@@ -55,6 +60,7 @@ export default function Result() {
     const [runShotVariant, setRunShotVariant] = useState<ShareVariantWithVideo>(
         "default" as ShareVariantWithVideo
     );
+    const [replayProgress, setReplayProgress] = useState(-1);
     const [displayMode, setDisplayMode] = useState<"pace" | "course">("pace");
     const runShotRef = useRef<RunShotHandle>(null);
     const { bottom } = useSafeAreaInsets();
@@ -79,6 +85,8 @@ export default function Result() {
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const scrollViewRef = useRef<ScrollView>(null);
+    const shareBottomSheetRef = useRef<BottomSheetModal>(null);
+    const replayRecoderRef = useRef<ReplayRecorderHandle>(null);
 
     const handlePresentModalPress = () => {
         bottomSheetRef.current?.present();
@@ -271,13 +279,24 @@ export default function Result() {
         }
     }, [runData?.runningName]);
 
-    const shareBottomSheetRef = useRef<BottomSheetModal>(null);
     const showShareBottomSheet = () => {
         shareBottomSheetRef.current?.present();
     };
     const handleShareBottomSheetSelect = (variant: ShareVariantWithVideo) => {
         setRunShotVariant(variant);
     };
+
+    async function handleShareVideo() {
+        try {
+            shareBottomSheetRef.current?.dismiss();
+            replayRecoderRef.current?.reset();
+            setReplayProgress(0);
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await replayRecoderRef.current?.startRecording();
+        } catch (e) {
+            console.log("handleShareVideo error: ", e);
+        }
+    }
 
     const handleShare = async () => {
         if (runShotVariant !== "video") {
@@ -303,7 +322,20 @@ export default function Result() {
                 });
             shareBottomSheetRef.current?.dismiss();
         } else {
-            // TODO: video share
+            Alert.alert(
+                "실험 기능 안내",
+                "이 기능은 현재 실험 중인 기능입니다.\n처리 과정에 다소 시간이 소요될 수 있으며, 실행 중에도 언제든 취소하실 수 있습니다.\n계속 진행하시겠습니까?",
+                [
+                    { text: "취소", style: "cancel" },
+                    {
+                        text: "계속 진행",
+                        style: "default",
+                        onPress: async () => {
+                            await handleShareVideo();
+                        },
+                    },
+                ]
+            );
         }
     };
 
@@ -638,22 +670,56 @@ export default function Result() {
                         type="active"
                     />
                 </BottomModal>
+                {replayProgress >= 0 && runShotVariant === "video" && (
+                    <LoadingLayer progress={replayProgress}>
+                        <Pressable
+                            onPress={() => {
+                                replayRecoderRef.current?.reset();
+                            }}
+                        >
+                            <Typography variant="body3" color="gray40">
+                                취소하기
+                            </Typography>
+                        </Pressable>
+                    </LoadingLayer>
+                )}
                 <ShareBottomSheet
                     ref={shareBottomSheetRef}
                     selected={runShotVariant}
                     onSelect={handleShareBottomSheetSelect}
                     onShare={handleShare}
                 />
-                <RunShot
-                    ref={runShotRef}
-                    title={runData?.runningName}
-                    fileName={runData?.runningName + ".jpg"}
-                    telemetries={runData.telemetries ?? []}
-                    distance={runData.recordInfo.distance.toFixed(2)}
-                    type="share"
-                    stats={captureStats}
-                    variant={runShotVariant as ShareVariant}
-                />
+                {runShotVariant !== "video" && (
+                    <RunShot
+                        ref={runShotRef}
+                        title={runData?.runningName}
+                        fileName={runData?.runningName + ".jpg"}
+                        telemetries={runData.telemetries ?? []}
+                        distance={runData.recordInfo.distance.toFixed(2)}
+                        type="share"
+                        stats={captureStats}
+                        variant={runShotVariant as ShareVariant}
+                    />
+                )}
+                {runShotVariant === "video" && (
+                    <ReplayRecoder
+                        ref={replayRecoderRef}
+                        telemetries={runData.telemetries ?? []}
+                        visualFps={60}
+                        width={360}
+                        height={350}
+                        autoShare={true}
+                        name={runData.runningName}
+                        distance={runData.recordInfo.distance.toFixed(2)}
+                        stats={captureStats}
+                        onProgress={(progress) => {
+                            setReplayProgress(progress);
+                        }}
+                        onFinish={() => {
+                            setReplayProgress(-1);
+                        }}
+                    />
+                )}
             </>
         )
     );

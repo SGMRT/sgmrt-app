@@ -72,7 +72,7 @@ const RunShot = forwardRef<RunShotHandle, RunShotProps>(
                     ref={viewShotRef}
                     options={{
                         fileName: fileName,
-                        format: "jpg",
+                        format: "png",
                         quality: 0.9,
                     }}
                 >

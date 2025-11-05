@@ -12,7 +12,15 @@ function LogoShareContent({
     distance,
 }: CommonShareProps) {
     return (
-        <View style={{ alignItems: "center", gap: 7 }}>
+        <View
+            style={{
+                alignItems: "center",
+                gap: 7,
+                backgroundColor: "transparent",
+                paddingVertical: 68,
+                paddingHorizontal: 16,
+            }}
+        >
             <View style={{ alignItems: "center", gap: 10 }}>
                 <View style={{ alignItems: "center" }}>
                     <Typography
