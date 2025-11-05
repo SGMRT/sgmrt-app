@@ -233,10 +233,7 @@ export default function Result() {
 
     const DisplaySlideToAction = useMemo(() => {
         if (courseId === "-1" && ghostRunningId === "-1") {
-            const canMakeCourse =
-                !runData?.telemetries.some(
-                    (telemetry) => !telemetry.isRunning
-                ) && !runData?.courseInfo?.isPublic;
+            const canMakeCourse = !runData?.courseInfo?.isPublic;
             if (canMakeCourse) {
                 return (
                     <Button

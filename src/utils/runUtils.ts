@@ -19,6 +19,7 @@ import {
 import { encodeTelemetries } from "../apis/utils";
 import { Segment } from "../components/map/RunningLine";
 import { showCompactToast } from "../components/ui/toastConfig";
+import { applyAltitudeBiasFromBestGPS } from "../features/run/utils/applyAltitudeBias";
 import { RawData, UserDashBoardData } from "../types/run";
 import { devLog, errorLog } from "./devLog";
 import { Coordinate, getDistance } from "./mapUtils";
@@ -199,6 +200,8 @@ export async function saveRunning({
         return;
     }
 
+    telemetries = applyAltitudeBiasFromBestGPS(telemetries, rawData);
+
     const isHealthDataAvailable = await isHealthDataAvailableAsync();
 
     const stablePace =
@@ -327,6 +330,7 @@ export async function saveRunning({
 
     try {
         const rawJsonl = rawData.map((item) => JSON.stringify(item)).join("\n");
+
         const interpolatedJsonl = encodeTelemetries(telemetries)
             .map((item) => JSON.stringify(item))
             .join("\n");

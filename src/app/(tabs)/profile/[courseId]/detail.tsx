@@ -130,7 +130,11 @@ export default function Result() {
                         {/* 제목 파트 */}
                         <View style={styles.titleContainer}>
                             <View style={styles.titleInputContainer}>
-                                <Typography variant="headline" color="white">
+                                <Typography
+                                    variant="headline"
+                                    color="white"
+                                    numberOfLines={1}
+                                >
                                     {course?.name}
                                 </Typography>
                                 <Divider />

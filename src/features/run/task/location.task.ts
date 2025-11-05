@@ -107,13 +107,14 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
 
         const isBaroAvailable = await Barometer.isAvailableAsync();
 
-        if (isBaroAvailable && joined.pressure == null) {
+        if (isBaroAvailable && !joined.pressure?.pressure) {
             devLog("[LOCATION] 압력 데이터 없음");
             continue;
         }
 
         const pressureAltitude = pressureAltitudeM(
-            joined.pressure?.pressure ?? 0
+            joined.pressure?.pressure,
+            joined.location.altitude
         );
 
         const last5sSteps = await getStepCountAsync(

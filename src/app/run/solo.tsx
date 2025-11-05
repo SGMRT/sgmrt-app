@@ -299,7 +299,7 @@ export default function Run() {
                     onPress={() => {
                         Alert.alert(
                             "러닝을 일시정지할까요?",
-                            "일시정지 후 이어 달린 기록은 코스로 만들 수 없어요",
+                            "일시정지 후에도 이어서 러닝이 가능해요",
                             [
                                 {
                                     text: "계속러닝",

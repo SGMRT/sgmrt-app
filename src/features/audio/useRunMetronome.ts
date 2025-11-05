@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AudioContext } from "react-native-audio-api";
 
-type Mode = "ONE" | "ONE_TWO";
+type Mode = "ONE" | "ONE_TWO" | "ALL";
 
 type RunMetronomeProps = {
     enabled: boolean;
@@ -24,7 +24,7 @@ export function useRunMetronome({
     maxBoostPercent = 0.2,
     gainFactor = 0.06,
     thresholdM = 5,
-    mode = "ONE",
+    mode = "ALL",
     volume = 0.2,
     autoTwoBeatsM = 50,
 }: RunMetronomeProps) {
@@ -55,7 +55,12 @@ export function useRunMetronome({
 
     // ONE: 1박만(0), ONE_TWO: 1·3박(0,2)
     const audible = useMemo<Set<number>>(
-        () => (effectiveMode === "ONE" ? new Set([0]) : new Set([0, 2])),
+        () =>
+            effectiveMode === "ONE"
+                ? new Set([0])
+                : effectiveMode === "ONE_TWO"
+                ? new Set([0, 2])
+                : new Set([0, 1, 2, 3]),
         [effectiveMode]
     );
 
