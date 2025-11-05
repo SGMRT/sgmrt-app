@@ -26,7 +26,6 @@ export default function BottomCourseInfoModal({
     bottomSheetRef,
     course,
 }: BottomCourseInfoModalProps) {
-    console.log("BottomCourseInfoModal", course?.id);
     const queryClient = useQueryClient();
     const router = useRouter();
     const [route, setRoute] = useState<SheetRoute>("info");

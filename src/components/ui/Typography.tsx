@@ -13,11 +13,16 @@ export type TypographyVariant =
     | "body2"
     | "body3"
     | "caption1"
+    | "share_big_title"
+    | "share_big_title_sub"
+    | "share_big_stats"
     | "share_subhead"
     | "share_headline"
     | "share_stat"
     | "share_stat_unit"
     | "share_stat_description"
+    | "share_logo_stat_description"
+    | "share_stat_description_medium"
     | "mini"
     | "mini2"
     | "advertiser";
@@ -121,6 +126,24 @@ export const typographyStyles = StyleSheet.create({
         letterSpacing: -0.49,
         lineHeight: 22.05,
     },
+    share_big_title: {
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontSize: 60,
+        letterSpacing: -0.82,
+        lineHeight: 90,
+    },
+    share_big_title_sub: {
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontSize: 24,
+        lineHeight: 36,
+        letterSpacing: -0.6,
+    },
+    share_big_stats: {
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontSize: 28,
+        lineHeight: 42,
+        letterSpacing: -0.6,
+    },
     share_headline: {
         fontFamily: "SpoqaHanSansNeo-Bold",
         fontSize: 36,
@@ -141,8 +164,8 @@ export const typographyStyles = StyleSheet.create({
     },
     share_stat_description: {
         fontFamily: "SpoqaHanSansNeo-Regular",
-        fontSize: 12.33,
-        lineHeight: 18.495,
+        fontSize: 12,
+        lineHeight: 18,
         letterSpacing: -0.46,
     },
     mini: {
@@ -163,7 +186,18 @@ export const typographyStyles = StyleSheet.create({
         lineHeight: 18,
         letterSpacing: -0.6,
     },
-
+    share_logo_stat_description: {
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        fontSize: 12,
+        lineHeight: 18,
+        letterSpacing: -0.46,
+    },
+    share_stat_description_medium: {
+        fontFamily: "SpoqaHanSansNeo-Medium",
+        fontSize: 12,
+        lineHeight: 18,
+        letterSpacing: -0.46,
+    },
     black: {
         color: colors.black,
     },

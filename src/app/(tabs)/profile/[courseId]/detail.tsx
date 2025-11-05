@@ -5,7 +5,7 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import { UserGhostRow } from "@/src/components/map/courseInfo/GhostRow/UserGhostRow";
 import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
-import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
