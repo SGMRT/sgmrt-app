@@ -124,25 +124,6 @@ const ThumbnailContent = memo(function ThumbnailContent({
     );
 });
 
-const VideoShareContent = memo(function VideoShareContent({
-    telemetries,
-    width = 360,
-    height = 350,
-    stats = [] as Stat[],
-    title,
-    distance,
-}: {
-    telemetries: Telemetry[];
-    onMapReady?: () => void;
-    width?: number;
-    height?: number;
-    stats?: Stat[];
-    title: string;
-    distance: string | number;
-}) {
-    return <></>;
-});
-
 RunShot.displayName = "RunShot";
 
 export default RunShot;

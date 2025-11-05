@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     },
     statsContainer: {
         alignItems: "flex-start",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         marginHorizontal: 6.5,
         gap: 12,
         marginTop: 25,
