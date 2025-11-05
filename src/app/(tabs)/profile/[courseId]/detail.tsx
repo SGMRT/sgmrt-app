@@ -82,7 +82,7 @@ export default function Result() {
             if (!uri) return null;
 
             const safeName = (course?.name ?? "run").replace(/\s+/g, "_");
-            const filename = `${safeName}.jpg`;
+            const filename = `${safeName}.png`;
             const targetPath = `${FileSystem.cacheDirectory}/${filename}`;
 
             await FileSystem.copyAsync({
@@ -142,7 +142,7 @@ export default function Result() {
                             <ShareButton
                                 title={course?.name}
                                 message={getDate(course?.createdAt ?? 0).trim()}
-                                filename={course?.name + ".jpg"}
+                                filename={course?.name + ".png"}
                                 getUri={captureMap}
                             />
                         </View>
@@ -291,7 +291,7 @@ export default function Result() {
                 </SafeAreaView>
                 <RunShot
                     ref={runShotRef}
-                    fileName={course?.name + ".jpg"}
+                    fileName={course?.name + ".png"}
                     telemetries={course?.telemetries ?? []}
                     type="share"
                     title={course?.name}

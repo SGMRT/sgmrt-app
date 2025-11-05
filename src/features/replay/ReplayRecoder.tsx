@@ -430,7 +430,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
 
                     <StatRow
                         stats={stats?.slice(0, 4) ?? []}
-                        style={{ marginLeft: 16, marginTop: 20, gap: 12 }}
+                        style={{ marginLeft: 16, marginTop: 24, gap: 12 }}
                         variant="share_stat"
                         descriptionVariant="share_stat_description"
                         color="white"

@@ -261,7 +261,7 @@ export default function Run() {
             });
 
             const filename =
-                getRunName(context.telemetries.at(-1)?.timeStamp ?? 0) + ".jpg";
+                getRunName(context.telemetries.at(-1)?.timeStamp ?? 0) + ".png";
             const targetPath = `${FileSystem.cacheDirectory}${filename}`;
 
             devLog(targetPath);
@@ -472,7 +472,7 @@ export default function Run() {
                 filename:
                     "ghostrunner_" +
                     runSaveResult?.runningId.toString() +
-                    ".jpg",
+                    ".png",
                 url: uri ?? "",
             })
                 .then((res) => {
@@ -514,7 +514,7 @@ export default function Run() {
                         title={getRunName(
                             savingTelemetries.at(0)?.timeStamp ?? 0
                         )}
-                        fileName={"runImage.jpg"}
+                        fileName={"runImage.png"}
                         telemetries={savingTelemetries}
                         type={runShotType}
                         onMapReady={triggerCapture}

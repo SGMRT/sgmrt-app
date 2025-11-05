@@ -263,7 +263,7 @@ export default function Result() {
                 return uri;
             });
 
-            const filename = runData?.runningName + ".jpg";
+            const filename = runData?.runningName + ".png";
             const targetPath = `${FileSystem.cacheDirectory}${filename}`;
             devLog(targetPath);
 
@@ -307,7 +307,7 @@ export default function Result() {
                 message: getDate(
                     runData?.startedAt ?? new Date().getTime()
                 ).trim(),
-                filename: runData?.runningName ?? "run.jpg",
+                filename: runData?.runningName ?? "run.png",
                 url: uri ?? "",
             })
                 .then((res) => {
@@ -694,7 +694,7 @@ export default function Result() {
                     <RunShot
                         ref={runShotRef}
                         title={runData?.runningName}
-                        fileName={runData?.runningName + ".jpg"}
+                        fileName={runData?.runningName + ".png"}
                         telemetries={runData.telemetries ?? []}
                         distance={runData.recordInfo.distance.toFixed(2)}
                         type="share"

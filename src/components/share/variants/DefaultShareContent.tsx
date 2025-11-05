@@ -72,13 +72,13 @@ export default DefaultShareContent;
 
 const styles = StyleSheet.create({
     shareCard: {
-        padding: 16,
-        paddingBottom: 29,
+        paddingVertical: 29,
         flexDirection: "column",
         backgroundColor: "#111111",
     },
     shareCardHeader: {
         marginBottom: 10,
+        marginLeft: 16,
     },
     ghostIcon: {
         position: "absolute",
@@ -87,12 +87,13 @@ const styles = StyleSheet.create({
     },
     mapContainer: {
         position: "relative",
+        marginHorizontal: 16,
     },
     statsContainer: {
         alignItems: "flex-start",
         justifyContent: "flex-start",
-        marginHorizontal: 6.5,
+        marginLeft: 16,
         gap: 12,
-        marginTop: 25,
+        marginTop: 24,
     },
 });
