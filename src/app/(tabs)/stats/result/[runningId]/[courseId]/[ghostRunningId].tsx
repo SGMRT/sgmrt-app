@@ -139,15 +139,20 @@ export default function Result() {
     const paceStats = useMemo(() => {
         return [
             {
+                description: "거리",
+                value: (runData?.recordInfo.distance ?? 0).toFixed(2),
+                unit: "km",
+            },
+            {
                 description: "평균",
                 value: getFormattedPace(runData?.recordInfo.averagePace ?? 0),
             },
             {
-                description: "순간 최고",
+                description: "최고",
                 value: getFormattedPace(runData?.recordInfo.lowestPace ?? 0),
             },
             {
-                description: "순간 최저",
+                description: "최저",
                 value: getFormattedPace(runData?.recordInfo.highestPace ?? 0),
             },
         ];
@@ -157,7 +162,7 @@ export default function Result() {
         return [
             {
                 description: "전체 거리",
-                value: (runData?.recordInfo.distance ?? 0).toFixed(2),
+                value: (runData?.courseInfo?.distance ?? 0).toFixed(2),
                 unit: "km",
             },
             {
@@ -233,10 +238,7 @@ export default function Result() {
 
     const DisplaySlideToAction = useMemo(() => {
         if (courseId === "-1" && ghostRunningId === "-1") {
-            const hasPaused = runData?.telemetries.some(
-                (telemetry) => telemetry.isRunning === false
-            );
-            const canMakeCourse = !runData?.courseInfo?.isPublic && !hasPaused;
+            const canMakeCourse = !runData?.courseInfo?.isPublic;
 
             if (canMakeCourse) {
                 return (

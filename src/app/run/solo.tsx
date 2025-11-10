@@ -299,7 +299,7 @@ export default function Run() {
                     onPress={() => {
                         Alert.alert(
                             "러닝을 일시정지할까요?",
-                            "일시정지 후에도 이어서 러닝이 가능해요",
+                            "계속러닝을 누르면 이어서 러닝이 가능해요",
                             [
                                 {
                                     text: "계속러닝",

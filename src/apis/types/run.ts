@@ -75,6 +75,7 @@ export interface CourseInfo {
     name: string;
     runnersCount?: number;
     isPublic?: boolean;
+    distance: number;
 }
 
 export interface RecordInfo {
@@ -120,6 +121,7 @@ export type RunResponse = {
     courseInfo: {
         id: number;
         name: string | null;
+        distance?: number;
         isPublic: boolean;
     } | null;
     ghostRunningId: number | null;
