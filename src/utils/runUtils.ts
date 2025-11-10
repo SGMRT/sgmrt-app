@@ -21,7 +21,7 @@ import { Segment } from "../components/map/RunningLine";
 import { showCompactToast } from "../components/ui/toastConfig";
 import { applyAltitudeBiasFromBestGPS } from "../features/run/utils/applyAltitudeBias";
 import { RawData, UserDashBoardData } from "../types/run";
-import { devLog, errorLog } from "./devLog";
+import { devLog } from "./devLog";
 import { Coordinate, getDistance } from "./mapUtils";
 
 const canShare = (objectType: string) => {
@@ -439,7 +439,7 @@ export async function saveRunning({
             return response;
         }
     } catch (error) {
-        errorLog(error);
+        throw error;
     }
 }
 
