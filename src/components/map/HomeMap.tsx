@@ -252,9 +252,10 @@ export default function HomeMap({
                 ]);
             });
         } catch (error) {
+            onRefreshableChange?.(true);
             devLog("위치 정보 조회 실패", error);
         }
-    }, [center]);
+    }, [center, onRefreshableChange]);
 
     useEffect(() => {
         initializeCenter();
