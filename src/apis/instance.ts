@@ -44,11 +44,13 @@ async function refreshAccessToken(): Promise<string> {
 
 function withVersionPath(url: string | undefined, version: "v1" | "v2") {
     if (!url) return `/${version}/`;
-    if (/^https?:\/\//.test(url)) return url;
-    const trimmed = url.replace(/^\?(v1|v2)\//, "").replace(/^\/+/, "");
+    if (/^https?:\/\//i.test(url)) return url;
+    const trimmed = url.replace(/^\/+/, "");
+    if (/^(v1|v2)(\/|$)/.test(trimmed)) {
+        return `/${trimmed}`;
+    }
     return `/${version}/${trimmed}`;
 }
-
 declare module "axios" {
     interface AxiosRequestConfig {
         canRetry?: boolean;
@@ -127,6 +129,10 @@ server.interceptors.response.use(
                 useAuthStore.getState().logout();
                 return Promise.reject(error);
             }
+        }
+
+        if (typeof status === "number" && status >= 400 && status < 500) {
+            return Promise.reject(error);
         }
 
         try {
