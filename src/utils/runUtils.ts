@@ -7,6 +7,7 @@ import {
     saveWorkoutSample,
     WorkoutActivityType,
 } from "@kingstinct/react-native-healthkit";
+import * as Sentry from "@sentry/react-native";
 import * as FileSystem from "expo-file-system";
 import { postCourseRun, postRun } from "../apis";
 import {
@@ -21,8 +22,8 @@ import { Segment } from "../components/map/RunningLine";
 import { showCompactToast } from "../components/ui/toastConfig";
 import { applyAltitudeBiasFromBestGPS } from "../features/run/utils/applyAltitudeBias";
 import { RawData, UserDashBoardData } from "../types/run";
-import { devLog } from "./devLog";
 import { Coordinate, getDistance } from "./mapUtils";
+import { addPhase, addWarn, captureError, trackDuration } from "./sentryTools";
 
 const canShare = (objectType: string) => {
     try {
@@ -195,250 +196,343 @@ export async function saveRunning({
     ghostRunningId,
     courseId,
 }: SaveRunningProps) {
-    if (!userDashboardData || userDashboardData.totalDistance < 100) {
-        showCompactToast("러닝 거리가 너무 짧습니다.");
-        return;
-    }
-
-    telemetries = applyAltitudeBiasFromBestGPS(telemetries, rawData);
-
-    const isHealthDataAvailable = await isHealthDataAvailableAsync();
-
-    const stablePace =
-        telemetries.length > 10
-            ? telemetries.at(10)!.pace
-            : telemetries.at(-1)?.pace ?? 0;
-
-    telemetries.forEach((telemetry, index) => {
-        if (index < 10) {
-            telemetry.pace = stablePace;
-        }
+    addPhase("precheck", {
+        totalTelemetry: telemetries?.length ?? 0,
+        rawDataLen: rawData?.length ?? 0,
+        hasUserDashboardData: !!userDashboardData,
     });
+    try {
+        if (!userDashboardData || userDashboardData.totalDistance < 100) {
+            addWarn("short-distance-block", {
+                totalDistance: userDashboardData?.totalDistance,
+            });
+            showCompactToast("러닝 거리가 너무 짧습니다.");
+            return;
+        }
 
-    // 마지막 isRunning인 true인 값 뒤 isRunning이 false인 값을 모두 삭제
-    const lastTrueIndex = telemetries.findLastIndex(
-        (telemetry) => telemetry.isRunning
-    );
-    telemetries = telemetries.slice(0, lastTrueIndex + 1);
+        const tAlt = trackDuration("applyAltitudeBiasFromBestGPS");
+        try {
+            telemetries = applyAltitudeBiasFromBestGPS(telemetries, rawData);
+        } catch (e) {
+            captureError("applyAltitudeBiasFromBestGPS", e, {
+                telemetriesLen: telemetries?.length ?? 0,
+                rawDataLen: rawData?.length ?? 0,
+            });
+        } finally {
+            tAlt.end();
+        }
 
-    const hasPaused = telemetries.some((telemetry) => !telemetry.isRunning);
+        addPhase("stabilize-pace:begin");
+        const isHealthDataAvailable = await isHealthDataAvailableAsync();
+        const stablePace =
+            telemetries.length > 10
+                ? telemetries.at(10)!.pace
+                : telemetries.at(-1)?.pace ?? 0;
 
-    const startTime = telemetries.at(0)?.timeStamp;
-    const endTime = telemetries.at(-1)?.timeStamp;
+        for (let i = 0; i < Math.min(10, telemetries.length); i++) {
+            telemetries[i].pace = stablePace;
+        }
+        addPhase("stabilize-pace:end", { stablePace });
 
-    const record: RunRecord = {
-        distance: userDashboardData.totalDistance / 1000,
-        elevationGain: userDashboardData.totalElevationGain,
-        elevationLoss: userDashboardData.totalElevationLoss,
-        duration: runTime,
-        avgPace: userDashboardData.averagePace,
-        calories: userDashboardData.totalCalories,
-        avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
-        avgCadence: userDashboardData.averageCadence,
-    };
+        // 마지막 isRunning인 true인 값 뒤 isRunning이 false인 값을 모두 삭제
+        const lastTrueIndex = telemetries.findLastIndex((t) => t.isRunning);
+        if (lastTrueIndex === -1) {
+            const err = new Error("NoRunningSegment");
+            captureError("trim-telemetry", err, {
+                telemetriesLen: telemetries.length,
+            });
+            throw err;
+        }
+        telemetries = telemetries.slice(0, lastTrueIndex + 1);
 
-    const rawTelemetryFileUri =
-        FileSystem.cacheDirectory + "rawTelemetry.jsonl";
-    const interpolatedTelemetryFileUri =
-        FileSystem.cacheDirectory + "interpolatedTelemetry.jsonl";
+        const hasPaused = telemetries.some((telemetry) => !telemetry.isRunning);
+        const startTime = telemetries.at(0)?.timeStamp;
+        const endTime = telemetries.at(-1)?.timeStamp;
 
-    if (isHealthDataAvailable) {
-        const canWriteWorkout = canShare("HKWorkoutTypeIdentifier");
-        const canWriteDistance = canShare(
-            "HKQuantityTypeIdentifierDistanceWalkingRunning"
-        );
-        const canwWriteEnergy = canShare(
-            "HKQuantityTypeIdentifierActiveEnergyBurned"
-        );
-        const canWriteRoute = canShare("HKWorkoutRouteTypeIdentifier");
+        const record: RunRecord = {
+            distance: userDashboardData.totalDistance / 1000,
+            elevationGain: userDashboardData.totalElevationGain,
+            elevationLoss: userDashboardData.totalElevationLoss,
+            duration: runTime,
+            avgPace: userDashboardData.averagePace,
+            calories: userDashboardData.totalCalories,
+            avgBpm: userDashboardData.bpm === 0 ? 0 : userDashboardData.bpm,
+            avgCadence: userDashboardData.averageCadence,
+        };
 
-        devLog("canWriteWorkout", canWriteWorkout);
-        devLog("canWriteDistance", canWriteDistance);
-        devLog("canwWriteEnergy", canwWriteEnergy);
-        devLog("canWriteRoute", canWriteRoute);
-
-        if (!canWriteWorkout) {
-            // no-op
-        } else {
-            const start = startTime ? new Date(startTime) : new Date();
-            const end = endTime ? new Date(endTime) : new Date();
-
-            const quantities: QuantitySampleForSaving[] = [];
-
-            if (canWriteDistance) {
-                quantities.push({
-                    startDate: start,
-                    endDate: end,
-                    quantityType:
-                        "HKQuantityTypeIdentifierDistanceWalkingRunning",
-                    quantity: userDashboardData.totalDistance,
-                    unit: "m",
-                    metadata: {
-                        HKExternalUUID: String(Date.now()),
-                        source: "GhostRunner",
-                    },
-                });
-            }
-
-            if (canwWriteEnergy) {
-                quantities.push({
-                    startDate: start,
-                    endDate: end,
-                    quantityType: "HKQuantityTypeIdentifierActiveEnergyBurned",
-                    quantity: userDashboardData.totalCalories,
-                    unit: "kcal",
-                    metadata: {
-                        HKExternalUUID: String(Date.now()),
-                        source: "GhostRunner",
-                    },
-                });
-            }
-
-            if (quantities.length > 0) {
-                const workout = await saveWorkoutSample(
-                    WorkoutActivityType.running,
-                    quantities,
-                    start,
-                    end,
-                    {
-                        distance: userDashboardData.totalDistance,
-                        energyBurned: userDashboardData.totalCalories,
-                    },
-                    {
-                        HKExternalUUID: String(Date.now()),
-                        source: "GhostRunner",
-                    }
+        const tHK = trackDuration("healthkit-save");
+        try {
+            if (isHealthDataAvailable) {
+                const canWriteWorkout = canShare("HKWorkoutTypeIdentifier");
+                const canWriteDistance = canShare(
+                    "HKQuantityTypeIdentifierDistanceWalkingRunning"
                 );
+                const canWriteEnergy = canShare(
+                    "HKQuantityTypeIdentifierActiveEnergyBurned"
+                );
+                const canWriteRoute = canShare("HKWorkoutRouteTypeIdentifier");
 
-                if (canWriteRoute) {
-                    await workout.saveWorkoutRoute(
-                        rawData.map((item) => ({
-                            altitude: item.altitude,
-                            date: new Date(item.timestamp),
-                            horizontalAccuracy: item.accuracy,
-                            latitude: item.latitude,
-                            longitude: item.longitude,
-                            speed: item.speed,
-                            verticalAccuracy: item.altitudeAccuracy,
-                            course: item.course,
-                        }))
-                    );
+                Sentry.setContext("healthkitCaps", {
+                    isHealthDataAvailable,
+                    canWriteWorkout,
+                    canWriteDistance,
+                    canWriteEnergy,
+                    canWriteRoute,
+                });
+
+                if (!canWriteWorkout) {
+                    // no-op
+                } else {
+                    const start = startTime ? new Date(startTime) : new Date();
+                    const end = endTime ? new Date(endTime) : new Date();
+
+                    const quantities: QuantitySampleForSaving[] = [];
+                    if (canWriteDistance) {
+                        quantities.push({
+                            startDate: start,
+                            endDate: end,
+                            quantityType:
+                                "HKQuantityTypeIdentifierDistanceWalkingRunning",
+                            quantity: userDashboardData.totalDistance,
+                            unit: "m",
+                            metadata: {
+                                HKExternalUUID: String(Date.now()),
+                                source: "GhostRunner",
+                            },
+                        });
+                    }
+                    if (canWriteEnergy) {
+                        quantities.push({
+                            startDate: start,
+                            endDate: end,
+                            quantityType:
+                                "HKQuantityTypeIdentifierActiveEnergyBurned",
+                            quantity: userDashboardData.totalCalories,
+                            unit: "kcal",
+                            metadata: {
+                                HKExternalUUID: String(Date.now()),
+                                source: "GhostRunner",
+                            },
+                        });
+                    }
+
+                    if (quantities.length > 0) {
+                        let workout: Awaited<
+                            ReturnType<typeof saveWorkoutSample>
+                        > | null = null;
+                        try {
+                            workout = await saveWorkoutSample(
+                                WorkoutActivityType.running,
+                                quantities,
+                                start,
+                                end,
+                                {
+                                    distance: userDashboardData.totalDistance,
+                                    energyBurned:
+                                        userDashboardData.totalCalories,
+                                },
+                                {
+                                    HKExternalUUID: String(Date.now()),
+                                    source: "GhostRunner",
+                                }
+                            );
+                        } catch (e) {
+                            captureError("healthkit:saveWorkoutSample", e, {
+                                start: start.toISOString(),
+                                end: end.toISOString(),
+                                quantities,
+                            });
+                        }
+
+                        if (workout && canWriteRoute) {
+                            try {
+                                await workout.saveWorkoutRoute(
+                                    rawData.map((item) => ({
+                                        altitude: item.altitude,
+                                        date: new Date(item.timestamp),
+                                        horizontalAccuracy: item.accuracy,
+                                        latitude: item.latitude,
+                                        longitude: item.longitude,
+                                        speed: item.speed,
+                                        verticalAccuracy: item.altitudeAccuracy,
+                                        course: item.course,
+                                    }))
+                                );
+                            } catch (e) {
+                                captureError("healthkit:saveWorkoutRoute", e, {
+                                    routePoints: rawData.length,
+                                });
+                            }
+                        }
+                    }
                 }
             }
+        } finally {
+            tHK.end({ isHealthDataAvailable });
         }
-    }
 
-    try {
-        const rawJsonl = rawData.map((item) => JSON.stringify(item)).join("\n");
+        const rawTelemetryFileUri =
+            FileSystem.cacheDirectory + "rawTelemetry.jsonl";
+        const interpolatedTelemetryFileUri =
+            FileSystem.cacheDirectory + "interpolatedTelemetry.jsonl";
 
-        const interpolatedJsonl = encodeTelemetries(telemetries)
-            .map((item) => JSON.stringify(item))
-            .join("\n");
+        const tFS = trackDuration("filesystem:write-jsonl");
+        try {
+            const rawJsonl = rawData
+                .map((item) => JSON.stringify(item))
+                .join("\n");
+            const interpolatedJsonl = encodeTelemetries(telemetries)
+                .map((item) => JSON.stringify(item))
+                .join("\n");
 
-        await FileSystem.writeAsStringAsync(rawTelemetryFileUri, rawJsonl);
-        await FileSystem.writeAsStringAsync(
-            interpolatedTelemetryFileUri,
-            interpolatedJsonl
-        );
+            await FileSystem.writeAsStringAsync(rawTelemetryFileUri, rawJsonl);
+            await FileSystem.writeAsStringAsync(
+                interpolatedTelemetryFileUri,
+                interpolatedJsonl
+            );
 
-        const formData = new FormData();
+            const [rawInfo, intInfo] = await Promise.all([
+                FileSystem.getInfoAsync(rawTelemetryFileUri),
+                FileSystem.getInfoAsync(interpolatedTelemetryFileUri),
+            ]);
+            Sentry.setContext("telemetryFiles", {
+                rawTelemetryFileUri,
+                interpolatedTelemetryFileUri,
+                rawFileInfo: rawInfo?.exists ? rawInfo.size : 0,
+                interpolatedFileInfo: intInfo?.exists ? intInfo.size : 0,
+                telemetriesLen: telemetries.length,
+                rawDataLen: rawData.length,
+            });
+        } catch (e) {
+            captureError("filesystem:write-jsonl", e, {
+                rawTelemetryFileUri,
+                interpolatedTelemetryFileUri,
+                telemetriesLen: telemetries.length,
+                rawDataLen: rawData.length,
+            });
+            throw e;
+        } finally {
+            tFS.end();
+        }
 
-        formData.append("rawTelemetry", {
-            uri: rawTelemetryFileUri,
-            name: "rawTelemetry.jsonl",
-            type: "application/json",
-        } as any);
-        formData.append("interpolatedTelemetry", {
-            uri: interpolatedTelemetryFileUri,
-            name: "interpolatedTelemetry.jsonl",
-            type: "application/json",
-        } as any);
-        if (thumbnailUri) {
-            formData.append("screenShotImage", {
-                uri: thumbnailUri,
-                name: "screenShotImage.jpg",
-                type: "image/jpeg",
+        const tUpload = trackDuration("upload:post-run");
+        try {
+            const formData = new FormData();
+
+            formData.append("rawTelemetry", {
+                uri: rawTelemetryFileUri,
+                name: "rawTelemetry.jsonl",
+                type: "application/json",
             } as any);
-        }
+            formData.append("interpolatedTelemetry", {
+                uri: interpolatedTelemetryFileUri,
+                name: "interpolatedTelemetry.jsonl",
+                type: "application/json",
+            } as any);
+            if (thumbnailUri) {
+                formData.append("screenShotImage", {
+                    uri: thumbnailUri,
+                    name: "screenShotImage.jpg",
+                    type: "image/jpeg",
+                } as any);
+            }
 
-        if (ghostRunningId && courseId) {
-            const request: CourseGhostRunning = {
+            const reqFileUri = FileSystem.cacheDirectory + "req.json";
+
+            const baseReq = {
                 runningName: getRunName(startTime ?? 0),
                 startedAt: startTime ?? 0,
                 hasPaused,
                 isPublic: hasPaused ? false : isPublic,
-                mode: "GHOST",
+                record,
+            };
+
+            Sentry.setContext("runMeta", {
+                courseId: courseId ?? null,
+                ghostRunningId: ghostRunningId ?? null,
+                hasPaused,
+                isPublic: hasPaused ? false : isPublic,
+                startTime,
+                endTime,
+                duration: runTime,
+                distanceM: userDashboardData.totalDistance,
+                calories: userDashboardData.totalCalories,
+                avgPace: userDashboardData.averagePace,
+            });
+
+            if (ghostRunningId && courseId) {
+                const request: CourseGhostRunning = {
+                    ...baseReq,
+                    mode: "GHOST",
+                    ghostRunningId,
+                };
+                await FileSystem.writeAsStringAsync(
+                    reqFileUri,
+                    JSON.stringify(request)
+                );
+                formData.append("req", {
+                    uri: reqFileUri,
+                    name: "req.json",
+                    type: "application/json",
+                } as any);
+
+                const response = await postCourseRun(formData, courseId);
+                addPhase("upload:postCourseRun:success", {
+                    response,
+                    courseId,
+                });
+                return { runningId: response, courseId };
+            } else if (courseId) {
+                const request: CourseSoloRunning = {
+                    ...baseReq,
+                    mode: "SOLO",
+                    ghostRunningId: null,
+                };
+                await FileSystem.writeAsStringAsync(
+                    reqFileUri,
+                    JSON.stringify(request)
+                );
+                formData.append("req", {
+                    uri: reqFileUri,
+                    name: "req.json",
+                    type: "application/json",
+                } as any);
+
+                const response = await postCourseRun(formData, courseId);
+                addPhase("upload:postCourseRun:success", {
+                    response,
+                    courseId,
+                });
+                return { runningId: response, courseId };
+            } else {
+                const request: BaseRunning = { ...baseReq };
+                await FileSystem.writeAsStringAsync(
+                    reqFileUri,
+                    JSON.stringify(request)
+                );
+                formData.append("req", {
+                    uri: reqFileUri,
+                    name: "req.json",
+                    type: "application/json",
+                } as any);
+
+                const response = await postRun(formData);
+                addPhase("upload:postRun:success", { response });
+                return response;
+            }
+        } catch (e) {
+            captureError("upload", e, {
+                courseId,
                 ghostRunningId,
-                record,
-            };
-
-            const reqFileUri = FileSystem.cacheDirectory + "req.json";
-            await FileSystem.writeAsStringAsync(
-                reqFileUri,
-                JSON.stringify(request)
-            );
-            formData.append("req", {
-                uri: reqFileUri,
-                name: "req.json",
-                type: "application/json",
-            } as any);
-
-            const response = await postCourseRun(formData, courseId);
-            return {
-                runningId: response,
-                courseId: courseId,
-            };
-        } else if (courseId) {
-            const request: CourseSoloRunning = {
-                runningName: getRunName(startTime ?? 0),
-                startedAt: startTime ?? 0,
-                hasPaused,
-                isPublic: hasPaused ? false : isPublic,
-                mode: "SOLO",
-                ghostRunningId: null,
-                record,
-            };
-
-            const reqFileUri = FileSystem.cacheDirectory + "req.json";
-            await FileSystem.writeAsStringAsync(
-                reqFileUri,
-                JSON.stringify(request)
-            );
-            formData.append("req", {
-                uri: reqFileUri,
-                name: "req.json",
-                type: "application/json",
-            } as any);
-
-            const response = await postCourseRun(formData, courseId);
-            return {
-                runningId: response,
-                courseId: courseId,
-            };
-        } else {
-            const request: BaseRunning = {
-                runningName: getRunName(startTime ?? 0),
-                startedAt: startTime ?? 0,
-                hasPaused,
-                isPublic: hasPaused ? false : isPublic,
-                record,
-            };
-
-            const reqFileUri = FileSystem.cacheDirectory + "req.json";
-            await FileSystem.writeAsStringAsync(
-                reqFileUri,
-                JSON.stringify(request)
-            );
-            formData.append("req", {
-                uri: reqFileUri,
-                name: "req.json",
-                type: "application/json",
-            } as any);
-
-            const response = await postRun(formData);
-            return response;
+                thumbnail: !!thumbnailUri,
+            });
+            throw e;
+        } finally {
+            tUpload.end();
         }
     } catch (error) {
+        // 이 함수의 최상위 실패 포인트
+        captureError("saveRunning:top-level", error);
         throw error;
     }
 }
