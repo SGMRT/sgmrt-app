@@ -133,6 +133,9 @@ export default function Profile() {
                 login(res.accessToken, res.refreshToken, res.uuid);
                 amplitude.setUserId(res.uuid);
             })
+            .then(() => {
+                router.replace("/(tabs)/home");
+            })
             .catch((err) => {
                 if (err.response.status === 409) {
                     if (err.response.data.code === "M-003") {
