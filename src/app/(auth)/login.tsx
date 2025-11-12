@@ -54,12 +54,13 @@ export default function Login() {
                 ...args,
                 login,
                 bottom,
-            }).catch((err) => {
-                if (err.needsSignup) {
-                    router.push("/(auth)/register");
-                }
-            });
-            router.replace("/(tabs)/home");
+            })
+                .then(() => router.replace("/(tabs)/home"))
+                .catch((err) => {
+                    if (err.needsSignup) {
+                        router.push("/(auth)/register");
+                    }
+                });
         } finally {
             loginInFlight = false;
         }
