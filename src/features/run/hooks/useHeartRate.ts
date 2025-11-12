@@ -3,7 +3,7 @@ import {
     pause,
     resume,
     start,
-    startWorkout,
+    startFlowSafely,
     stop,
 } from "@/modules/expo-watch-module";
 import { useEffect, useRef } from "react";
@@ -13,6 +13,11 @@ import { RunStatus } from "../types";
 export function useHeartRate(context: RunContext) {
     const prevStatus = useRef<RunStatus>("IDLE");
     const isWatchAvailable = useRef(true);
+    const contextRef = useRef(context);
+
+    useEffect(() => {
+        contextRef.current = context;
+    }, [context]);
 
     useEffect(() => {
         if (!isWatchAvailable.current) return;
@@ -20,12 +25,13 @@ export function useHeartRate(context: RunContext) {
         const prev = prevStatus.current;
         const curr = context.status;
         prevStatus.current = curr;
-
         const ts = nowIso();
 
         if ((prev === "IDLE" || prev === "READY") && curr === "RUNNING") {
             start()
-                .then(() => startWorkout("running", ts))
+                .then(() => {
+                    startFlowSafely(ts);
+                })
                 .catch(() => {
                     isWatchAvailable.current = false;
                 });

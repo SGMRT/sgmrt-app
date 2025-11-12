@@ -113,3 +113,16 @@ export function selectUserLocation(context: RunContext) {
     };
     return bufferMap[key]?.at(-1) ?? null;
 }
+
+export function selectSyncSnapshot(context: RunContext) {
+    return {
+        elapsedSec: Math.floor(context.stats.totalTimeMs / 1000),
+        distanceM: context.stats.totalDistanceM,
+        state:
+            context.status === "RUNNING"
+                ? "running"
+                : context.status === "STOPPED"
+                ? "ended"
+                : "paused",
+    };
+}

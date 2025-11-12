@@ -27,6 +27,28 @@ export type WatchStatePayload = {
 type WatchEventMap = {
     heartRate: (event: { bpm: number; ts?: string | null }) => void;
     watchState: (event: WatchStatePayload) => void;
+    watchMessage: (
+        event:
+            | {
+                  type: "state";
+                  state: string;
+                  reason?: string | null;
+                  ts?: string | null;
+              }
+            | {
+                  type: "control";
+                  action: "pause" | "resume" | "stop";
+                  ts?: string | null;
+              }
+            | {
+                  type: "metrics";
+                  distanceM?: number;
+                  paceSecPerKm?: number;
+                  cadenceSpm?: number;
+                  ts?: string | null;
+              }
+            | { type: "bpm"; bpm: number; ts?: string | null }
+    ) => void;
 };
 
 // 3) 네이티브 모듈 인터페이스에 제네릭 적용 + 표준 add/remove 시그니처
@@ -92,6 +114,49 @@ export function onWatchState(
         // event는 WatchStatePayload로 정확히 타이핑됨
         cb(event);
     });
+}
+
+let pendingAutoStart: ReturnType<typeof setTimeout> | null = null;
+let alreadyStarted = false;
+
+export async function startFlowSafely(eventTs: string = nowIso()) {
+    alreadyStarted = false;
+
+    // 1) 워치 앱을 깨운다
+    const ok = await Native.startWatchApp();
+    if (!ok) throw new Error("Watch not available");
+
+    // 2) ready 이벤트를 기다리되, 2~3초 타임아웃으로 재시도
+    const tryKick = async () => {
+        if (alreadyStarted) return;
+        try {
+            await startWorkout("running", eventTs);
+            alreadyStarted = true;
+        } catch {
+            // 1.5초 후 한 번 더 시도
+            pendingAutoStart = setTimeout(tryKick, 1500);
+        }
+    };
+
+    // “ready / reachable” 수신 시 즉시 kick
+    const sub = onWatchState((e) => {
+        if (alreadyStarted) return;
+        if (e.state === "ready" || e.state === "reachable") {
+            tryKick();
+        }
+    });
+
+    // 타임아웃(3초)까지 ready가 안 오면 일단 시도
+    setTimeout(tryKick, 3000);
+
+    // 정리자
+    return () => {
+        sub.remove();
+        if (pendingAutoStart) {
+            clearTimeout(pendingAutoStart);
+            pendingAutoStart = null;
+        }
+    };
 }
 
 export default {

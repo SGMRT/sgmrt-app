@@ -1,0 +1,98 @@
+//
+//  RouteRecorder.swift
+//  app
+//
+//  Created by 정윤석 on 11/11/25.
+//
+
+import Foundation
+import CoreLocation
+import HealthKit
+
+final class RouteRecorder: NSObject, CLLocationManagerDelegate {
+  private let healthStore: HKHealthStore
+  private var builder: HKWorkoutRouteBuilder?
+  private let lm = CLLocationManager()
+  private var buf: [CLLocation] = []
+  private var isActive = false
+  
+  private var lastAltitude: Double?
+  private(set) var totalAscent: Double = 0
+  private(set) var totalDescent: Double = 0
+
+  init(healthStore: HKHealthStore) {
+    self.healthStore = healthStore
+    super.init()
+    lm.delegate = self
+  }
+
+  func start() {
+    guard !isActive else { return }
+    isActive = true
+    builder = HKWorkoutRouteBuilder(healthStore: healthStore, device: .local())
+    lm.requestWhenInUseAuthorization()
+    lm.activityType = .fitness
+    lm.desiredAccuracy = kCLLocationAccuracyBest
+    lm.distanceFilter = 5
+    lm.startUpdatingLocation()
+  }
+
+  /// 위치 수집만 멈춤 (Route는 아직 미완)
+  func stopCollecting() {
+    guard isActive else { return }
+    isActive = false
+    lm.stopUpdatingLocation()
+  }
+
+  /// 워크아웃이 생성된 후(= finishWorkout 완료 콜백에서 받은 HKWorkout) Route를 최종 마감
+  func finishAsync(with workout: HKWorkout) async throws {
+    guard let builder = builder else { return }
+    if !buf.isEmpty {
+      let batch = buf
+      buf.removeAll()
+      try await builder.insertRouteDataAsync(batch)
+    }
+    let meta = [
+      HKMetadataKeyElevationAscended: totalAscent,
+      HKMetadataKeyElevationDescended: totalDescent
+    ]
+    _ = try await builder.finishRouteAsync(with: workout, metadata: meta)
+    self.builder = nil
+  }
+
+
+  // MARK: - CLLocationManagerDelegate
+  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    guard isActive else { return }
+    buf.append(contentsOf: locations)
+    
+    if let last = locations.last {
+      dlog(Log.route, String(format: "loc: lat=%.6f lng=%.6f acc=%.1fm ts=%.0f",
+                             last.coordinate.latitude,
+                             last.coordinate.longitude,
+                             last.horizontalAccuracy,
+                             last.altitude,
+                             last.timestamp.timeIntervalSince1970))
+    }
+    
+    for loc in locations {
+      let alt = loc.altitude
+      if let last = lastAltitude {
+        let delta = alt - last
+        if delta > 0 { totalAscent += delta }     // 0.5m 이상 상승만 카운트
+        else if delta < 0 { totalDescent -= delta }
+      }
+      lastAltitude = alt
+    }
+  
+    if buf.count >= 20 {
+      let batch = buf
+      buf.removeAll()
+      dlog(Log.route, "insertRouteData(batch=\(batch.count))")
+      builder?.insertRouteData(batch) { ok, err in
+        if let err = err { dlog(Log.route, "insertRouteData error=\(err.localizedDescription)") }
+        else { dlog(Log.route, "insertRouteData success=\(ok)") }
+      }
+    }
+  }
+}
