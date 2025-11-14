@@ -175,7 +175,7 @@ final class SessionManager: NSObject {
         
         do {
           let workout = try await b.finishWorkoutAsync()
-          try await route?.finishAsync(with: workout)
+          await self.route?.finishAsync(with: workout)
           wc.post(.state(state: "ended", reason: "saved@standalone", ts: t))
         } catch {
           wc.post(.state(state: "error", reason: "finish:\(error.localizedDescription)", ts: Date()))
@@ -259,20 +259,10 @@ extension SessionManager: HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate
       wc.post(.state(state:"paused", reason:"delegate", ts: date))
       
     case .ended:
-      Task {
-        if let b = builder {
-          try? await b.endCollection(at: date)
-          if mode == .watchStandalone {
-            route?.stopCollecting()
-            _ = try? await b.finishWorkoutAsync()
-          } else {
-            b.discardWorkout()
-          }
-        }
-        await MainActor.run { ui.applyState(.ended, at: date) }
-        wc.post(.state(state:"ended", reason:"delegate", ts: date))
-        self.wSession = nil; self.builder = nil; self.route = nil
+      Task { @MainActor in
+        self.ui.applyState(.ended, at: date)
       }
+      wc.post(.state(state:"ended", reason:"delegate", ts: date))
       
     default: break
     }

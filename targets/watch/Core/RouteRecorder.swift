@@ -24,7 +24,6 @@ final class RouteRecorder: NSObject, CLLocationManagerDelegate {
     self.healthStore = healthStore
     super.init()
     lm.delegate = self
-    dlog(Log.route, "RouteRecorder init, locationServicesEnabled=\(CLLocationManager.locationServicesEnabled())")
   }
 
   func start() {
@@ -60,19 +59,38 @@ final class RouteRecorder: NSObject, CLLocationManagerDelegate {
   }
 
   /// 워크아웃이 생성된 후(= finishWorkout 완료 콜백에서 받은 HKWorkout) Route를 최종 마감
-  func finishAsync(with workout: HKWorkout) async throws {
-    guard let builder = builder else { return }
-    if !buf.isEmpty {
-      let batch = buf
-      buf.removeAll()
-      try await builder.insertRouteDataAsync(batch)
+  func finishAsync(with workout: HKWorkout) async {
+    dlog(Log.route, "finishAsync called with workout: \(workout.uuid)")
+
+    guard let builder = builder else {
+      dlog(Log.route, "finishAsync: builder is nil, skipping")
+      return
     }
-    let meta = [
-      HKMetadataKeyElevationAscended: totalAscent,
-      HKMetadataKeyElevationDescended: totalDescent
-    ]
-    _ = try await builder.finishRouteAsync(with: workout, metadata: meta)
-    self.builder = nil
+
+    do {
+      // 남은 버퍼 있으면 HealthKit으로 밀어넣기
+      if !buf.isEmpty {
+        let batch = buf
+        buf.removeAll()
+        dlog(Log.route, "finishAsync: flushing remaining buf=\(batch.count)")
+        try await builder.insertRouteDataAsync(batch)
+      }
+
+      let meta: [String: Any] = [
+        HKMetadataKeyElevationAscended: HKQuantity(unit: .meter(),
+                                                   doubleValue: totalAscent),
+        HKMetadataKeyElevationDescended: HKQuantity(unit: .meter(),
+                                                    doubleValue: totalDescent)
+      ]
+
+      dlog(Log.route, "finishAsync: calling finishRouteAsync")
+      let route = try await builder.finishRouteAsync(with: workout, metadata: meta)
+      dlog(Log.route, "finishAsync: finishRouteAsync completed, route=\(route.uuid)")
+
+      self.builder = nil
+    } catch {
+      dlog(Log.route, "finishAsync ERROR: \(error.localizedDescription)")
+    }
   }
   
   func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
