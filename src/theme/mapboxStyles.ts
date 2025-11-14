@@ -4,7 +4,7 @@ export const mapboxStyles = {
     activeLineLayer: {
         lineCap: "round",
         lineJoin: "round",
-        lineWidth: 2,
+        lineWidth: 4,
         lineEmissiveStrength: 1,
         lineColor: colors.primary,
         lineOpacity: 1,
@@ -12,7 +12,7 @@ export const mapboxStyles = {
     inactiveLineLayer: {
         lineCap: "round",
         lineJoin: "round",
-        lineWidth: 2,
+        lineWidth: 4,
         lineEmissiveStrength: 1,
         lineColor: colors.white,
         lineOpacity: 0.5,

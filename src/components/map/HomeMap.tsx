@@ -4,6 +4,7 @@ import { usePinnedCourses } from "@/src/features/pacemaker/hooks/usePinnedCourse
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
+import { devLog } from "@/src/utils/devLog";
 import {
     calculateCenter,
     calculateZoomLevelFromSize,
@@ -241,13 +242,20 @@ export default function HomeMap({
 
     const initializeCenter = useCallback(() => {
         if (center) return;
-
-        Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.BestForNavigation,
-        }).then((location) => {
-            setCenter([location.coords.longitude, location.coords.latitude]);
-        });
-    }, [center]);
+        try {
+            Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.BestForNavigation,
+            }).then((location) => {
+                setCenter([
+                    location.coords.longitude,
+                    location.coords.latitude,
+                ]);
+            });
+        } catch (error) {
+            onRefreshableChange?.(true);
+            devLog("위치 정보 조회 실패", error);
+        }
+    }, [center, onRefreshableChange]);
 
     useEffect(() => {
         initializeCenter();

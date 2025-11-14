@@ -2,7 +2,7 @@ import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
-import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
@@ -245,6 +245,7 @@ export default function Run() {
                     />
                 ))}
             </MapViewWrapper>
+
             <BottomSheet
                 backgroundStyle={styles.container}
                 bottomInset={bottom + 70}
@@ -260,6 +261,7 @@ export default function Run() {
                     </View>
                 </BottomSheetView>
             </BottomSheet>
+
             {context.status !== "PAUSED_USER" ? (
                 <ButtonWithIcon
                     iconType="save"
@@ -297,7 +299,7 @@ export default function Run() {
                     onPress={() => {
                         Alert.alert(
                             "러닝을 일시정지할까요?",
-                            "일시정지 후 이어 달린 기록은 코스로 만들 수 없어요",
+                            "계속러닝을 누르면 이어서 러닝이 가능해요",
                             [
                                 {
                                     text: "계속러닝",

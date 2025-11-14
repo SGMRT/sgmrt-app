@@ -34,7 +34,11 @@ export function useHeartRate(context: RunContext) {
         } else if (curr === "PAUSED_USER" || curr === "PAUSED_OFFCOURSE") {
             pause(ts);
         } else if (curr === "STOPPED") {
-            stop(ts);
+            try {
+                stop(ts);
+            } catch {
+                isWatchAvailable.current = false;
+            }
         }
     }, [context.status]);
 }

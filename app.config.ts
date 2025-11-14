@@ -4,7 +4,7 @@ const config = {
     expo: {
         name: "고스트러너",
         slug: "ghostrunner",
-        version: "1.0.3",
+        version: "1.0.4",
         orientation: "portrait",
         icon: isStaging
             ? "./assets/images/icon-staging.png"

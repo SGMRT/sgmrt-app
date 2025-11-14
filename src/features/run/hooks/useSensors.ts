@@ -48,13 +48,15 @@ export function useSensors(enabled: boolean) {
             sharedSensorStore.reset?.();
 
             // 4) Barometer (원시 pressure만 저장)
-            baroSubRef.current = Barometer.addListener((res) => {
-                if (!mounted) return;
-                sharedSensorStore.pushPressure({
-                    pressure: res?.pressure ?? 0,
-                    timestamp: Date.now(),
-                });
-            });
+            baroSubRef.current = Barometer.addListener(
+                ({ pressure, relativeAltitude }) => {
+                    if (!mounted) return;
+                    sharedSensorStore.pushPressure({
+                        pressure: pressure ?? undefined,
+                        timestamp: Date.now(),
+                    });
+                }
+            );
 
             // 5) Pedometer (누적 steps 저장)
             stepSubRef.current = Pedometer.watchStepCount((res) => {

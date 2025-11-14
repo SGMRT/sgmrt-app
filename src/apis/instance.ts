@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react-native";
 import axios from "axios";
+import { router } from "expo-router";
 import { useAuthStore } from "../store/authState";
 
 let refreshingPromise: Promise<string> | null = null;
@@ -30,6 +31,8 @@ async function refreshAccessToken(): Promise<string> {
             .catch((e) => {
                 // refresh 실패 → 강제 로그아웃
                 useAuthStore.getState().logout();
+                router.dismissAll();
+                router.replace("/(auth)/login");
                 throw e;
             })
             .finally(() => {
@@ -41,11 +44,13 @@ async function refreshAccessToken(): Promise<string> {
 
 function withVersionPath(url: string | undefined, version: "v1" | "v2") {
     if (!url) return `/${version}/`;
-    if (/^https?:\/\//.test(url)) return url;
-    const trimmed = url.replace(/^\?(v1|v2)\//, "").replace(/^\/+/, "");
+    if (/^https?:\/\//i.test(url)) return url;
+    const trimmed = url.replace(/^\/+/, "");
+    if (/^(v1|v2)(\/|$)/.test(trimmed)) {
+        return `/${trimmed}`;
+    }
     return `/${version}/${trimmed}`;
 }
-
 declare module "axios" {
     interface AxiosRequestConfig {
         canRetry?: boolean;
@@ -124,6 +129,10 @@ server.interceptors.response.use(
                 useAuthStore.getState().logout();
                 return Promise.reject(error);
             }
+        }
+
+        if (typeof status === "number" && status >= 400 && status < 500) {
+            return Promise.reject(error);
         }
 
         try {

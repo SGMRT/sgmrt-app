@@ -131,6 +131,12 @@ export function usePushNotifications() {
         if (!n) return;
         const id = n.request.identifier;
         if (handledIdsRef.current.has(id)) return;
+        trackAmplitude("notification_received", {
+            id,
+            title: n.request.content.title,
+            body: n.request.content.body,
+            data: n.request.content.data,
+        });
         handledIdsRef.current.add(id);
         redirectFromNotification(n);
     };

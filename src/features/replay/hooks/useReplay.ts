@@ -22,7 +22,6 @@ export function useReplay(
     } = opts;
 
     let virtualDurationMs = totalDistance * 5;
-
     const visualIntervalMs = 1000 / visualFps;
 
     const timelineRef = useRef<{ T: number[]; t0: number; tN: number }>({
@@ -435,5 +434,6 @@ export function useReplay(
         // 디버깅/외부 표시용
         currentTimestamp: currLogicalTsRef.current,
         frameMs,
+        visualFps,
     };
 }

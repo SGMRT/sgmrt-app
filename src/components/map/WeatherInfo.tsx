@@ -62,19 +62,24 @@ export default function WeatherInfo() {
         let subscription: Location.LocationSubscription;
 
         (async () => {
-            subscription = await Location.watchPositionAsync(
-                {
-                    accuracy: 5,
-                    timeInterval: 1000 * 60 * 10,
-                    distanceInterval: 500,
-                },
-                (location) => {
-                    getLocationInfo({
-                        longitude: location.coords.longitude,
-                        latitude: location.coords.latitude,
-                    });
-                }
-            );
+            // try catch
+            try {
+                subscription = await Location.watchPositionAsync(
+                    {
+                        accuracy: 5,
+                        timeInterval: 1000 * 60 * 10,
+                        distanceInterval: 500,
+                    },
+                    (location) => {
+                        getLocationInfo({
+                            longitude: location.coords.longitude,
+                            latitude: location.coords.latitude,
+                        });
+                    }
+                );
+            } catch (error) {
+                devLog("위치 정보 조회 실패", error);
+            }
         })();
 
         return () => {

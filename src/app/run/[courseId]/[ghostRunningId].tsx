@@ -9,7 +9,9 @@ import { Telemetry } from "@/src/apis/types/run";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
-import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
+import { ShareBottomSheet } from "@/src/components/share/ShareBottomSheet";
+import { ShareVariant } from "@/src/components/share/types";
 import { Button } from "@/src/components/ui/Button";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
@@ -17,7 +19,7 @@ import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
 import { TextWithSub } from "@/src/components/ui/TextWithSub";
-import { showCompactToast } from "@/src/components/ui/toastConfig";
+import { showCompactToast, showToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
@@ -26,6 +28,9 @@ import { useGhostCoordinator } from "@/src/features/course/hooks/useGhostCoordin
 import { usePacerByDistance } from "@/src/features/pacemaker/hooks/usePacemakerByDistance";
 import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import { mapPacemakerToTelemety } from "@/src/features/pacemaker/utils/pacemakerTelemetry";
+import ReplayRecoder, {
+    ReplayRecorderHandle,
+} from "@/src/features/replay/ReplayRecoder";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
 import { buildUserRecordData } from "@/src/features/run/state/record";
@@ -46,6 +51,7 @@ import {
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -55,6 +61,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Alert,
     BackHandler,
+    Pressable,
     StyleSheet,
     useWindowDimensions,
     View,
@@ -67,6 +74,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Share from "react-native-share";
+import { ShareVariantWithVideo } from "../../(tabs)/stats/result/[runningId]/[courseId]/[ghostRunningId]";
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
@@ -82,6 +90,10 @@ export default function Run() {
     const [runShotType, setRunShotType] = useState<"thumbnail" | "share">(
         "thumbnail"
     );
+    const [runShotVariant, setRunShotVariant] = useState<ShareVariantWithVideo>(
+        "default" as ShareVariantWithVideo
+    );
+    const [replayProgress, setReplayProgress] = useState(-1);
     const [runSaveResult, setRunSaveResult] = useState<{
         runningId: number;
         ghostRunningId: number | undefined;
@@ -98,6 +110,9 @@ export default function Run() {
     const ghostTelemetryRef = useRef<Telemetry[]>([]);
     const pacemakerDetailRef = useRef<PacemakerDetailResponse | null>(null);
     const hasSavedRef = useRef<boolean>(false);
+    const shareBottomSheetRef = useRef<BottomSheetModal>(null);
+    const replayRecoderRef = useRef<ReplayRecorderHandle>(null);
+
     const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
     const { context, controls } = useRunningSession();
@@ -246,7 +261,7 @@ export default function Run() {
             });
 
             const filename =
-                getRunName(context.telemetries.at(-1)?.timeStamp ?? 0) + ".jpg";
+                getRunName(context.telemetries.at(-1)?.timeStamp ?? 0) + ".png";
             const targetPath = `${FileSystem.cacheDirectory}${filename}`;
 
             devLog(targetPath);
@@ -288,14 +303,23 @@ export default function Run() {
                 value: getFormattedPace(context.stats.avgPaceSecPerKm ?? 0),
             },
             {
-                description: "케이던스",
-                value: Math.round(context.stats.avgCadenceSpm ?? 0),
-                unit: "spm",
+                description: "케이던스(spm)",
+                value:
+                    (context.stats.avgCadenceSpm ?? 0) > 0
+                        ? Math.round(context.stats.avgCadenceSpm ?? 0)
+                        : "--",
             },
             {
-                description: "칼로리",
+                description: "칼로리(kcal)",
                 value: context.stats.calories ?? 0,
-                unit: "kcal",
+            },
+            {
+                description: "평균 심박수",
+                value: context.stats.bpm ?? "--",
+            },
+            {
+                description: "고도 상승",
+                value: (context.stats.gainM ?? 0).toString() + "m",
             },
         ];
     }, [context.stats]);
@@ -417,6 +441,67 @@ export default function Run() {
         now
     );
 
+    const showShareBottomSheet = () => {
+        shareBottomSheetRef.current?.present();
+    };
+    const handleShareBottomSheetSelect = (variant: ShareVariantWithVideo) => {
+        setRunShotVariant(variant);
+    };
+
+    async function handleShareVideo() {
+        try {
+            shareBottomSheetRef.current?.dismiss();
+            replayRecoderRef.current?.reset();
+            setReplayProgress(-1);
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            await replayRecoderRef.current?.startRecording();
+        } catch (e) {
+            showToast("info", "공유에 실패했습니다", bottom);
+            setReplayProgress(-1);
+        }
+    }
+
+    const handleShare = async () => {
+        if (runShotVariant !== "video") {
+            const uri = await captureMap();
+            Share.open({
+                title: getRunName(context.telemetries.at(-1)?.timeStamp ?? 0),
+                message: getDate(
+                    context.telemetries.at(-1)?.timeStamp ?? 0
+                ).trim(),
+                filename:
+                    "ghostrunner_" +
+                    runSaveResult?.runningId.toString() +
+                    ".png",
+                url: uri ?? "",
+            })
+                .then((res) => {
+                    devLog(res);
+                    // run_shared
+                    trackAmplitude("Run Shared");
+                })
+                .catch((err) => {
+                    err && devLog(err);
+                });
+            shareBottomSheetRef.current?.dismiss();
+        } else {
+            Alert.alert(
+                "실험 기능 안내",
+                "이 기능은 현재 실험 중인 기능입니다.\n처리 과정에 다소 시간이 소요될 수 있으며, 실행 중에도 언제든 취소하실 수 있습니다.\n계속 진행하시겠습니까?",
+                [
+                    { text: "취소", style: "cancel" },
+                    {
+                        text: "계속 진행",
+                        style: "default",
+                        onPress: async () => {
+                            await handleShareVideo();
+                        },
+                    },
+                ]
+            );
+        }
+    };
+
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
             {isSaving && (
@@ -429,7 +514,7 @@ export default function Run() {
                         title={getRunName(
                             savingTelemetries.at(0)?.timeStamp ?? 0
                         )}
-                        fileName={"runImage.jpg"}
+                        fileName={"runImage.png"}
                         telemetries={savingTelemetries}
                         type={runShotType}
                         onMapReady={triggerCapture}
@@ -439,9 +524,47 @@ export default function Run() {
                         distance={(context.stats.totalDistanceM / 1000).toFixed(
                             2
                         )}
+                        variant={runShotVariant as ShareVariant}
                     />
                 )}
-
+            {runShotVariant === "video" && (
+                <ReplayRecoder
+                    ref={replayRecoderRef}
+                    telemetries={savingTelemetries}
+                    visualFps={60}
+                    width={360}
+                    height={350}
+                    autoShare={true}
+                    name={getRunName(savingTelemetries.at(-1)?.timeStamp ?? 0)}
+                    distance={(context.stats.totalDistanceM / 1000).toFixed(2)}
+                    stats={captureStats}
+                    onProgress={(progress) => {
+                        setReplayProgress(progress);
+                    }}
+                    onFinish={() => {
+                        setReplayProgress(-1);
+                    }}
+                />
+            )}
+            {replayProgress >= 0 && runShotVariant === "video" && (
+                <LoadingLayer progress={replayProgress}>
+                    <Pressable
+                        onPress={() => {
+                            replayRecoderRef.current?.reset();
+                        }}
+                    >
+                        <Typography variant="body3" color="gray40">
+                            취소하기
+                        </Typography>
+                    </Pressable>
+                </LoadingLayer>
+            )}
+            <ShareBottomSheet
+                bottomSheetRef={shareBottomSheetRef}
+                selected={runShotVariant}
+                onSelect={handleShareBottomSheetSelect}
+                onShare={handleShare}
+            />
             <TopBlurView>
                 <WeatherInfo />
                 {isRestarting ? (
@@ -602,6 +725,7 @@ export default function Run() {
                     )}
                 </View>
             </StyledBottomSheet>
+
             {runShotType === "thumbnail" ? (
                 <>
                     {context.status === "IDLE" ||
@@ -771,30 +895,7 @@ export default function Run() {
                     <ButtonWithIcon
                         iconType="share"
                         title="러닝 종료"
-                        onPressIcon={async () => {
-                            const uri = await captureMap();
-                            Share.open({
-                                title: getRunName(
-                                    context.telemetries.at(-1)?.timeStamp ?? 0
-                                ),
-                                message: getDate(
-                                    context.telemetries.at(-1)?.timeStamp ?? 0
-                                ).trim(),
-                                filename:
-                                    "ghostrunner_" +
-                                    runSaveResult?.runningId.toString() +
-                                    ".jpg",
-                                url: uri ?? "",
-                            })
-                                .then((res) => {
-                                    devLog(res);
-                                    // run_shared
-                                    trackAmplitude("Run Shared");
-                                })
-                                .catch((err) => {
-                                    err && devLog(err);
-                                });
-                        }}
+                        onPressIcon={showShareBottomSheet}
                         onPress={() => {
                             if (runSaveResult) {
                                 router.replace({

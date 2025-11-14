@@ -91,6 +91,7 @@ export interface RunComperisonResponse {
         id: number;
         name: string;
         isPublic: boolean;
+        distance: number;
         runnerCount: number;
     };
     myRunInfo: RunInfo;

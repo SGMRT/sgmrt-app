@@ -1,14 +1,18 @@
 import colors from "@/src/theme/colors";
 import BottomSheet, {
+    BottomSheetBackdrop,
     BottomSheetModal,
     BottomSheetProps,
     BottomSheetView,
 } from "@gorhom/bottom-sheet";
+import { useCallback } from "react";
 import { StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface StyledBottomSheetProps extends BottomSheetProps {
     ref?: React.RefObject<BottomSheetModal | null>;
+    backdropOpacity?: number;
+    backdrop?: boolean;
 }
 
 export default function StyledBottomSheet({
@@ -22,11 +26,28 @@ export default function StyledBottomSheet({
     animatedPosition,
     topInset,
     ref,
+    backdropOpacity = 0.4,
+    backdrop = false,
+    enableDynamicSizing,
     ...props
 }: StyledBottomSheetProps) {
     const { bottom } = useSafeAreaInsets();
+    const renderBackdrop = useCallback(
+        (props: any) => (
+            <BottomSheetBackdrop
+                {...props}
+                appearsOnIndex={0}
+                disappearsOnIndex={-1}
+                pressBehavior="close"
+                opacity={backdropOpacity}
+                style={{ marginBottom: bottom }}
+            />
+        ),
+        [bottom, backdropOpacity]
+    );
     return (
         <BottomSheet
+            backdropComponent={backdrop ? renderBackdrop : undefined}
             ref={ref}
             backgroundStyle={backgroundStyle ?? styles.container}
             bottomInset={bottomInset ?? bottom + 56}
@@ -38,6 +59,7 @@ export default function StyledBottomSheet({
             snapPoints={snapPoints}
             index={index}
             animatedPosition={animatedPosition}
+            enableDynamicSizing={enableDynamicSizing}
         >
             <BottomSheetView>{children}</BottomSheetView>
         </BottomSheet>

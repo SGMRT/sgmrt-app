@@ -17,6 +17,7 @@ interface StatRowProps {
     color?: TypographyColor;
     unitColor?: TypographyColor;
     variant?: TypographyVariant;
+    descriptionVariant?: TypographyVariant;
     descriptionColor?: TypographyColor;
 
     options?: Omit<TextWithUnitProps, "value" | "unit" | "description">;
@@ -29,6 +30,7 @@ export default function StatRow({
     variant,
     color = "gray40",
     descriptionColor = "gray40",
+    descriptionVariant = "body2",
     options,
     divider = true,
 }: StatRowProps) {
@@ -44,6 +46,7 @@ export default function StatRow({
                         variant={variant}
                         color={color}
                         descriptionColor={descriptionColor}
+                        descriptionVariant={descriptionVariant}
                         {...options}
                     />
                     {divider && idx < stats.length - 1 && <Divider />}

@@ -57,7 +57,8 @@ export async function getCourses(
         const filteredResponseData = responseData.filter(
             (course) => course.routeUrl !== null
         );
-        return await attachTelemetries(filteredResponseData);
+        const result = await attachTelemetries(filteredResponseData);
+        return result;
     } catch (error) {
         errorLog(error);
         throw error;

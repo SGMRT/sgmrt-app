@@ -31,7 +31,7 @@ export async function getVDOTInfo(): Promise<VDOTRespose> {
 
 export async function postVDOTInfo(level: VDOTLevel): Promise<void> {
     try {
-        await server.post("members/vdot", { level });
+        await server.post("members/vdot?level=" + level);
     } catch (error) {
         if (error instanceof AxiosError && error.response?.status === 400) {
             throw error.response.data as CustomError;

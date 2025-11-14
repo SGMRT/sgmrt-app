@@ -5,7 +5,7 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import { UserGhostRow } from "@/src/components/map/courseInfo/GhostRow/UserGhostRow";
 import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
-import RunShot, { RunShotHandle } from "@/src/components/shot/RunShot";
+import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
 import { Divider } from "@/src/components/ui/Divider";
 import Header from "@/src/components/ui/Header";
 import ScrollButton from "@/src/components/ui/ScrollButton";
@@ -82,7 +82,7 @@ export default function Result() {
             if (!uri) return null;
 
             const safeName = (course?.name ?? "run").replace(/\s+/g, "_");
-            const filename = `${safeName}.jpg`;
+            const filename = `${safeName}.png`;
             const targetPath = `${FileSystem.cacheDirectory}/${filename}`;
 
             await FileSystem.copyAsync({
@@ -130,7 +130,11 @@ export default function Result() {
                         {/* 제목 파트 */}
                         <View style={styles.titleContainer}>
                             <View style={styles.titleInputContainer}>
-                                <Typography variant="headline" color="white">
+                                <Typography
+                                    variant="headline"
+                                    color="white"
+                                    numberOfLines={1}
+                                >
                                     {course?.name}
                                 </Typography>
                                 <Divider />
@@ -142,7 +146,7 @@ export default function Result() {
                             <ShareButton
                                 title={course?.name}
                                 message={getDate(course?.createdAt ?? 0).trim()}
-                                filename={course?.name + ".jpg"}
+                                filename={course?.name + ".png"}
                                 getUri={captureMap}
                             />
                         </View>
@@ -291,7 +295,7 @@ export default function Result() {
                 </SafeAreaView>
                 <RunShot
                     ref={runShotRef}
-                    fileName={course?.name + ".jpg"}
+                    fileName={course?.name + ".png"}
                     telemetries={course?.telemetries ?? []}
                     type="share"
                     title={course?.name}

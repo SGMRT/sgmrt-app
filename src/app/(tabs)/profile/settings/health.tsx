@@ -4,6 +4,7 @@ import {
     ListSectionItem,
 } from "@/src/components/ui/ListSection";
 import { StyledSwitch } from "@/src/components/ui/StyledSwitch";
+import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import {
     AuthorizationStatus,
     authorizationStatusFor,
@@ -30,6 +31,7 @@ const HK: Record<string, ObjectTypeIdentifier> = {
 } as const;
 
 export default function Health() {
+    const { requestOptional } = useAppPermissions();
     const [healthKitAuth, setHealthKitAuth] = useState<{
         writeWRAuth: AuthorizationStatus;
         writeWorkoutAuth: AuthorizationStatus;
@@ -74,6 +76,10 @@ export default function Health() {
             ]
         );
     };
+
+    useEffect(() => {
+        requestOptional("HEALTHKIT");
+    }, []);
 
     useEffect(() => {
         const sub = AppState.addEventListener("change", async (next) => {
