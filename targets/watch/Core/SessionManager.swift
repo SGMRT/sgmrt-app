@@ -77,6 +77,7 @@ final class SessionManager: NSObject {
     toRead.insert(HKObjectType.quantityType(forIdentifier: .runningSpeed)!)
     toRead.insert(HKObjectType.quantityType(forIdentifier: .stepCount)!)
     toRead.insert(HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!)
+    toRead.insert(HKSeriesType.workoutRoute())
     
     var toShare = Set<HKSampleType>()
     if forStandalone {
@@ -84,6 +85,7 @@ final class SessionManager: NSObject {
       toShare.insert(HKObjectType.quantityType(forIdentifier: .heartRate)!)
       toShare.insert(HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!)
       toShare.insert(HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!)
+      toShare.insert(HKSeriesType.workoutRoute())
     }
     try await healthStore.requestAuthorization(toShare: toShare, read: toRead)
   }
@@ -96,8 +98,9 @@ final class SessionManager: NSObject {
       wc.post(.state(state: "error", reason: "auth:\(error.localizedDescription)", ts: Date()))
       return
     }
+    
     mode = standalone ? .watchStandalone : .phoneControlled
-    Task { @MainActor in
+    await MainActor.run {
       self.ui.mode = self.mode
     }
     
@@ -109,21 +112,28 @@ final class SessionManager: NSObject {
       let s = try HKWorkoutSession(healthStore: healthStore, configuration: config)
       let b = s.associatedWorkoutBuilder()
       b.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: config)
-      wSession = s; builder = b
-      s.delegate = self; b.delegate = self
+      wSession = s
+      builder = b
+      s.delegate = self
+      b.delegate = self
       
       s.startActivity(with: t)
       try await b.beginCollection(at: t)
       
       step.start(healthStore: healthStore, from: t)
+      
       if standalone {
-        let r = RouteRecorder(healthStore: healthStore)
-        r.start()
-        route = r
+        
+        await MainActor.run {
+          let r = RouteRecorder(healthStore: self.healthStore)
+          r.start()
+          self.route = r
+        }
       }
       
       await MainActor.run { ui.applyState(.started, at: t) }
       wc.post(.state(state: "started", reason: standalone ? "watchStandalone" : "remote", ts: t))
+      
       await MainActor.run { ui.applyState(.running, at: t) }
       wc.post(.state(state: "running", reason: "delegate", ts: t))
     } catch {
@@ -159,7 +169,10 @@ final class SessionManager: NSObject {
       await MainActor.run { ui.updateSyncElapsed(finalElapsed, at: t) }
       
       if mode == .watchStandalone {
-        route?.stopCollecting()
+        await MainActor.run {
+          self.route?.stopCollecting()
+        }
+        
         do {
           let workout = try await b.finishWorkoutAsync()
           try await route?.finishAsync(with: workout)
@@ -172,7 +185,9 @@ final class SessionManager: NSObject {
         wc.post(.state(state: "ended", reason: "discard@phoneControlled", ts: t))
       }
       
-      wSession = nil; builder = nil; route = nil
+      wSession = nil
+      builder = nil
+      route = nil
       
       if mode == .watchStandalone {
         // 워치 단독 모드: 완료 화면 표시 (뒤로가기 버튼으로 메인으로 이동)

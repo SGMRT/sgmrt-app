@@ -24,23 +24,38 @@ final class RouteRecorder: NSObject, CLLocationManagerDelegate {
     self.healthStore = healthStore
     super.init()
     lm.delegate = self
+    dlog(Log.route, "RouteRecorder init, locationServicesEnabled=\(CLLocationManager.locationServicesEnabled())")
   }
 
   func start() {
     guard !isActive else { return }
     isActive = true
+    
+    dlog(Log.route, "RouteRecorder start() CALLED")
+    
     builder = HKWorkoutRouteBuilder(healthStore: healthStore, device: .local())
-    lm.requestWhenInUseAuthorization()
+    
     lm.activityType = .fitness
     lm.desiredAccuracy = kCLLocationAccuracyBest
     lm.distanceFilter = 5
-    lm.startUpdatingLocation()
+    
+    let status = lm.authorizationStatus
+    dlog(Log.route, "Location auth status at start: \(status.rawValue)")
+    
+    if status == .notDetermined {
+      lm.requestWhenInUseAuthorization()
+    } else if status == .authorizedWhenInUse || status == .authorizedAlways {
+      lm.startUpdatingLocation()
+      dlog(Log.route, "startUpdatingLocation() called (already authorized)")
+    } else {
+      dlog(Log.route, "Location not authorized (status=\(status.rawValue))")
+    }
   }
 
-  /// 위치 수집만 멈춤 (Route는 아직 미완)
   func stopCollecting() {
     guard isActive else { return }
     isActive = false
+    dlog(Log.route, "RouteRecorder.stopCollecting()")
     lm.stopUpdatingLocation()
   }
 
@@ -59,10 +74,29 @@ final class RouteRecorder: NSObject, CLLocationManagerDelegate {
     _ = try await builder.finishRouteAsync(with: workout, metadata: meta)
     self.builder = nil
   }
-
+  
+  func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+    let status = manager.authorizationStatus
+    dlog(Log.route, "locationManagerDidChangeAuthorization: \(status.rawValue)")
+    
+    guard isActive else { return }
+    
+    switch status {
+    case .authorizedWhenInUse, .authorizedAlways:
+      dlog(Log.route, "Authorization granted, startUpdatingLocation()")
+      lm.startUpdatingLocation()
+    case .denied, .restricted:
+      dlog(Log.route, "Authorization denied/restricted")
+    case .notDetermined:
+      dlog(Log.route, "Authorization notDetermined")
+    @unknown default:
+      dlog(Log.route, "Authorization unknown default")
+    }
+  }
 
   // MARK: - CLLocationManagerDelegate
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    print("locationManager CALLED, count:", locations.count)
     guard isActive else { return }
     buf.append(contentsOf: locations)
     
@@ -79,8 +113,8 @@ final class RouteRecorder: NSObject, CLLocationManagerDelegate {
       let alt = loc.altitude
       if let last = lastAltitude {
         let delta = alt - last
-        if delta > 0 { totalAscent += delta }     // 0.5m 이상 상승만 카운트
-        else if delta < 0 { totalDescent -= delta }
+        if delta >= 0.5 { totalAscent += delta }     // 0.5m 이상 상승만 카운트
+        else if delta <= -0.5 { totalDescent -= delta }
       }
       lastAltitude = alt
     }

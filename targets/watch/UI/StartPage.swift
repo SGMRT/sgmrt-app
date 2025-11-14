@@ -17,7 +17,10 @@ struct StartPage: View {
         Spacer()
         
         // 러닝 시작 버튼
-        Button(action: { AppDelegate.shared?.startOnWatch(activity: "running") }) {
+        Button(action: {
+          print("== WATCH START BUTTON PRESSED ==")
+          AppDelegate.shared?.startOnWatch(activity: "running")
+        }) {
           ZStack {
             Circle()
               .fill(.brand)

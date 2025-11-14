@@ -7,11 +7,6 @@
 		<string>SpoqaHanSansNeo-Bold.ttf</string>
 		<string>SpoqaHanSansNeo-Regular.ttf</string>
 	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>workout-processing</string>
-		<string>location</string>
-	</array>
 	<key>WKBackgroundModes</key>
 	<array>
 		<string>workout-processing</string>
