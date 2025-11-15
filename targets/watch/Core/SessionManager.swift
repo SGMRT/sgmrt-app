@@ -272,10 +272,10 @@ extension SessionManager: HKWorkoutSessionDelegate, HKLiveWorkoutBuilderDelegate
   func workoutBuilder(_ workoutBuilder: HKLiveWorkoutBuilder,
                       didCollectDataOf collectedTypes: Set<HKSampleType>) {
     metrics.consume(collectedTypes: collectedTypes, from: workoutBuilder) { payload in
-      wc.post(.metrics(distanceM: payload.distanceM ?? 0.0,
-                       paceSecPerKm: payload.paceSecPerKm,
-                       cadenceSpm: payload.cadenceSpm,
-                       ts: Date()))
+//      wc.post(.metrics(distanceM: payload.distanceM ?? 0.0,
+//                       paceSecPerKm: payload.paceSecPerKm,
+//                       cadenceSpm: payload.cadenceSpm,
+//                       ts: Date()))
     }
   }
   func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {}

@@ -49,7 +49,7 @@ function RootLayout() {
         "SpoqaHanSansNeo-Bold": require("@/assets/fonts/SpoqaHanSansNeo-Bold.ttf"),
     });
 
-    const { status, error } = useBootstrapApp(isLoggedIn, loaded);
+    const { status, error } = useBootstrapApp(isLoggedIn, loaded, true);
     const bootReady = status === "done" || status === "error";
     const { requestOptional } = useAppPermissions();
     const shouldShowAd = useShouldShowAd();

@@ -69,6 +69,7 @@ export function useSensors(enabled: boolean) {
             // 6) Heart Rate (심박수 저장)
             heartRateSubRef.current = onHeartRate((bpm) => {
                 if (!mounted) return;
+                console.log("bpm", bpm);
                 sharedSensorStore.pushHeartRate({
                     bpm: Math.round(bpm),
                     timestamp: Date.now(),

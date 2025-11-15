@@ -26,8 +26,17 @@ final class AppDelegate: NSObject, WKApplicationDelegate {
       let t = ts ?? Date()
       switch cmd {
       case .start:
-        let act = (dict["activity"] as? String) ?? "running"
-        Task { await self.session.start(activity: act, at: t, standalone: false) }
+          if self.session.mode == .watchStandalone {
+            self.wc.post(.state(state: "running",
+                                reason: "ignore:start@standalone",
+                                ts: t))
+            return
+          }
+
+          let act = (dict["activity"] as? String) ?? "running"
+          Task {
+            await self.session.start(activity: act, at: t, standalone: false)
+          }
       case .pause:
         Task { @MainActor in self.session.pause(at: t) }
       case .resume:

@@ -78,15 +78,24 @@ type HKAuthState = {
 };
 
 function useHealthKitBridge(): HKAuthState {
-    const [status, request] = useHealthkitAuthorization(
-        ["HKQuantityTypeIdentifierHeartRate", "HKWorkoutTypeIdentifier"],
-        [
-            "HKQuantityTypeIdentifierDistanceWalkingRunning",
-            "HKQuantityTypeIdentifierActiveEnergyBurned",
+    const [status, request] = useHealthkitAuthorization({
+        toRead: [
+            "HKQuantityTypeIdentifierHeartRate",
             "HKWorkoutTypeIdentifier",
             "HKWorkoutRouteTypeIdentifier",
-        ]
-    );
+            "HKQuantityTypeIdentifierActiveEnergyBurned",
+            "HKQuantityTypeIdentifierDistanceWalkingRunning",
+            "HKQuantityTypeIdentifierRunningSpeed",
+        ],
+        toWrite: [
+            "HKWorkoutTypeIdentifier",
+            "HKWorkoutRouteTypeIdentifier",
+            "HKQuantityTypeIdentifierActiveEnergyBurned",
+            "HKQuantityTypeIdentifierDistanceWalkingRunning",
+            "HKQuantityTypeIdentifierRunningSpeed",
+        ],
+    });
+
     return {
         status: status ?? AuthorizationRequestStatus.unknown,
         request: async () => {

@@ -108,6 +108,7 @@ fileprivate final class WCBridge: NSObject, WCSessionDelegate {
   }
 
   private func forward(_ obj: [String: Any]) {
+    print("forward", obj);
     let type = (obj["type"] as? String) ?? inferTypeFallback(obj)
     switch type {
     case "state":

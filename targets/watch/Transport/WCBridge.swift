@@ -68,6 +68,9 @@ final class WCBridge: NSObject, WCSessionDelegate {
     handle(obj)
   }
   func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) { handle(userInfo) }
+  func session(_ session: WCSession,
+               didReceiveApplicationContext applicationContext: [String : Any]) {
+    handle(applicationContext) }
 
   private func handle(_ dict: [String:Any]) {
     guard let cmdStr = dict["cmd"] as? String, let cmd = PhoneInCommand(rawValue: cmdStr) else { return }
