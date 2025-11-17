@@ -10,6 +10,7 @@
         "web": "expo start --web",
         "lint": "expo lint",
         "test": "jest --watchAll",
+        "test:ci": "jest --ci",
         "postinstall": "patch-package",
         "update": "node ./scripts/push-update.js"
     },

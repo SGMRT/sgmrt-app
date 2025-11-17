@@ -26,4 +26,6 @@ jobs:
 
             - name: Run tests
               run: |
-                  npm test -- --runInBand
+                  npm test:ci -- --runInBand --forceExit --detectOpenHandles
+              env:
+                  CI: true
