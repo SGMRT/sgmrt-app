@@ -85,6 +85,7 @@ final class SessionManager: NSObject {
       toShare.insert(HKObjectType.quantityType(forIdentifier: .heartRate)!)
       toShare.insert(HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning)!)
       toShare.insert(HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!)
+      toShare.insert(HKObjectType.quantityType(forIdentifier: .stepCount)!)
       toShare.insert(HKSeriesType.workoutRoute())
     }
     try await healthStore.requestAuthorization(toShare: toShare, read: toRead)
@@ -98,17 +99,18 @@ final class SessionManager: NSObject {
       wc.post(.state(state: "error", reason: "auth:\(error.localizedDescription)", ts: Date()))
       return
     }
-    
+      
     mode = standalone ? .watchStandalone : .phoneControlled
     await MainActor.run {
       self.ui.mode = self.mode
     }
-    
+      
     let config = HKWorkoutConfiguration()
     config.activityType = (activity == "cycling") ? .cycling : .running
     config.locationType = .outdoor
-    
+      
     do {
+//      print("start(): creating session")
       let s = try HKWorkoutSession(healthStore: healthStore, configuration: config)
       let b = s.associatedWorkoutBuilder()
       b.dataSource = HKLiveWorkoutDataSource(healthStore: healthStore, workoutConfiguration: config)
@@ -116,27 +118,33 @@ final class SessionManager: NSObject {
       builder = b
       s.delegate = self
       b.delegate = self
-      
-      s.startActivity(with: t)
-      try await b.beginCollection(at: t)
-      
-      step.start(healthStore: healthStore, from: t)
-      
-      if standalone {
         
+//      print("start(): startActivity")
+      s.startActivity(with: t)
+        
+//      print("start(): beginCollection...")
+      try await b.beginCollection(at: t)
+//      print("start(): beginCollection done")
+        
+      step.start(healthStore: healthStore, from: t)
+//      print("start(): step.start done (standalone=\(standalone))")
+        
+      if standalone {
         await MainActor.run {
           let r = RouteRecorder(healthStore: self.healthStore)
           r.start()
           self.route = r
         }
+//        print("start(): RouteRecorder started")
       }
-      
+        
       await MainActor.run { ui.applyState(.started, at: t) }
       wc.post(.state(state: "started", reason: standalone ? "watchStandalone" : "remote", ts: t))
-      
+        
       await MainActor.run { ui.applyState(.running, at: t) }
       wc.post(.state(state: "running", reason: "delegate", ts: t))
     } catch {
+      log.error("start() error: \(error.localizedDescription)")
       wc.post(.state(state: "error", reason: "start:\(error.localizedDescription)", ts: Date()))
     }
   }
@@ -159,6 +167,7 @@ final class SessionManager: NSObject {
     guard let s = wSession, let b = builder else { return }
     if s.state == .ended { return }
     s.stopActivity(with: t)
+    s.end()
     
     Task {
       try? await b.endCollection(at: t)

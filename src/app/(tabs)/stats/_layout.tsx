@@ -9,6 +9,7 @@ export default function StatsLayout() {
             }}
         >
             <Stack.Screen name="index" />
+            <Stack.Screen name="sync" />
             <Stack.Screen name="result/[runningId]/[courseId]/[ghostRunningId]" />
         </Stack>
     );

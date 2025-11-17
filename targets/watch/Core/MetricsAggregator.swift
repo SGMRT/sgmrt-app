@@ -8,7 +8,7 @@
 import HealthKit
 
 final class MetricsAggregator {
-  struct Payload { let distanceM: Double?; let paceSecPerKm: Double?; let cadenceSpm: Int?; let calories: Int? }
+  struct Payload { let distanceM: Double?; let paceSecPerKm: Double?; let cadenceSpm: Int?; let calories: Int?; let steps: Int? }
   var onHR: ((Double)->Void)?
   var onDistance: ((Double)->Void)?
   var onPace: ((Double)->Void)?
@@ -20,6 +20,7 @@ final class MetricsAggregator {
     var dist: Double?
     var pace: Double?
     var cal: Int?
+    var steps: Int?
 
     for t in collectedTypes {
       guard let qt = t as? HKQuantityType, let st = builder.statistics(for: qt) else { continue }
@@ -40,7 +41,12 @@ final class MetricsAggregator {
         cal = Int(kcal.rounded())
         if let c = cal { onCalories?(c) }
       }
+      if qt == HKQuantityType(.stepCount) {
+        let stepDouble = st.sumQuantity()?.doubleValue(for: .count()) ?? 0
+        let stepInt = Int(stepDouble.rounded())
+        steps = stepInt
+      }
     }
-    emit(Payload(distanceM: dist, paceSecPerKm: pace, cadenceSpm: nil, calories: cal))
+    emit(Payload(distanceM: dist, paceSecPerKm: pace, cadenceSpm: nil, calories: cal, steps: steps))
   }
 }

@@ -28,7 +28,7 @@
         "@react-navigation/bottom-tabs": "^7.3.10",
         "@react-navigation/elements": "^2.3.8",
         "@react-navigation/native": "^7.1.6",
-        "@rnmapbox/maps": "^10.1.39",
+        "@rnmapbox/maps": "10.1.39",
         "@sentry/react-native": "^6.19.0",
         "@shopify/flash-list": "2.0.2",
         "@shopify/react-native-skia": "v2.0.0-next.4",

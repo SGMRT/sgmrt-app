@@ -12,6 +12,10 @@ import {
 import { decodeTelemetries } from "./utils";
 
 export async function postRun(data: FormData) {
+    console.log("postRun", data);
+    data.forEach((value, key) => {
+        console.log(key, value);
+    });
     try {
         const response = await server.post(`runs`, data, {});
         return response.data;

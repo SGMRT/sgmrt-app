@@ -175,7 +175,7 @@ export function getTelemetriesWithoutLastFalse(
     return telemetries.slice(0, lastTrueIndex + 1);
 }
 
-interface SaveRunningProps {
+export interface SaveRunningProps {
     telemetries: Telemetry[];
     rawData: RawData[];
     userDashboardData: UserDashBoardData;
@@ -184,6 +184,7 @@ interface SaveRunningProps {
     isPublic: boolean;
     ghostRunningId?: number | null;
     courseId?: number;
+    saveHealthKit?: boolean;
 }
 
 export async function saveRunning({
@@ -195,6 +196,7 @@ export async function saveRunning({
     isPublic,
     ghostRunningId,
     courseId,
+    saveHealthKit = true,
 }: SaveRunningProps) {
     addPhase("precheck", {
         totalTelemetry: telemetries?.length ?? 0,
@@ -262,7 +264,7 @@ export async function saveRunning({
 
         const tHK = trackDuration("healthkit-save");
         try {
-            if (isHealthDataAvailable) {
+            if (isHealthDataAvailable && saveHealthKit) {
                 const canWriteWorkout = canShare("HKWorkoutTypeIdentifier");
                 const canWriteDistance = canShare(
                     "HKQuantityTypeIdentifierDistanceWalkingRunning"

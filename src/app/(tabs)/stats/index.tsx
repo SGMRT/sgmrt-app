@@ -23,18 +23,23 @@ export default function Stats() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#111111" }}>
-            <Header titleText="내 기록" hasBackButton={false} />
-            <View style={{ flex: 1, marginTop: 20 }}>
-                <UserHistory
-                    initialCourseId={courseId ? Number(courseId) : null}
-                    initialCourseName={courseName ? String(courseName) : null}
-                    onClickItem={handleRecordClick}
-                    shouldRefresh={false}
-                />
-            </View>
-            <TabBar />
-        </SafeAreaView>
+        <>
+            <SafeAreaView style={{ flex: 1, backgroundColor: "#111111" }}>
+                <Header titleText="내 기록" hasBackButton={false} />
+
+                <View style={{ flex: 1, marginTop: 20 }}>
+                    <UserHistory
+                        initialCourseId={courseId ? Number(courseId) : null}
+                        initialCourseName={
+                            courseName ? String(courseName) : null
+                        }
+                        onClickItem={handleRecordClick}
+                        shouldRefresh={false}
+                    />
+                </View>
+                <TabBar />
+            </SafeAreaView>
+        </>
     );
 }
 

@@ -1,6 +1,8 @@
 import { DefaultLogo } from "@/assets/icons/icons";
 import { ChevronIcon, GhostIcon } from "@/assets/svgs/svgs";
 import { RunResponse } from "@/src/apis/types/run";
+import WatchSyncBanner from "@/src/features/workoutSync/components/WatchSyncBanner";
+import { useUnSyncedWatchWorkoutCount } from "@/src/features/workoutSync/hooks/useUnSyncedWatchWorkoutCount";
 import colors from "@/src/theme/colors";
 import { formatDate } from "@/src/utils/formatDate";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
@@ -145,6 +147,8 @@ export const HistoryWithFilter = ({
         bottomSheetRef.current?.close();
     };
 
+    const { count, isLoading: isLoadingWatchSync } =
+        useUnSyncedWatchWorkoutCount();
     const router = useRouter();
     return (
         <View style={{ flex: 1, gap: 20 }}>
@@ -155,6 +159,13 @@ export const HistoryWithFilter = ({
                 selectedFilter={selectedFilter}
                 selectedView={selectedView}
             />
+            {isLoadingWatchSync ? (
+                <></>
+            ) : (
+                <View style={{ marginHorizontal: 16.5 }}>
+                    <WatchSyncBanner count={count} />
+                </View>
+            )}
             <FlashList
                 ref={scrollViewRef}
                 data={displayData.data}
