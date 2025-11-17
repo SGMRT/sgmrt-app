@@ -32,7 +32,7 @@ jobs:
 
             - name: 🧪 Run Jest tests
               run: |
-                  npm test:ci -- --runInBand --forceExit --detectOpenHandles
+                  npm run test:ci -- --runInBand --forceExit --detectOpenHandles
               env:
                   CI: true
 
