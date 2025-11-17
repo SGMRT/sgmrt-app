@@ -10,6 +10,7 @@
         "web": "expo start --web",
         "lint": "expo lint",
         "test": "jest --watchAll",
+        "test:ci": "jest --ci",
         "postinstall": "patch-package",
         "update": "node ./scripts/push-update.js"
     },
@@ -95,6 +96,7 @@
     "devDependencies": {
         "@babel/core": "^7.25.2",
         "@tanstack/eslint-plugin-query": "^5.81.2",
+        "@testing-library/react-native": "^13.3.3",
         "@types/jest": "^30.0.0",
         "@types/react": "~19.0.10",
         "axios-mock-adapter": "^2.1.0",
