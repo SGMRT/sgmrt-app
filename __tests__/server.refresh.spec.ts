@@ -23,14 +23,14 @@ describe("axios refresh flow", () => {
 
     test("401 → refresh 200 → 원요청 재시도 성공", async () => {
         // 1) 데이터 엔드포인트: 만료 토큰이면 401
-        mock.onGet("/protected").reply((config) => {
+        mock.onGet("/v1/protected").reply((config) => {
             return config.headers?.Authorization === "Bearer EXPIRED_AT"
                 ? [401, { code: "UNAUTH", message: "expired" }]
                 : [200, { ok: true }];
         });
 
         // 2) refresh 성공
-        mock.onPost("auth/reissue").reply(200, {
+        mock.onPost("/v1/auth/reissue").reply(200, {
             uuid: "uuid",
             accessToken: "NEW_AT",
             refreshToken: "NEW_RT",
@@ -53,14 +53,14 @@ describe("axios refresh flow", () => {
 
     test("401 → refresh 200 → 원요청 재시도 성공 → 다음 요청은 refresh 호출 없음", async () => {
         // GET은 EXPIRED_AT면 401, 그 외(NEW_AT)면 200
-        mock.onGet("/protected").reply((config) => {
+        mock.onGet("/v1/protected").reply((config) => {
             return config.headers?.Authorization === "Bearer EXPIRED_AT"
                 ? [401, { code: "UNAUTH" }]
                 : [200, { ok: true }];
         });
 
         // refresh 응답
-        mock.onPost("auth/reissue").reply(200, {
+        mock.onPost("/v1/auth/reissue").reply(200, {
             uuid: "uuid",
             accessToken: "NEW_AT",
             refreshToken: "NEW_RT",
@@ -91,17 +91,17 @@ describe("axios refresh flow", () => {
     });
 
     test("동시에 2개의 401 → refresh는 1번만", async () => {
-        mock.onGet("/a").reply((cfg) =>
+        mock.onGet("/v1/a").reply((cfg) =>
             cfg.headers?.Authorization === "Bearer EXPIRED_AT"
                 ? [401, {}]
                 : [200, { ok: "a" }]
         );
-        mock.onGet("/b").reply((cfg) =>
+        mock.onGet("/v1/b").reply((cfg) =>
             cfg.headers?.Authorization === "Bearer EXPIRED_AT"
                 ? [401, {}]
                 : [200, { ok: "b" }]
         );
-        mock.onPost("auth/reissue").reply(200, {
+        mock.onPost("/v1/auth/reissue").reply(200, {
             uuid: "uuid",
             accessToken: "NEW_AT2",
             refreshToken: "NEW_RT2",
@@ -113,15 +113,33 @@ describe("axios refresh flow", () => {
         ]);
         expect(ra.data.ok).toBe("a");
         expect(rb.data.ok).toBe("b");
-        // ✅ refresh 단 한 번
+
         expect(
             mock.history.post.filter((p) => p.url?.includes("auth/reissue"))
         ).toHaveLength(1);
     });
 
+    test("AT 만료 + RT도 401이면 refresh 한 번만 시도되고 로그아웃", async () => {
+        mock.onGet("/v1/protected").reply(401, {});
+        mock.onPost("/v1/auth/reissue").reply(401, {});
+
+        const logoutSpy = jest.spyOn(useAuthStore.getState(), "logout");
+
+        await expect(server.get("/protected")).rejects.toBeTruthy();
+
+        // refresh 요청은 딱 한 번만
+        const refreshCalls = mock.history.post.filter((p) =>
+            p.url?.includes("auth/reissue")
+        );
+        expect(refreshCalls).toHaveLength(1);
+
+        // logout은 최소 한 번
+        expect(logoutSpy).toHaveBeenCalled();
+    });
+
     test("refresh 실패 → logout 호출 & 요청 reject", async () => {
-        mock.onGet("/protected").reply(401, {});
-        mock.onPost("auth/reissue").reply(401, {});
+        mock.onGet("/v1/protected").reply(401, {});
+        mock.onPost("/v1/auth/reissue").reply(401, {});
 
         const logoutSpy = jest.spyOn(useAuthStore.getState(), "logout");
 
@@ -130,12 +148,12 @@ describe("axios refresh flow", () => {
     });
 
     test("재시도 시 커스텀 헤더 보존", async () => {
-        mock.onGet("/with-header").reply((cfg) =>
+        mock.onGet("/v1/with-header").reply((cfg) =>
             cfg.headers?.Authorization === "Bearer EXPIRED_AT"
                 ? [401, {}]
                 : [200, { header: cfg.headers?.["X-Custom"] }]
         );
-        mock.onPost("auth/reissue").reply(200, {
+        mock.onPost("/v1/auth/reissue").reply(200, {
             uuid: "uuid",
             accessToken: "NEW_AT3",
             refreshToken: "NEW_RT3",
@@ -150,7 +168,7 @@ describe("axios refresh flow", () => {
 
     test("Sentry에 토큰이 마스킹되는지", async () => {
         // 강제로 400 에러 발생
-        mock.onGet("/bad").reply(400, { code: "BAD", message: "oops" });
+        mock.onGet("/v1/bad").reply(500, { code: "BAD", message: "oops" });
 
         await expect(
             server.get("/bad", {
