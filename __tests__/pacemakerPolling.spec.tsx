@@ -5,16 +5,14 @@
 import { getPacemakerDetail } from "@/src/apis";
 import { usePacemakerJobPolling } from "@/src/features/pacemaker/hooks/usePacemakerJobPolling";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, renderHook } from "@testing-library/react-hooks";
+import { act, renderHook } from "@testing-library/react-native";
 import { AxiosError } from "axios";
 import React from "react";
 
-// devLog는 콘솔 덜 지저분하게 mock
 jest.mock("@/src/utils/devLog", () => ({
     devLog: jest.fn(),
 }));
 
-// getPacemakerDetail 모킹
 jest.mock("@/src/apis", () => ({
     getPacemakerDetail: jest.fn(),
 }));
@@ -25,9 +23,11 @@ const mockState = {
     setStatus: jest.fn(),
 };
 
+// tick을 호출할 수 있도록 subscribe 리스너를 잡아둘 변수
+let queueListener: ((next: any, prev: any) => void) | null = null;
+
 // queueStore 모듈 전체를 Jest factory로 모킹
 jest.mock("@/src/features/pacemaker/store/queueStore", () => {
-    // create-style Zustand 훅 모양으로 흉내
     const usePacemakerQueue: any = (
         selector?: (s: typeof mockState) => any
     ) => {
@@ -37,16 +37,17 @@ jest.mock("@/src/features/pacemaker/store/queueStore", () => {
         return mockState;
     };
 
-    // subscribe도 훅에 달려 있는 형태로 제공
     usePacemakerQueue.subscribe = jest.fn(
         (
             _selector: (s: typeof mockState) => any,
-            _listener: (next: any, prev: any) => void,
+            listener: (next: any, prev: any) => void,
             _opts?: any
         ) => {
-            // 여기서는 폴링 훅이 subscribe 호출만 하고,
-            // 실제 listener를 호출하진 않아도 테스트가 돌아가므로 no-op
-            return () => {};
+            // 훅에서 등록한 listener (안에서 tick() 호출)를 보관
+            queueListener = listener;
+            return () => {
+                queueListener = null;
+            };
         }
     );
 
@@ -55,16 +56,53 @@ jest.mock("@/src/features/pacemaker/store/queueStore", () => {
     return { usePacemakerQueue };
 });
 
-jest.useFakeTimers();
-
 describe("usePacemakerJobPolling", () => {
     let queryClient: QueryClient;
+    let now = 0;
+    let dateNowSpy: jest.SpyInstance<number, []>;
+
+    // 비동기 + microtask queue 비우기용 유틸
+    const flushAll = async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+    };
+
+    // 매 tick을 직접 실행하는 헬퍼 (subscribe가 받은 listener 호출)
+    const runTick = async () => {
+        if (!queueListener) {
+            throw new Error("queueListener is not set. Did the hook mount?");
+        }
+        await act(async () => {
+            // zustand subscribe listener는 (next, prev)를 받지만,
+            // 여기서는 크게 상관 없으니 동일한 state 전달
+            queueListener!(mockState.jobs, mockState.jobs);
+            await flushAll();
+        });
+    };
 
     beforeEach(() => {
-        queryClient = new QueryClient();
+        now = 0;
+        // Date.now를 우리가 제어할 수 있도록 mock
+        dateNowSpy = jest.spyOn(Date, "now").mockImplementation(() => now);
+
+        queryClient = new QueryClient({
+            defaultOptions: {
+                queries: {
+                    retry: false,
+                    gcTime: Infinity,
+                },
+            },
+        });
+
         mockState.jobs = [];
         mockState.setStatus.mockClear();
         (getPacemakerDetail as jest.Mock).mockReset();
+        queueListener = null;
+    });
+
+    afterEach(async () => {
+        dateNowSpy.mockRestore();
+        await flushAll();
     });
 
     const wrapper: React.FC<{ children?: React.ReactNode }> = ({
@@ -82,7 +120,7 @@ describe("usePacemakerJobPolling", () => {
         pacemakerId: overrides.pacemakerId ?? 123,
         courseId: overrides.courseId ?? 999,
         queuedAt:
-            overrides.queuedAt ?? new Date(Date.now() - 100_000).toISOString(), // 100초 전 → 90초 조건 통과
+            overrides.queuedAt ?? new Date(Date.now() - 100_000).toISOString(), // 기본: now보다 100초 전
         status: overrides.status ?? "PROCEEDING",
         ...overrides,
     });
@@ -100,9 +138,10 @@ describe("usePacemakerJobPolling", () => {
             wrapper,
         });
 
-        await act(async () => {
-            jest.advanceTimersByTime(1000);
-        });
+        // 90초 경과 조건을 만족시키기 위해 now를 크게 올림
+        now = 200_000;
+
+        await runTick();
 
         expect(mockState.setStatus).toHaveBeenCalledWith(
             "job-1",
@@ -122,9 +161,9 @@ describe("usePacemakerJobPolling", () => {
             wrapper,
         });
 
-        await act(async () => {
-            jest.advanceTimersByTime(1000);
-        });
+        now = 200_000;
+
+        await runTick();
 
         expect(mockState.setStatus).toHaveBeenCalledWith(
             "job-2",
@@ -136,7 +175,6 @@ describe("usePacemakerJobPolling", () => {
     test("404 → Pacemaker not found → FAILED", async () => {
         mockState.jobs = [mkJob({ jobId: "job-3", pacemakerId: 30 })];
 
-        // isAxiosError가 true로 인식할 실제 AxiosError 인스턴스 생성
         const err = new AxiosError(
             "not found",
             undefined,
@@ -151,9 +189,9 @@ describe("usePacemakerJobPolling", () => {
             wrapper,
         });
 
-        await act(async () => {
-            jest.advanceTimersByTime(1000);
-        });
+        now = 200_000;
+
+        await runTick();
 
         expect(mockState.setStatus).toHaveBeenCalledWith(
             "job-3",
@@ -179,9 +217,9 @@ describe("usePacemakerJobPolling", () => {
             wrapper,
         });
 
-        await act(async () => {
-            jest.advanceTimersByTime(1000);
-        });
+        now = 200_000;
+
+        await runTick();
 
         expect(mockState.setStatus).toHaveBeenCalledWith(
             "job-4",
@@ -191,11 +229,13 @@ describe("usePacemakerJobPolling", () => {
     });
 
     test("queuedAt 90초 안 지난 잡은 폴링 대상에서 제외", async () => {
+        // queuedAt = now 시점 → 90초 경과 전
+        now = 0;
         mockState.jobs = [
             mkJob({
                 jobId: "job-5",
                 pacemakerId: 50,
-                queuedAt: new Date().toISOString(), // 지금 시간 → 90초 미만
+                queuedAt: new Date(Date.now()).toISOString(), // now
             }),
         ];
 
@@ -207,15 +247,15 @@ describe("usePacemakerJobPolling", () => {
             wrapper,
         });
 
-        await act(async () => {
-            jest.advanceTimersByTime(5000);
-        });
+        // now를 30초까지만 올리면 queuedAt + 90_000 > now
+        now = 30_000;
+
+        await runTick();
 
         expect(mockState.setStatus).not.toHaveBeenCalled();
         expect(getPacemakerDetail).not.toHaveBeenCalled();
     });
 
-    // 🔁 재시도 + 백오프 경로 테스트 (1): 몇 번 실패한 뒤 성공
     test("일시적인 서버 에러로 몇 번 실패 후, 백오프를 거쳐 COMPLETED로 종료", async () => {
         mockState.jobs = [
             mkJob({ jobId: "job-6", pacemakerId: 60, courseId: 1000 }),
@@ -229,14 +269,11 @@ describe("usePacemakerJobPolling", () => {
             { status: 500 } as any
         );
 
-        // 1, 2번째 호출은 500 에러 → 백오프
-        // 3번째 호출에서 COMPLETED
         (getPacemakerDetail as jest.Mock)
             .mockRejectedValueOnce(transientErr)
             .mockRejectedValueOnce(transientErr)
             .mockResolvedValue({ processingStatus: "COMPLETED" });
 
-        // 백오프를 눈에 좀 더 잘 보이게 baseBackoffMs를 줄여도 되고, 안 줄여도 됨
         renderHook(
             () =>
                 usePacemakerJobPolling({
@@ -248,15 +285,18 @@ describe("usePacemakerJobPolling", () => {
             { wrapper }
         );
 
-        await act(async () => {
-            // 충분히 시간을 많이 돌려서
-            // - 첫 tick: 실패(1회) → 백오프 예약
-            // - 두 번째 백오프 이후: 실패(2회)
-            // - 세 번째 백오프 이후: 성공(COMPLETED)
-            jest.advanceTimersByTime(30_000);
-        });
+        // 1번째 tick: 실패 (attempts=1, nextAt 설정)
+        now = 100_000;
+        await runTick();
 
-        // COMPLETED로 한 번 이상은 설정됐는지만 보면 됨
+        // 2번째 tick: 실패 (attempts=2, nextAt 재설정)
+        now = 200_000;
+        await runTick();
+
+        // 3번째 tick: 성공 (COMPLETED)
+        now = 300_000;
+        await runTick();
+
         expect(mockState.setStatus).toHaveBeenCalledWith(
             "job-6",
             "COMPLETED",
@@ -264,7 +304,6 @@ describe("usePacemakerJobPolling", () => {
         );
     });
 
-    // 🔁 재시도 + 백오프 경로 테스트 (2): maxAttempts 다 쓰고 FAILED 처리
     test("백오프 재시도를 maxAttempts까지 모두 사용한 뒤 FAILED로 종료", async () => {
         mockState.jobs = [
             mkJob({ jobId: "job-7", pacemakerId: 70, courseId: 2000 }),
@@ -278,7 +317,6 @@ describe("usePacemakerJobPolling", () => {
             { status: 500 } as any
         );
 
-        // 항상 500 에러 → 계속 백오프 타게 하기
         (getPacemakerDetail as jest.Mock).mockRejectedValue(err);
 
         renderHook(
@@ -292,12 +330,18 @@ describe("usePacemakerJobPolling", () => {
             { wrapper }
         );
 
-        await act(async () => {
-            // 넉넉하게 돌려서 3번 시도 + 3번 백오프 루프를 모두 지나가게 함
-            jest.advanceTimersByTime(60_000);
-        });
+        // attempts 1
+        now = 100_000;
+        await runTick();
 
-        // maxAttempts 번 시도 후 FAILED 브랜치가 한 번이라도 실행됐는지 확인
+        // attempts 2
+        now = 200_000;
+        await runTick();
+
+        // attempts 3 → maxAttempts 도달 → FAILED
+        now = 300_000;
+        await runTick();
+
         expect(mockState.setStatus).toHaveBeenCalledWith(
             "job-7",
             "FAILED",
