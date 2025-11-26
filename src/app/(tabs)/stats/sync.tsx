@@ -1,4 +1,3 @@
-import { Telemetry } from "@/src/apis/types/run";
 import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
 import { Button } from "@/src/components/ui/Button";
 import Header from "@/src/components/ui/Header";
@@ -6,19 +5,23 @@ import LoadingLayer from "@/src/components/ui/LoadingLayer";
 import StatRow from "@/src/components/ui/StatRow";
 import { showCompactToast } from "@/src/components/ui/toastConfig";
 import { Typography } from "@/src/components/ui/Typography";
+import {
+    formatDistanceKm,
+    paceFromKmh,
+    round,
+    wait,
+    workoutRouteRawData,
+    workoutRouteTelemetry,
+} from "@/src/features/workoutSync/utils";
 import { localWorkoutSyncStore } from "@/src/store/workoutSyncStore";
 import colors from "@/src/theme/colors";
-import { RawData } from "@/src/types/run";
 import {
     getFormattedPace,
     getRunTime,
     saveRunning,
     SaveRunningProps,
 } from "@/src/utils/runUtils";
-import {
-    queryWorkoutSamples,
-    WorkoutRoute,
-} from "@kingstinct/react-native-healthkit";
+import { queryWorkoutSamples } from "@kingstinct/react-native-healthkit";
 import { SplashScreen, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, ScrollView, TouchableOpacity, View } from "react-native";
@@ -29,85 +32,6 @@ type WorkoutData = SaveRunningProps & {
 };
 
 const WAIT_BEFORE_CAPTURE_MS = 2000;
-
-function paceFromKmh(speed: number): number {
-    if (!speed || speed <= 0) return 0;
-    return 3600 / speed;
-}
-
-function workoutRouteRawData(route: WorkoutRoute): RawData[] {
-    return route.locations.map((r) => ({
-        timestamp: r.date.getTime(),
-        latitude: r.latitude,
-        longitude: r.longitude,
-        altitude: r.altitude ?? 0,
-        speed: r.speed ?? 0,
-        accuracy: r.horizontalAccuracy ?? 0,
-        altitudeAccuracy: r.verticalAccuracy ?? 0,
-        pressure: 0,
-        course: r.course ?? 0,
-    }));
-}
-
-/** 고도 누적, 텔레메트리 계산 */
-function workoutRouteTelemetry(
-    route: WorkoutRoute,
-    averageHeartRate: number,
-    averageCadence: number
-): {
-    telemetries: Telemetry[];
-    totalElevationGain: number;
-    totalElevationLoss: number;
-} {
-    let totalDistance = 0;
-    let totalElevationGain = 0;
-    let totalElevationLoss = 0;
-    let prevAltitude = 0;
-
-    const telemetries = route.locations.map((r, idx) => {
-        const segmentDist = r.distance ?? 0;
-        // Kingstinct 엔진이 km 단위로 주는 걸 m로 변환한다고 가정
-        totalDistance += segmentDist * 1000;
-
-        const altitude = r.altitude ?? 0;
-        if (idx === 0) {
-            prevAltitude = altitude;
-        } else {
-            const diff = altitude - prevAltitude;
-            if (diff >= 0.5) {
-                totalElevationGain += diff;
-            } else if (diff <= -0.5) {
-                totalElevationLoss += -diff;
-            }
-            prevAltitude = altitude;
-        }
-
-        return {
-            timeStamp: r.date.getTime(),
-            lat: r.latitude,
-            lng: r.longitude,
-            dist: totalDistance,
-            pace: paceFromKmh(r.speed ?? 0),
-            alt: altitude,
-            cadence: averageCadence,
-            bpm: averageHeartRate,
-            isRunning: true,
-        };
-    });
-
-    return {
-        telemetries,
-        totalElevationGain,
-        totalElevationLoss,
-    };
-}
-
-const wait = (ms: number) =>
-    new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-const round = (value: number, digits = 0) => Number(value.toFixed(digits));
-
-const formatDistanceKm = (meters: number) => meters / 1000;
 
 export default function StatsSync() {
     const router = useRouter();
