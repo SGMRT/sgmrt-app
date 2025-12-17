@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/react-native";
+import { captureError } from "@/src/utils/sentryTools";
 import { setAudioModeAsync } from "expo-audio";
 import * as Speech from "expo-speech";
 import { TTSEngine } from "./types";
@@ -11,7 +11,7 @@ export const expoTTSEngine: TTSEngine = {
             onDone,
             onStopped,
             onError: (e) => {
-                Sentry.captureException(e);
+                captureError("tts.engine.expo", e);
                 onError(e);
             },
         });
