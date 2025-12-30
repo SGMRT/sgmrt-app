@@ -1,7 +1,7 @@
-import * as Sentry from "@sentry/react-native";
 import axios from "axios";
 import { router } from "expo-router";
 import { useAuthStore } from "../store/authState";
+import { captureError, normalizeRoute } from "../utils/sentryTools";
 
 let refreshingPromise: Promise<string> | null = null;
 
@@ -136,7 +136,7 @@ server.interceptors.response.use(
         }
 
         try {
-            const redact = (v?: string) =>
+            const redactBearer = (v?: string) =>
                 v
                     ? v.replace(
                           /Bearer\s+[A-Za-z0-9._-]+/g,
@@ -144,14 +144,12 @@ server.interceptors.response.use(
                       )
                     : "";
 
-            // cfg는 error.config의 참조이므로 여기서 바꾸면 error.config에도 반영됨
             const setMasked = (headers?: any) => {
                 if (!headers) return;
                 const raw = headers.Authorization ?? headers.authorization;
-                const masked = redact(raw);
+                const masked = redactBearer(raw);
                 if (!masked) return;
 
-                // axios v1에서 AxiosHeaders일 수도 있으니 set 지원도 처리
                 if (typeof headers.set === "function") {
                     headers.set("Authorization", masked);
                 } else {
@@ -162,34 +160,45 @@ server.interceptors.response.use(
             };
 
             setMasked(cfg?.headers);
-            setMasked(error?.config?.headers); // 방어적 중복
-            setMasked(error?.response?.config?.headers); // 방어적 중복
+            setMasked(error?.config?.headers);
+            setMasked(error?.response?.config?.headers);
 
-            Sentry.withScope((scope: Sentry.Scope) => {
-                scope.setTags({
-                    api: cfg?.url,
-                    "api.request.method": cfg?.method?.toUpperCase?.(),
-                    "api.request.url": cfg?.url,
-                    "api.request.params": JSON.stringify(cfg?.params || {}),
-                    "api.response.status": String(status || ""),
-                });
-                scope.setContext("request", {
+            const method = cfg?.method?.toUpperCase?.() || "";
+            const url = cfg?.url || "";
+            const route = normalizeRoute(url);
+            const apiVersion = cfg?.apiVersion || "v1";
+
+            const tags: Record<string, string> = {
+                apiVersion,
+                "api.method": method,
+                "api.route": route,
+                "api.response.status": String(status ?? ""),
+            };
+
+            const extras: Record<string, any> = {
+                request: {
+                    url,
+                    method,
+                    params: cfg?.params,
+                    data: cfg?.data,
                     headers: {
-                        Authorization: cfg?.headers?.Authorization, // 이미 [REDACTED]
+                        Authorization: cfg?.headers?.Authorization,
                         "Content-Type": cfg?.headers?.["Content-Type"],
+                        cookie: cfg?.headers?.cookie ?? cfg?.headers?.Cookie,
                     },
-                });
-                scope.setContext("response", { data: error?.response?.data });
+                },
+                response: {
+                    status,
+                    data: error?.response?.data,
+                    headers: error?.response?.headers,
+                },
+            };
 
-                if (error?.response?.data?.message) {
-                    error.message = `[${error.response.data.code}] ${error.response.data.message}`;
-                    Sentry.captureException(error, {
-                        fingerprint: [error.response.data.message],
-                    });
-                } else {
-                    Sentry.captureException(error);
-                }
-            });
+            if (error?.response?.data?.message && error?.response?.data?.code) {
+                error.message = `[${error.response.data.code}] ${error.response.data.message}`;
+            }
+
+            captureError("apis.instance", error, extras, tags);
         } catch {
             /* no-op */
         }

@@ -38,6 +38,16 @@ Sentry.init({
     sendDefaultPii: true,
     environment: env,
     tracesSampleRate: 1.0,
+    // 기본 전송 비활성화: captureError 함수를 통해서만 명시적으로 전송
+    beforeSend(event) {
+        // captureError 함수에서 설정한 태그로 명시적 전송 여부 확인
+        // where 태그가 있으면 명시적으로 보낸 것으로 간주
+        if (event.tags?.where) {
+            return event;
+        }
+        // 그 외의 모든 오류는 전송하지 않음
+        return null;
+    },
 });
 
 function RootLayout() {

@@ -4,8 +4,16 @@ import * as Sentry from "@sentry/react-native";
 import MockAdapter from "axios-mock-adapter";
 
 jest.mock("@sentry/react-native", () => ({
-    withScope: (fn: any) => fn({ setTags: jest.fn(), setContext: jest.fn() }),
+    withScope: (fn: any) =>
+        fn({
+            setTag: jest.fn(),
+            setExtra: jest.fn(),
+            setFingerprint: jest.fn(),
+            setContext: jest.fn(),
+            setUser: jest.fn(),
+        }),
     captureException: jest.fn(),
+    addBreadcrumb: jest.fn(),
 }));
 
 describe("axios refresh flow", () => {

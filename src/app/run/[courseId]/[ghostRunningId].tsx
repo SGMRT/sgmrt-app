@@ -50,10 +50,10 @@ import {
     saveRunning,
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
+import { captureError } from "@/src/utils/sentryTools";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
-import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -406,7 +406,7 @@ export default function Run() {
                 showCompactToast(
                     "기록 저장에 실패했습니다. 다시 시도해주세요."
                 );
-                Sentry.captureException("기록 저장 실패: " + error);
+                captureError("run.course.saveRunning", error);
             } finally {
                 queryClient.invalidateQueries({
                     queryKey: ["runs"],

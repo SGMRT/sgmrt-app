@@ -21,8 +21,8 @@ import { getElapsedMs } from "@/src/features/run/state/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
+import { captureError } from "@/src/utils/sentryTools";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import * as Sentry from "@sentry/react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -158,7 +158,7 @@ export default function Run() {
                 showCompactToast(
                     "기록 저장에 실패했습니다. 다시 시도해주세요."
                 );
-                Sentry.captureException("기록 저장 실패: " + error);
+                captureError("run.solo.saveRunning", error);
             } finally {
                 queryClient.invalidateQueries({
                     queryKey: ["runs"],
