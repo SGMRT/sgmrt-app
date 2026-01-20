@@ -4,8 +4,10 @@ import {
     getRun,
     markPacemakerAsRun,
 } from "@/src/apis";
+import { queryKeys } from "@/src/apis/queryKeys";
 import { PacemakerDetailResponse } from "@/src/apis/types/ghosty";
 import { Telemetry } from "@/src/apis/types/run";
+import { GetUserInfoResponse } from "@/src/apis/types/user";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -79,6 +81,7 @@ import { ShareVariantWithVideo } from "../../(tabs)/stats/result/[runningId]/[co
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [courseName, setCourseName] = useState<string>("");
     const [isRestarting, setIsRestarting] = useState<boolean>(false);
     const [isFirst, setIsFirst] = useState<boolean>(true);
@@ -168,9 +171,15 @@ export default function Run() {
             const response = await getCourse(Number(courseId));
             setCourseName(response.name);
             setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
-            controls.start("COURSE", isGhostRunning ? "GHOST" : "PLAIN", {
-                distanceMeters: response.distance,
-            });
+            const userInfo = queryClient.getQueryData<GetUserInfoResponse>(
+                queryKeys.user.info()
+            );
+            controls.start(
+                "COURSE",
+                isGhostRunning ? "GHOST" : "PLAIN",
+                { distanceMeters: response.distance },
+                userInfo?.weight ?? undefined
+            );
             if (isGhostyRunning) {
                 const pacemakerDetail = await getPacemakerDetail(
                     Number(ghostyId)
@@ -192,7 +201,7 @@ export default function Run() {
                 ghostTelemetryRef.current = ghostRecord?.telemetries ?? [];
             }
         })();
-    }, [courseId, initializeCourse, controls, isGhostRunning, ghostRunningId]);
+    }, [courseId, initializeCourse, controls, isGhostRunning, ghostRunningId, queryClient]);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -331,8 +340,6 @@ export default function Run() {
             setWithRouting(false);
         }
     }, [context.status, requestSave]);
-
-    const queryClient = useQueryClient();
 
     // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {

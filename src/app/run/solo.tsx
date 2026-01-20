@@ -1,4 +1,6 @@
+import { queryKeys } from "@/src/apis/queryKeys";
 import { Telemetry } from "@/src/apis/types/run";
+import { GetUserInfoResponse } from "@/src/apis/types/user";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
@@ -37,6 +39,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
@@ -83,7 +86,10 @@ export default function Run() {
 
     const onCountdownComplete = useCallback(() => {
         if (context.status === "IDLE") {
-            controls.start("SOLO");
+            const userInfo = queryClient.getQueryData<GetUserInfoResponse>(
+                queryKeys.user.info()
+            );
+            controls.start("SOLO", undefined, undefined, userInfo?.weight ?? undefined);
         } else if (context.status === "COMPLETION_PENDING") {
             controls.extend();
         } else if (context.status === "PAUSED_USER") {
@@ -92,7 +98,7 @@ export default function Run() {
             controls.oncourse();
         }
         setIsRestarting(false);
-    }, [context.status, controls]);
+    }, [context.status, controls, queryClient]);
 
     const segments = useMemo(
         () => selectPolylineSegments(context),
@@ -124,8 +130,6 @@ export default function Run() {
         setIsSaving(true);
         controls.stop();
     }, [isSaving, context.telemetries, controls]);
-
-    const queryClient = useQueryClient();
 
     // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {

@@ -62,7 +62,9 @@ export function useRunningSession() {
             start: (
                 mode: RunMode,
                 variant?: CourseVariant,
-                courseMetadata?: CourseMetadata
+                courseMetadata?: CourseMetadata,
+                /** 사용자 체중 (kg), 칼로리 계산에 사용 */
+                userWeight?: number
             ) => {
                 geoFilter.reset();
 
@@ -73,6 +75,7 @@ export function useRunningSession() {
                         mode,
                         variant,
                         courseMetadata,
+                        userWeight,
                     },
                 });
             },

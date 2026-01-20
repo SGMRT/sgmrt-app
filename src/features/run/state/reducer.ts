@@ -6,12 +6,15 @@ import { appendOne } from "./segments";
 import { DEFAULT_STATS, updateStats } from "./stats";
 import { buildTelemetry } from "./telemetry";
 
+const DEFAULT_USER_WEIGHT = 70;
+
 const initialContext: RunContext = {
     sessionId: null,
     mode: "SOLO",
     variant: undefined,
     courseMetadata: undefined,
     status: "IDLE",
+    userWeight: DEFAULT_USER_WEIGHT,
     mainTimeline: [],
     pausedBuffer: [],
     mutedBuffer: [],
@@ -60,7 +63,8 @@ export function runReducer(
     switch (action.type) {
         // 러닝 시작 (초기화)
         case "START": {
-            const { sessionId, mode, variant, courseMetadata } = action.payload;
+            const { sessionId, mode, variant, courseMetadata, userWeight } =
+                action.payload;
             const now = Date.now();
             return {
                 sessionId,
@@ -68,6 +72,7 @@ export function runReducer(
                 variant,
                 courseMetadata,
                 status: mode === "COURSE" ? "READY" : "RUNNING",
+                userWeight: userWeight ?? DEFAULT_USER_WEIGHT,
                 mainTimeline: [],
                 pausedBuffer: [],
                 mutedBuffer: [],
@@ -157,11 +162,10 @@ export function runReducer(
                     : state.liveActivity.startedAtMs ?? now;
 
             merged.forEach((sample, i) => {
-                stats = updateStats(
-                    stats,
-                    sample,
-                    zeroFlag ? { zeroDt: true } : undefined
-                );
+                stats = updateStats(stats, sample, {
+                    zeroDt: zeroFlag,
+                    weight: state.userWeight,
+                });
                 zeroFlag = false;
 
                 const t = buildTelemetry(
@@ -219,11 +223,10 @@ export function runReducer(
 
             if (key === "mainTimeline") {
                 const mainTimeline = [...state.mainTimeline, sample];
-                const stats = updateStats(
-                    state.stats,
-                    sample,
-                    state._zeroNextDt ? { zeroDt: true } : undefined
-                );
+                const stats = updateStats(state.stats, sample, {
+                    zeroDt: state._zeroNextDt,
+                    weight: state.userWeight,
+                });
 
                 const telemetry = buildTelemetry(
                     stats,

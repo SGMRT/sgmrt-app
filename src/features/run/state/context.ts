@@ -19,6 +19,9 @@ export interface RunContext {
     courseMetadata?: CourseMetadata;
     status: RunStatus;
 
+    /** 러닝 시작 시 캡처된 사용자 체중 (kg) */
+    userWeight: number;
+
     mainTimeline: RawRunData[]; // 러닝 중 기록 된 데이터
     pausedBuffer: RawRunData[]; // 유저에 의한 일시정지 버퍼 (재시작 시 기록된 데이터 mainTimeline에 추가)
     mutedBuffer: RawRunData[]; // 코스 이탈 시 기록 안 된 데이터 (현재는 복귀 시 기록된 데이터 삭제)

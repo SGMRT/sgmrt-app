@@ -1,4 +1,3 @@
-import { useAuthStore } from "@/src/store/authState";
 import { getCalories } from "@/src/utils/runUtils";
 import { RawRunData } from "../types";
 
@@ -72,14 +71,20 @@ function cloneWindow(win: RunningStats["_window"]) {
     return win.map((w) => ({ ...w }));
 }
 
+export interface UpdateStatsOptions {
+    zeroDt?: boolean;
+    /** 사용자 체중 (kg), 기본값 70 */
+    weight?: number;
+}
+
 export function updateStats(
     prev: RunningStats,
     sample: RawRunData,
-    options?: { zeroDt?: boolean }
+    options?: UpdateStatsOptions
 ): RunningStats {
-    const { weight } = useAuthStore.getState().userInfo ?? { weight: 70 };
+    const weight = options?.weight ?? 70;
     const last = prev.last;
-    let zero = !!options?.zeroDt;
+    const zero = !!options?.zeroDt;
 
     const next: RunningStats = {
         ...prev,

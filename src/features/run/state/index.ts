@@ -46,7 +46,7 @@ export type { SegmentMeta } from "./segments"
 
 // 통계
 export { DEFAULT_STATS, updateStats } from "./stats"
-export type { RunningStats } from "./stats"
+export type { RunningStats, UpdateStatsOptions } from "./stats"
 
 // 텔레메트리 빌드
 export { buildTelemetry } from "./telemetry"

@@ -7,9 +7,10 @@ import {
     patchUserSettings,
     uploadToS3,
 } from "@/src/apis";
+import { queryKeys } from "@/src/apis/queryKeys";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
 import { useLocalNotificationPermission } from "@/src/features/notifications/useLocalNotificationPermission";
-import { useAuthStore, UserInfo, UserSettings } from "@/src/store/authState";
+import { useAuthStore } from "@/src/store/authState";
 import { useLocalPrefs } from "@/src/store/localPrefs";
 import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
@@ -39,25 +40,6 @@ import { StyledSwitch } from "../ui/StyledSwitch";
 import { Typography } from "../ui/Typography";
 import { showToast } from "../ui/toastConfig";
 
-function applyUserInfoToStore(
-    res: GetUserInfoResponse,
-    setUserInfoStore: (userInfo: UserInfo) => void,
-    setUserSettingsStore: (userSettings: UserSettings) => void
-) {
-    setUserInfoStore({
-        username: res.nickname,
-        gender: res.gender,
-        age: res.age,
-        height: res.height,
-        weight: res.weight,
-    });
-    setUserSettingsStore({
-        pushAlarmEnabled: res.pushAlarmEnabled,
-        vibrationEnabled: res.vibrationEnabled,
-        voiceGuidanceEnabled: res.voiceGuidanceEnabled,
-    });
-}
-
 export const Info = ({
     setModalType,
     modalRef,
@@ -73,11 +55,6 @@ export const Info = ({
 
     const [cadenceAssistGuideShow, setCadenceAssistGuideShow] = useState(false);
 
-    const {
-        setUserInfo: setUserInfoStore,
-        setUserSettings: setUserSettings,
-        userSettings: userSettingsStore,
-    } = useAuthStore();
     const { logout } = useAuthStore();
     const { granted, refresh } = useLocalNotificationPermission({
         withActiveRetry: true,
@@ -90,12 +67,10 @@ export const Info = ({
         isRefetching,
         refetch,
     } = useQuery({
-        queryKey: ["user", "info"],
+        queryKey: queryKeys.user.info(),
         queryFn: async () => {
             try {
-                const res = await getUserInfo();
-                applyUserInfoToStore(res, setUserInfoStore, setUserSettings);
-                return res;
+                return await getUserInfo();
             } catch (e) {
                 Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
                     { text: "확인", onPress: logout },
@@ -124,36 +99,24 @@ export const Info = ({
             >
         ) => patchUserSettings(payload),
         onMutate: async (payload) => {
-            setUserSettings({
-                ...userSettingsStore!,
-                ...payload,
-            });
-            await queryClient.cancelQueries({ queryKey: ["user", "info"] });
-            const prev = queryClient.getQueryData<GetUserInfoResponse>([
-                "user",
-                "info",
-            ]);
+            await queryClient.cancelQueries({ queryKey: queryKeys.user.info() });
+            const prev = queryClient.getQueryData<GetUserInfoResponse>(
+                queryKeys.user.info()
+            );
             if (prev) {
                 const next = { ...prev, ...payload };
                 queryClient.setQueryData<GetUserInfoResponse>(
-                    ["user", "info"],
+                    queryKeys.user.info(),
                     next
                 );
-                // Zustand 동기화
-                applyUserInfoToStore(next, setUserInfoStore, setUserSettings);
             }
             return { prev };
         },
         onError: (err, _vars, ctx) => {
             if (ctx?.prev) {
                 queryClient.setQueryData<GetUserInfoResponse>(
-                    ["user", "info"],
+                    queryKeys.user.info(),
                     ctx.prev
-                );
-                applyUserInfoToStore(
-                    ctx.prev,
-                    setUserInfoStore,
-                    setUserSettings
                 );
             }
             showToast(
@@ -163,7 +126,7 @@ export const Info = ({
             );
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["user", "info"] });
+            queryClient.invalidateQueries({ queryKey: queryKeys.user.info() });
         },
     });
 
@@ -232,16 +195,10 @@ export const Info = ({
         },
         onSuccess: (finalUrl) => {
             queryClient.setQueryData<GetUserInfoResponse>(
-                ["user", "info"],
+                queryKeys.user.info(),
                 (prev) => {
                     if (!prev) return prev as any;
-                    const next = { ...prev, profilePictureUrl: finalUrl };
-                    applyUserInfoToStore(
-                        next,
-                        setUserInfoStore,
-                        setUserSettings
-                    );
-                    return next;
+                    return { ...prev, profilePictureUrl: finalUrl };
                 }
             );
             showToast("success", "프로필 이미지가 변경되었습니다", bottom);
@@ -254,7 +211,7 @@ export const Info = ({
             );
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["user", "info"] });
+            queryClient.invalidateQueries({ queryKey: queryKeys.user.info() });
         },
     });
 
@@ -323,8 +280,7 @@ export const Info = ({
                         rightElement={
                             <StyledSwitch
                                 isSelected={
-                                    (userSettingsStore?.pushAlarmEnabled &&
-                                        granted) ??
+                                    (userInfo?.pushAlarmEnabled && granted) ??
                                     false
                                 }
                                 onValueChange={(value) => {
@@ -338,7 +294,7 @@ export const Info = ({
                         rightElement={
                             <StyledSwitch
                                 isSelected={
-                                    userSettingsStore?.voiceGuidanceEnabled ??
+                                    userInfo?.voiceGuidanceEnabled ??
                                     false
                                 }
                                 onValueChange={handleSpeechChange}
@@ -350,7 +306,7 @@ export const Info = ({
                         rightElement={
                             <StyledSwitch
                                 isSelected={
-                                    userSettingsStore?.voiceGuidanceEnabled ??
+                                    userInfo?.voiceGuidanceEnabled ??
                                     false
                                 }
                                 onValueChange={handleSpeechChange}

@@ -10,6 +10,8 @@ export type RunAction =
               mode: RunMode;
               variant?: CourseVariant;
               courseMetadata?: CourseMetadata;
+              /** 사용자 체중 (kg), 칼로리 계산에 사용 */
+              userWeight?: number;
           };
       } // 러닝 시작
     | { type: "READY" } // 코스 러닝 대기
