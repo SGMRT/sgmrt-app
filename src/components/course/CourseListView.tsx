@@ -7,14 +7,7 @@ import { getDistance } from "@/src/utils/mapUtils";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
-import { Divider } from "../ui/Divider";
-import { DualFilter } from "../ui/DualFilter";
-import EmptyListView from "../ui/EmptyListView";
-import { FilterButton } from "../ui/FilterButton";
-import GhostLabel from "../ui/GhostLabel";
-import Section from "../ui/Section";
-import { Typography } from "../ui/Typography";
-import { UserCount } from "../ui/UserCount";
+import { Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
 
 interface CourseListViewProps {
     courses: CourseResponse[];

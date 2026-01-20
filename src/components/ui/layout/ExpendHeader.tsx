@@ -1,7 +1,7 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Typography, TypographyColor } from "./Typography";
+import { Typography, TypographyColor } from "../display/Typography";
 
 interface ExpendHeaderProps {
     title: string;

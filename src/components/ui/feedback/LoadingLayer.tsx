@@ -2,7 +2,7 @@ import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 interface LoadingLayerProps {
     limitDelay?: number;

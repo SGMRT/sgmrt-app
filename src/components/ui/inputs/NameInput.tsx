@@ -3,7 +3,7 @@ import colors from "@/src/theme/colors";
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 import { useRef } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
-import { typographyStyles } from "./display/Typography";
+import { typographyStyles } from "../display/Typography";
 
 interface NameInputProps {
     defaultValue?: string;

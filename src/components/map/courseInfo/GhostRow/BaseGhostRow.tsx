@@ -1,4 +1,4 @@
-import { Divider } from "@/src/components/ui/Divider";
+import { Divider } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
 

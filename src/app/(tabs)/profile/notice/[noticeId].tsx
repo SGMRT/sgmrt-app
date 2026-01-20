@@ -1,9 +1,6 @@
 import { getNotice, Notice } from "@/src/apis";
 import localEvent from "@/src/components/notice/localEvent.json";
-import { Divider } from "@/src/components/ui/Divider";
-import Header from "@/src/components/ui/Header";
-import TabBar from "@/src/components/ui/TabBar";
-import { Typography } from "@/src/components/ui/Typography";
+import { Divider, Header, TabBar, Typography } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { formatDate } from "@/src/utils/formatDate";
 import { useQuery } from "@tanstack/react-query";

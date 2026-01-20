@@ -1,7 +1,7 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 interface CollapsibleSectionProps {
     title: string;

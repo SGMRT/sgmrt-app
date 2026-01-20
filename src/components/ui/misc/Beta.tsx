@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 export const Beta = () => {
     return (

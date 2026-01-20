@@ -23,7 +23,7 @@ import {
   Telemetry,
 } from "../../apis/types/run"
 import { encodeTelemetries } from "../../apis/utils"
-import { showCompactToast } from "../../components/ui/toastConfig"
+import { showCompactToast } from "@/src/components/ui/feedback/toastConfig"
 import { applyAltitudeBiasFromBestGPS } from "../../features/run/utils/applyAltitudeBias"
 import { RawData, UserDashBoardData } from "../../types/run"
 import { addPhase, addWarn, captureError, trackDuration } from "../sentryTools"

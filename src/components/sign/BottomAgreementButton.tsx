@@ -1,4 +1,4 @@
-import { Button } from "../ui/Button";
+import { Button } from "@/src/components/ui";
 
 interface BottomAgreementButtonProps {
     isActive: boolean;

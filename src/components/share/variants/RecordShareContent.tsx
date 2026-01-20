@@ -1,7 +1,5 @@
-import { Stat } from "@/src/components/ui/StatRow";
+import { Stat, StatRow, Typography } from "@/src/components/ui";
 import { View } from "react-native";
-import StatRow from "../../ui/StatRow";
-import { Typography } from "../../ui/Typography";
 import { CommonShareProps } from "../types";
 
 export default function RecordShareContent({

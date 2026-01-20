@@ -12,7 +12,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { CartesianChart, Line, useChartPressState } from "victory-native";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 interface StyledChartProps {
     label: string;

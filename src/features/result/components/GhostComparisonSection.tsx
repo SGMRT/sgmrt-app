@@ -1,6 +1,6 @@
 import { RunComperisonResponse } from "@/src/apis";
 import { RunningRecord } from "@/src/components/map/courseInfo/RunningRecord";
-import Section from "@/src/components/ui/Section";
+import { Section } from "@/src/components/ui";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 
 interface Props {

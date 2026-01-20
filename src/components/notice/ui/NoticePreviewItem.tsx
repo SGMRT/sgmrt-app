@@ -3,7 +3,7 @@ import colors from "@/src/theme/colors";
 import { formatDate } from "@/src/utils/formatDate";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Typography } from "../../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 interface NoticePreviewItemProps {
     title: string;

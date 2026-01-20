@@ -4,7 +4,7 @@ import { devLog } from "@/src/utils/devLog";
 import { forwardRef, memo, useImperativeHandle, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import ViewShot from "react-native-view-shot";
-import { Stat } from "../ui/StatRow";
+import { Stat } from "@/src/components/ui";
 import { SHARE_REGISTRY } from "./registry";
 import { ShareVariant } from "./types";
 import DefaultShareContent from "./variants/DefaultShareContent";

@@ -1,7 +1,7 @@
 import { RedoIcon } from "@/assets/svgs/svgs";
 import { useEffect, useRef } from "react";
 import { Pressable, StyleSheet } from "react-native";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 export const ShuffleButton = ({ onPress }: { onPress: () => void }) => {
     const pressedRef = useRef(false);

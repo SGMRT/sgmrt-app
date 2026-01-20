@@ -13,8 +13,7 @@ import { Dimensions, InteractionManager, StyleSheet, View } from "react-native";
 import { SharedValue, runOnJS, useDerivedValue } from "react-native-reanimated";
 import CourseLayer from "../map/CourseLayer";
 import MapViewWrapper from "../map/MapViewWrapper";
-import { Divider } from "../ui/Divider";
-import { Typography } from "../ui/Typography";
+import { Divider, Typography } from "@/src/components/ui";
 
 interface ResultCourseMapProps {
     telemetries: Telemetry[];

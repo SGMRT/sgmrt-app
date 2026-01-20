@@ -1,9 +1,8 @@
-import Header from "@/src/components/ui/Header";
+import { Header, StyledSwitch } from "@/src/components/ui";
 import {
     ListSectionContainer,
     ListSectionItem,
-} from "@/src/components/ui/ListSection";
-import { StyledSwitch } from "@/src/components/ui/StyledSwitch";
+} from "@/src/components/ui";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import {
     AuthorizationStatus,

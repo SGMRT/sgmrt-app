@@ -10,14 +10,7 @@ import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { GoRunCalendar } from "../calendar/GoRunCalendar";
-import BottomModal from "../ui/BottomModal";
-import { Divider } from "../ui/Divider";
-import { DualFilter } from "../ui/DualFilter";
-import EmptyListView from "../ui/EmptyListView";
-import { FilterBar } from "../ui/FilterBar";
-import ScrollButton from "../ui/ScrollButton";
-import Section from "../ui/Section";
-import { Typography } from "../ui/Typography";
+import { BottomModal, Divider, DualFilter, EmptyListView, FilterBar, ScrollButton, Section, Typography } from "@/src/components/ui";
 
 type HistoryWithFilterProps = {
     data: RunResponse[];

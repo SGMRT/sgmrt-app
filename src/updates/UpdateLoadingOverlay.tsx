@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Modal, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Typography } from "../components/ui/Typography";
+import { Typography } from "@/src/components/ui";
 import colors from "../theme/colors";
 
 type Props = {

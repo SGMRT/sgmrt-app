@@ -33,12 +33,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProfileNoticeSection } from "../notice/ui/ProfileNoticeSection";
 import { CadenceAssistGuide } from "../onboarding/CadenceAssistGuide";
-import { Divider } from "../ui/Divider";
-import { ListSectionContainer, ListSectionItem } from "../ui/ListSection";
-import { StyledButton } from "../ui/StyledButton";
-import { StyledSwitch } from "../ui/StyledSwitch";
-import { Typography } from "../ui/Typography";
-import { showToast } from "../ui/toastConfig";
+import { Divider, ListSectionContainer, ListSectionItem, StyledButton, StyledSwitch, Typography, showToast } from "@/src/components/ui";
 
 export const Info = ({
     setModalType,

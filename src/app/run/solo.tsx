@@ -5,12 +5,7 @@ import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
-import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
-import Countdown from "@/src/components/ui/Countdown";
-import LoadingLayer from "@/src/components/ui/LoadingLayer";
-import StatsIndicator from "@/src/components/ui/StatsIndicator";
-import { showCompactToast } from "@/src/components/ui/toastConfig";
-import TopBlurView from "@/src/components/ui/TopBlurView";
+import { ButtonWithMap, Countdown, LoadingLayer, StatsIndicator, TopBlurView, showCompactToast } from "@/src/components/ui";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
@@ -267,7 +262,7 @@ export default function Run() {
             </BottomSheet>
 
             {context.status !== "PAUSED_USER" ? (
-                <ButtonWithIcon
+                <ButtonWithMap
                     iconType="save"
                     disabled={
                         context.status === "READY" || context.status === "IDLE"
@@ -321,7 +316,7 @@ export default function Run() {
                     }}
                 />
             ) : (
-                <ButtonWithIcon
+                <ButtonWithMap
                     iconType="save"
                     onPressIcon={() => {
                         Alert.alert(

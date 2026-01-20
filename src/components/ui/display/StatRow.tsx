@@ -1,6 +1,6 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { Fragment } from "react/jsx-runtime";
-import { Divider } from "./Divider";
+import { Divider } from "../layout/Divider";
 import TextWithUnit, { TextWithUnitProps } from "./TextWithUnit";
 import { TypographyColor, TypographyVariant } from "./Typography";
 

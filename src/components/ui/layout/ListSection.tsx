@@ -1,7 +1,7 @@
 import { InfoIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Typography, TypographyColor } from "./Typography";
+import { Typography, TypographyColor } from "../display/Typography";
 
 const ListSectionContainer = ({ children }: { children: React.ReactNode }) => {
     return <View style={styles.container}>{children}</View>;

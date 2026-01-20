@@ -1,6 +1,4 @@
-import StatsIndicator from "@/src/components/ui/StatsIndicator";
-import { TextWithSub } from "@/src/components/ui/TextWithSub";
-import { Typography } from "@/src/components/ui/Typography";
+import { StatsIndicator, TextWithSub, Typography } from "@/src/components/ui";
 import { Telemetry } from "@/src/apis/types/run";
 import { RunStatus } from "@/src/features/run/context/context";
 import { View } from "react-native";

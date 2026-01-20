@@ -1,6 +1,6 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { GhostIcon } from "@/assets/svgs/svgs";
-import StatRow, { Stat } from "@/src/components/ui/StatRow";
+import { Stat, StatRow } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";

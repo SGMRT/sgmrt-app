@@ -4,11 +4,7 @@ import {
     PatchUserInfoRequest,
 } from "@/src/apis/types/user";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
-import Header from "@/src/components/ui/Header";
-import InfoItem, { InfoFieldTitle } from "@/src/components/ui/InfoItem";
-import { StyledButton } from "@/src/components/ui/StyledButton";
-import { showToast } from "@/src/components/ui/toastConfig";
-import { Typography } from "@/src/components/ui/Typography";
+import { Header, InfoFieldTitle, InfoItem, StyledButton, Typography, showToast } from "@/src/components/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";

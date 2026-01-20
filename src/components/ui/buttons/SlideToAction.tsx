@@ -11,7 +11,7 @@ import Animated, {
     withSpring,
     withTiming,
 } from "react-native-reanimated";
-import { Typography } from "../ui/Typography";
+import { Typography } from "../display/Typography";
 
 interface SlideToActionProps {
     label: string;

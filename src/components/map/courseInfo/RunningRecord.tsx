@@ -3,9 +3,7 @@ import { GhostIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
-import { Divider } from "../../ui/Divider";
-import StatRow, { Stat } from "../../ui/StatRow";
-import { Typography } from "../../ui/Typography";
+import { Divider, Stat, StatRow, Typography } from "@/src/components/ui";
 
 export const RunningRecord = ({
     user,

@@ -9,8 +9,7 @@ import {
 } from "react-native";
 import { ConfettiMethods } from "react-native-fast-confetti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button } from "../ui/Button";
-import { Typography } from "../ui/Typography";
+import { Button, Typography } from "@/src/components/ui";
 import { DotProgress } from "./DotProgress";
 
 export type Step = {

@@ -18,10 +18,7 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import BottomModal from "../ui/BottomModal";
-import { Button } from "../ui/Button";
-import Section from "../ui/Section";
-import { Typography } from "../ui/Typography";
+import { BottomModal, Button, Section, Typography } from "@/src/components/ui";
 
 const types = [
     { title: "기본", asset: ShareDefault, variant: "default" },

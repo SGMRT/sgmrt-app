@@ -27,10 +27,7 @@ import {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CourseListView from "../course/CourseListView";
-import { ActionButton } from "../ui/ActionButton";
-import BottomModal from "../ui/BottomModal";
-import StyledBottomSheet from "../ui/StyledBottomSheet";
-import { Typography } from "../ui/Typography";
+import { ActionButton, BottomModal, StyledBottomSheet, Typography } from "@/src/components/ui";
 import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal/BottomCourseInfoModal";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";

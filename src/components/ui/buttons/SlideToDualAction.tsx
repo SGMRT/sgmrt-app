@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import SlideToAction from "./SlideToAction";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 interface SlideToDualActionProps {
     onSlideLeft: () => void;

@@ -3,7 +3,7 @@ import { BlurView } from "expo-blur";
 import Constants from "expo-constants";
 import { StyleSheet } from "react-native";
 import Toast, { ToastShowParams } from "react-native-toast-message";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 export const showCompactToast = (
     text: string,

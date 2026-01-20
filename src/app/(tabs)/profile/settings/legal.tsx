@@ -1,9 +1,5 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
-import Header from "@/src/components/ui/Header";
-import {
-    ListSectionContainer,
-    ListSectionItem,
-} from "@/src/components/ui/ListSection";
+import { Header, ListSectionContainer, ListSectionItem } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { useRouter } from "expo-router";
 import { SafeAreaView, StyleSheet, View } from "react-native";

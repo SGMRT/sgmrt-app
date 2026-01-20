@@ -1,7 +1,7 @@
 // useCourseProgress.ts
 import { Checkpoint } from "@/src/apis/types/course";
 import { Telemetry } from "@/src/apis/types/run";
-import { showCompactToast } from "@/src/components/ui/toastConfig";
+import { showCompactToast } from "@/src/components/ui/feedback/toastConfig";
 import { getDistance } from "@/src/utils/mapUtils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Toast from "react-native-toast-message";

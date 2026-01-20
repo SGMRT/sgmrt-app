@@ -1,9 +1,5 @@
 import { patchCourseName } from "@/src/apis";
-import BottomModal from "@/src/components/ui/BottomModal";
-import { Button } from "@/src/components/ui/Button";
-import NameInput from "@/src/components/ui/NameInput";
-import { showToast } from "@/src/components/ui/toastConfig";
-import { Typography } from "@/src/components/ui/Typography";
+import { BottomModal, Button, NameInput, Typography, showToast } from "@/src/components/ui";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQueryClient } from "@tanstack/react-query";

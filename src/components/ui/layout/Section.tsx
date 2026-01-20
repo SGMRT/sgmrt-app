@@ -8,7 +8,7 @@ import {
     ViewStyle,
 } from "react-native";
 import { Divider } from "./Divider";
-import { Typography, TypographyColor, TypographyVariant } from "./Typography";
+import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 
 interface SectionProps {
     children: React.ReactNode;

@@ -1,5 +1,5 @@
 import { TouchableOpacity } from "react-native";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 export const TabItem = ({
     title,

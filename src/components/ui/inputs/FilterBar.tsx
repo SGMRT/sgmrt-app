@@ -1,7 +1,7 @@
 import { CalendarIcon, ShowIcon } from "@/assets/svgs/svgs";
 import { formatDate } from "@/src/utils/formatDate";
 import { StyleSheet, View } from "react-native";
-import { ButtonWithIcon, FilterButton } from "./FilterButton";
+import { ButtonWithIcon, FilterButton } from "../buttons/FilterButton";
 
 interface FilterBarProps {
     searchPeriod: {

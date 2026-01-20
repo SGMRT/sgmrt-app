@@ -1,6 +1,5 @@
 import { getDataFromS3 } from "@/src/apis";
-import Header from "@/src/components/ui/Header";
-import { Typography } from "@/src/components/ui/Typography";
+import { Header, Typography } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";

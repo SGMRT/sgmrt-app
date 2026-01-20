@@ -3,14 +3,7 @@ import { deleteUser, invalidateToken } from "@/src/apis";
 import { UserCourseInfo } from "@/src/apis/types/course";
 import { CourseSection } from "@/src/components/profile/CourseSection";
 import { Info } from "@/src/components/profile/Info";
-import BottomModal from "@/src/components/ui/BottomModal";
-import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
-import Header from "@/src/components/ui/Header";
-import ScrollButton from "@/src/components/ui/ScrollButton";
-import TabBar from "@/src/components/ui/TabBar";
-import { TabItem } from "@/src/components/ui/TabItem";
-import { showToast } from "@/src/components/ui/toastConfig";
-import { Typography } from "@/src/components/ui/Typography";
+import { BottomModal, ButtonWithMap, Header, ScrollButton, TabBar, TabItem, Typography, showToast } from "@/src/components/ui";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -121,7 +114,7 @@ export default function ProfileScreen() {
                             </Typography>
                         </View>
                     </View>
-                    <ButtonWithIcon
+                    <ButtonWithMap
                         iconType="home"
                         onPress={() => onPressSignButton(modalType)}
                         onPressIcon={() => {

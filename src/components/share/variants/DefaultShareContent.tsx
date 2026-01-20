@@ -2,8 +2,7 @@ import { GhostIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { StyleSheet, View } from "react-native";
 import ResultCourseMap from "../../result/ResultCourseMap";
-import StatRow, { Stat } from "../../ui/StatRow";
-import { Typography } from "../../ui/Typography";
+import { Stat, StatRow, Typography } from "@/src/components/ui";
 import { CommonShareProps } from "../types";
 
 function DefaultShareContent({

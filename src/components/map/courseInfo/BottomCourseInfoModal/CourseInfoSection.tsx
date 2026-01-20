@@ -1,9 +1,6 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import StyledChart from "@/src/components/chart/StyledChart";
-import { Divider } from "@/src/components/ui/Divider";
-import Section from "@/src/components/ui/Section";
-import StatRow, { Stat } from "@/src/components/ui/StatRow";
-import { Typography } from "@/src/components/ui/Typography";
+import { Divider, Section, Stat, StatRow, Typography } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
 

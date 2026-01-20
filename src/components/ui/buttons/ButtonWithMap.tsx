@@ -15,7 +15,7 @@ import {
     ViewStyle,
 } from "react-native";
 import { Button, ButtonProps } from "./Button";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;

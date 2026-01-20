@@ -1,7 +1,7 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 interface CourseNameContainerProps {
     courseName: string;

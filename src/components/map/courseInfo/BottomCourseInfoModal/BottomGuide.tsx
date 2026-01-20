@@ -1,8 +1,7 @@
 import { CourseResponse } from "@/src/apis/types/course";
 import { CreateGhostyGuide } from "@/src/components/onboarding/CreateGhostyGuide";
 import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
-import { Button } from "@/src/components/ui/Button";
-import { Typography } from "@/src/components/ui/Typography";
+import { Button, Typography } from "@/src/components/ui";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View } from "react-native";
 import { CreateGhosty } from "./CreateGhosty";

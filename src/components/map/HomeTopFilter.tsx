@@ -8,8 +8,7 @@ import {
     useWindowDimensions,
 } from "react-native";
 import { HomeNotices } from "../notice/HomeNotices";
-import { Typography } from "../ui/Typography";
-import { showCompactToast } from "../ui/toastConfig";
+import { Typography, showCompactToast } from "@/src/components/ui";
 
 interface HomeTopBarProps {
     type: "all" | "my";

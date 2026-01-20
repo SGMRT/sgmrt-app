@@ -1,7 +1,7 @@
 import { markPacemakerAsRun } from "@/src/apis";
 import { Telemetry } from "@/src/apis/types/run";
 import { RunShotHandle } from "@/src/components/share/RunShot";
-import { showCompactToast } from "@/src/components/ui/toastConfig";
+import { showCompactToast } from "@/src/components/ui/feedback/toastConfig";
 import { RunSaveResult } from "@/src/features/run/components/RunControlButtons";
 import { RunContext } from "@/src/features/run/context/context";
 import { buildUserRecordData } from "@/src/features/run/context/record";

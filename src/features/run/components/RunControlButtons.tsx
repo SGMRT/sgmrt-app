@@ -1,5 +1,4 @@
-import { Button } from "@/src/components/ui/Button";
-import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
+import { Button, ButtonWithMap } from "@/src/components/ui";
 import { RunStatus } from "@/src/features/run/context/context";
 import { useRouter } from "expo-router";
 import { Alert, useWindowDimensions, View } from "react-native";
@@ -126,7 +125,7 @@ export default function RunControlButtons({
                     autoplay={true}
                     isInfinite={false}
                 />
-                <ButtonWithIcon
+                <ButtonWithMap
                     iconType="share"
                     title="러닝 종료"
                     onPressIcon={onShowShareBottomSheet}
@@ -148,7 +147,7 @@ export default function RunControlButtons({
         case "RUNNING":
         case "RUNNING_EXTENDED":
             return (
-                <ButtonWithIcon
+                <ButtonWithMap
                     iconType="quit"
                     onPressIcon={handleQuit}
                     title="일시정지"
@@ -159,7 +158,7 @@ export default function RunControlButtons({
 
         case "PAUSED_USER":
             return (
-                <ButtonWithIcon
+                <ButtonWithMap
                     iconType="quit"
                     onPressIcon={handleQuit}
                     title="이어서 러닝"

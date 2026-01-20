@@ -2,7 +2,7 @@ import { BackIcon, TrashIcon } from "@/assets/svgs/svgs";
 import { useRouter } from "expo-router";
 import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 interface HeaderProps {
     titleText: string;

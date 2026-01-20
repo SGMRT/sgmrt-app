@@ -21,7 +21,7 @@ import {
     TestIds,
 } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 type Props = { style?: ViewStyle };
 const AD_UNIT_ID = __DEV__

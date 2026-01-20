@@ -1,9 +1,7 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { memo } from "react";
 import { Image, StyleSheet, View } from "react-native";
-import { Divider } from "../../ui/Divider";
-import RadioButton from "../../ui/RadioButton";
-import { Typography } from "../../ui/Typography";
+import { Divider, RadioButton, Typography } from "@/src/components/ui";
 
 interface UserStatItemProps {
     rank?: number | string;

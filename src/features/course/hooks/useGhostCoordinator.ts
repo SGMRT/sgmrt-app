@@ -1,6 +1,6 @@
 import { Telemetry } from "@/src/apis/types/run";
 import { Segment } from "@/src/components/map/RunningLine";
-import { showCompactToast } from "@/src/components/ui/toastConfig";
+import { showCompactToast } from "@/src/components/ui/feedback/toastConfig";
 import { findClosest } from "@/src/utils/interpolateTelemetries";
 import { telemetriesToSegment } from "@/src/utils/runUtils";
 import { useEffect, useMemo, useRef } from "react";

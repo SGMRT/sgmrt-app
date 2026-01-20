@@ -1,7 +1,7 @@
 import { StyleProp, TouchableOpacity, View, ViewStyle } from "react-native";
-import { Divider } from "./Divider";
-import Section from "./Section";
-import { Typography } from "./Typography";
+import { Divider } from "../layout/Divider";
+import Section from "../layout/Section";
+import { Typography } from "../display/Typography";
 
 interface DualFilterProps {
     description?: string;

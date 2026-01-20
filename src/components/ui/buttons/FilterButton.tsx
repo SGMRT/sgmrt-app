@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     ViewStyle,
 } from "react-native";
-import { Typography, TypographyColor, TypographyVariant } from "./Typography";
+import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 
 interface FilterButtonProps {
     onPress: () => void;

@@ -6,15 +6,7 @@ import { UserGhostRow } from "@/src/components/map/courseInfo/GhostRow/UserGhost
 import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
-import { Divider } from "@/src/components/ui/Divider";
-import Header from "@/src/components/ui/Header";
-import ScrollButton from "@/src/components/ui/ScrollButton";
-import Section from "@/src/components/ui/Section";
-import ShareButton from "@/src/components/ui/ShareButton";
-import StatRow from "@/src/components/ui/StatRow";
-import TabBar from "@/src/components/ui/TabBar";
-import { Typography } from "@/src/components/ui/Typography";
-import { UserCount } from "@/src/components/ui/UserCount";
+import { Divider, Header, ScrollButton, Section, ShareButton, StatRow, TabBar, Typography, UserCount } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";

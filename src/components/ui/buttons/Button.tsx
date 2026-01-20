@@ -7,7 +7,7 @@ import {
     View,
     ViewStyle,
 } from "react-native";
-import { Typography, TypographyColor, TypographyVariant } from "./Typography";
+import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 
 type ButtonType =
     | "active"

@@ -2,8 +2,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
-import BottomModal from "../ui/BottomModal";
-import { Typography } from "../ui/Typography";
+import { BottomModal, Typography } from "@/src/components/ui";
 import { Step } from "./Onboarding";
 
 const steps: Step[] = [

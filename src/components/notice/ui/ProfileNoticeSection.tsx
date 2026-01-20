@@ -1,7 +1,7 @@
 import { ChevronIcon, SpeakerIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet } from "react-native";
-import { Typography } from "../../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 export const ProfileNoticeSection = ({ onPress }: { onPress: () => void }) => {
     return (

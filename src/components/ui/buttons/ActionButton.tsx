@@ -9,7 +9,7 @@ import {
     View,
     ViewStyle,
 } from "react-native";
-import { Typography } from "./Typography";
+import { Typography } from "../display/Typography";
 
 type ActionButtonProps =
     | {

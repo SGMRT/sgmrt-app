@@ -6,11 +6,7 @@ import {
     getPacemakerDetail,
 } from "@/src/apis";
 import IntervalTimeline from "@/src/components/chart/interval/IntervalTimeline";
-import { Button } from "@/src/components/ui/Button";
-import { Divider } from "@/src/components/ui/Divider";
-import Header from "@/src/components/ui/Header";
-import Section from "@/src/components/ui/Section";
-import { Typography } from "@/src/components/ui/Typography";
+import { Button, Divider, Header, Section, Typography } from "@/src/components/ui";
 import { convertToName } from "@/src/features/pacemaker/utils/convertToName";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
