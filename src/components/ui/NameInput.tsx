@@ -36,7 +36,7 @@ export default function NameInput({
                             maxWidth: "100%",
                         },
                     ]}
-                    ref={InputRef}
+                    ref={InputRef as React.RefObject<never>}
                     onBlur={async () => {
                         onBlur && (await onBlur());
                     }}
