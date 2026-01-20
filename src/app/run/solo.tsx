@@ -14,12 +14,12 @@ import TopBlurView from "@/src/components/ui/TopBlurView";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
-import { buildUserRecordData } from "@/src/features/run/state/record";
+import { buildUserRecordData } from "@/src/features/run/context/record";
 import {
     selectPolylineSegments,
     selectStatsDisplay,
-} from "@/src/features/run/state/selectors";
-import { getElapsedMs } from "@/src/features/run/state/time";
+} from "@/src/features/run/context/selectors";
+import { getElapsedMs } from "@/src/features/run/context/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";

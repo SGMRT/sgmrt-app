@@ -3,7 +3,7 @@ import { useAuthStore } from "@/src/store/authState";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { RunContext } from "../state/context";
+import { RunContext } from "../context/context";
 import { RunStatus } from "../types";
 import { mapRunType } from "../utils/mapRunType";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";

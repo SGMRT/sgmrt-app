@@ -7,7 +7,7 @@ import {
     stop,
 } from "@/modules/expo-watch-module";
 import { useEffect, useRef } from "react";
-import { RunContext } from "../state/context";
+import { RunContext } from "../context/context";
 import { RunStatus } from "../types";
 
 export function useHeartRate(context: RunContext) {

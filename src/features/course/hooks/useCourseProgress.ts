@@ -7,8 +7,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Toast from "react-native-toast-message";
 import { voice } from "../../audio/voice";
 import { Controls } from "../../run/hooks/useRunningSession";
-import { RunContext } from "../../run/state/context";
-import { selectUserLocation } from "../../run/state/selectors";
+import { RunContext } from "../../run/context/context";
+import { selectUserLocation } from "../../run/context/selectors";
 import { CourseLeg } from "../types/courseLeg";
 import { buildCourseLegs } from "../utils/buildCourseLegs";
 import {

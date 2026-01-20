@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import expoLiveActivity from "../../../../modules/expo-live-activity";
-import { RunContext } from "../state/context";
-import { selectLiveActivityPayload } from "../state/selectors";
+import { RunContext } from "../context/context";
+import { selectLiveActivityPayload } from "../context/selectors";
 import { mapRunType } from "../utils/mapRunType";
 
 // 전송 기준

@@ -1,6 +1,6 @@
 import { Button } from "@/src/components/ui/Button";
 import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
-import { RunStatus } from "@/src/features/run/state/context";
+import { RunStatus } from "@/src/features/run/context/context";
 import { useRouter } from "expo-router";
 import { Alert, useWindowDimensions, View } from "react-native";
 import { Confetti } from "react-native-fast-confetti";

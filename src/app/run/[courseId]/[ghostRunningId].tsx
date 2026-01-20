@@ -32,8 +32,8 @@ import { useRunSaveFlow } from "@/src/features/run/hooks/useRunSaveFlow";
 import {
     selectPolylineSegments,
     selectStatsDisplay,
-} from "@/src/features/run/state/selectors";
-import { getElapsedMs } from "@/src/features/run/state/time";
+} from "@/src/features/run/context/selectors";
+import { getElapsedMs } from "@/src/features/run/context/time";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
