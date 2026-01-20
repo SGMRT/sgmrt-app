@@ -105,6 +105,24 @@ export const normalizeRoute = (rawUrl?: string) => {
         .replace(numberIdRe, ":id");
 };
 
+export const trackDuration = (name: string, baseData?: JsonLike) => {
+    const start = Date.now();
+  
+    // Sentry span API를 안 써도(버전차/플랫폼차) 안전하게 동작하는 타이머
+    return {
+      end: (data?: JsonLike) => {
+        const ms = Date.now() - start;
+  
+        Sentry.addBreadcrumb({
+          category: "perf",
+          level: "info",
+          message: name,
+          data: { ms, ...baseData, ...data },
+        });
+      },
+    };
+  };
+
 /**
  * 센트리로 오류를 명시적으로 전송하는 함수
  * 이 함수를 통해서만 센트리로 오류를 전송

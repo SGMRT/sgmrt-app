@@ -582,5 +582,5 @@ export {
     getPace,
     getRunName,
     getRunTime,
-    telemetriesToSegment,
+    telemetriesToSegment
 };
