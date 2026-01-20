@@ -33,6 +33,7 @@ const AD_UNIT_ID = __DEV__
 export default function CompactNativeAdRow({ style }: Props) {
     const [ad, setAd] = useState<NativeAd | null>(null);
     const [isViewReady, setIsViewReady] = useState(false);
+    const [isLayoutReady, setIsLayoutReady] = useState(false);
     const { bottom } = useSafeAreaInsets();
     const isMountedRef = useRef(true);
 
@@ -69,24 +70,26 @@ export default function CompactNativeAdRow({ style }: Props) {
 
         return () => {
             isMountedRef.current = false;
-            // 먼저 isViewReady를 false로 설정하여 NativeAsset 렌더링 중지
+            // 먼저 상태를 false로 설정하여 NativeAsset 렌더링 중지
             setIsViewReady(false);
-            // 다음 프레임에서 ad를 정리 (NativeAsset 등록 완료 대기)
+            setIsLayoutReady(false);
+            // 충분한 시간 후에 ad를 정리 (NativeAsset 등록 해제 대기)
             setTimeout(() => {
                 createdAd?.destroy?.();
-            }, 0);
+            }, 100);
         };
     }, []);
 
-    // NativeAdView가 마운트된 후 NativeAsset을 렌더링하도록 지연
+    // NativeAdView의 레이아웃이 완료된 후 NativeAsset을 렌더링하도록 지연
     useEffect(() => {
-        if (!ad || !isMountedRef.current) {
+        if (!ad || !isLayoutReady || !isMountedRef.current) {
             setIsViewReady(false);
             return;
         }
 
+        // 레이아웃 완료 후 추가로 한 프레임 대기
         const handle = InteractionManager.runAfterInteractions(() => {
-            if (isMountedRef.current) {
+            if (isMountedRef.current && isLayoutReady) {
                 setIsViewReady(true);
             }
         });
@@ -94,7 +97,13 @@ export default function CompactNativeAdRow({ style }: Props) {
         return () => {
             handle.cancel();
         };
-    }, [ad]);
+    }, [ad, isLayoutReady]);
+
+    const handleLayout = () => {
+        if (isMountedRef.current) {
+            setIsLayoutReady(true);
+        }
+    };
 
     if (!ad)
         return (
@@ -123,6 +132,7 @@ export default function CompactNativeAdRow({ style }: Props) {
             <NativeAdView
                 nativeAd={ad}
                 style={[styles.container, style, { marginBottom: bottom }]}
+                onLayout={handleLayout}
             >
                 {/* AD 배지 (자산 아님) */}
                 <View style={styles.badge}>
