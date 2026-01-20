@@ -1,6 +1,6 @@
 import colors from "@/src/theme/colors";
 import { errorLog } from "@/src/utils/devLog";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     Image,
     InteractionManager,
@@ -34,14 +34,17 @@ export default function CompactNativeAdRow({ style }: Props) {
     const [ad, setAd] = useState<NativeAd | null>(null);
     const [isViewReady, setIsViewReady] = useState(false);
     const { bottom } = useSafeAreaInsets();
+    const isMountedRef = useRef(true);
 
     useEffect(() => {
-        let active = true;
-        let creactedAd: NativeAd | null = null;
+        isMountedRef.current = true;
+        let createdAd: NativeAd | null = null;
 
         if (!AD_UNIT_ID) return;
 
         AdsConsent.getConsentInfo().then((info) => {
+            if (!isMountedRef.current) return;
+
             const npa = info.status !== AdsConsentStatus.OBTAINED;
 
             NativeAd.createForAdRequest(AD_UNIT_ID, {
@@ -51,39 +54,45 @@ export default function CompactNativeAdRow({ style }: Props) {
                 requestNonPersonalizedAdsOnly: npa,
             })
                 .then((a) => {
-                    if (!active) {
+                    if (!isMountedRef.current) {
                         a.destroy?.();
                         return;
                     }
-                    creactedAd = a;
+                    createdAd = a;
                     setAd(a);
                 })
                 .catch((e) => {
-                    if (!active) return;
+                    if (!isMountedRef.current) return;
                     errorLog(e);
                 });
         });
 
         return () => {
-            active = false;
-            creactedAd?.destroy?.();
+            isMountedRef.current = false;
+            // 먼저 isViewReady를 false로 설정하여 NativeAsset 렌더링 중지
+            setIsViewReady(false);
+            // 다음 프레임에서 ad를 정리 (NativeAsset 등록 완료 대기)
+            setTimeout(() => {
+                createdAd?.destroy?.();
+            }, 0);
         };
     }, []);
 
     // NativeAdView가 마운트된 후 NativeAsset을 렌더링하도록 지연
     useEffect(() => {
-        if (!ad) {
+        if (!ad || !isMountedRef.current) {
             setIsViewReady(false);
             return;
         }
 
         const handle = InteractionManager.runAfterInteractions(() => {
-            setIsViewReady(true);
+            if (isMountedRef.current) {
+                setIsViewReady(true);
+            }
         });
 
         return () => {
             handle.cancel();
-            ad.destroy();
         };
     }, [ad]);
 
