@@ -1,9 +1,4 @@
-import {
-    getCourse,
-    getPacemakerDetail,
-    getRun,
-    markPacemakerAsRun,
-} from "@/src/apis";
+import { getCourse, getPacemakerDetail, getRun } from "@/src/apis";
 import { queryKeys } from "@/src/apis/queryKeys";
 import { PacemakerDetailResponse } from "@/src/apis/types/ghosty";
 import { Telemetry } from "@/src/apis/types/run";
@@ -11,16 +6,12 @@ import { GetUserInfoResponse } from "@/src/apis/types/user";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine, { Segment } from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
-import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
+import RunShot from "@/src/components/share/RunShot";
 import { ShareBottomSheet } from "@/src/components/share/ShareBottomSheet";
 import { ShareVariant } from "@/src/components/share/types";
-import { Button } from "@/src/components/ui/Button";
-import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
 import Countdown from "@/src/components/ui/Countdown";
 import LoadingLayer from "@/src/components/ui/LoadingLayer";
-import StatsIndicator from "@/src/components/ui/StatsIndicator";
 import StyledBottomSheet from "@/src/components/ui/StyledBottomSheet";
-import { TextWithSub } from "@/src/components/ui/TextWithSub";
 import { showCompactToast, showToast } from "@/src/components/ui/toastConfig";
 import TopBlurView from "@/src/components/ui/TopBlurView";
 import { Typography } from "@/src/components/ui/Typography";
@@ -33,15 +24,16 @@ import { mapPacemakerToTelemety } from "@/src/features/pacemaker/utils/pacemaker
 import ReplayRecoder, {
     ReplayRecorderHandle,
 } from "@/src/features/replay/ReplayRecoder";
+import RunControlButtons from "@/src/features/run/components/RunControlButtons";
+import RunStatsPanel from "@/src/features/run/components/RunStatsPanel";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
-import { buildUserRecordData } from "@/src/features/run/state/record";
+import { useRunSaveFlow } from "@/src/features/run/hooks/useRunSaveFlow";
 import {
     selectPolylineSegments,
     selectStatsDisplay,
 } from "@/src/features/run/state/selectors";
 import { getElapsedMs } from "@/src/features/run/state/time";
-import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
@@ -49,26 +41,15 @@ import {
     getFormattedPace,
     getRunName,
     getRunTime,
-    saveRunning,
     telemetriesToSegment,
 } from "@/src/utils/runUtils";
-import { captureError } from "@/src/utils/sentryTools";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useQueryClient } from "@tanstack/react-query";
-import * as FileSystem from "expo-file-system";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-    Alert,
-    BackHandler,
-    Pressable,
-    StyleSheet,
-    useWindowDimensions,
-    View,
-} from "react-native";
-import { Confetti } from "react-native-fast-confetti";
+import { Alert, BackHandler, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
     FadeIn,
     useAnimatedStyle,
@@ -80,47 +61,50 @@ import { ShareVariantWithVideo } from "../../(tabs)/stats/result/[runningId]/[co
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
-    const router = useRouter();
     const queryClient = useQueryClient();
-    const [courseName, setCourseName] = useState<string>("");
-    const [isRestarting, setIsRestarting] = useState<boolean>(false);
-    const [isFirst, setIsFirst] = useState<boolean>(true);
-    const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
-    const [isClearCourse, setIsClearCourse] = useState<boolean>(false);
-    const runShotRef = useRef<RunShotHandle>(null);
-    const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
-    const [runShotType, setRunShotType] = useState<"thumbnail" | "share">(
-        "thumbnail"
-    );
+    const [courseName, setCourseName] = useState("");
+    const [isRestarting, setIsRestarting] = useState(false);
+    const [isFirst, setIsFirst] = useState(true);
+    const [isClearCourse, setIsClearCourse] = useState(false);
     const [runShotVariant, setRunShotVariant] = useState<ShareVariantWithVideo>(
         "default" as ShareVariantWithVideo
     );
     const [replayProgress, setReplayProgress] = useState(-1);
-    const [runSaveResult, setRunSaveResult] = useState<{
-        runningId: number;
-        ghostRunningId: number | undefined;
-        courseId: number | undefined;
-    } | null>(null);
 
     const { courseId, ghostRunningId, ghostyId } = useLocalSearchParams();
-
     const isGhostRunning = ghostRunningId !== "-1";
     const isGhostyRunning = !!ghostyId;
 
     const [courseSegments, setCourseSegments] = useState<Segment>();
-
     const ghostTelemetryRef = useRef<Telemetry[]>([]);
     const pacemakerDetailRef = useRef<PacemakerDetailResponse | null>(null);
-    const hasSavedRef = useRef<boolean>(false);
     const shareBottomSheetRef = useRef<BottomSheetModal>(null);
     const replayRecoderRef = useRef<ReplayRecorderHandle>(null);
 
-    const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-
     const { context, controls } = useRunningSession();
-
     const { removeJob, findByCourseId } = usePacemakerQueue();
+
+    const {
+        isSaving,
+        savingTelemetries,
+        runShotType,
+        runSaveResult,
+        runShotRef,
+        requestSave,
+        triggerCapture,
+        setWithRouting,
+        setRunShotType,
+        captureMap,
+    } = useRunSaveFlow({
+        context,
+        controls,
+        courseId,
+        ghostRunningId,
+        ghostyId,
+        isClearCourse,
+        findByCourseId,
+        removeJob,
+    });
 
     useRunVoice(context);
 
@@ -159,13 +143,7 @@ export default function Run() {
         enabled: isGhostyRunning,
     });
 
-    const triggerCapture = useCallback(() => {
-        runShotRef.current
-            ?.capture()
-            .then((uri) => setThumbnailUri(uri))
-            .catch(() => setThumbnailUri(""));
-    }, []);
-
+    // 코스 및 고스트 데이터 초기화
     useEffect(() => {
         (async () => {
             const response = await getCourse(Number(courseId));
@@ -184,7 +162,6 @@ export default function Run() {
                 const pacemakerDetail = await getPacemakerDetail(
                     Number(ghostyId)
                 );
-
                 const ghosty = mapPacemakerToTelemety({
                     pacemaker: pacemakerDetail?.pacemakerResponse,
                     telemetries: response.telemetries,
@@ -194,26 +171,33 @@ export default function Run() {
                     ghostTelemetryRef.current = ghosty.sample();
                 }
             }
-
             initializeCourse(response.telemetries, response.courseCheckpoints);
             if (isGhostRunning) {
                 const ghostRecord = await getRun(Number(ghostRunningId));
                 ghostTelemetryRef.current = ghostRecord?.telemetries ?? [];
             }
         })();
-    }, [courseId, initializeCourse, controls, isGhostRunning, ghostRunningId, queryClient]);
+    }, [
+        courseId,
+        initializeCourse,
+        controls,
+        isGhostRunning,
+        ghostRunningId,
+        queryClient,
+        ghostyId,
+        isGhostyRunning,
+    ]);
 
+    // 뒤로가기 버튼 차단
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
             "hardwareBackPress",
-            () => {
-                return true;
-            }
+            () => true
         );
-
         return () => backHandler.remove();
     }, []);
 
+    // 재시작 토스트
     useEffect(() => {
         if (isRestarting) {
             setIsFirst(false);
@@ -221,13 +205,19 @@ export default function Run() {
         }
     }, [isRestarting]);
 
-    const heightVal = useSharedValue(0);
+    // 완주 시 자동 저장
+    useEffect(() => {
+        if (context.status === "COMPLETION_PENDING") {
+            setIsClearCourse(true);
+            requestSave();
+            setWithRouting(false);
+        }
+    }, [context.status, requestSave, setWithRouting]);
 
-    const controlPannelPosition = useAnimatedStyle(() => {
-        return {
-            top: heightVal.value - 64,
-        };
-    });
+    const heightVal = useSharedValue(0);
+    const controlPannelPosition = useAnimatedStyle(() => ({
+        top: heightVal.value - 64,
+    }));
 
     const onCountdownComplete = useCallback(() => {
         if (context.status === "READY") {
@@ -261,45 +251,8 @@ export default function Run() {
         ]
     );
 
-    const [withRouting, setWithRouting] = useState<boolean>(false);
-
-    const captureMap = useCallback(async () => {
-        try {
-            const uri = await runShotRef.current?.capture?.().then((uri) => {
-                return uri;
-            });
-
-            const filename =
-                getRunName(context.telemetries.at(-1)?.timeStamp ?? 0) + ".png";
-            const targetPath = `${FileSystem.cacheDirectory}${filename}`;
-
-            devLog(targetPath);
-
-            await FileSystem.copyAsync({
-                from: uri ?? "",
-                to: targetPath,
-            });
-
-            return targetPath;
-        } catch (error) {
-            devLog("captureMap error: ", error);
-            return null;
-        }
-    }, [context.telemetries]);
-
-    const requestSave = useCallback(() => {
-        if (isSaving) return;
-        if (!context.telemetries.length) {
-            router.back();
-        }
-        hasSavedRef.current = false;
-        setSavingTelemetries(context.telemetries);
-        setIsSaving(true);
-        controls.stop();
-    }, [isSaving, context.telemetries, controls, router]);
-
-    const captureStats = useMemo(() => {
-        return [
+    const captureStats = useMemo(
+        () => [
             {
                 description: "시간",
                 value: getRunTime(
@@ -330,111 +283,9 @@ export default function Run() {
                 description: "고도 상승",
                 value: (context.stats.gainM ?? 0).toString() + "m",
             },
-        ];
-    }, [context.stats]);
-
-    useEffect(() => {
-        if (context.status === "COMPLETION_PENDING") {
-            setIsClearCourse(true);
-            requestSave();
-            setWithRouting(false);
-        }
-    }, [context.status, requestSave]);
-
-    // URI가 생기는 순간 저장 수행 (한 번만)
-    useEffect(() => {
-        if (!isSaving) return;
-        if (!thumbnailUri) return; // 아직 캡처 안 됨
-        if (hasSavedRef.current) return; // 중복 방지
-        hasSavedRef.current = true;
-
-        (async () => {
-            try {
-                const userRecordData = buildUserRecordData(context.stats);
-
-                const saveGhostId = !isClearCourse
-                    ? undefined
-                    : Number(ghostRunningId) !== -1
-                    ? Number(ghostRunningId)
-                    : undefined;
-
-                const saveCourseId = !isClearCourse
-                    ? undefined
-                    : Number(courseId);
-
-                const response = await saveRunning({
-                    telemetries: context.telemetries,
-                    rawData: extractRawData(context.mainTimeline),
-                    thumbnailUri,
-                    userDashboardData: userRecordData,
-                    runTime: Math.round(context.stats.totalTimeMs / 1000),
-                    isPublic: true,
-                    ghostRunningId: saveGhostId,
-                    courseId: saveCourseId,
-                });
-
-                setRunSaveResult({
-                    runningId: response.runningId,
-                    courseId: saveCourseId,
-                    ghostRunningId: saveGhostId,
-                });
-
-                if (ghostyId && response.runningId) {
-                    await markPacemakerAsRun(
-                        Number(ghostyId),
-                        response.runningId
-                    );
-                    queryClient.invalidateQueries({
-                        queryKey: ["pacemaker", Number(courseId)],
-                    });
-                    queryClient.invalidateQueries({
-                        queryKey: ["pacemakerDetail", Number(ghostyId)],
-                    });
-                    const job = findByCourseId(Number(courseId));
-                    if (job) {
-                        removeJob(job.jobId);
-                    }
-                }
-
-                if (withRouting) {
-                    router.replace({
-                        pathname:
-                            "/stats/result/[runningId]/[courseId]/[ghostRunningId]",
-                        params: {
-                            runningId: response.runningId.toString(),
-                            courseId: saveCourseId ?? "-1",
-                            ghostRunningId: saveGhostId ?? "-1",
-                        },
-                    });
-                }
-                setThumbnailUri(null);
-                if (!withRouting) setRunShotType("share");
-            } catch (error) {
-                showCompactToast(
-                    "기록 저장에 실패했습니다. 다시 시도해주세요."
-                );
-                captureError("run.course.saveRunning", error);
-            } finally {
-                queryClient.invalidateQueries({
-                    queryKey: ["runs"],
-                });
-                setIsSaving(false);
-            }
-        })();
-    }, [
-        withRouting,
-        isSaving,
-        thumbnailUri,
-        context.telemetries,
-        context.mainTimeline,
-        router,
-        controls,
-        context.stats,
-        ghostRunningId,
-        courseId,
-        isClearCourse,
-        queryClient,
-    ]);
+        ],
+        [context.stats]
+    );
 
     const now = useNow(
         context.status === "RUNNING" ||
@@ -448,12 +299,10 @@ export default function Run() {
         now
     );
 
-    const showShareBottomSheet = () => {
-        shareBottomSheetRef.current?.present();
-    };
-    const handleShareBottomSheetSelect = (variant: ShareVariantWithVideo) => {
+    // 공유 관련 핸들러
+    const showShareBottomSheet = () => shareBottomSheetRef.current?.present();
+    const handleShareBottomSheetSelect = (variant: ShareVariantWithVideo) =>
         setRunShotVariant(variant);
-    };
 
     async function handleShareVideo() {
         try {
@@ -462,7 +311,7 @@ export default function Run() {
             setReplayProgress(-1);
             await new Promise((resolve) => setTimeout(resolve, 2000));
             await replayRecoderRef.current?.startRecording();
-        } catch (e) {
+        } catch {
             showToast("info", "공유에 실패했습니다", bottom);
             setReplayProgress(-1);
         }
@@ -477,19 +326,11 @@ export default function Run() {
                     context.telemetries.at(-1)?.timeStamp ?? 0
                 ).trim(),
                 filename:
-                    "ghostrunner_" +
-                    runSaveResult?.runningId.toString() +
-                    ".png",
+                    "ghostrunner_" + runSaveResult?.runningId.toString() + ".png",
                 url: uri ?? "",
             })
-                .then((res) => {
-                    devLog(res);
-                    // run_shared
-                    trackAmplitude("Run Shared");
-                })
-                .catch((err) => {
-                    err && devLog(err);
-                });
+                .then(() => trackAmplitude("Run Shared"))
+                .catch(() => {});
             shareBottomSheetRef.current?.dismiss();
         } else {
             Alert.alert(
@@ -500,9 +341,7 @@ export default function Run() {
                     {
                         text: "계속 진행",
                         style: "default",
-                        onPress: async () => {
-                            await handleShareVideo();
-                        },
+                        onPress: handleShareVideo,
                     },
                 ]
             );
@@ -511,6 +350,7 @@ export default function Run() {
 
     return (
         <View style={[styles.container, { paddingBottom: bottom }]}>
+            {/* 로딩 및 캡처 레이어 */}
             {isSaving && (
                 <LoadingLayer limitDelay={3000} onDelayed={triggerCapture} />
             )}
@@ -521,19 +361,17 @@ export default function Run() {
                         title={getRunName(
                             savingTelemetries.at(0)?.timeStamp ?? 0
                         )}
-                        fileName={"runImage.png"}
+                        fileName="runImage.png"
                         telemetries={savingTelemetries}
                         type={runShotType}
                         onMapReady={triggerCapture}
-                        stats={
-                            runShotType === "share" ? captureStats : undefined
-                        }
-                        distance={(context.stats.totalDistanceM / 1000).toFixed(
-                            2
-                        )}
+                        stats={runShotType === "share" ? captureStats : undefined}
+                        distance={(context.stats.totalDistanceM / 1000).toFixed(2)}
                         variant={runShotVariant as ShareVariant}
                     />
                 )}
+
+            {/* 비디오 리플레이 */}
             {runShotVariant === "video" && (
                 <ReplayRecoder
                     ref={replayRecoderRef}
@@ -545,33 +383,29 @@ export default function Run() {
                     name={getRunName(savingTelemetries.at(-1)?.timeStamp ?? 0)}
                     distance={(context.stats.totalDistanceM / 1000).toFixed(2)}
                     stats={captureStats}
-                    onProgress={(progress) => {
-                        setReplayProgress(progress);
-                    }}
-                    onFinish={() => {
-                        setReplayProgress(-1);
-                    }}
+                    onProgress={setReplayProgress}
+                    onFinish={() => setReplayProgress(-1)}
                 />
             )}
             {replayProgress >= 0 && runShotVariant === "video" && (
                 <LoadingLayer progress={replayProgress}>
-                    <Pressable
-                        onPress={() => {
-                            replayRecoderRef.current?.reset();
-                        }}
-                    >
+                    <Pressable onPress={() => replayRecoderRef.current?.reset()}>
                         <Typography variant="body3" color="gray40">
                             취소하기
                         </Typography>
                     </Pressable>
                 </LoadingLayer>
             )}
+
+            {/* 공유 바텀시트 */}
             <ShareBottomSheet
                 bottomSheetRef={shareBottomSheetRef}
                 selected={runShotVariant}
                 onSelect={handleShareBottomSheetSelect}
                 onShare={handleShare}
             />
+
+            {/* 상단 타이머 */}
             <TopBlurView>
                 <WeatherInfo />
                 {isRestarting ? (
@@ -590,8 +424,7 @@ export default function Run() {
                                     context.status === "READY" ||
                                     context.status === "PAUSED_OFFCOURSE"
                                         ? colors.red
-                                        : context.status ===
-                                          "COMPLETION_PENDING"
+                                        : context.status === "COMPLETION_PENDING"
                                         ? colors.primary
                                         : colors.white,
                             },
@@ -607,6 +440,8 @@ export default function Run() {
                     </Animated.Text>
                 )}
             </TopBlurView>
+
+            {/* 지도 */}
             <MapViewWrapper
                 controlPannelPosition={controlPannelPosition}
                 zoom={16}
@@ -632,18 +467,12 @@ export default function Run() {
                         id="custom-puck"
                         shape={{
                             type: "Point",
-                            coordinates: [
-                                offcourseAnchor.lng,
-                                offcourseAnchor.lat,
-                            ],
+                            coordinates: [offcourseAnchor.lng, offcourseAnchor.lat],
                         }}
                     >
                         <SymbolLayer
                             id="custom-puck-layer"
-                            style={{
-                                iconImage: "puck2",
-                                iconAllowOverlap: true,
-                            }}
+                            style={{ iconImage: "puck2", iconAllowOverlap: true }}
                             aboveLayerID="z-index-6"
                         />
                     </ShapeSource>
@@ -662,18 +491,14 @@ export default function Run() {
                         >
                             <SymbolLayer
                                 id="ghost-puck-layer"
-                                style={{
-                                    iconImage: "puck3",
-                                    iconAllowOverlap: true,
-                                }}
+                                style={{ iconImage: "puck3", iconAllowOverlap: true }}
                                 aboveLayerID="z-index-5"
                             />
                         </ShapeSource>
                     )}
                 {(isGhostRunning || isGhostyRunning) &&
-                    ghostCoordinator?.ghostSegments &&
-                    ghostCoordinator.ghostSegments
-                        .filter((segment) => segment.isRunning)
+                    ghostCoordinator?.ghostSegments
+                        ?.filter((segment) => segment.isRunning)
                         .map((segment, index) => (
                             <RunningLine
                                 key={"ghost-segment-" + index}
@@ -685,246 +510,36 @@ export default function Run() {
                         ))}
             </MapViewWrapper>
 
+            {/* 하단 스탯 패널 */}
             <StyledBottomSheet
                 bottomInset={bottom + 70}
                 animatedPosition={heightVal}
             >
-                <View>
-                    {isFirst || context.status === "PAUSED_OFFCOURSE" ? (
-                        <View
-                            style={{
-                                alignItems: "center",
-                                marginTop: 30,
-                                marginBottom: 65,
-                            }}
-                        >
-                            <Typography
-                                variant="sectionhead"
-                                color="white"
-                                style={{ textAlign: "center" }}
-                            >
-                                {context.status !== "PAUSED_OFFCOURSE"
-                                    ? `러닝 기록을 위해\n코스 시작 지점으로 이동해주세요`
-                                    : `10분 뒤 자동 종료돼요\n러닝을 이어서 진행하기 위해\n이탈 지점으로 돌아가 주세요`}
-                            </Typography>
-                        </View>
-                    ) : (
-                        <View style={{ marginVertical: 30 }}>
-                            {runShotType === "share" && (
-                                <TextWithSub
-                                    title={courseName}
-                                    sub="완주한 기록은 내 기록에서 확인할 수 있어요."
-                                    containerStyle={{ marginBottom: 30 }}
-                                />
-                            )}
-                            <StatsIndicator
-                                stats={statsForUI}
-                                color="gray20"
-                                ghost={isGhostRunning || isGhostyRunning}
-                                ghostType={isGhostyRunning ? "ghosty" : "ghost"}
-                                ghostTelemetry={ghostCoordinator?.ghostPoint}
-                                targetPace={
-                                    pacerInfo.currentPaceSecPerKm ?? undefined
-                                }
-                                end={runShotType === "share"}
-                            />
-                        </View>
-                    )}
-                </View>
+                <RunStatsPanel
+                    status={context.status}
+                    runShotType={runShotType}
+                    isFirst={isFirst}
+                    courseName={courseName}
+                    statsForUI={statsForUI}
+                    isGhostRunning={isGhostRunning}
+                    isGhostyRunning={isGhostyRunning}
+                    ghostPoint={ghostCoordinator?.ghostPoint}
+                    targetPace={pacerInfo.currentPaceSecPerKm ?? undefined}
+                />
             </StyledBottomSheet>
 
-            {runShotType === "thumbnail" ? (
-                <>
-                    {context.status === "IDLE" ||
-                    context.status === "READY" ||
-                    context.status === "STOPPED" ||
-                    context.status === "COMPLETION_PENDING" ? (
-                        <Button
-                            title="러닝 종료"
-                            onPress={async () => {
-                                controls.stop();
-                                router.back();
-                            }}
-                            type="red"
-                        />
-                    ) : context.status === "RUNNING" ||
-                      context.status === "RUNNING_EXTENDED" ? (
-                        <ButtonWithIcon
-                            iconType="quit"
-                            onPressIcon={async () => {
-                                Alert.alert(
-                                    "러닝을 종료할까요?",
-                                    "500m 이하의 러닝은 저장되지 않아요",
-                                    [
-                                        {
-                                            text: "저장하기",
-                                            style: "default",
-                                            onPress: () => {
-                                                if (
-                                                    context.stats
-                                                        .totalDistanceM < 500
-                                                ) {
-                                                    controls.stop();
-                                                    router.back();
-                                                } else {
-                                                    requestSave();
-                                                }
-                                            },
-                                        },
-                                        {
-                                            text: "뒤로가기",
-                                            style: "destructive",
-                                        },
-                                    ]
-                                );
-                            }}
-                            title="일시정지"
-                            onPress={async () => {
-                                Alert.alert(
-                                    "러닝을 일시정지할까요?",
-                                    "일시정지 후 이어 달린 기록은 고스트가 생성되지 않아요",
-                                    [
-                                        {
-                                            text: "계속러닝",
-                                            style: "default",
-                                        },
-                                        {
-                                            text: "일시정지",
-                                            style: "destructive",
-                                            onPress: () => {
-                                                controls.pauseUser();
-                                            },
-                                        },
-                                    ]
-                                );
-                            }}
-                            type="red"
-                        />
-                    ) : context.status === "PAUSED_USER" ? (
-                        <ButtonWithIcon
-                            iconType="quit"
-                            onPressIcon={async () => {
-                                Alert.alert(
-                                    "러닝을 종료할까요?",
-                                    "500m 이하의 러닝은 저장되지 않아요",
-                                    [
-                                        {
-                                            text: "저장하기",
-                                            style: "default",
-                                            onPress: () => {
-                                                if (
-                                                    context.stats
-                                                        .totalDistanceM < 500
-                                                ) {
-                                                    controls.stop();
-                                                    router.back();
-                                                } else {
-                                                    requestSave();
-                                                }
-                                            },
-                                        },
-                                        {
-                                            text: "뒤로가기",
-                                            style: "destructive",
-                                        },
-                                    ]
-                                );
-                            }}
-                            title="이어서 러닝"
-                            onPress={async () => {
-                                Alert.alert(
-                                    "러닝을 이어서 시작할까요?",
-                                    "계속러닝을 누르면 이어서 러닝이 가능해요",
-                                    [
-                                        { text: "취소", style: "default" },
-                                        {
-                                            text: "계속러닝",
-                                            style: "destructive",
-                                            onPress: () => {
-                                                controls.resume();
-                                            },
-                                        },
-                                    ]
-                                );
-                            }}
-                            type="active"
-                        />
-                    ) : context.status === "PAUSED_OFFCOURSE" ? (
-                        <Button
-                            title="러닝 종료"
-                            onPress={async () => {
-                                Alert.alert(
-                                    "러닝을 종료할까요?",
-                                    "500m 이하의 러닝은 저장되지 않아요",
-                                    [
-                                        {
-                                            text: "저장하기",
-                                            style: "default",
-                                            onPress: () => {
-                                                if (
-                                                    context.stats
-                                                        .totalDistanceM < 500
-                                                ) {
-                                                    controls.stop();
-                                                    router.back();
-                                                } else {
-                                                    requestSave();
-                                                }
-                                            },
-                                        },
-                                        {
-                                            text: "뒤로가기",
-                                            style: "destructive",
-                                        },
-                                    ]
-                                );
-                            }}
-                            type="red"
-                        />
-                    ) : null}
-                </>
-            ) : (
-                <>
-                    <Confetti
-                        fallDuration={4000}
-                        count={100}
-                        colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
-                        flakeSize={{ width: 12, height: 8 }}
-                        fadeOutOnEnd={true}
-                        cannonsPositions={[
-                            { x: windowWidth / 2, y: windowHeight - 440 },
-                            { x: windowWidth / 2, y: windowHeight - 440 },
-                        ]}
-                        blastDuration={800}
-                        autoplay={true}
-                        isInfinite={false}
-                    />
-                    <ButtonWithIcon
-                        iconType="share"
-                        title="러닝 종료"
-                        onPressIcon={showShareBottomSheet}
-                        onPress={() => {
-                            if (runSaveResult) {
-                                router.replace({
-                                    pathname:
-                                        "/stats/result/[runningId]/[courseId]/[ghostRunningId]",
-                                    params: {
-                                        runningId:
-                                            runSaveResult.runningId.toString(),
-                                        courseId:
-                                            runSaveResult.courseId?.toString() ??
-                                            "-1",
-                                        ghostRunningId:
-                                            runSaveResult.ghostRunningId?.toString() ??
-                                            "-1",
-                                    },
-                                });
-                            }
-                        }}
-                        type="active"
-                    />
-                </>
-            )}
+            {/* 컨트롤 버튼 */}
+            <RunControlButtons
+                status={context.status}
+                runShotType={runShotType}
+                totalDistanceM={context.stats.totalDistanceM}
+                runSaveResult={runSaveResult}
+                onStop={controls.stop}
+                onPauseUser={controls.pauseUser}
+                onResume={controls.resume}
+                onRequestSave={requestSave}
+                onShowShareBottomSheet={showShareBottomSheet}
+            />
         </View>
     );
 }

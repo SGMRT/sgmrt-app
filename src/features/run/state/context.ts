@@ -5,6 +5,8 @@ import { CourseMetadata, CourseVariant, RunStatus } from "../types/status";
 import { SegmentMeta } from "./segments";
 import { RunningStats } from "./stats";
 
+export type { RunStatus };
+
 export interface LiveActivityState {
     startedAtMs: number | null;
     pausedAtMs: number | null;
