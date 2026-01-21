@@ -3,10 +3,7 @@ import colors from "@/src/theme/colors";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useRouter } from "expo-router";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Divider } from "../../ui/Divider";
-import RadioButton from "../../ui/RadioButton";
-import StatRow from "../../ui/StatRow";
-import { Typography } from "../../ui/Typography";
+import { Divider, RadioButton, StatRow, Typography } from "@/src/components/ui";
 
 interface CourseInfoItemProps {
     isSelected: boolean;

@@ -4,7 +4,7 @@ import { endOfDay, startOfDay } from "@/src/utils/formatDate";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Calendar } from "react-native-calendars";
-import Section from "../ui/Section";
+import { Section } from "@/src/components/ui";
 import { CustomHeader } from "./CustomHeader";
 import { DayComponent } from "./DayComponent";
 import {

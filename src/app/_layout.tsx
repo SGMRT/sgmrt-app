@@ -9,7 +9,7 @@ import { Stack } from "expo-router";
 import { useEffect, useMemo } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Toast from "react-native-toast-message";
-import { toastConfig } from "../components/ui/toastConfig";
+import { toastConfig } from "@/src/components/ui";
 import { useAuthStore } from "../store/authState";
 
 import "@features/run/task/location.task";

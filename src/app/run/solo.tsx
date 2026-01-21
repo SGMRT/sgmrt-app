@@ -1,23 +1,20 @@
+import { queryKeys } from "@/src/apis/queryKeys";
 import { Telemetry } from "@/src/apis/types/run";
+import { GetUserInfoResponse } from "@/src/apis/types/user";
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import RunningLine from "@/src/components/map/RunningLine";
 import WeatherInfo from "@/src/components/map/WeatherInfo";
 import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
-import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
-import Countdown from "@/src/components/ui/Countdown";
-import LoadingLayer from "@/src/components/ui/LoadingLayer";
-import StatsIndicator from "@/src/components/ui/StatsIndicator";
-import { showCompactToast } from "@/src/components/ui/toastConfig";
-import TopBlurView from "@/src/components/ui/TopBlurView";
+import { ButtonWithMap, Countdown, LoadingLayer, StatsIndicator, TopBlurView, showCompactToast } from "@/src/components/ui";
 import { useRunVoice } from "@/src/features/audio/useRunVoice";
 import { useNow } from "@/src/features/run/hooks/useNow";
 import { useRunningSession } from "@/src/features/run/hooks/useRunningSession";
-import { buildUserRecordData } from "@/src/features/run/state/record";
+import { buildUserRecordData } from "@/src/features/run/context/record";
 import {
     selectPolylineSegments,
     selectStatsDisplay,
-} from "@/src/features/run/state/selectors";
-import { getElapsedMs } from "@/src/features/run/state/time";
+} from "@/src/features/run/context/selectors";
+import { getElapsedMs } from "@/src/features/run/context/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
@@ -37,6 +34,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const router = useRouter();
+    const queryClient = useQueryClient();
     const [isRestarting, setIsRestarting] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
@@ -83,7 +81,10 @@ export default function Run() {
 
     const onCountdownComplete = useCallback(() => {
         if (context.status === "IDLE") {
-            controls.start("SOLO");
+            const userInfo = queryClient.getQueryData<GetUserInfoResponse>(
+                queryKeys.user.info()
+            );
+            controls.start("SOLO", undefined, undefined, userInfo?.weight ?? undefined);
         } else if (context.status === "COMPLETION_PENDING") {
             controls.extend();
         } else if (context.status === "PAUSED_USER") {
@@ -92,7 +93,7 @@ export default function Run() {
             controls.oncourse();
         }
         setIsRestarting(false);
-    }, [context.status, controls]);
+    }, [context.status, controls, queryClient]);
 
     const segments = useMemo(
         () => selectPolylineSegments(context),
@@ -124,8 +125,6 @@ export default function Run() {
         setIsSaving(true);
         controls.stop();
     }, [isSaving, context.telemetries, controls]);
-
-    const queryClient = useQueryClient();
 
     // URI가 생기는 순간 저장 수행 (한 번만)
     useEffect(() => {
@@ -263,7 +262,7 @@ export default function Run() {
             </BottomSheet>
 
             {context.status !== "PAUSED_USER" ? (
-                <ButtonWithIcon
+                <ButtonWithMap
                     iconType="save"
                     disabled={
                         context.status === "READY" || context.status === "IDLE"
@@ -317,7 +316,7 @@ export default function Run() {
                     }}
                 />
             ) : (
-                <ButtonWithIcon
+                <ButtonWithMap
                     iconType="save"
                     onPressIcon={() => {
                         Alert.alert(

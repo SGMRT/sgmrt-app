@@ -1,9 +1,7 @@
 import { getRuns, getRunsByCourse } from "@/src/apis";
 import { RunResponse } from "@/src/apis/types/run";
 import { HistoryWithFilter } from "@/src/components/course/HistoryWithFilter";
-import Header from "@/src/components/ui/Header";
-import TabBar from "@/src/components/ui/TabBar";
-import { Typography } from "@/src/components/ui/Typography";
+import { Header, TabBar, Typography } from "@/src/components/ui";
 import { endOfDay, startOfDay } from "@/src/utils/formatDate";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";

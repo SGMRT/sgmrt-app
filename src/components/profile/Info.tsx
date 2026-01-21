@@ -1,4 +1,3 @@
-import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import {
     getPresignedUrl,
@@ -7,9 +6,10 @@ import {
     patchUserSettings,
     uploadToS3,
 } from "@/src/apis";
+import { queryKeys } from "@/src/apis/queryKeys";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
 import { useLocalNotificationPermission } from "@/src/features/notifications/useLocalNotificationPermission";
-import { useAuthStore, UserInfo, UserSettings } from "@/src/store/authState";
+import { useAuthStore } from "@/src/store/authState";
 import { useLocalPrefs } from "@/src/store/localPrefs";
 import colors from "@/src/theme/colors";
 import { pickImage } from "@/src/utils/pickImage";
@@ -21,42 +21,18 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
     Alert,
-    Image,
     Linking,
     RefreshControl,
     ScrollView,
-    StyleSheet,
     TouchableOpacity,
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProfileNoticeSection } from "../notice/ui/ProfileNoticeSection";
 import { CadenceAssistGuide } from "../onboarding/CadenceAssistGuide";
-import { Divider } from "../ui/Divider";
-import { ListSectionContainer, ListSectionItem } from "../ui/ListSection";
-import { StyledButton } from "../ui/StyledButton";
-import { StyledSwitch } from "../ui/StyledSwitch";
-import { Typography } from "../ui/Typography";
-import { showToast } from "../ui/toastConfig";
-
-function applyUserInfoToStore(
-    res: GetUserInfoResponse,
-    setUserInfoStore: (userInfo: UserInfo) => void,
-    setUserSettingsStore: (userSettings: UserSettings) => void
-) {
-    setUserInfoStore({
-        username: res.nickname,
-        gender: res.gender,
-        age: res.age,
-        height: res.height,
-        weight: res.weight,
-    });
-    setUserSettingsStore({
-        pushAlarmEnabled: res.pushAlarmEnabled,
-        vibrationEnabled: res.vibrationEnabled,
-        voiceGuidanceEnabled: res.voiceGuidanceEnabled,
-    });
-}
+import { ListSectionContainer, ListSectionItem, StyledButton, StyledSwitch, Typography, showToast } from "@/src/components/ui";
+import { CadenceAssistControl } from "./CadenceAssistControl";
+import { ProfileCard } from "./ProfileCard";
 
 export const Info = ({
     setModalType,
@@ -73,11 +49,6 @@ export const Info = ({
 
     const [cadenceAssistGuideShow, setCadenceAssistGuideShow] = useState(false);
 
-    const {
-        setUserInfo: setUserInfoStore,
-        setUserSettings: setUserSettings,
-        userSettings: userSettingsStore,
-    } = useAuthStore();
     const { logout } = useAuthStore();
     const { granted, refresh } = useLocalNotificationPermission({
         withActiveRetry: true,
@@ -90,12 +61,10 @@ export const Info = ({
         isRefetching,
         refetch,
     } = useQuery({
-        queryKey: ["user", "info"],
+        queryKey: queryKeys.user.info(),
         queryFn: async () => {
             try {
-                const res = await getUserInfo();
-                applyUserInfoToStore(res, setUserInfoStore, setUserSettings);
-                return res;
+                return await getUserInfo();
             } catch (e) {
                 Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
                     { text: "확인", onPress: logout },
@@ -124,36 +93,24 @@ export const Info = ({
             >
         ) => patchUserSettings(payload),
         onMutate: async (payload) => {
-            setUserSettings({
-                ...userSettingsStore!,
-                ...payload,
-            });
-            await queryClient.cancelQueries({ queryKey: ["user", "info"] });
-            const prev = queryClient.getQueryData<GetUserInfoResponse>([
-                "user",
-                "info",
-            ]);
+            await queryClient.cancelQueries({ queryKey: queryKeys.user.info() });
+            const prev = queryClient.getQueryData<GetUserInfoResponse>(
+                queryKeys.user.info()
+            );
             if (prev) {
                 const next = { ...prev, ...payload };
                 queryClient.setQueryData<GetUserInfoResponse>(
-                    ["user", "info"],
+                    queryKeys.user.info(),
                     next
                 );
-                // Zustand 동기화
-                applyUserInfoToStore(next, setUserInfoStore, setUserSettings);
             }
             return { prev };
         },
         onError: (err, _vars, ctx) => {
             if (ctx?.prev) {
                 queryClient.setQueryData<GetUserInfoResponse>(
-                    ["user", "info"],
+                    queryKeys.user.info(),
                     ctx.prev
-                );
-                applyUserInfoToStore(
-                    ctx.prev,
-                    setUserInfoStore,
-                    setUserSettings
                 );
             }
             showToast(
@@ -163,7 +120,7 @@ export const Info = ({
             );
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["user", "info"] });
+            queryClient.invalidateQueries({ queryKey: queryKeys.user.info() });
         },
     });
 
@@ -232,16 +189,10 @@ export const Info = ({
         },
         onSuccess: (finalUrl) => {
             queryClient.setQueryData<GetUserInfoResponse>(
-                ["user", "info"],
+                queryKeys.user.info(),
                 (prev) => {
                     if (!prev) return prev as any;
-                    const next = { ...prev, profilePictureUrl: finalUrl };
-                    applyUserInfoToStore(
-                        next,
-                        setUserInfoStore,
-                        setUserSettings
-                    );
-                    return next;
+                    return { ...prev, profilePictureUrl: finalUrl };
                 }
             );
             showToast("success", "프로필 이미지가 변경되었습니다", bottom);
@@ -254,7 +205,7 @@ export const Info = ({
             );
         },
         onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ["user", "info"] });
+            queryClient.invalidateQueries({ queryKey: queryKeys.user.info() });
         },
     });
 
@@ -294,7 +245,7 @@ export const Info = ({
             >
                 {/* Profile */}
                 <View style={{ gap: 15, marginTop: 10 }}>
-                    <Profile userInfo={userInfo ?? null} loading={isFetching} />
+                    <ProfileCard userInfo={userInfo ?? null} loading={isFetching} />
                     <View style={{ flexDirection: "row", gap: 4 }}>
                         <StyledButton
                             title="프로필 이미지 변경"
@@ -323,8 +274,7 @@ export const Info = ({
                         rightElement={
                             <StyledSwitch
                                 isSelected={
-                                    (userSettingsStore?.pushAlarmEnabled &&
-                                        granted) ??
+                                    (userInfo?.pushAlarmEnabled && granted) ??
                                     false
                                 }
                                 onValueChange={(value) => {
@@ -338,7 +288,7 @@ export const Info = ({
                         rightElement={
                             <StyledSwitch
                                 isSelected={
-                                    userSettingsStore?.voiceGuidanceEnabled ??
+                                    userInfo?.voiceGuidanceEnabled ??
                                     false
                                 }
                                 onValueChange={handleSpeechChange}
@@ -350,7 +300,7 @@ export const Info = ({
                         rightElement={
                             <StyledSwitch
                                 isSelected={
-                                    userSettingsStore?.voiceGuidanceEnabled ??
+                                    userInfo?.voiceGuidanceEnabled ??
                                     false
                                 }
                                 onValueChange={handleSpeechChange}
@@ -448,175 +398,3 @@ export const Info = ({
         </>
     );
 };
-
-const CadenceAssistControl = ({ isEnabled }: { isEnabled: boolean }) => {
-    const {
-        cadenceTarget: value,
-        decCadenceTarget,
-        incCadenceTarget,
-    } = useLocalPrefs();
-    return (
-        <View style={styles.cadenceAssistControl}>
-            {/* -10 버튼 */}
-            <TouchableOpacity
-                disabled={!isEnabled}
-                onPress={() => decCadenceTarget(10)}
-                onLongPress={() => decCadenceTarget(10)}
-                style={[
-                    styles.cadenceAssistButton,
-                    isEnabled ? {} : styles.disabledCadenceAssistControl,
-                ]}
-            >
-                <Typography
-                    variant="subhead3"
-                    color={isEnabled ? "white" : "gray60"}
-                >
-                    -10
-                </Typography>
-            </TouchableOpacity>
-
-            {/* 현재 값 */}
-            <View
-                style={[
-                    styles.cadenceAssistPanel,
-                    isEnabled ? {} : styles.disabledCadenceAssistControl,
-                ]}
-            >
-                <Typography
-                    variant="subhead3"
-                    color={isEnabled ? "white" : "gray60"}
-                >
-                    {value} spm
-                </Typography>
-            </View>
-
-            {/* +10 버튼 */}
-            <TouchableOpacity
-                disabled={!isEnabled}
-                onPress={() => incCadenceTarget(10)}
-                onLongPress={() => incCadenceTarget(10)}
-                style={[
-                    styles.cadenceAssistButton,
-                    isEnabled ? {} : styles.disabledCadenceAssistControl,
-                ]}
-            >
-                <Typography
-                    variant="subhead3"
-                    color={isEnabled ? "white" : "gray60"}
-                >
-                    +10
-                </Typography>
-            </TouchableOpacity>
-        </View>
-    );
-};
-
-const Profile = ({
-    userInfo,
-    loading,
-}: {
-    userInfo: GetUserInfoResponse | null;
-    loading?: boolean;
-}) => {
-    const userProfileImageUrl =
-        userInfo?.profilePictureUrl?.split("?X-Amz-")[0];
-
-    return (
-        <View style={styles.profileContent}>
-            <Image
-                source={
-                    userProfileImageUrl
-                        ? { uri: userProfileImageUrl }
-                        : DefaultProfileIcon
-                }
-                style={styles.profileImage}
-            />
-            <View>
-                <Typography variant="headline" color="gray20">
-                    {loading ? "" : userInfo?.nickname ?? "고스트러너"}
-                </Typography>
-                <View style={styles.profileInfo}>
-                    <Typography variant="body2" color="gray40">
-                        {loading
-                            ? ""
-                            : userInfo?.height
-                            ? `${userInfo.height}cm`
-                            : "키 비공개"}
-                    </Typography>
-
-                    <Divider />
-                    <Typography variant="body2" color="gray40">
-                        {loading
-                            ? ""
-                            : userInfo?.weight
-                            ? `${userInfo.weight}kg`
-                            : "몸무게 비공개"}
-                    </Typography>
-
-                    <Divider />
-                    <Typography variant="body2" color="gray40">
-                        {loading
-                            ? ""
-                            : userInfo?.gender === "MALE"
-                            ? "남성"
-                            : userInfo?.gender === "FEMALE"
-                            ? "여성"
-                            : "성별 비공개"}
-                    </Typography>
-                </View>
-            </View>
-        </View>
-    );
-};
-
-const styles = StyleSheet.create({
-    cadenceAssistControl: {
-        marginTop: -2,
-        paddingHorizontal: 17,
-        paddingBottom: 17,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 4,
-    },
-    cadenceAssistButton: {
-        height: 32,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        backgroundColor: colors.gray[80],
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: "#171717",
-        boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
-    },
-    cadenceAssistPanel: {
-        flex: 1,
-        height: 32,
-        borderRadius: 6,
-        backgroundColor: "#171717",
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: colors.gray[80],
-    },
-    disabledCadenceAssistControl: {
-        backgroundColor: "#171717",
-        borderColor: "#171717",
-    },
-
-    profileContent: {
-        flexDirection: "row",
-        gap: 15,
-        alignItems: "center",
-    },
-    profileImage: {
-        width: 60,
-        height: 60,
-        borderRadius: 100,
-    },
-    profileInfo: {
-        flexDirection: "row",
-        gap: 10,
-        alignItems: "center",
-    },
-});

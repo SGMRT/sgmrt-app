@@ -4,7 +4,7 @@ import { FlashList, FlashListRef } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { forwardRef } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 import { NoticePreviewItem } from "./ui/NoticePreviewItem";
 
 type Props = {

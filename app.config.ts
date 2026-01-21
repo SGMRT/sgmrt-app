@@ -33,9 +33,6 @@ const config = {
                 },
                 UIDesignRequiresCompatibility: true,
             },
-            config: {
-                usesNonExemptEncryption: false,
-            },
             googleServicesFile:
                 process.env.GOOGLE_SERVICES_INFO ??
                 "./GoogleService-Info.plist",

@@ -1,5 +1,5 @@
 import { Telemetry } from "@/src/apis/types/run";
-import { Stat } from "@/src/components/ui/StatRow";
+import { Stat } from "@/src/components/ui/display/StatRow";
 
 export type ShareVariant = "default" | "logo" | "simple" | "record";
 

@@ -1,6 +1,5 @@
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
-import { ProgressBar } from "@/src/components/ui/ProgressBar";
-import { Typography } from "@/src/components/ui/Typography";
+import { ProgressBar, Typography } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import {

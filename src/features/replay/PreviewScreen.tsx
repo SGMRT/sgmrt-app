@@ -1,8 +1,5 @@
 import { getCourse } from "@/src/apis";
-import { Button } from "@/src/components/ui/Button";
-import Header from "@/src/components/ui/Header";
-import Section from "@/src/components/ui/Section";
-import StatRow from "@/src/components/ui/StatRow";
+import { Button, Header, Section, StatRow } from "@/src/components/ui";
 import { interpolateTelemetries } from "@/src/utils/interpolateTelemetries";
 import { normalizeTimestamps } from "@/src/utils/normalizeTimestamps";
 import { Camera } from "@rnmapbox/maps";

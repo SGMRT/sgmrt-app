@@ -1,11 +1,10 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
-import { Typography } from "@/src/components/ui/Typography";
+import { GhostLabel, Typography } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
-import GhostLabel from "../ui/GhostLabel";
 
 interface CourseTitleProps {
     course: CourseResponse;

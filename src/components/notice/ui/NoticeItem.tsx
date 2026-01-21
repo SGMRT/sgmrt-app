@@ -2,7 +2,7 @@
 import { CloseIcon, SpeakerIcon } from "@/assets/svgs/svgs";
 import { BlurView } from "expo-blur";
 import { Pressable, StyleSheet } from "react-native";
-import { Typography } from "../../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 interface NoticeProps {
     content: string;

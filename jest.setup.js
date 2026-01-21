@@ -15,6 +15,7 @@ jest.mock("@amplitude/analytics-react-native", () => ({
     identify: jest.fn(),
     setDeviceId: jest.fn(),
     setUserId: jest.fn(),
+    reset: jest.fn(),
 }));
 
 // Sentry mock
@@ -69,6 +70,73 @@ jest.mock("react-native-reanimated", () =>
 // safe-area
 jest.mock("react-native-safe-area-context", () => ({
     useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+}));
+
+// react-native-nitro-modules
+jest.mock("react-native-nitro-modules", () => ({
+    NitroModules: {
+        createHybridObject: jest.fn(),
+    },
+}));
+
+// HealthKit
+jest.mock("@kingstinct/react-native-healthkit", () => ({
+    AuthorizationStatus: {
+        sharingAuthorized: 2,
+        sharingDenied: 1,
+        notDetermined: 0,
+    },
+    authorizationStatusFor: jest.fn().mockReturnValue(0),
+    isHealthDataAvailableAsync: jest.fn().mockResolvedValue(false),
+    saveWorkoutSample: jest.fn().mockResolvedValue({
+        saveWorkoutRoute: jest.fn().mockResolvedValue(undefined),
+    }),
+    WorkoutActivityType: {
+        running: 37,
+    },
+}));
+
+// expo-file-system
+jest.mock("expo-file-system", () => ({
+    cacheDirectory: "/mock-cache/",
+    writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+    getInfoAsync: jest.fn().mockResolvedValue({ exists: true, size: 1024 }),
+}));
+
+// expo-router
+jest.mock("expo-router", () => ({
+    router: {
+        push: jest.fn(),
+        replace: jest.fn(),
+        back: jest.fn(),
+        dismissAll: jest.fn(),
+    },
+    useRouter: () => ({
+        push: jest.fn(),
+        replace: jest.fn(),
+        back: jest.fn(),
+    }),
+    useLocalSearchParams: () => ({}),
+}));
+
+// react-native-toast-message
+jest.mock("react-native-toast-message", () => ({
+    show: jest.fn(),
+    hide: jest.fn(),
+    default: { show: jest.fn(), hide: jest.fn() },
+}));
+
+// expo-blur
+jest.mock("expo-blur", () => ({
+    BlurView: "BlurView",
+}));
+
+// expo-constants
+jest.mock("expo-constants", () => ({
+    statusBarHeight: 44,
+    default: {
+        statusBarHeight: 44,
+    },
 }));
 
 // (선택) 테스트용 env

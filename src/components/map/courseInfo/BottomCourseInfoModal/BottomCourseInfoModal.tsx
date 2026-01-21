@@ -1,6 +1,6 @@
 import { deletePacemaker, getPacemakerByCourseId } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
-import ButtonWithIcon from "@/src/components/ui/ButtonWithMap";
+import { ButtonWithMap } from "@/src/components/ui";
 import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
@@ -175,7 +175,7 @@ export default function BottomCourseInfoModal({
                 onClickGuide={onClickGuide}
             />
 
-            <ButtonWithIcon
+            <ButtonWithMap
                 iconType="flag"
                 style={{
                     marginHorizontal: 16.5,

@@ -1,16 +1,15 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { getPresignedUrl, signUp, uploadToS3 } from "@/src/apis";
+import { queryKeys } from "@/src/apis/queryKeys";
+import { GetUserInfoResponse } from "@/src/apis/types/user";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
-import Header from "@/src/components/ui/Header";
-import InfoItem, { InfoFieldTitle } from "@/src/components/ui/InfoItem";
-import { StyledButton } from "@/src/components/ui/StyledButton";
-import { showToast } from "@/src/components/ui/toastConfig";
-import { Typography } from "@/src/components/ui/Typography";
+import { Header, InfoFieldTitle, InfoItem, StyledButton, Typography, showToast } from "@/src/components/ui";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import { pickImage } from "@/src/utils/pickImage";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
+import { useQueryClient } from "@tanstack/react-query";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getAuth } from "@react-native-firebase/auth";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -46,7 +45,8 @@ export default function Profile() {
     const [image, setImage] = useState<ImageManipulator.ImageResult | null>(
         null
     );
-    const { login, setUserInfo } = useAuthStore();
+    const { login } = useAuthStore();
+    const queryClient = useQueryClient();
     const router = useRouter();
     const { bottom } = useSafeAreaInsets();
     const [res, setRes] = useState<any>(null);
@@ -123,13 +123,23 @@ export default function Profile() {
                     nickname: nickname,
                     weight: weight,
                 });
-                setUserInfo({
-                    username: nickname,
-                    gender: gender,
-                    age: age,
-                    height: height,
+                // React Query 캐시에 사용자 정보 저장
+                const userInfoResponse: GetUserInfoResponse = {
+                    uuid: res.uuid,
+                    nickname: nickname ?? "",
+                    profilePictureUrl: data.profileImageUrl ?? "",
+                    gender: gender as "MALE" | "FEMALE",
                     weight: weight,
-                });
+                    height: height,
+                    age: age,
+                    pushAlarmEnabled: true,
+                    vibrationEnabled: true,
+                    voiceGuidanceEnabled: true,
+                };
+                queryClient.setQueryData<GetUserInfoResponse>(
+                    queryKeys.user.info(),
+                    userInfoResponse
+                );
                 login(res.accessToken, res.refreshToken, res.uuid);
                 amplitude.setUserId(res.uuid);
             })

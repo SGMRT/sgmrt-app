@@ -4,7 +4,7 @@ import axios from "axios";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 export default function WeatherInfo() {
     const [isLoading, setIsLoading] = useState(false);

@@ -1,7 +1,7 @@
 import { CheckIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 interface AgreementButtonProps {
     title: string;

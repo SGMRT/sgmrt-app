@@ -1,6 +1,5 @@
 import { View } from "react-native";
-import { Stat } from "../../ui/StatRow";
-import { Typography } from "../../ui/Typography";
+import { Stat, Typography } from "@/src/components/ui";
 import Track from "../Track";
 import { CommonShareProps } from "../types";
 

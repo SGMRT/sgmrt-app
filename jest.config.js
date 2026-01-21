@@ -12,11 +12,15 @@ module.exports = {
             "|@react-navigation" +
             "|@amplitude/analytics-react-native" +
             "|react-native-audio-api" +
+            "|react-native-toast-message" +
+            "|react-native-nitro-modules" +
+            "|@kingstinct/react-native-healthkit" +
             ")/)",
     ],
     moduleNameMapper: {
         "^@/src/(.*)$": "<rootDir>/src/$1",
-        "^@/(.*)$": "<rootDir>/src/$1",
+        "^@/assets/(.*)$": "<rootDir>/assets/$1",
+        "^@/(.*)$": "<rootDir>/$1",
     },
     testPathIgnorePatterns: [
         "/node_modules/",

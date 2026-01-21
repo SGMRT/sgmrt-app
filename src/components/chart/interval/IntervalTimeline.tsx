@@ -2,7 +2,7 @@ import { Pacemaker } from "@/src/apis/types/ghosty";
 import colors from "@/src/theme/colors";
 import { Fragment, useMemo } from "react";
 import { View } from "react-native";
-import { Typography } from "../../ui/Typography";
+import { Typography } from "@/src/components/ui";
 import { Divider } from "./Divider";
 import { PhaseBar } from "./PhaseBar";
 import { styles } from "./styles";

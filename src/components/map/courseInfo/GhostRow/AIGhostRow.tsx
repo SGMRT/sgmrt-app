@@ -1,7 +1,6 @@
 import { BreezeFace } from "@/assets/icons/icons";
 import { TrashIcon } from "@/assets/svgs/svgs";
-import { ProgressBar } from "@/src/components/ui/ProgressBar";
-import { Typography } from "@/src/components/ui/Typography";
+import { ProgressBar, Typography } from "@/src/components/ui";
 import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import colors from "@/src/theme/colors";
 import { Image } from "expo-image";

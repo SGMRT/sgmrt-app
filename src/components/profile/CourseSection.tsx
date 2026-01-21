@@ -3,7 +3,7 @@ import { GhostSortOption, UserCourseInfo } from "@/src/apis/types/course";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { View } from "react-native";
 import { CoursesWithFilter } from "../course/CoursesWithFilter";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 export const CourseSection = ({
     selectedCourse,

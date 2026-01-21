@@ -3,7 +3,6 @@ import { CourseResponse } from "@/src/apis/types/course";
 import { usePinnedCourses } from "@/src/features/pacemaker/hooks/usePinnedCourses";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { useAuthStore } from "@/src/store/authState";
-import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
     calculateCenter,
@@ -12,28 +11,22 @@ import {
     getDistance,
 } from "@/src/utils/mapUtils";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
-import { BottomSheetHandle, BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Camera } from "@rnmapbox/maps";
 import { Position } from "@rnmapbox/maps/lib/typescript/src/types/Position";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Dimensions, StyleSheet, View } from "react-native";
-import {
-    SharedValue,
-    useAnimatedStyle,
-    useSharedValue,
-} from "react-native-reanimated";
+import { Dimensions, View } from "react-native";
+import { useAnimatedStyle } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CourseListView from "../course/CourseListView";
-import { ActionButton } from "../ui/ActionButton";
-import BottomModal from "../ui/BottomModal";
-import StyledBottomSheet from "../ui/StyledBottomSheet";
-import { Typography } from "../ui/Typography";
-import BottomCourseInfoModal from "./courseInfo/BottomCourseInfoModal/BottomCourseInfoModal";
+import { ActionButton, StyledBottomSheet } from "@/src/components/ui";
 import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
+import { HomeBottomModal } from "./HomeBottomModal";
+import { ListBottomSheetHandle } from "./ListBottomSheetHandle";
 
 interface HomeMapProps {
     courseType: "all" | "my";
@@ -354,66 +347,3 @@ export default function HomeMap({
         </>
     );
 }
-
-interface HomeBottomModalProps {
-    bottomSheetRef: React.RefObject<BottomSheetModal | null>;
-    heightVal?: SharedValue<number>;
-    modalType: "all" | "my" | "list";
-    activeCourse: CourseResponse | null;
-    courses: CourseResponse[];
-    onClickCourse: (course: CourseResponse) => void;
-    onClickCourseInfo: (course: CourseResponse) => void;
-    onClose?: () => void;
-    backdrop?: boolean;
-    backdropOpacity?: number;
-}
-
-const HomeBottomModal = ({
-    bottomSheetRef,
-    heightVal = undefined,
-    activeCourse,
-    onClose = () => {},
-    backdrop = true,
-    backdropOpacity = 0.4,
-}: HomeBottomModalProps) => {
-    return (
-        <BottomModal
-            bottomSheetRef={bottomSheetRef}
-            heightVal={heightVal}
-            onDismiss={onClose}
-            backdrop={backdrop}
-            backdropOpacity={backdropOpacity}
-        >
-            <BottomCourseInfoModal
-                bottomSheetRef={bottomSheetRef}
-                course={activeCourse ?? null}
-            />
-        </BottomModal>
-    );
-};
-
-const ListBottomSheetHandle = () => {
-    const animatedIndex = useSharedValue(0);
-    const animatedPosition = useSharedValue(0);
-    return (
-        <View style={{ alignItems: "center" }}>
-            <BottomSheetHandle
-                indicatorStyle={styles.handleIndicator}
-                animatedIndex={animatedIndex}
-                animatedPosition={animatedPosition}
-            />
-            <Typography variant="subhead1" color="gray40">
-                목록
-            </Typography>
-        </View>
-    );
-};
-
-const styles = StyleSheet.create({
-    handleIndicator: {
-        backgroundColor: colors.gray[40],
-        width: 50,
-        height: 5,
-        borderRadius: 100,
-    },
-});

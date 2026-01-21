@@ -1,7 +1,14 @@
 import colors from "@/src/theme/colors";
 import { errorLog } from "@/src/utils/devLog";
-import { useEffect, useState } from "react";
-import { Image, Platform, StyleSheet, View, ViewStyle } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+    Image,
+    InteractionManager,
+    Platform,
+    StyleSheet,
+    View,
+    ViewStyle,
+} from "react-native";
 import {
     AdsConsent,
     AdsConsentStatus,
@@ -14,7 +21,7 @@ import {
     TestIds,
 } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 type Props = { style?: ViewStyle };
 const AD_UNIT_ID = __DEV__
@@ -25,15 +32,20 @@ const AD_UNIT_ID = __DEV__
 
 export default function CompactNativeAdRow({ style }: Props) {
     const [ad, setAd] = useState<NativeAd | null>(null);
+    const [isViewReady, setIsViewReady] = useState(false);
+    const [isLayoutReady, setIsLayoutReady] = useState(false);
     const { bottom } = useSafeAreaInsets();
+    const isMountedRef = useRef(true);
 
     useEffect(() => {
-        let active = true;
-        let creactedAd: NativeAd | null = null;
+        isMountedRef.current = true;
+        let createdAd: NativeAd | null = null;
 
         if (!AD_UNIT_ID) return;
 
         AdsConsent.getConsentInfo().then((info) => {
+            if (!isMountedRef.current) return;
+
             const npa = info.status !== AdsConsentStatus.OBTAINED;
 
             NativeAd.createForAdRequest(AD_UNIT_ID, {
@@ -43,31 +55,55 @@ export default function CompactNativeAdRow({ style }: Props) {
                 requestNonPersonalizedAdsOnly: npa,
             })
                 .then((a) => {
-                    if (!active) {
+                    if (!isMountedRef.current) {
                         a.destroy?.();
                         return;
                     }
-                    creactedAd = a;
+                    createdAd = a;
                     setAd(a);
                 })
                 .catch((e) => {
-                    if (!active) return;
+                    if (!isMountedRef.current) return;
                     errorLog(e);
                 });
         });
 
         return () => {
-            active = false;
-            creactedAd?.destroy?.();
+            isMountedRef.current = false;
+            // 먼저 상태를 false로 설정하여 NativeAsset 렌더링 중지
+            setIsViewReady(false);
+            setIsLayoutReady(false);
+            // 충분한 시간 후에 ad를 정리 (NativeAsset 등록 해제 대기)
+            setTimeout(() => {
+                createdAd?.destroy?.();
+            }, 100);
         };
     }, []);
 
+    // NativeAdView의 레이아웃이 완료된 후 NativeAsset을 렌더링하도록 지연
     useEffect(() => {
-        if (!ad) return;
+        if (!ad || !isLayoutReady || !isMountedRef.current) {
+            setIsViewReady(false);
+            return;
+        }
+
+        // 레이아웃 완료 후 추가로 한 프레임 대기
+        const handle = InteractionManager.runAfterInteractions(() => {
+            if (isMountedRef.current && isLayoutReady) {
+                setIsViewReady(true);
+            }
+        });
+
         return () => {
-            ad.destroy();
+            handle.cancel();
         };
-    }, [ad]);
+    }, [ad, isLayoutReady]);
+
+    const handleLayout = () => {
+        if (isMountedRef.current) {
+            setIsLayoutReady(true);
+        }
+    };
 
     if (!ad)
         return (
@@ -96,6 +132,7 @@ export default function CompactNativeAdRow({ style }: Props) {
             <NativeAdView
                 nativeAd={ad}
                 style={[styles.container, style, { marginBottom: bottom }]}
+                onLayout={handleLayout}
             >
                 {/* AD 배지 (자산 아님) */}
                 <View style={styles.badge}>
@@ -104,54 +141,60 @@ export default function CompactNativeAdRow({ style }: Props) {
                     </Typography>
                 </View>
 
-                {/* 이미지 */}
-                {ad.icon?.url && (
-                    <NativeAsset assetType={NativeAssetType.ICON}>
-                        <Image
-                            source={{ uri: ad.icon?.url }}
-                            style={styles.icon}
-                        />
-                    </NativeAsset>
-                )}
+                {isViewReady && (
+                    <>
+                        {/* 이미지 */}
+                        {ad.icon?.url && (
+                            <NativeAsset assetType={NativeAssetType.ICON}>
+                                <Image
+                                    source={{ uri: ad.icon?.url }}
+                                    style={styles.icon}
+                                />
+                            </NativeAsset>
+                        )}
 
-                {/* 텍스트 라인 */}
-                <View style={styles.textLine}>
-                    {ad.advertiser ? (
-                        <NativeAsset assetType={NativeAssetType.ADVERTISER}>
+                        {/* 텍스트 라인 */}
+                        <View style={styles.textLine}>
+                            {ad.advertiser ? (
+                                <NativeAsset
+                                    assetType={NativeAssetType.ADVERTISER}
+                                >
+                                    <Typography
+                                        variant="advertiser"
+                                        color="white"
+                                        numberOfLines={1}
+                                        ellipsizeMode="tail"
+                                    >
+                                        {ad.advertiser}
+                                        {": "}
+                                    </Typography>
+                                </NativeAsset>
+                            ) : null}
+                            <NativeAsset assetType={NativeAssetType.HEADLINE}>
+                                <Typography
+                                    variant="caption1"
+                                    color="gray20"
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    {ad.headline}
+                                </Typography>
+                            </NativeAsset>
+                        </View>
+
+                        {/* CTA */}
+                        <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
                             <Typography
-                                variant="advertiser"
-                                color="white"
+                                variant="caption1"
+                                color="black"
                                 numberOfLines={1}
-                                ellipsizeMode="tail"
+                                style={styles.cta}
                             >
-                                {ad.advertiser}
-                                {": "}
+                                {ad.callToAction}
                             </Typography>
                         </NativeAsset>
-                    ) : null}
-                    <NativeAsset assetType={NativeAssetType.HEADLINE}>
-                        <Typography
-                            variant="caption1"
-                            color="gray20"
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                        >
-                            {ad.headline}
-                        </Typography>
-                    </NativeAsset>
-                </View>
-
-                {/* CTA */}
-                <NativeAsset assetType={NativeAssetType.CALL_TO_ACTION}>
-                    <Typography
-                        variant="caption1"
-                        color="black"
-                        numberOfLines={1}
-                        style={styles.cta}
-                    >
-                        {ad.callToAction}
-                    </Typography>
-                </NativeAsset>
+                    </>
+                )}
             </NativeAdView>
         )
     );

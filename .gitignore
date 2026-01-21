@@ -91,3 +91,6 @@ GoogleService-Info.plist
 .env.local
 
 .env.local
+
+.reports/
+coverage/

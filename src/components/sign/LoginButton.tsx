@@ -1,5 +1,4 @@
-import { Button } from "../ui/Button";
-import { TypographyColor } from "../ui/Typography";
+import { Button, TypographyColor } from "@/src/components/ui";
 
 interface LoginButtonProps {
     text: string;

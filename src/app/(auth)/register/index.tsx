@@ -1,6 +1,5 @@
 import AgreeList from "@/src/components/sign/AgreeList";
-import Header from "@/src/components/ui/Header";
-import { Typography } from "@/src/components/ui/Typography";
+import { Header, Typography } from "@/src/components/ui";
 import { StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 

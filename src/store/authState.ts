@@ -28,33 +28,22 @@ const secureStorage: PersistStorage<AuthState> = {
     },
 };
 
-export interface UserInfo {
-    username: string;
-    height: number | null;
-    weight: number | null;
-    age: number | null;
-    gender: "MALE" | "FEMALE" | "";
-}
-
-export interface UserSettings {
-    pushAlarmEnabled: boolean;
-    vibrationEnabled: boolean;
-    voiceGuidanceEnabled: boolean;
-}
-
+/**
+ * 인증 상태 관리
+ *
+ * 토큰과 로그인 상태만 관리합니다.
+ * 사용자 정보(userInfo, userSettings)는 React Query로 관리합니다.
+ *
+ * @see src/features/user/hooks/useUserInfo.ts
+ */
 interface AuthState {
     accessToken: string | null;
     refreshToken: string | null;
     uuid: string | null;
     isLoggedIn: boolean;
-
-    userInfo: UserInfo | null;
-    userSettings: UserSettings | null;
     login: (accessToken: string, refreshToken: string, uuid: string) => void;
     refresh: (accessToken: string, refreshToken: string) => void;
     logout: () => void;
-    setUserInfo: (userInfo: UserInfo) => void;
-    setUserSettings: (userSettings: UserSettings) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -65,8 +54,7 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken: null,
                 uuid: null,
                 isLoggedIn: false,
-                userInfo: null,
-                userSettings: null,
+
                 login: (access, refresh, uuid) => {
                     set({
                         accessToken: access,
@@ -83,22 +71,12 @@ export const useAuthStore = create<AuthState>()(
                     });
                 },
 
-                setUserInfo: (userInfo: UserInfo) => {
-                    set({ userInfo });
-                },
-
-                setUserSettings: (userSettings: UserSettings) => {
-                    set({ userSettings });
-                },
-
                 logout: () => {
                     set({
                         accessToken: null,
                         refreshToken: null,
                         uuid: null,
                         isLoggedIn: false,
-                        userInfo: null,
-                        userSettings: null,
                     });
                     amplitude.reset();
                 },

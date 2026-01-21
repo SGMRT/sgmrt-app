@@ -1,6 +1,6 @@
 import colors from "@/src/theme/colors";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 export const DayComponent = (day: any) => {
     //boolean

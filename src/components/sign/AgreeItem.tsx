@@ -1,7 +1,7 @@
 import { CheckIcon, ChevronIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Typography } from "../ui/Typography";
+import { Typography } from "@/src/components/ui";
 
 interface AgreeItemProps {
     title: string;

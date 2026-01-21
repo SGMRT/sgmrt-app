@@ -1,8 +1,7 @@
 import { HomeIcon } from "@/assets/svgs/svgs";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
-import Header from "../../ui/Header";
-import { TabItem } from "../../ui/TabItem";
+import { Header, TabItem } from "@/src/components/ui";
 
 export const NoticePageHeader = ({
     selectedTab,

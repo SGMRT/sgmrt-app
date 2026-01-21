@@ -4,8 +4,8 @@ import { useEffect, useMemo, useReducer, useRef } from "react";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import { useRunMetronome } from "../../audio/useRunMetronome";
-import { RunAction } from "../state/actions";
-import { initialRunContext, runReducer } from "../state/reducer";
+import { RunAction } from "../context/actions";
+import { initialRunContext, runReducer } from "../context/reducer";
 import { joinedState } from "../store/joinedState";
 import { RunMode } from "../types";
 import { CourseMetadata, CourseVariant } from "../types/status";
@@ -62,7 +62,9 @@ export function useRunningSession() {
             start: (
                 mode: RunMode,
                 variant?: CourseVariant,
-                courseMetadata?: CourseMetadata
+                courseMetadata?: CourseMetadata,
+                /** 사용자 체중 (kg), 칼로리 계산에 사용 */
+                userWeight?: number
             ) => {
                 geoFilter.reset();
 
@@ -73,6 +75,7 @@ export function useRunningSession() {
                         mode,
                         variant,
                         courseMetadata,
+                        userWeight,
                     },
                 });
             },

@@ -1,6 +1,5 @@
 import { AddIcon, InfoIcon } from "@/assets/svgs/svgs";
-import { Beta } from "@/src/components/ui/Beta";
-import { Typography } from "@/src/components/ui/Typography";
+import { Beta, Typography } from "@/src/components/ui";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
 

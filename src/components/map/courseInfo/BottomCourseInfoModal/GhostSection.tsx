@@ -1,8 +1,6 @@
 import { getGhostyRateLimit } from "@/src/apis";
 import { PacemakerByCourseIdResponse } from "@/src/apis/types/ghosty";
-import Section from "@/src/components/ui/Section";
-import { Stat } from "@/src/components/ui/StatRow";
-import { StyledSwitch } from "@/src/components/ui/StyledSwitch";
+import { Section, Stat, StyledSwitch } from "@/src/components/ui";
 import { convertToName } from "@/src/features/pacemaker/utils/convertToName";
 import { getFormattedPace } from "@/src/utils/runUtils";
 import { useEffect, useMemo, useState } from "react";

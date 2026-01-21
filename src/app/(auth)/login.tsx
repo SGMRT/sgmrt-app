@@ -1,12 +1,14 @@
 import { Logo } from "@/assets/icons/icons";
 import { AppleIcon, KakaoIcon } from "@/assets/svgs/svgs";
 import { getUserInfo, signIn } from "@/src/apis";
+import { queryKeys } from "@/src/apis/queryKeys";
+import { GetUserInfoResponse } from "@/src/apis/types/user";
 import LoginButton from "@/src/components/sign/LoginButton";
-import LoadingLayer from "@/src/components/ui/LoadingLayer";
-import { showToast } from "@/src/components/ui/toastConfig";
+import { LoadingLayer, showToast } from "@/src/components/ui";
 import { useAuthStore } from "@/src/store/authState";
 import { devLog } from "@/src/utils/devLog";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
+import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { getAuth, signInWithCredential } from "@react-native-firebase/auth";
 import {
@@ -32,6 +34,7 @@ export default function Login() {
     const router = useRouter();
     const { login } = useAuthStore();
     const { bottom } = useSafeAreaInsets();
+    const queryClient = useQueryClient();
 
     const [loadingProvider, setLoadingProvider] = useState<
         null | "kakao" | "apple"
@@ -54,6 +57,7 @@ export default function Login() {
                 ...args,
                 login,
                 bottom,
+                queryClient,
             })
                 .then(() => router.replace("/(tabs)/home"))
                 .catch((err) => {
@@ -167,16 +171,15 @@ async function handleLogin({
     secret,
     login,
     bottom,
+    queryClient,
 }: {
     providerId: string;
     token: string;
     secret?: string;
     login: (accessToken: string, refreshToken: string, uuid: string) => void;
     bottom: number;
+    queryClient: QueryClient;
 }) {
-    const { setUserInfo: setUserInfoStore } = useAuthStore.getState();
-    const { setUserSettings: setUserSettingsStore } = useAuthStore.getState();
-
     try {
         const credential = await signInWithCredential(getAuth(), {
             providerId,
@@ -205,19 +208,13 @@ async function handleLogin({
 
         amplitude.setUserId(credential.user.uid);
 
-        const ui = await getUserInfo();
-        setUserInfoStore({
-            username: ui.nickname,
-            gender: ui.gender,
-            age: ui.age,
-            height: ui.height,
-            weight: ui.weight,
-        });
-        setUserSettingsStore({
-            pushAlarmEnabled: ui.pushAlarmEnabled,
-            vibrationEnabled: ui.vibrationEnabled,
-            voiceGuidanceEnabled: ui.voiceGuidanceEnabled,
-        });
+        // React Query 캐시에 사용자 정보 저장
+        const userInfo = await getUserInfo();
+        queryClient.setQueryData<GetUserInfoResponse>(
+            queryKeys.user.info(),
+            userInfo
+        );
+
         // signin
         trackAmplitude("Sign In", { provider: providerId });
     } catch (err: any) {

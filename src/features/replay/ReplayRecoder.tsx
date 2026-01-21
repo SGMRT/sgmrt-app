@@ -6,9 +6,7 @@
 
 import { createVideoFromBase64 } from "@/modules/expo-image-to-video";
 import { Telemetry } from "@/src/apis/types/run";
-import StatRow, { Stat } from "@/src/components/ui/StatRow";
-import { showToast } from "@/src/components/ui/toastConfig";
-import { Typography } from "@/src/components/ui/Typography";
+import { Stat, StatRow, Typography, showToast } from "@/src/components/ui";
 import { interpolateTelemetries } from "@/src/utils/interpolateTelemetries";
 import { normalizeTimestamps } from "@/src/utils/normalizeTimestamps";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";

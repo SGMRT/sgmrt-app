@@ -1,6 +1,6 @@
 import { devLog } from "@/src/utils/devLog";
 import { useEffect, useRef } from "react";
-import { RunContext } from "../run/state/context";
+import { RunContext } from "../run/context/context";
 import { voice } from "./voice";
 
 export function useRunVoice(context: RunContext) {
