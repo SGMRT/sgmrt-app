@@ -139,6 +139,14 @@ jest.mock("expo-constants", () => ({
     },
 }));
 
+// uuid mock
+jest.mock("uuid", () => ({
+    v4: jest.fn(() => "test-uuid-" + Math.random().toString(36).substring(2, 11)),
+}));
+
+// react-native-get-random-values (uuid 의존성)
+jest.mock("react-native-get-random-values", () => {});
+
 // (선택) 테스트용 env
 process.env.EXPO_PUBLIC_API_URL = "https://api.example.com";
 process.env.EXPO_PUBLIC_DEV_API_URL = "https://dev-api.example.com";
