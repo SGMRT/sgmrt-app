@@ -1,5 +1,7 @@
 import { getCalories } from "@/src/utils/runUtils";
+import { MAX_SPEED_MPS } from "../constants";
 import { RawRunData } from "../types";
+import { PaceCalculator } from "../utils/paceCalculator";
 
 export interface RunningStats {
     totalTimeMs: number;
@@ -21,6 +23,7 @@ export interface RunningStats {
     _totalSteps: number;
     _stepInvalid: boolean;
     _stepStaleCount: number;
+    _paceCalculator?: PaceCalculator;
 }
 
 export const DEFAULT_STATS: RunningStats = {
@@ -38,10 +41,10 @@ export const DEFAULT_STATS: RunningStats = {
     _totalSteps: 0,
     _stepInvalid: false,
     _stepStaleCount: 0,
+    _paceCalculator: undefined,
 };
 
-const PACE_WINDOW_MS = 10_000;
-const MAX_SPEED_MPS = 15;
+// 상수는 constants.ts에서 가져오되, 일부는 로컬 유지
 const MIN_VALID_DIST_M = 0.3;
 const ALT_THRESHOLD_M = 0;
 const MIN_ACCEPT_DT_SEC = 0.8;
@@ -86,11 +89,20 @@ export function updateStats(
     const last = prev.last;
     const zero = !!options?.zeroDt;
 
+    // PaceCalculator 인스턴스 재사용 또는 생성
+    const paceCalculator = prev._paceCalculator ?? new PaceCalculator();
+
+    // zero 모드일 때 페이스 계산기 리셋
+    if (zero) {
+        paceCalculator.reset();
+    }
+
     const next: RunningStats = {
         ...prev,
         _window: zero || prev._stepInvalid ? [] : cloneWindow(prev._window),
         _totalSteps: prev._totalSteps ?? 0,
         _stepInvalid: zero ? true : prev._stepInvalid,
+        _paceCalculator: paceCalculator,
     };
 
     // --- 시간 증분 (수용 여부 판단 이전에 dt 계산만) ---
@@ -135,29 +147,17 @@ export function updateStats(
         }
     }
 
-    // --- 창 슬라이드 (cutoff는 push 이전) ---
-    const cutoff = sample.timestamp - PACE_WINDOW_MS;
-    while (next._window.length && next._window[0].ts < cutoff) {
-        next._window.shift();
-    }
-
-    // --- 매 샘플 푸시  ---
+    // --- 윈도우에 샘플 추가 (레거시 호환성 유지) ---
     next._window.push({
         ts: sample.timestamp,
         dist: filteredDistM,
         deltaSteps: deltaSteps,
     });
 
-    // --- 창 집계 ---
-    const winTimeSec =
-        next._window.length >= 2
-            ? (next._window[next._window.length - 1].ts - next._window[0].ts) /
-              1000
-            : 0;
-
-    const sumDist = next._window.reduce((a, b) => a + b.dist, 0);
-
-    const rawPace = secPerKmFrom(sumDist, winTimeSec);
+    // --- 개선된 페이스 계산 (PaceCalculator 사용) ---
+    const currentPace = zero
+        ? null
+        : paceCalculator.addSample(sample.timestamp, filteredDistM, dtSec);
 
     let rawCadence = sample.steps ? (sample.steps.last5sSteps / 5) * 60 : null;
 
@@ -165,16 +165,13 @@ export function updateStats(
         rawCadence = null;
     }
 
-    // console.log("rawCadence", rawCadence);
-    // console.log("sample.steps.last5sSteps", sample.steps?.last5sSteps);
-
-    // sticky
-    next.currentPaceSecPerKm = rawPace ?? prev.currentPaceSecPerKm ?? null;
+    // 현재 페이스 (개선된 PaceCalculator 사용)
+    next.currentPaceSecPerKm = currentPace ?? prev.currentPaceSecPerKm ?? null;
     next.currentCadenceSpm = rawCadence ?? prev.currentCadenceSpm ?? null;
     next.bpm = sample.bpm ?? prev.bpm ?? null;
 
-    // 평균
-    next.avgPaceSecPerKm = secPerKmFrom(
+    // 평균 페이스 (PaceCalculator의 평균 계산 사용)
+    next.avgPaceSecPerKm = paceCalculator.calculateAveragePace(
         next.totalDistanceM,
         next.totalTimeMs / 1000
     );
