@@ -49,18 +49,14 @@ export function useRunAnalytics(context: RunContext) {
 
         // 코스 이탈/복귀
         if (prev !== "PAUSED_OFFCOURSE" && curr === "PAUSED_OFFCOURSE") {
-            trackAmplitude("course_out", {
-                course_id: propsBase.course_id,
-            });
+            trackAmplitude("course_out", propsBase);
         }
 
         if (
             (prev === "PAUSED_OFFCOURSE" || prev === "PAUSED_USER") &&
             curr === "RUNNING"
         ) {
-            trackAmplitude("run_restart", {
-                course_id: propsBase.course_id,
-            });
+            trackAmplitude("run_restart", propsBase);
         }
 
         if (prev !== "COMPLETION_PENDING" && curr === "COMPLETION_PENDING") {
@@ -71,7 +67,7 @@ export function useRunAnalytics(context: RunContext) {
         if (prev !== "STOPPED" && curr === "STOPPED") {
             // run_complete
             trackAmplitude("Run End", {
-                run_mode: propsBase.run_mode,
+                ...propsBase,
                 distance_km: (context.stats.totalDistanceM / 1000).toFixed(2),
                 elevation_gain_m: context.stats.gainM.toFixed(2),
                 course_finished:

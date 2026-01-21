@@ -156,6 +156,7 @@ const config = {
                     url: "https://sentry.io/",
                     project: "react-native",
                     organization: "sogogimaratang",
+                    setCommits: "auto",
                 },
             ],
             "expo-audio",

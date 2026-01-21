@@ -207,6 +207,11 @@ async function handleLogin({
         login(res.accessToken, res.refreshToken, res.uuid);
 
         amplitude.setUserId(credential.user.uid);
+        amplitude.identify(
+            new amplitude.Identify()
+                .set("server_uuid", res.uuid)
+                .set("provider", providerId)
+        );
 
         // React Query 캐시에 사용자 정보 저장
         const userInfo = await getUserInfo();

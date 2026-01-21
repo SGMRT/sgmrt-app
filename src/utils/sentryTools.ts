@@ -2,6 +2,40 @@ import * as Sentry from "@sentry/react-native";
 
 type JsonLike = Record<string, any>;
 
+// 에러 우선순위 상수
+export const ERROR_PRIORITY = {
+    HIGH: "high", // 항상 전송 (핵심 비즈니스 로직)
+    MEDIUM: "medium", // 샘플링 (시간당 3건)
+    LOW: "low", // 전송 안함
+} as const;
+
+export type ErrorPriority = (typeof ERROR_PRIORITY)[keyof typeof ERROR_PRIORITY];
+
+// 중복 에러 제한 로직
+const errorCountMap = new Map<string, { count: number; lastSentAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1시간
+const MAX_SAME_ERROR_PER_HOUR = 3;
+
+export const shouldSendError = (fingerprint: string): boolean => {
+    const now = Date.now();
+    const record = errorCountMap.get(fingerprint);
+
+    if (!record || now - record.lastSentAt > RATE_LIMIT_WINDOW_MS) {
+        errorCountMap.set(fingerprint, { count: 1, lastSentAt: now });
+        return true;
+    }
+
+    if (record.count >= MAX_SAME_ERROR_PER_HOUR) {
+        return false;
+    }
+
+    errorCountMap.set(fingerprint, {
+        count: record.count + 1,
+        lastSentAt: record.lastSentAt,
+    });
+    return true;
+};
+
 export const addPhase = (phase: string, data?: JsonLike) => {
     Sentry.addBreadcrumb({
         category: "saveRunning",
@@ -126,16 +160,24 @@ export const trackDuration = (name: string, baseData?: JsonLike) => {
 /**
  * 센트리로 오류를 명시적으로 전송하는 함수
  * 이 함수를 통해서만 센트리로 오류를 전송
+ *
+ * @param where - 에러 발생 위치 식별자
+ * @param err - 에러 객체
+ * @param extras - 추가 데이터
+ * @param tags - 태그
+ * @param priority - 에러 우선순위 (HIGH: 항상 전송, MEDIUM: 샘플링, LOW: 전송 안함)
  */
 export const captureError = (
     where: string,
     err: unknown,
     extras?: JsonLike,
-    tags?: Record<string, string>
+    tags?: Record<string, string>,
+    priority: ErrorPriority = ERROR_PRIORITY.MEDIUM
 ) => {
     Sentry.withScope((scope) => {
         // 의도적으로 보낸 이벤트 표식
         scope.setTag("where", where);
+        scope.setTag("priority", priority);
 
         if (tags) {
             for (const [k, v] of Object.entries(tags))

@@ -141,7 +141,23 @@ export default function Profile() {
                     userInfoResponse
                 );
                 login(res.accessToken, res.refreshToken, res.uuid);
-                amplitude.setUserId(res.uuid);
+
+                // Firebase UID를 User ID로 사용 (login.tsx와 통일)
+                const firebaseUid = getAuth().currentUser?.uid;
+                if (firebaseUid) {
+                    amplitude.setUserId(firebaseUid);
+                }
+                // User Property 설정
+                amplitude.identify(
+                    new amplitude.Identify()
+                        .set("server_uuid", res.uuid)
+                        .set("provider", data.provider ?? "email")
+                        .set("age", age)
+                        .set("gender", gender)
+                        .set("height", height)
+                        .set("weight", weight)
+                        .set("nickname", nickname)
+                );
             })
             .then(() => {
                 router.replace("/(tabs)/home");

@@ -324,7 +324,7 @@ export default function Run() {
                     "ghostrunner_" + runSaveResult?.runningId.toString() + ".png",
                 url: uri ?? "",
             })
-                .then(() => trackAmplitude("Run Shared"))
+                .then(() => trackAmplitude("Run Shared", { variant: "image" }))
                 .catch(() => {});
             shareBottomSheetRef.current?.dismiss();
         } else {

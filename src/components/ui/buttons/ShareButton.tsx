@@ -32,7 +32,7 @@ export default function ShareButton({
                         devLog(res);
                         if (res.success) {
                             // run_shared
-                            trackAmplitude("Run Shared");
+                            trackAmplitude("Run Shared", { variant: "image" });
                         }
                     })
                     .catch((err) => {
