@@ -53,15 +53,11 @@ export default function WeatherInfo() {
                         ),
                     ]);
 
-                    setLocationInfo(
-                        currentCoord,
-                        addressResult[0].district ||
-                            addressResult[0].city ||
-                            addressResult[0].region ||
-                            addressResult[0].country ||
-                            "--",
-                        weatherResult.data.main.temp
-                    );
+                    const addr = addressResult?.[0];
+                    const place =
+                        addr?.district ?? addr?.city ?? addr?.region ?? addr?.country ?? "--";
+
+                    setLocationInfo(currentCoord, place, weatherResult.data.main.temp);
                     return;
                 }
 
