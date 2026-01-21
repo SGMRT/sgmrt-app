@@ -42,7 +42,7 @@ amplitude.init(amplitudeApiKey, undefined, {
     disableCookies: true,
 });
 
-// Session Replay 플러그인 추가 (월 1,000회 제한, 10% 샘플링)
+// Session Replay 플러그인 추가 (월 1,000회 제한, 2% 샘플링)
 amplitude.add(
     new SessionReplayPlugin({
         sampleRate: 0.02,
@@ -53,7 +53,7 @@ Sentry.init({
     dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
     sendDefaultPii: false, // 개인정보 자동 수집 비활성화
     environment: env,
-    tracesSampleRate: 0.01, // Free 플랜: Performance 비활성화
+    tracesSampleRate: 0.01, // 1% 샘플링
     maxBreadcrumbs: 30, // 기본 100에서 축소
     // 기본 전송 비활성화: captureError 함수를 통해서만 명시적으로 전송
     beforeSend(event, hint) {
@@ -73,7 +73,7 @@ Sentry.init({
         if (priority !== ERROR_PRIORITY.HIGH) {
             const fingerprint =
                 event.fingerprint?.join(":") ??
-                (hint.originalException as Error)?.message ??
+                (hint?.originalException as Error | undefined)?.message ??
                 "unknown";
             if (!shouldSendError(fingerprint)) {
                 return null;
