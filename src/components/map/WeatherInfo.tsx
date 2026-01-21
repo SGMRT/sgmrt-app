@@ -4,96 +4,100 @@ import { devLog } from "@/src/utils/devLog";
 import { getDistance } from "@/src/utils/mapUtils";
 import axios from "axios";
 import * as Location from "expo-location";
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
-const CACHE_DURATION_MS = 30 * 60 * 1000; // 30분
-const DISTANCE_THRESHOLD_M = 1000; // 1km
+const WEATHER_CACHE_MS = 60 * 60 * 1000; // 날씨: 1시간
+const ADDRESS_DISTANCE_M = 3000; // 주소: 3km 이동 시
 
 export default function WeatherInfo() {
     const isLoadingRef = useRef(false);
-    const { coords, address, temperature, lastUpdated, setLocationInfo, updateTemperature } =
-        useLocationInfoStore();
+    const { address, temperature } = useLocationInfoStore();
 
-    const getLocationInfo = useCallback(
-        async ({
-            longitude,
-            latitude,
-        }: {
-            longitude: number;
-            latitude: number;
-        }) => {
+    useEffect(() => {
+        let subscription: Location.LocationSubscription;
+
+        const handleLocationUpdate = async (location: Location.LocationObject) => {
             if (isLoadingRef.current) return;
+
+            const now = Date.now();
+            const state = useLocationInfoStore.getState();
+            const {
+                coords,
+                weatherLastUpdated,
+                updateAddress,
+                updateTemperature,
+            } = state;
+
+            const latitude = location.coords.latitude;
+            const longitude = location.coords.longitude;
+            const currentCoord = { lat: latitude, lng: longitude };
+
+            // 날씨 업데이트 필요 여부 (1시간 경과)
+            const weatherTime = weatherLastUpdated
+                ? new Date(weatherLastUpdated).getTime()
+                : 0;
+            const needWeatherUpdate = now - weatherTime >= WEATHER_CACHE_MS;
+
+            // 주소 업데이트 필요 여부 (3km 이동)
+            const distance = coords ? getDistance(coords, currentCoord) : Infinity;
+            const needAddressUpdate = distance >= ADDRESS_DISTANCE_M;
+
+            // 둘 다 필요 없으면 스킵
+            if (!needWeatherUpdate && !needAddressUpdate) {
+                return;
+            }
+
             isLoadingRef.current = true;
 
             try {
-                const now = Date.now();
-                const lastTime = lastUpdated ? new Date(lastUpdated).getTime() : 0;
-                const timeSinceUpdate = now - lastTime;
-                const isWithinCacheDuration = timeSinceUpdate < CACHE_DURATION_MS;
-
-                const currentCoord = { lat: latitude, lng: longitude };
-                const distance = coords ? getDistance(coords, currentCoord) : Infinity;
-                const isWithinDistanceThreshold = distance < DISTANCE_THRESHOLD_M;
-
-                // 30분 이내 + 1km 미만 이동 → 요청 안 함
-                if (isWithinCacheDuration && isWithinDistanceThreshold) {
-                    devLog("기상 정보 캐시 사용");
-                    return;
+                // 주소 업데이트 (3km 이상 이동 시)
+                if (needAddressUpdate) {
+                    devLog("주소 정보 요청");
+                    try {
+                        const addressResult = await Location.reverseGeocodeAsync({
+                            latitude,
+                            longitude,
+                        });
+                        const addr = addressResult?.[0];
+                        if (addr) {
+                            const place =
+                                addr.district ??
+                                addr.city ??
+                                addr.region ??
+                                addr.country ??
+                                "--";
+                            updateAddress(currentCoord, place);
+                        }
+                    } catch (e) {
+                        devLog("주소 요청 실패", e);
+                    }
                 }
 
-                // 1km 이상 이동 → 주소 + 날씨 둘 다 요청
-                if (!isWithinDistanceThreshold) {
-                    devLog("기상 정보 요청 (주소 + 날씨)");
-
-                    const [addressResult, weatherResult] = await Promise.all([
-                        Location.reverseGeocodeAsync({ latitude, longitude }),
-                        axios.get(
-                            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.EXPO_PUBLIC_OWM_TOKEN}`
-                        ),
-                    ]);
-
-                    const addr = addressResult?.[0];
-                    const place =
-                        addr?.district ?? addr?.city ?? addr?.region ?? addr?.country ?? "--";
-
-                    setLocationInfo(currentCoord, place, weatherResult.data.main.temp);
-                    return;
+                // 날씨 업데이트 (1시간 경과 시)
+                if (needWeatherUpdate) {
+                    devLog("날씨 정보 요청");
+                    const weatherResult = await axios.get(
+                        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.EXPO_PUBLIC_OWM_TOKEN}`
+                    );
+                    updateTemperature(weatherResult.data.main.temp);
                 }
-
-                // 1km 미만 + 30분 이상 → 날씨만 요청
-                devLog("기상 정보 요청 (날씨만)");
-                const weatherResult = await axios.get(
-                    `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.EXPO_PUBLIC_OWM_TOKEN}`
-                );
-                updateTemperature(weatherResult.data.main.temp);
             } catch (error) {
                 devLog("기상 정보 요청 실패", error);
             } finally {
                 isLoadingRef.current = false;
             }
-        },
-        [coords, lastUpdated, setLocationInfo, updateTemperature]
-    );
-
-    useEffect(() => {
-        let subscription: Location.LocationSubscription;
+        };
 
         (async () => {
-            // try catch
             try {
                 subscription = await Location.watchPositionAsync(
                     {
-                        accuracy: 5,
-                        timeInterval: 1000 * 60 * 10,
-                        distanceInterval: 500,
+                        accuracy: Location.Accuracy.Balanced,
+                        timeInterval: 1000 * 60 * 10, // 10분
+                        distanceInterval: 1000, // 1km
                     },
-                    (location) => {
-                        getLocationInfo({
-                            longitude: location.coords.longitude,
-                            latitude: location.coords.latitude,
-                        });
-                    }
+                    handleLocationUpdate
                 );
             } catch (error) {
                 devLog("위치 정보 조회 실패", error);
@@ -101,11 +105,9 @@ export default function WeatherInfo() {
         })();
 
         return () => {
-            if (subscription) {
-                subscription.remove();
-            }
+            subscription?.remove();
         };
-    }, [getLocationInfo]);
+    }, []);
 
     return (
         <View style={styles.weatherInfoContainer}>
