@@ -13,6 +13,7 @@ interface LocationInfoState {
         address: string,
         temperature: number
     ) => void;
+    updateTemperature: (temperature: number) => void;
 }
 
 export const useLocationInfoStore = create<LocationInfoState>()(
@@ -26,6 +27,11 @@ export const useLocationInfoStore = create<LocationInfoState>()(
                 set({
                     coords,
                     address,
+                    temperature,
+                    lastUpdated: new Date(),
+                }),
+            updateTemperature: (temperature) =>
+                set({
                     temperature,
                     lastUpdated: new Date(),
                 }),
