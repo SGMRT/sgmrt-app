@@ -21,14 +21,21 @@ export function useSensors(enabled: boolean) {
 
         let mounted = true;
 
+        // 스토어 초기화를 비동기 작업 전에 동기적으로 수행
+        // 이전 세션 데이터가 남아있지 않도록 보장
+        sharedSensorStore.reset?.();
+        devLog("[SENSORS] Store reset (sync)");
+
         (async () => {
-            // 1) 퍼미션
+            // 1) Foreground 위치 권한
             const { status: fg } =
                 await Location.requestForegroundPermissionsAsync();
             if (fg !== "granted") {
                 devLog("[SENSORS] 위치 권한 거부");
                 return;
             }
+
+            if (!mounted) return;
 
             // 2) 중복 시작 방지
             const already = await Location.hasStartedLocationUpdatesAsync(
@@ -44,10 +51,9 @@ export function useSensors(enabled: boolean) {
                 devLog("[SENSORS] Location updates already running");
             }
 
-            // 3) 스토어 초기화 (러닝 시작 시점에만)
-            sharedSensorStore.reset?.();
+            if (!mounted) return;
 
-            // 4) Barometer (원시 pressure만 저장)
+            // 3) Barometer (원시 pressure만 저장)
             baroSubRef.current = Barometer.addListener(
                 ({ pressure, relativeAltitude }) => {
                     if (!mounted) return;

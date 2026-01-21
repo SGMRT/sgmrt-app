@@ -1,6 +1,6 @@
 import { MessageType } from "@/modules/expo-live-activity";
 import { useLocalPrefs } from "@/src/store/localPrefs";
-import { useEffect, useMemo, useReducer, useRef } from "react";
+import { useLayoutEffect, useMemo, useReducer, useRef } from "react";
 import "react-native-get-random-values";
 import { v4 as uuidv4 } from "uuid";
 import { useRunMetronome } from "../../audio/useRunMetronome";
@@ -40,7 +40,9 @@ export function useRunningSession() {
 
     const unsubRef = useRef<null | (() => void)>(null);
 
-    useEffect(() => {
+    // useLayoutEffect를 사용하여 구독이 센서 시작 전에 설정되도록 보장
+    // useEffect는 비동기적으로 실행되어 첫 샘플을 놓칠 수 있음
+    useLayoutEffect(() => {
         if (!sensorsEnabled) return;
         unsubRef.current?.();
         unsubRef.current = joinedState.subscribe((state) => {
