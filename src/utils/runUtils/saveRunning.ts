@@ -26,7 +26,13 @@ import { encodeTelemetries } from "../../apis/utils"
 import { showCompactToast } from "@/src/components/ui/feedback/toastConfig"
 import { applyAltitudeBiasFromBestGPS } from "../../features/run/utils/applyAltitudeBias"
 import { RawData, UserDashBoardData } from "../../types/run"
-import { addPhase, addWarn, captureError, trackDuration } from "../sentryTools"
+import {
+  addPhase,
+  addWarn,
+  captureError,
+  trackDuration,
+  ERROR_PRIORITY,
+} from "../sentryTools"
 import { getRunName } from "./time"
 
 const canShare = (objectType: string): boolean => {
@@ -80,10 +86,17 @@ export async function saveRunning({
     try {
       telemetries = applyAltitudeBiasFromBestGPS(telemetries, rawData)
     } catch (e) {
-      captureError("applyAltitudeBiasFromBestGPS", e, {
-        telemetriesLen: telemetries?.length ?? 0,
-        rawDataLen: rawData?.length ?? 0,
-      })
+      // 고도 보정 실패는 핵심 데이터 처리이므로 HIGH
+      captureError(
+        "applyAltitudeBiasFromBestGPS",
+        e,
+        {
+          telemetriesLen: telemetries?.length ?? 0,
+          rawDataLen: rawData?.length ?? 0,
+        },
+        undefined,
+        ERROR_PRIORITY.HIGH
+      )
     } finally {
       tAlt.end()
     }
@@ -104,9 +117,14 @@ export async function saveRunning({
     const lastTrueIndex = telemetries.findLastIndex((t) => t.isRunning)
     if (lastTrueIndex === -1) {
       const err = new Error("NoRunningSegment")
-      captureError("trim-telemetry", err, {
-        telemetriesLen: telemetries.length,
-      })
+      // 러닝 세그먼트 없음은 심각한 문제이므로 HIGH
+      captureError(
+        "trim-telemetry",
+        err,
+        { telemetriesLen: telemetries.length },
+        undefined,
+        ERROR_PRIORITY.HIGH
+      )
       throw err
     }
     telemetries = telemetries.slice(0, lastTrueIndex + 1)
@@ -200,11 +218,18 @@ export async function saveRunning({
                 }
               )
             } catch (e) {
-              captureError("healthkit:saveWorkoutSample", e, {
-                start: start.toISOString(),
-                end: end.toISOString(),
-                quantities,
-              })
+              // HealthKit 저장 실패는 데이터 손실 가능성이므로 HIGH
+              captureError(
+                "healthkit:saveWorkoutSample",
+                e,
+                {
+                  start: start.toISOString(),
+                  end: end.toISOString(),
+                  quantities,
+                },
+                undefined,
+                ERROR_PRIORITY.HIGH
+              )
             }
 
             if (workout && canWriteRoute) {
@@ -222,9 +247,14 @@ export async function saveRunning({
                   }))
                 )
               } catch (e) {
-                captureError("healthkit:saveWorkoutRoute", e, {
-                  routePoints: rawData.length,
-                })
+                // HealthKit 경로 저장 실패는 데이터 손실 가능성이므로 HIGH
+                captureError(
+                  "healthkit:saveWorkoutRoute",
+                  e,
+                  { routePoints: rawData.length },
+                  undefined,
+                  ERROR_PRIORITY.HIGH
+                )
               }
             }
           }
@@ -265,12 +295,19 @@ export async function saveRunning({
         rawDataLen: rawData.length,
       })
     } catch (e) {
-      captureError("filesystem:write-jsonl", e, {
-        rawTelemetryFileUri,
-        interpolatedTelemetryFileUri,
-        telemetriesLen: telemetries.length,
-        rawDataLen: rawData.length,
-      })
+      // 파일시스템 쓰기 실패는 데이터 손실이므로 HIGH
+      captureError(
+        "filesystem:write-jsonl",
+        e,
+        {
+          rawTelemetryFileUri,
+          interpolatedTelemetryFileUri,
+          telemetriesLen: telemetries.length,
+          rawDataLen: rawData.length,
+        },
+        undefined,
+        ERROR_PRIORITY.HIGH
+      )
       throw e
     } finally {
       tFS.end()
@@ -382,18 +419,31 @@ export async function saveRunning({
         return response
       }
     } catch (e) {
-      captureError("upload", e, {
-        courseId,
-        ghostRunningId,
-        thumbnail: !!thumbnailUri,
-      })
+      // 업로드 실패는 핵심 비즈니스 로직이므로 HIGH
+      captureError(
+        "upload",
+        e,
+        {
+          courseId,
+          ghostRunningId,
+          thumbnail: !!thumbnailUri,
+        },
+        undefined,
+        ERROR_PRIORITY.HIGH
+      )
       throw e
     } finally {
       tUpload.end()
     }
   } catch (error) {
-    // 이 함수의 최상위 실패 포인트
-    captureError("saveRunning:top-level", error)
+    // 이 함수의 최상위 실패 포인트 - 핵심 비즈니스 로직이므로 HIGH
+    captureError(
+      "saveRunning:top-level",
+      error,
+      undefined,
+      undefined,
+      ERROR_PRIORITY.HIGH
+    )
     throw error
   }
 }

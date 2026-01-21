@@ -1,7 +1,12 @@
 import axios from "axios";
 import { router } from "expo-router";
 import { useAuthStore } from "../store/authState";
-import { captureError, normalizeRoute } from "../utils/sentryTools";
+import {
+    captureError,
+    normalizeRoute,
+    ERROR_PRIORITY,
+    type ErrorPriority,
+} from "../utils/sentryTools";
 
 let refreshingPromise: Promise<string> | null = null;
 
@@ -198,7 +203,25 @@ server.interceptors.response.use(
                 error.message = `[${error.response.data.code}] ${error.response.data.message}`;
             }
 
-            captureError("apis.instance", error, extras, tags);
+            // 상태코드별 우선순위 결정
+            const getPriorityByStatus = (
+                statusCode: number | undefined
+            ): ErrorPriority => {
+                if (!statusCode) return ERROR_PRIORITY.MEDIUM;
+                if (statusCode === 500) return ERROR_PRIORITY.HIGH; // 서버 내부 에러
+                if (statusCode === 502 || statusCode === 503)
+                    return ERROR_PRIORITY.MEDIUM; // 일시적
+                if (statusCode === 504) return ERROR_PRIORITY.LOW; // 타임아웃
+                return ERROR_PRIORITY.MEDIUM;
+            };
+
+            captureError(
+                "apis.instance",
+                error,
+                extras,
+                tags,
+                getPriorityByStatus(status)
+            );
         } catch {
             /* no-op */
         }
