@@ -4,12 +4,7 @@ import { devLog } from "@/src/utils/devLog";
 import * as Location from "expo-location";
 import { Barometer, Pedometer } from "expo-sensors";
 import { useEffect, useRef } from "react";
-import {
-    GPS_DEFERRED_DISTANCE_M,
-    GPS_DEFERRED_UPDATE_INTERVAL_MS,
-    GPS_DISTANCE_INTERVAL_M,
-    LOCATION_TASK,
-} from "../constants";
+import { LOCATION_TASK } from "../constants";
 import { sharedSensorStore } from "../store/sensorStore";
 
 export function useSensors(enabled: boolean) {
@@ -42,11 +37,7 @@ export function useSensors(enabled: boolean) {
             if (!already) {
                 await Location.startLocationUpdatesAsync(LOCATION_TASK, {
                     accuracy: Location.Accuracy.BestForNavigation,
-                    // GPS 업데이트 최적화: 더 자주 업데이트 받음
-                    deferredUpdatesInterval: GPS_DEFERRED_UPDATE_INTERVAL_MS, // 1초 (기존 3초)
-                    distanceInterval: GPS_DISTANCE_INTERVAL_M, // 5m마다 업데이트 트리거
-                    deferredUpdatesDistance: GPS_DEFERRED_DISTANCE_M, // 최소 3m 이동 후 배치
-                    showsBackgroundLocationIndicator: true,
+                    deferredUpdatesInterval: 3000,
                 });
                 devLog("[SENSORS] Location updates started");
             } else {
