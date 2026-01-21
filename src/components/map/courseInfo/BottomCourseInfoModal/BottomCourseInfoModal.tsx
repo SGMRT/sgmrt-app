@@ -8,7 +8,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { BottomGuide } from "./BottomGuide";
 import { CourseInfoSection } from "./CourseInfoSection";
@@ -49,51 +49,61 @@ export default function BottomCourseInfoModal({
         }
     }, [course]);
 
-    const courseStats = [
-        {
-            description: "전체 거리",
-            value: ((course?.distance ?? 0) / 1000).toFixed(2),
-            unit: "km",
-        },
-        {
-            description: "상승 고도",
-            value: course?.elevationGain.toString() ?? "--",
-            unit: "m",
-        },
-        {
-            description: "하강 고도",
-            value: course?.elevationLoss
-                ? Math.abs(course?.elevationLoss)
-                : "0",
-            unit: "m",
-        },
-    ];
+    const courseStats = useMemo(
+        () => [
+            {
+                description: "전체 거리",
+                value: ((course?.distance ?? 0) / 1000).toFixed(2),
+                unit: "km",
+            },
+            {
+                description: "상승 고도",
+                value: course?.elevationGain.toString() ?? "--",
+                unit: "m",
+            },
+            {
+                description: "하강 고도",
+                value: course?.elevationLoss
+                    ? Math.abs(course?.elevationLoss)
+                    : "0",
+                unit: "m",
+            },
+        ],
+        [course?.distance, course?.elevationGain, course?.elevationLoss]
+    );
 
-    const ghostStats = [
-        {
-            description: "시간",
-            value: getRunTime(
-                course?.myGhostInfo?.duration ?? 0,
-                "HH:MM:SS_IF_HH_EXISTS"
-            ),
-        },
-        {
-            description: "페이스",
-            value: getFormattedPace(course?.myGhostInfo?.averagePace ?? 0),
-        },
-        {
-            description: "케이던스",
-            value: course?.myGhostInfo?.cadence ?? 0,
-            unit: "spm",
-        },
-    ];
+    const ghostStats = useMemo(
+        () => [
+            {
+                description: "시간",
+                value: getRunTime(
+                    course?.myGhostInfo?.duration ?? 0,
+                    "HH:MM:SS_IF_HH_EXISTS"
+                ),
+            },
+            {
+                description: "페이스",
+                value: getFormattedPace(course?.myGhostInfo?.averagePace ?? 0),
+            },
+            {
+                description: "케이던스",
+                value: course?.myGhostInfo?.cadence ?? 0,
+                unit: "spm",
+            },
+        ],
+        [
+            course?.myGhostInfo?.duration,
+            course?.myGhostInfo?.averagePace,
+            course?.myGhostInfo?.cadence,
+        ]
+    );
 
-    const onClickGuide = (guideType: GuideType) => {
+    const onClickGuide = useCallback((guideType: GuideType) => {
         setGuideType(guideType);
         setRoute("guide");
-    };
+    }, []);
 
-    const handleRun = async () => {
+    const handleRun = useCallback(async () => {
         const hasRunCourse = await AsyncStorage.getItem(
             "sgmrt.hasRunCourse.v1"
         );
@@ -124,21 +134,70 @@ export default function BottomCourseInfoModal({
                 router.push(`/run/${course?.id}/-1`);
             }
         }
-    };
+    }, [selectedGhost, pacemaker, course?.id, course?.myGhostInfo, bottomSheetRef, router, onClickGuide]);
 
-    const handleGhostSelect = (ghost: "user" | "ai" | null) => {
+    const handleGhostSelect = useCallback((ghost: "user" | "ai" | null) => {
         setSelectedGhost((prev) => (prev === ghost ? null : ghost));
-    };
+    }, []);
+
+    const handleCloseGuide = useCallback(() => {
+        setRoute("info");
+    }, []);
+
+    const handleCourseInfoPress = useCallback(() => {
+        bottomSheetRef.current?.dismiss();
+        router.push(`/profile/${course?.id}/detail`);
+    }, [bottomSheetRef, router, course?.id]);
+
+    const handleDeleteAiGhost = useCallback(async () => {
+        await deletePacemaker(pacemaker?.pacemakerSummaryResponse.id ?? 0);
+        const pacemakerJob = findByCourseId(course?.id ?? 0);
+        if (pacemakerJob) {
+            removeJob(pacemakerJob.jobId);
+        }
+        await queryClient.invalidateQueries({
+            queryKey: ["pacemaker", course?.id],
+        });
+    }, [pacemaker?.pacemakerSummaryResponse.id, course?.id, findByCourseId, removeJob, queryClient]);
+
+    const handleRunButtonPress = useCallback(async () => {
+        await requestOptional("HEALTHKIT");
+
+        const ok = await requestOrAlert(
+            "SENSORS",
+            "러닝 중 측정을 위해 권한이 필요해요"
+        );
+
+        if (!ok) {
+            return;
+        }
+
+        handleRun();
+    }, [requestOptional, requestOrAlert, handleRun]);
+
+    const handlePreviewPress = useCallback(() => {
+        bottomSheetRef.current?.dismiss();
+        router.push(`/profile/${course?.id}/preview`);
+    }, [bottomSheetRef, router, course?.id]);
 
     if (!course) {
         return null;
     }
 
+    const spacerHeight = course?.myGhostInfo ? 20 : 30;
+
+    const buttonTitle =
+        selectedGhost === "user"
+            ? "고스트와 러닝"
+            : selectedGhost === "ai"
+            ? "고스티와 러닝"
+            : "이 코스로 러닝";
+
     return route === "guide" ? (
         <BottomGuide
             course={course}
             type={guideType}
-            handleClose={() => setRoute("info")}
+            handleClose={handleCloseGuide}
             handleRun={handleRun}
         />
     ) : (
@@ -146,29 +205,15 @@ export default function BottomCourseInfoModal({
             <CourseInfoSection
                 courseName={course?.name ?? ""}
                 stats={courseStats}
-                onPress={() => {
-                    bottomSheetRef.current?.dismiss();
-                    router.push(`/profile/${course?.id}/detail`);
-                }}
+                onPress={handleCourseInfoPress}
             />
-            <View style={{ height: course?.myGhostInfo ? 20 : 30 }} />
+            <View style={{ height: spacerHeight }} />
 
             <GhostSection
                 courseId={course.id}
                 userGhost={course?.myGhostInfo}
                 aiGhost={pacemaker}
-                onDeleteAiGhost={async () => {
-                    await deletePacemaker(
-                        pacemaker?.pacemakerSummaryResponse.id ?? 0
-                    );
-                    const pacemakerJob = findByCourseId(course?.id ?? 0);
-                    if (pacemakerJob) {
-                        removeJob(pacemakerJob.jobId);
-                    }
-                    await queryClient.invalidateQueries({
-                        queryKey: ["pacemaker", course?.id],
-                    });
-                }}
+                onDeleteAiGhost={handleDeleteAiGhost}
                 selectedGhost={selectedGhost}
                 onSwitchChange={handleGhostSelect}
                 ghostStats={ghostStats}
@@ -181,31 +226,9 @@ export default function BottomCourseInfoModal({
                     marginHorizontal: 16.5,
                 }}
                 type="active"
-                title={
-                    selectedGhost === "user"
-                        ? "고스트와 러닝"
-                        : selectedGhost === "ai"
-                        ? "고스티와 러닝"
-                        : "이 코스로 러닝"
-                }
-                onPress={async () => {
-                    const hk = await requestOptional("HEALTHKIT");
-
-                    const ok = await requestOrAlert(
-                        "SENSORS",
-                        "러닝 중 측정을 위해 권한이 필요해요"
-                    );
-
-                    if (!ok) {
-                        return;
-                    }
-
-                    handleRun();
-                }}
-                onPressIcon={() => {
-                    bottomSheetRef.current?.dismiss();
-                    router.push(`/profile/${course?.id}/preview`);
-                }}
+                title={buttonTitle}
+                onPress={handleRunButtonPress}
+                onPressIcon={handlePreviewPress}
             />
         </View>
     );

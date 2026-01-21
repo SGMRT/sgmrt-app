@@ -64,7 +64,7 @@ export const GhostSection = ({
             <View style={styles.ghostSectionContent}>
                 {userGhost && (
                     <UserGhostRow
-                        profileUrl={userGhost.profileUrl}
+                        profileUrl={userGhost.runnerProfileUrl}
                         stats={ghostStats}
                         active={selectedGhost === "user"}
                         onSelect={() => onSwitchChange("user")}
