@@ -17,6 +17,7 @@
   "dependencies": {
     "@amplitude/analytics-react-native": "^1.5.3",
     "@amplitude/plugin-session-replay-react-native": "^0.4.6",
+    "@azzapp/react-native-skia-video": "^0.9.0",
     "@bacons/apple-targets": "^3.0.2",
     "@expo/vector-icons": "^14.1.0",
     "@gorhom/bottom-sheet": "^5",

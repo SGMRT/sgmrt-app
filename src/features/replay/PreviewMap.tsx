@@ -30,6 +30,7 @@ type PreviewMapProps = {
     play?: () => void;
     controlEnabled?: boolean;
     captureMode?: boolean;
+    isReady?: boolean;
 };
 
 export default function PreviewMap({
@@ -46,8 +47,10 @@ export default function PreviewMap({
     play,
     controlEnabled = true,
     captureMode = false,
+    isReady = false,
 }: PreviewMapProps) {
     const mapReadyRef = useRef(false);
+    const hasAutoPlayedRef = useRef(false);
     const initialPosition = useRef({ latitude: lat, longitude: lng });
 
     const routeFC = useMemo(() => {
@@ -66,9 +69,18 @@ export default function PreviewMap({
         };
     }, [route]);
 
+    const tryAutoPlay = useCallback(() => {
+        if (isReady && mapReadyRef.current && !hasAutoPlayedRef.current) {
+            hasAutoPlayedRef.current = true;
+            // 맵 렌더링이 완료될 때까지 잠시 대기
+            setTimeout(() => {
+                play?.();
+            }, 300);
+        }
+    }, [isReady, play]);
+
     const onMapReady = useCallback(() => {
         if (!cameraRef?.current || mapReadyRef.current) return;
-        play?.();
         mapReadyRef.current = true;
 
         cameraRef.current.setCamera({
@@ -77,7 +89,14 @@ export default function PreviewMap({
             pitch: pitch,
             heading: heading,
         });
-    }, [lng, lat, heading, cameraRef, play]);
+
+        tryAutoPlay();
+    }, [lng, lat, heading, cameraRef, tryAutoPlay]);
+
+    // 맵이 먼저 준비되고 타임라인이 나중에 준비되는 경우
+    useEffect(() => {
+        tryAutoPlay();
+    }, [tryAutoPlay]);
 
     useEffect(() => {
         if (!cameraRef?.current) return;

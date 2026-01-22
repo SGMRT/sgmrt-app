@@ -6,6 +6,9 @@ import CoreVideo
 // MARK: - Expo Module
 
 public class ExpoImageToVideoModule: Module {
+  // 스트리밍 인코더 세션 저장
+  private var streamingSessions: [String: StreamingEncoder] = [:]
+
   public func definition() -> ModuleDefinition {
     Name("ExpoImageToVideo")
 
@@ -19,6 +22,23 @@ public class ExpoImageToVideoModule: Module {
     AsyncFunction("createVideoFromBase64") { (base64Images: [String], outputPath: String, fps: Double) in
       try await self.createVideo(fromBase64Images: base64Images, to: outputPath, fps: fps)
       return outputPath
+    }
+
+    // 3) 스트리밍 인코더 시작 - 청크 단위로 프레임 추가 가능
+    AsyncFunction("startStreamingEncoder") { (sessionId: String, outputPath: String, fps: Double, width: Int, height: Int) in
+      try await self.startStreamingEncoder(sessionId: sessionId, outputPath: outputPath, fps: fps, width: width, height: height)
+      return sessionId
+    }
+
+    // 4) 스트리밍 인코더에 프레임 청크 추가
+    AsyncFunction("appendFrames") { (sessionId: String, base64Images: [String]) in
+      try await self.appendFrames(sessionId: sessionId, base64Images: base64Images)
+      return true
+    }
+
+    // 5) 스트리밍 인코더 종료 및 파일 완성
+    AsyncFunction("finishStreamingEncoder") { (sessionId: String) in
+      return try await self.finishStreamingEncoder(sessionId: sessionId)
     }
   }
 
@@ -136,6 +156,47 @@ public class ExpoImageToVideoModule: Module {
     }
   }
 
+  // MARK: - Streaming Encoder
+
+  private func startStreamingEncoder(sessionId: String, outputPath: String, fps: Double, width: Int, height: Int) async throws {
+    let outputPathStr = stripFileScheme(outputPath)
+    let outputURL = URL(fileURLWithPath: outputPathStr)
+
+    let parentDir = outputURL.deletingLastPathComponent()
+    try FileManager.default.createDirectory(at: parentDir, withIntermediateDirectories: true)
+
+    if FileManager.default.fileExists(atPath: outputURL.path) {
+      try FileManager.default.removeItem(atPath: outputURL.path)
+    }
+
+    let encoder = try StreamingEncoder(outputURL: outputURL, fps: fps, width: width, height: height)
+    streamingSessions[sessionId] = encoder
+  }
+
+  private func appendFrames(sessionId: String, base64Images: [String]) async throws {
+    guard let encoder = streamingSessions[sessionId] else {
+      throw NSError(domain: "ExpoImageToVideo", code: 10, userInfo: [NSLocalizedDescriptionKey: "Session not found: \(sessionId)"])
+    }
+
+    for base64 in base64Images {
+      autoreleasepool {
+        if let image = decodeBase64ToImage(base64) {
+          encoder.appendFrame(image)
+        }
+      }
+    }
+  }
+
+  private func finishStreamingEncoder(sessionId: String) async throws -> String {
+    guard let encoder = streamingSessions[sessionId] else {
+      throw NSError(domain: "ExpoImageToVideo", code: 10, userInfo: [NSLocalizedDescriptionKey: "Session not found: \(sessionId)"])
+    }
+
+    let outputPath = try await encoder.finish()
+    streamingSessions.removeValue(forKey: sessionId)
+    return outputPath
+  }
+
   // MARK: - Utils
 
   private func stripFileScheme(_ path: String) -> String {
@@ -154,6 +215,85 @@ public class ExpoImageToVideoModule: Module {
       return UIImage(data: data)
     }
     return nil
+  }
+}
+
+// MARK: - Streaming Encoder Class
+
+class StreamingEncoder {
+  private let writer: AVAssetWriter
+  private let input: AVAssetWriterInput
+  private let adaptor: AVAssetWriterInputPixelBufferAdaptor
+  private let targetSize: CGSize
+  private let frameDuration: CMTime
+  private var frameCount: Int64 = 0
+  private let outputURL: URL
+
+  init(outputURL: URL, fps: Double, width: Int, height: Int) throws {
+    self.outputURL = outputURL
+    self.targetSize = CGSize(width: width, height: height)
+
+    writer = try AVAssetWriter(outputURL: outputURL, fileType: .mp4)
+
+    let settings: [String: Any] = [
+      AVVideoCodecKey: AVVideoCodecType.h264,
+      AVVideoWidthKey: width,
+      AVVideoHeightKey: height,
+    ]
+
+    input = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
+    input.expectsMediaDataInRealTime = true // 스트리밍 모드
+
+    adaptor = AVAssetWriterInputPixelBufferAdaptor(
+      assetWriterInput: input,
+      sourcePixelBufferAttributes: [
+        kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+        kCVPixelBufferWidthKey as String: width,
+        kCVPixelBufferHeightKey as String: height,
+      ]
+    )
+
+    guard writer.canAdd(input) else {
+      throw NSError(domain: "ExpoImageToVideo", code: 11, userInfo: [NSLocalizedDescriptionKey: "Cannot add input to writer"])
+    }
+
+    writer.add(input)
+    writer.startWriting()
+    writer.startSession(atSourceTime: .zero)
+
+    let timescale = max(1, Int32(fps))
+    frameDuration = CMTime(value: 1, timescale: CMTimeScale(timescale))
+  }
+
+  func appendFrame(_ image: UIImage) {
+    let resizedImage = image.size.equalTo(targetSize) ? image : image.resized(to: targetSize)
+
+    guard let buffer = resizedImage.pixelBuffer(width: Int(targetSize.width), height: Int(targetSize.height)) else { return }
+
+    while !input.isReadyForMoreMediaData {
+      Thread.sleep(forTimeInterval: 0.001)
+    }
+
+    let pts = CMTimeMultiply(frameDuration, multiplier: Int32(frameCount))
+    adaptor.append(buffer, withPresentationTime: pts)
+    frameCount += 1
+  }
+
+  func finish() async throws -> String {
+    input.markAsFinished()
+
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+      writer.finishWriting {
+        continuation.resume()
+      }
+    }
+
+    if writer.status != .completed {
+      let reason = writer.error?.localizedDescription ?? "Unknown"
+      throw NSError(domain: "ExpoImageToVideo", code: 12, userInfo: [NSLocalizedDescriptionKey: "Writer failed: \(reason)"])
+    }
+
+    return outputURL.path
   }
 }
 
