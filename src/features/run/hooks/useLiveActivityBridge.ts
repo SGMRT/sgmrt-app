@@ -68,26 +68,6 @@ export function useLiveActivityBridge(
     // 백그라운드에서 스와이프 종료 감지 시 포그라운드 복귀 후 재시작 플래그
     const pendingRestartRef = useRef(false);
 
-    // AppState 변화 구독
-    useEffect(() => {
-        const sub = AppState.addEventListener("change", (nextState) => {
-            const wasBackground = appStateRef.current !== "active";
-            appStateRef.current = nextState;
-
-            // 포그라운드 복귀 시 pending restart 처리
-            if (nextState === "active" && wasBackground && pendingRestartRef.current) {
-                pendingRestartRef.current = false;
-                const status = contextStatusRef.current;
-                if (status === "RUNNING" || status === "PAUSED_USER") {
-                    startedRef.current = false;
-                    const payload = selectLiveActivityPayload(context);
-                    flush(payload, true);
-                }
-            }
-        });
-        return () => sub.remove();
-    }, [context, flush]);
-
     // 공통 클린업 함수
     const cleanup = useCallback(() => {
         if (startedRef.current) {
@@ -211,6 +191,26 @@ export function useLiveActivityBridge(
         },
         [context.mode, context.variant, context.sessionId]
     );
+
+    // AppState 변화 구독 (flush 선언 후에 위치해야 함)
+    useEffect(() => {
+        const sub = AppState.addEventListener("change", (nextState) => {
+            const wasBackground = appStateRef.current !== "active";
+            appStateRef.current = nextState;
+
+            // 포그라운드 복귀 시 pending restart 처리
+            if (nextState === "active" && wasBackground && pendingRestartRef.current) {
+                pendingRestartRef.current = false;
+                const status = contextStatusRef.current;
+                if (status === "RUNNING" || status === "PAUSED_USER") {
+                    startedRef.current = false;
+                    const payload = selectLiveActivityPayload(context);
+                    flush(payload, true);
+                }
+            }
+        });
+        return () => sub.remove();
+    }, [context, flush]);
 
     useEffect(() => {
         if (!context.sessionId) return;
