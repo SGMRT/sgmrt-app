@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PlayState, ReplayOptions, ReplayStats, Sample } from "../types";
-import {
-    alphaFromTau,
-    buildVirtualTimeline,
-    headingBetween,
-    lerp,
-    norm180,
-} from "../utils";
+import { buildVirtualTimeline, headingBetween } from "../utils";
+import { applySmoothingToPosition, getPoseAtTimestamp } from "../utils/index";
 
 export function useReplay(
     totalDistance: number,
@@ -78,50 +73,15 @@ export function useReplay(
 
     const getPoseAt = useCallback(
         (ts: number) => {
-            const T = timelineRef.current.T;
-            const n = samples.length;
-            if (n === 0)
-                return { x: 0, y: 0, d: 0, p: 0, e: 0, c: 0, t: 0, heading: 0 };
-            if (n === 1) {
-                const a = samples[0];
-                return {
-                    x: a.x,
-                    y: a.y,
-                    d: a.d ?? 0,
-                    p: a.p ?? 0,
-                    e: a.e ?? 0,
-                    c: a.c ?? 0,
-                    t: 0,
-                    heading: 0,
-                };
-            }
-
-            let lo = 0,
-                hi = n - 1;
-            while (lo + 1 < hi) {
-                const mid = (lo + hi) >> 1;
-                if (T[mid] <= ts) lo = mid;
-                else hi = mid;
-            }
-            const i = Math.max(0, Math.min(n - 2, lo));
-            const a = samples[i];
-            const b = samples[i + 1];
-
-            const span = Math.max(1, T[i + 1] - T[i]);
-            const f = Math.max(0, Math.min(1, (ts - T[i]) / span));
-
-            return {
-                x: lerp(a.x, b.x, f),
-                y: lerp(a.y, b.y, f),
-                d: lerp(a.d, b.d, f),
-                p: lerp(a.p, b.p, f),
-                e: lerp(a.e, b.e, f),
-                c: lerp(a.c, b.c, f),
-                t: lerp(0, tN, (ts - t0) / (tN - t0)),
-                heading: headingBetween(a, b),
-            };
+            return getPoseAtTimestamp(
+                ts,
+                samples,
+                timelineRef.current.T,
+                t0,
+                tN
+            );
         },
-        [samples]
+        [samples, t0, tN]
     );
 
     // ----- 단일 틱(앞/뒤) 공용 로직 -----
@@ -141,71 +101,25 @@ export function useReplay(
             }
 
             const raw = getPoseAt(ts);
-
-            // 이전 스무딩 포즈 불러오기
-            let sx = smoothXRef.current;
-            let sy = smoothYRef.current;
-            let sh = smoothHRef.current;
-
-            // dtSec은 "논리적 스텝 크기"에 해당
             const dtSec = Math.abs(dtMs) / 1000;
 
-            // 1) 데드밴드
-            const dx = raw.x - sx;
-            const dy = raw.y - sy;
-            const dist = Math.hypot(dx, dy);
-            const dead = opts.posDeadbandUnits ?? 0;
-            let tx = raw.x,
-                ty = raw.y;
-            if (dead > 0 && dist < dead) {
-                tx = sx;
-                ty = sy;
-            }
+            // 스무딩 적용
+            const prevSmooth = {
+                x: smoothXRef.current,
+                y: smoothYRef.current,
+                heading: smoothHRef.current,
+            };
+            const smoothed = applySmoothingToPosition(raw, prevSmooth, dtSec, {
+                posDeadbandUnits: opts.posDeadbandUnits,
+                maxPosSpeedUnitsPerSec: opts.maxPosSpeedUnitsPerSec,
+                posTauSec: opts.posTauSec,
+                headingTauSec,
+                maxTurnRateDps,
+            });
 
-            // 2) 속도 캡 (좌표단위/초)
-            const maxV = opts.maxPosSpeedUnitsPerSec ?? 0;
-            if (maxV > 0 && dtSec > 0) {
-                const maxStep = maxV * dtSec;
-                const mx = tx - sx,
-                    my = ty - sy;
-                const mDist = Math.hypot(mx, my);
-                if (mDist > maxStep) {
-                    const k = maxStep / mDist;
-                    tx = sx + mx * k;
-                    ty = sy + my * k;
-                }
-            }
-
-            // 3) 좌표 EMA 스무딩
-            const posTau = opts.posTauSec ?? 0.12;
-            if (posTau > 0) {
-                const a = 1 - Math.exp(-dtSec / posTau);
-                sx = sx + (tx - sx) * a;
-                sy = sy + (ty - sy) * a;
-            } else {
-                sx = tx;
-                sy = ty;
-            }
-
-            // 4) 헤딩 스무딩 (+ 회전속도 캡)
-            let delta = norm180(raw.heading - sh);
-            if (maxTurnRateDps > 0 && dtSec > 0) {
-                const maxDelta = maxTurnRateDps * dtSec;
-                if (delta > maxDelta) delta = maxDelta;
-                else if (delta < -maxDelta) delta = -maxDelta;
-            }
-            if (headingTauSec > 0) {
-                const ah = alphaFromTau(headingTauSec, dtSec);
-                sh = sh + delta * ah;
-            } else {
-                sh = sh + delta;
-            }
-            if (sh < 0) sh += 360;
-            else if (sh >= 360) sh -= 360;
-
-            smoothXRef.current = sx;
-            smoothYRef.current = sy;
-            smoothHRef.current = sh;
+            smoothXRef.current = smoothed.x;
+            smoothYRef.current = smoothed.y;
+            smoothHRef.current = smoothed.heading;
             currLogicalTsRef.current = ts;
 
             const p = (ts - t0) / total;
@@ -218,7 +132,7 @@ export function useReplay(
             ) {
                 lastVisualPushRef.current = now;
                 setProgress(p);
-                setPose({ x: sx, y: sy, heading: sh });
+                setPose(smoothed);
                 setStats({
                     distanceM: raw.d,
                     paceSec: raw.p,
