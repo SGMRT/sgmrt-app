@@ -63,6 +63,9 @@ export function useLiveActivityBridge(
     // 현재 상태를 ref로 유지 (setTimeout 콜백에서 최신 값 참조)
     const contextStatusRef = useRef(context.status);
     contextStatusRef.current = context.status;
+    // context 전체를 ref로 유지 (리스너 콜백에서 최신 값 참조, 리스너 재등록 방지)
+    const contextRef = useRef(context);
+    contextRef.current = context;
     // 앱 상태 (배터리 최적화용)
     const appStateRef = useRef<AppStateStatus>(AppState.currentState);
     // 백그라운드에서 스와이프 종료 감지 시 포그라운드 복귀 후 재시작 플래그
@@ -204,13 +207,13 @@ export function useLiveActivityBridge(
                 const status = contextStatusRef.current;
                 if (status === "RUNNING" || status === "PAUSED_USER") {
                     startedRef.current = false;
-                    const payload = selectLiveActivityPayload(context);
+                    const payload = selectLiveActivityPayload(contextRef.current);
                     flush(payload, true);
                 }
             }
         });
         return () => sub.remove();
-    }, [context, flush]);
+    }, [flush]);
 
     useEffect(() => {
         if (!context.sessionId) return;
@@ -293,7 +296,7 @@ export function useLiveActivityBridge(
                             ) {
                                 // Live Activity 재시작
                                 startedRef.current = false;
-                                const payload = selectLiveActivityPayload(context);
+                                const payload = selectLiveActivityPayload(contextRef.current);
                                 flush(payload, true);
                             }
                         }, RESTART_DELAY_MS);
@@ -312,7 +315,7 @@ export function useLiveActivityBridge(
                 const status = contextStatusRef.current;
                 if (status === "RUNNING" || status === "PAUSED_USER") {
                     startedRef.current = false;
-                    const payload = selectLiveActivityPayload(context);
+                    const payload = selectLiveActivityPayload(contextRef.current);
                     flush(payload, true);
                 }
             }
@@ -325,5 +328,5 @@ export function useLiveActivityBridge(
                 clearTimeout(restartTimerRef.current);
             }
         };
-    }, [context, flush]);
+    }, [flush]);
 }
