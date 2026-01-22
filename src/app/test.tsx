@@ -1,7 +1,5 @@
-export default function Test() {
-    // useEffect(() => {
-    //     SplashScreen.hideAsync().catch(() => {});
-    // }, []);
+import SkiaVideoTest from "@/src/features/replay/poc/SkiaVideoTest";
 
-    return <></>;
+export default function Test() {
+    return <SkiaVideoTest />;
 }
