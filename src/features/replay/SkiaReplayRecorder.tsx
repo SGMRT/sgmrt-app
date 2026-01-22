@@ -24,13 +24,9 @@ import {
     Image,
     useCanvasRef,
     useImage,
-    Skia,
     RoundedRect,
-    useFont,
-    SkCanvas,
     Path,
     Circle,
-    Group,
 } from "@shopify/react-native-skia";
 import * as FileSystem from "expo-file-system";
 import {
@@ -47,10 +43,9 @@ import Share from "react-native-share";
 import { getRecordingConfig } from "./config/recordingConfig";
 import { useRecordingMetrics } from "./hooks/useRecordingMetrics";
 import { useReplay } from "./hooks/useReplay";
-import { Sample, ReplayStats } from "./types";
-import { buildStaticMapUrl, calculateBounds, MapBounds, geoToCanvas } from "./skia/useMapSnapshot";
+import { Sample } from "./types";
+import { buildStaticMapUrl, calculateBounds } from "./skia/useMapSnapshot";
 import { createRoutePath, createProgressPath, getProgressPosition, ROUTE_STYLE_PRESETS } from "./skia/drawRoute";
-import { formatDistance, formatTime } from "./skia/drawStats";
 
 export type SkiaReplayRecorderHandle = {
     startRecording: () => Promise<void>;
@@ -155,7 +150,6 @@ export default forwardRef<SkiaReplayRecorderHandle, Props>(function SkiaReplayRe
     // 재생 훅
     const {
         progress,
-        stats: replayStats,
         reset: resetReplay,
         stepForward,
         visualFps: replayVisualFps,

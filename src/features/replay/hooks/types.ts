@@ -1,5 +1,4 @@
 import { MutableRefObject } from "react";
-import { PlayState, ReplayStats, Sample } from "../types";
 
 /**
  * 리플레이 시스템에서 공유되는 ref들을 담는 컨텍스트

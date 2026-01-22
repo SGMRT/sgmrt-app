@@ -65,8 +65,6 @@ type Props = {
     captureTargetWidth?: number;
 };
 
-const TAG = "[ReplayRecorder/Streaming]";
-
 // 청크 크기: 24프레임(약 1초)마다 네이티브로 전송
 const CHUNK_SIZE = 24;
 
