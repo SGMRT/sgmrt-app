@@ -35,6 +35,28 @@ import {
 } from "../sentryTools"
 import { getRunName } from "./time"
 
+const MAX_RETRIES = 3
+const RETRY_DELAY_MS = 1000
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries = MAX_RETRIES,
+  delay = RETRY_DELAY_MS
+): Promise<T> {
+  let lastError: Error | null = null
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+      if (attempt < retries - 1) {
+        await new Promise((resolve) => setTimeout(resolve, delay * (attempt + 1)))
+      }
+    }
+  }
+  throw lastError
+}
+
 const canShare = (objectType: string): boolean => {
   try {
     return (
@@ -58,6 +80,25 @@ export interface SaveRunningProps {
   courseId?: number
 }
 
+export interface SaveRunningResult {
+  runningId: number
+  courseId?: number
+}
+
+export class SaveRunningError extends Error {
+  constructor(
+    message: string,
+    public readonly code:
+      | "SHORT_DISTANCE"
+      | "NO_RUNNING_SEGMENT"
+      | "UPLOAD_FAILED"
+      | "UNKNOWN"
+  ) {
+    super(message)
+    this.name = "SaveRunningError"
+  }
+}
+
 export async function saveRunning({
   telemetries,
   rawData,
@@ -67,7 +108,7 @@ export async function saveRunning({
   isPublic,
   ghostRunningId,
   courseId,
-}: SaveRunningProps) {
+}: SaveRunningProps): Promise<SaveRunningResult> {
   addPhase("precheck", {
     totalTelemetry: telemetries?.length ?? 0,
     rawDataLen: rawData?.length ?? 0,
@@ -79,7 +120,7 @@ export async function saveRunning({
         totalDistance: userDashboardData?.totalDistance,
       })
       showCompactToast("러닝 거리가 너무 짧습니다.")
-      return
+      throw new SaveRunningError("러닝 거리가 너무 짧습니다.", "SHORT_DISTANCE")
     }
 
     const tAlt = trackDuration("applyAltitudeBiasFromBestGPS")
@@ -116,7 +157,10 @@ export async function saveRunning({
     // 마지막 isRunning인 true인 값 뒤 isRunning이 false인 값을 모두 삭제
     const lastTrueIndex = telemetries.findLastIndex((t) => t.isRunning)
     if (lastTrueIndex === -1) {
-      const err = new Error("NoRunningSegment")
+      const err = new SaveRunningError(
+        "러닝 데이터가 없습니다.",
+        "NO_RUNNING_SEGMENT"
+      )
       // 러닝 세그먼트 없음은 심각한 문제이므로 HIGH
       captureError(
         "trim-telemetry",
@@ -374,12 +418,20 @@ export async function saveRunning({
           type: "application/json",
         } as any)
 
-        const response = await postCourseRun(formData, courseId)
+        const response = await withRetry(() => postCourseRun(formData, courseId))
+        const runningId =
+          typeof response === "number" ? response : response?.runningId
+        if (typeof runningId !== "number") {
+          throw new SaveRunningError(
+            "서버 응답이 올바르지 않습니다.",
+            "UPLOAD_FAILED"
+          )
+        }
         addPhase("upload:postCourseRun:success", {
           response,
           courseId,
         })
-        return { runningId: response, courseId }
+        return { runningId, courseId }
       } else if (courseId) {
         const request: CourseSoloRunning = {
           ...baseReq,
@@ -396,12 +448,20 @@ export async function saveRunning({
           type: "application/json",
         } as any)
 
-        const response = await postCourseRun(formData, courseId)
+        const response = await withRetry(() => postCourseRun(formData, courseId))
+        const runningId =
+          typeof response === "number" ? response : response?.runningId
+        if (typeof runningId !== "number") {
+          throw new SaveRunningError(
+            "서버 응답이 올바르지 않습니다.",
+            "UPLOAD_FAILED"
+          )
+        }
         addPhase("upload:postCourseRun:success", {
           response,
           courseId,
         })
-        return { runningId: response, courseId }
+        return { runningId, courseId }
       } else {
         const request: BaseRunning = { ...baseReq }
         await FileSystem.writeAsStringAsync(
@@ -414,9 +474,17 @@ export async function saveRunning({
           type: "application/json",
         } as any)
 
-        const response = await postRun(formData)
+        const response = await withRetry(() => postRun(formData))
+        const runningId =
+          typeof response === "number" ? response : response?.runningId
+        if (typeof runningId !== "number") {
+          throw new SaveRunningError(
+            "서버 응답이 올바르지 않습니다.",
+            "UPLOAD_FAILED"
+          )
+        }
         addPhase("upload:postRun:success", { response })
-        return response
+        return { runningId }
       }
     } catch (e) {
       // 업로드 실패는 핵심 비즈니스 로직이므로 HIGH

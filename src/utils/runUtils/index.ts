@@ -30,5 +30,5 @@ export {
 export { getTelemetriesWithoutLastFalse } from "./telemetry"
 
 // 러닝 저장
-export { saveRunning } from "./saveRunning"
-export type { SaveRunningProps } from "./saveRunning"
+export { saveRunning, SaveRunningError } from "./saveRunning"
+export type { SaveRunningProps, SaveRunningResult } from "./saveRunning"

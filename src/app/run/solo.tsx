@@ -18,6 +18,7 @@ import { getElapsedMs } from "@/src/features/run/context/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
+import { SaveRunningError } from "@/src/utils/runUtils/saveRunning";
 import { captureError } from "@/src/utils/sentryTools";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,6 +31,8 @@ import Animated, {
     useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const CAPTURE_TIMEOUT_MS = 10000;
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
@@ -46,13 +49,43 @@ export default function Run() {
     useRunVoice(context);
 
     const hasSavedRef = useRef<boolean>(false);
+    const captureTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // "IDLE" = 캡처 시도 안함, "PENDING" = 캡처 중, "DONE" = 캡처 완료/실패
+    const [captureState, setCaptureState] = useState<"IDLE" | "PENDING" | "DONE">("IDLE");
 
     const triggerCapture = useCallback(() => {
+        // 이미 캡처 중이거나 완료된 경우 무시
+        if (captureState !== "IDLE") return;
+        setCaptureState("PENDING");
+
+        // 타임아웃 설정: 캡처가 너무 오래 걸리면 실패 처리
+        captureTimeoutRef.current = setTimeout(() => {
+            captureError("run.solo.captureTimeout", new Error("Capture timeout"));
+            setThumbnailUri(null);
+            setCaptureState("DONE");
+        }, CAPTURE_TIMEOUT_MS);
+
         runShotRef.current
             ?.capture()
-            .then((uri) => setThumbnailUri(uri))
-            .catch(() => setThumbnailUri(""));
-    }, []);
+            .then((uri) => {
+                if (captureTimeoutRef.current) {
+                    clearTimeout(captureTimeoutRef.current);
+                    captureTimeoutRef.current = null;
+                }
+                setThumbnailUri(uri || null);
+                setCaptureState("DONE");
+            })
+            .catch((error) => {
+                if (captureTimeoutRef.current) {
+                    clearTimeout(captureTimeoutRef.current);
+                    captureTimeoutRef.current = null;
+                }
+                captureError("run.solo.capture", error);
+                // 캡처 실패해도 저장은 진행 (썸네일 없이)
+                setThumbnailUri(null);
+                setCaptureState("DONE");
+            });
+    }, [captureState]);
 
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -126,10 +159,10 @@ export default function Run() {
         controls.stop();
     }, [isSaving, context.telemetries, controls]);
 
-    // URI가 생기는 순간 저장 수행 (한 번만)
+    // 캡처 완료(성공/실패) 시 저장 수행
     useEffect(() => {
         if (!isSaving) return;
-        if (!thumbnailUri) return; // 아직 캡처 안 됨
+        if (captureState !== "DONE") return; // 캡처 완료 대기
         if (hasSavedRef.current) return; // 중복 방지
         hasSavedRef.current = true;
 
@@ -153,11 +186,17 @@ export default function Run() {
                         ghostRunningId: "-1",
                     },
                 });
-            } catch (error) {
-                showCompactToast(
-                    "기록 저장에 실패했습니다. 다시 시도해주세요."
-                );
-                captureError("run.solo.saveRunning", error);
+            } catch (error: unknown) {
+                if (error instanceof SaveRunningError) {
+                    showCompactToast(error.message);
+                } else {
+                    showCompactToast(
+                        "기록 저장에 실패했습니다. 다시 시도해주세요."
+                    );
+                }
+                captureError("run.solo.saveRunning", error as Error);
+                // 저장 실패 시 재시도 가능하도록 상태 초기화
+                hasSavedRef.current = false;
             } finally {
                 queryClient.invalidateQueries({
                     queryKey: ["runs"],
@@ -165,16 +204,21 @@ export default function Run() {
                 setIsSaving(false);
                 setThumbnailUri(null);
                 setSavingTelemetries([]);
+                setCaptureState("IDLE");
+                if (captureTimeoutRef.current) {
+                    clearTimeout(captureTimeoutRef.current);
+                    captureTimeoutRef.current = null;
+                }
             }
         })();
     }, [
         isSaving,
+        captureState,
         thumbnailUri,
         context.telemetries,
         context.mainTimeline,
         router,
         queryClient,
-        controls,
         context.stats,
     ]);
 
