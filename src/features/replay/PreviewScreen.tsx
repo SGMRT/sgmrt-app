@@ -51,6 +51,7 @@ const PreviewScreen = ({ courseId }: { courseId: number }) => {
         reset,
         stats,
         seekToProgress,
+        isReady,
     } = useReplay(course?.distance ?? 0, samples, {});
 
     return (
@@ -83,6 +84,7 @@ const PreviewScreen = ({ courseId }: { courseId: number }) => {
                     pause={pause}
                     play={play}
                     seekToProgress={seekToProgress}
+                    isReady={isReady}
                 />
             </Pressable>
             <Section

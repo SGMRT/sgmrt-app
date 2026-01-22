@@ -24,22 +24,9 @@ export function useReplay(
     let virtualDurationMs = totalDistance * 5;
     const visualIntervalMs = 1000 / visualFps;
 
-    const timelineRef = useRef<{ T: number[]; t0: number; tN: number }>({
+    const timelineRef = useRef<{ T: number[] }>({
         T: [0],
-        t0: 0,
-        tN: 0,
     });
-
-    useEffect(() => {
-        const tl = buildVirtualTimeline(samples, totalDistance, {
-            mode: timelineMode,
-            virtualDurationMs: virtualDurationMs,
-        });
-        timelineRef.current = { T: tl.T, t0: tl.t0, tN: tl.tN };
-
-        currLogicalTsRef.current = tl.t0;
-        setProgress(0);
-    }, [samples, totalDistance, timelineMode, virtualDurationMs]);
 
     const [state, setState] = useState<PlayState>("idle");
     const [stats, setStats] = useState<ReplayStats>({
@@ -51,10 +38,12 @@ export function useReplay(
         progress: 0,
     });
     const [progress, setProgress] = useState(0); // 0..1
+    const [timeline, setTimeline] = useState({ t0: 0, tN: 0 });
 
-    const t0 = timelineRef.current.t0;
-    const tN = timelineRef.current.tN;
+    const t0 = timeline.t0;
+    const tN = timeline.tN;
     const total = Math.max(1, tN - t0);
+
 
     const rafRef = useRef<number | null>(null);
     const baseTsRef = useRef<number>(0);
@@ -257,6 +246,8 @@ export function useReplay(
     // ----- 재생 -----
     const play = useCallback(() => {
         if (state === "playing") return;
+        // 타임라인이 아직 준비되지 않았으면 무시
+        if (tN === 0 || samples.length === 0) return;
 
         const now = performance.now();
         baseTsRef.current =
@@ -287,7 +278,7 @@ export function useReplay(
         };
 
         rafRef.current = requestAnimationFrame(tick);
-    }, [advanceBy, logicalTsFromProgress, progress, state, tN]);
+    }, [advanceBy, logicalTsFromProgress, progress, samples.length, state, tN]);
 
     const pause = useCallback(() => {
         if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -368,8 +359,21 @@ export function useReplay(
     );
 
     useEffect(() => {
+        // 러닝 중이면 멈추기
+        if (rafRef.current) cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        pausedTsRef.current = null;
+
         // samples가 비어있으면 기본값으로 초기화
         if (samples.length === 0) {
+            timelineRef.current = { T: [0] };
+            setTimeline({ t0: 0, tN: 0 });
+            currLogicalTsRef.current = 0;
+            smoothXRef.current = 0;
+            smoothYRef.current = 0;
+            smoothHRef.current = 0;
+            setProgress(0);
+            setPose({ x: 0, y: 0, heading: 0 });
             setStats({
                 distanceM: 0,
                 paceSec: 0,
@@ -378,27 +382,25 @@ export function useReplay(
                 elapsedMs: 0,
                 progress: 0,
             });
-            currLogicalTsRef.current = t0;
-            smoothXRef.current = 0;
-            smoothYRef.current = 0;
-            smoothHRef.current = 0;
-            setProgress(0);
-            setPose({ x: 0, y: 0, heading: 0 });
             setState("idle");
+            lastVisualPushRef.current = 0;
             return;
         }
+
+        // 타임라인 빌드
+        const tl = buildVirtualTimeline(samples, totalDistance, {
+            mode: timelineMode,
+            virtualDurationMs: virtualDurationMs,
+        });
+        timelineRef.current = { T: tl.T };
+        setTimeline({ t0: tl.t0, tN: tl.tN });
 
         // samples가 채워졌다면 첫 포인트 기반으로 재초기화
         const a = samples[0];
         const b = samples[1] ?? a;
         const h0 = headingBetween(a, b);
 
-        // 러닝 중이면 멈추기
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        rafRef.current = null;
-        pausedTsRef.current = null;
-
-        currLogicalTsRef.current = t0;
+        currLogicalTsRef.current = tl.t0;
         smoothXRef.current = a.x;
         smoothYRef.current = a.y;
         smoothHRef.current = h0;
@@ -415,7 +417,9 @@ export function useReplay(
         });
         setState("idle");
         lastVisualPushRef.current = 0;
-    }, [samples, t0]);
+    }, [samples, totalDistance, timelineMode, virtualDurationMs]);
+
+    const isReady = tN > 0 && samples.length > 0;
 
     return {
         state,
@@ -426,6 +430,7 @@ export function useReplay(
         reset,
         stats,
         durationMs: total,
+        isReady,
         // 새로 추가된 단일-프레임 컨트롤
         stepForward,
         stepBackward,
