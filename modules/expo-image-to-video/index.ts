@@ -21,3 +21,33 @@ export async function createVideoFromBase64(
         fps
     );
 }
+
+// 스트리밍 인코더 API - 청크 단위로 프레임 추가 가능
+export async function startStreamingEncoder(
+    sessionId: string,
+    outputPath: string,
+    fps: number,
+    width: number,
+    height: number
+): Promise<string> {
+    return await ExpoImageToVideo.startStreamingEncoder(
+        sessionId,
+        outputPath,
+        fps,
+        width,
+        height
+    );
+}
+
+export async function appendFrames(
+    sessionId: string,
+    base64Images: string[]
+): Promise<boolean> {
+    return await ExpoImageToVideo.appendFrames(sessionId, base64Images);
+}
+
+export async function finishStreamingEncoder(
+    sessionId: string
+): Promise<string> {
+    return await ExpoImageToVideo.finishStreamingEncoder(sessionId);
+}

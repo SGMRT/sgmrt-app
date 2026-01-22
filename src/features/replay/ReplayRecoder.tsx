@@ -1,10 +1,14 @@
-// ReplayRecorder.tsx — base64 only + frame-locked + aggressive perf tuning
-// - tmpfile 완전 제거 (실기기/시뮬레이터 공통 base64)
-// - "캡처 → 성공 시 한 프레임 전진(stepForward) → 다음 캡처" 고정 루프 (프레임 스킵 없음)
-// - 캡처 시간/메모리 예산 기반 품질만 동적 조절
-// - AppState/레코딩 가드로 루프 유출 방지, micro-yield로 메인스레드 숨통
+// ReplayRecorder.tsx — 청크 스트리밍 인코딩 + 메모리 최적화
+// - 프레임을 청크 단위로 네이티브 인코더에 전송하여 메모리 사용량 대폭 감소
+// - 캡처 즉시 인코더로 전달 → base64 배열 누적 없음
+// - 품질 적응형 캡처 유지
 
-import { createVideoFromBase64 } from "@/modules/expo-image-to-video";
+import {
+    startStreamingEncoder,
+    appendFrames,
+    finishStreamingEncoder,
+    createVideoFromBase64,
+} from "@/modules/expo-image-to-video";
 import { Telemetry } from "@/src/apis/types/run";
 import { Stat, StatRow, Typography, showToast } from "@/src/components/ui";
 import { interpolateTelemetries } from "@/src/utils/interpolateTelemetries";
@@ -55,16 +59,16 @@ type Props = {
     message?: string;
     name?: string;
     stats?: Stat[];
-    distance?: string | number; // km
+    distance?: string | number;
     onProgress?: (progress: number) => void;
     onFinish?: () => void;
-
-    base64BytesBudget?: number;
     captureTargetWidth?: number;
 };
 
-const TAG = "[ReplayRecorder/Base64]";
-const roughBase64Bytes = (b64: string) => Math.floor((b64.length * 3) / 4);
+const TAG = "[ReplayRecorder/Streaming]";
+
+// 청크 크기: 24프레임(약 1초)마다 네이티브로 전송
+const CHUNK_SIZE = 24;
 
 export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     {
@@ -80,7 +84,6 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         distance = 0,
         onProgress,
         onFinish,
-        base64BytesBudget: budgetProp,
         captureTargetWidth: widthProp,
     },
     ref
@@ -88,12 +91,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     // 기기별 최적화된 설정 적용
     const config = useMemo(() => getRecordingConfig(), []);
     const visualFps = visualFpsProp ?? config.visualFps;
-    const base64BytesBudget = budgetProp ?? config.base64BytesBudget;
     const captureTargetWidth = widthProp ?? config.targetWidth;
-
-    if (Platform.OS !== "ios") {
-        console.warn(`${TAG} Tuned for iOS, but works cross-platform base64.`);
-    }
 
     const cameraRef = useRef<Camera | null>(null);
     const viewShotRef = useRef<ViewShot | null>(null);
@@ -131,8 +129,8 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         progress,
         position,
         reset: resetReplay,
-        stepForward, // 한 프레임 전진
-        frameMs, // 한 프레임의 논리 시간
+        stepForward,
+        frameMs,
         visualFps: replayVisualFps,
     } = useReplay(Number(distance ?? 0) * 1000, samples, { visualFps });
 
@@ -140,11 +138,15 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     const recordingRef = useRef(false);
     const [recording, setRecording] = useState(false);
 
-    const base64FramesRef = useRef<string[]>([]);
-    const base64BytesRef = useRef(0);
+    // 청크 버퍼 (CHUNK_SIZE 프레임마다 네이티브로 전송 후 비움)
+    const chunkBufferRef = useRef<string[]>([]);
     const indexRef = useRef(0);
 
-    // progress를 ref로 추적하여 콜백 의존성 안정화
+    // 스트리밍 인코더 세션 ID
+    const sessionIdRef = useRef<string | null>(null);
+    const outputPathRef = useRef<string>("");
+
+    // progress를 ref로 추적
     const progressRef = useRef(progress);
     progressRef.current = progress;
 
@@ -162,36 +164,49 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     const currentQualityRef = useRef(config.initialQuality);
     const clampQ = (q: number) => clampQuality(q, config);
 
-    // 유틸
-    const combineFramesToVideo = useCallback(async (): Promise<
-        string | null
-    > => {
-        const outputPath = `${
-            FileSystem.documentDirectory
-        }replay_${Date.now()}.mp4`;
+    // 청크를 네이티브로 전송
+    const flushChunk = useCallback(async () => {
+        if (!sessionIdRef.current || chunkBufferRef.current.length === 0) return;
 
-        const timer = trackDuration("replay.combineFramesToVideo", {
-            frameCount: base64FramesRef.current.length,
-            totalBytes: base64BytesRef.current,
-            quality: currentQualityRef.current,
+        try {
+            await appendFrames(sessionIdRef.current, chunkBufferRef.current);
+            chunkBufferRef.current = []; // 버퍼 비우기 (메모리 해제)
+        } catch (err) {
+            captureError(
+                "replay.flushChunk",
+                err,
+                {
+                    sessionId: sessionIdRef.current,
+                    chunkSize: chunkBufferRef.current.length,
+                },
+                { feature: "replay-video" },
+                ERROR_PRIORITY.MEDIUM
+            );
+        }
+    }, []);
+
+    // 인코딩 완료
+    const finishEncoding = useCallback(async (): Promise<string | null> => {
+        if (!sessionIdRef.current) return null;
+
+        const timer = trackDuration("replay.finishEncoding", {
+            frameCount: indexRef.current,
         });
 
         metrics.markEncodeStart();
 
         try {
-            const frames = base64FramesRef.current;
-            if (!frames.length) {
-                timer.end({ status: "no_frames" });
-                metrics.endSession(false);
-                return null;
+            // 남은 청크 전송
+            if (chunkBufferRef.current.length > 0) {
+                await flushChunk();
             }
-            const fps = replayVisualFps ?? visualFps;
-            addPhase("replay.encoding_start", {
-                frameCount: frames.length,
-                fps,
+
+            addPhase("replay.encoding_finish", {
+                frameCount: indexRef.current,
             });
 
-            const result = await createVideoFromBase64(frames, outputPath, fps);
+            const result = await finishStreamingEncoder(sessionIdRef.current);
+            sessionIdRef.current = null;
 
             timer.end({ status: "success", outputPath: result });
             metrics.endSession(true);
@@ -200,25 +215,39 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
             timer.end({ status: "error" });
             metrics.endSession(false);
             captureError(
-                "replay.combineFramesToVideo",
+                "replay.finishEncoding",
                 err,
                 {
-                    frameCount: base64FramesRef.current.length,
-                    totalBytes: base64BytesRef.current,
-                    quality: currentQualityRef.current,
+                    frameCount: indexRef.current,
                     platform: Platform.OS,
                 },
                 { feature: "replay-video" },
                 ERROR_PRIORITY.HIGH
             );
+
+            // 폴백: 버퍼에 남은 프레임으로 일괄 인코딩 시도
+            if (chunkBufferRef.current.length > 0) {
+                try {
+                    const fallbackPath = `${FileSystem.documentDirectory}replay_fallback_${Date.now()}.mp4`;
+                    const fps = replayVisualFps ?? visualFps;
+                    const result = await createVideoFromBase64(
+                        chunkBufferRef.current,
+                        fallbackPath,
+                        fps
+                    );
+                    return result.startsWith("file://") ? result : `file://${result}`;
+                } catch {
+                    return null;
+                }
+            }
             return null;
         }
-    }, [replayVisualFps, visualFps, metrics]);
+    }, [flushChunk, metrics, replayVisualFps, visualFps]);
 
     const resetBuffers = useCallback(() => {
-        base64FramesRef.current = [];
-        base64BytesRef.current = 0;
+        chunkBufferRef.current = [];
         indexRef.current = 0;
+        sessionIdRef.current = null;
         currentQualityRef.current = config.initialQuality;
         metrics.reset();
     }, [config.initialQuality, metrics]);
@@ -256,30 +285,20 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
 
             if (uri) {
                 const b64 = uri as string;
-                const frameBytes = roughBase64Bytes(b64);
-                base64FramesRef.current.push(b64);
-                base64BytesRef.current += frameBytes;
+                chunkBufferRef.current.push(b64);
 
                 // 캡처 메트릭 기록
                 const captureTime = Date.now() - started;
-                metrics.recordCapture(captureTime, base64BytesRef.current);
-
-                // 메모리 예산 초과 시, 프레임은 유지하고 품질만 내림
-                if (base64BytesRef.current > base64BytesBudget) {
-                    currentQualityRef.current = clampQ(
-                        currentQualityRef.current - 0.02
-                    );
-                    // 추정치 감소(이미 쌓인 프레임은 줄일 수 없으므로 속도 개선만)
-                    base64BytesRef.current = Math.floor(
-                        base64BytesRef.current * 0.9
-                    );
-                }
+                metrics.recordCapture(captureTime, chunkBufferRef.current.length);
 
                 indexRef.current++;
+
+                // 청크 크기 도달 시 네이티브로 전송
+                if (chunkBufferRef.current.length >= CHUNK_SIZE) {
+                    await flushChunk();
+                }
             }
         } catch (err) {
-            // 캡처 실패는 드물게 발생하므로 프레임은 전진 (부드러움 유지)
-            // 단, 에러는 Sentry에 기록하여 패턴 파악
             metrics.recordDrop();
             captureError(
                 "replay.frameCapture",
@@ -287,7 +306,6 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                 {
                     frameIndex: indexRef.current,
                     quality: currentQualityRef.current,
-                    memoryUsage: base64BytesRef.current,
                     progress: progressRef.current,
                 },
                 { feature: "replay-video" },
@@ -309,12 +327,11 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
             );
         }
 
-        // 3) 다음 프레임으로 "한 프레임" 전진
+        // 3) 다음 프레임으로 전진
         stepForward();
 
         // 4) 다음 사이클 예약
         if (recordingRef.current) {
-            // 캡처가 너무 빨랐다면 아주 소량 대기(1~2ms)로 스케줄 양보
             const bleed = elapsed < 4 ? 1 : 0;
             timerRef.current = setTimeout(frameLockedLoop, bleed);
         }
@@ -323,7 +340,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         targetHeight,
         frameMs,
         stepForward,
-        base64BytesBudget,
+        flushChunk,
         metrics,
     ]);
 
@@ -331,12 +348,38 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     const startLoop = useCallback(async () => {
         resetBuffers();
         metrics.startSession();
+
+        // 스트리밍 인코더 시작
+        const sessionId = `replay_${Date.now()}`;
+        const outputPath = `${FileSystem.documentDirectory}replay_${Date.now()}.mp4`;
+        outputPathRef.current = outputPath;
+
+        try {
+            await startStreamingEncoder(
+                sessionId,
+                outputPath,
+                replayVisualFps ?? visualFps,
+                targetWidth,
+                targetHeight
+            );
+            sessionIdRef.current = sessionId;
+        } catch (err) {
+            captureError(
+                "replay.startStreamingEncoder",
+                err,
+                { sessionId, outputPath },
+                { feature: "replay-video" },
+                ERROR_PRIORITY.HIGH
+            );
+            // 스트리밍 실패 시에도 계속 진행 (나중에 폴백 인코딩)
+        }
+
         setRecording(true);
         recordingRef.current = true;
 
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(frameLockedLoop, 0);
-    }, [resetBuffers, frameLockedLoop, metrics]);
+    }, [resetBuffers, frameLockedLoop, metrics, replayVisualFps, visualFps, targetWidth, targetHeight]);
 
     const stopLoop = useCallback(() => {
         recordingRef.current = false;
@@ -374,37 +417,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
             setRecording(false);
             stopLoop();
 
-            // 프레임 0장 방지
-            if (indexRef.current === 0 && viewShotRef.current) {
-                try {
-                    const uri = await captureRef(viewShotRef, {
-                        format: "jpg",
-                        result: "base64",
-                        quality: currentQualityRef.current,
-                        width: targetWidth,
-                        height: targetHeight,
-                    });
-                    if (uri) {
-                        const b64 = uri as string;
-                        base64FramesRef.current.push(b64);
-                        base64BytesRef.current += roughBase64Bytes(b64);
-                    }
-                } catch (err) {
-                    captureError(
-                        "replay.fallbackCapture",
-                        err,
-                        {
-                            quality: currentQualityRef.current,
-                            targetWidth,
-                            targetHeight,
-                        },
-                        { feature: "replay-video" },
-                        ERROR_PRIORITY.MEDIUM
-                    );
-                }
-            }
-
-            const path = await combineFramesToVideo();
+            const path = await finishEncoding();
             if (path && autoShare) {
                 await Share.open({
                     url: path,
@@ -438,12 +451,12 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         },
     }));
 
-    // 자동 완료 시 병합+콜백
+    // 자동 완료 시 인코딩+콜백
     useEffect(() => {
         if (progress >= 1 && recording) {
             setRecording(false);
             stopLoop();
-            combineFramesToVideo()
+            finishEncoding()
                 .then((path) => {
                     if (autoShare && path)
                         void Share.open({
@@ -464,7 +477,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         progress,
         recording,
         stopLoop,
-        combineFramesToVideo,
+        finishEncoding,
         autoShare,
         title,
         message,
@@ -486,7 +499,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                 options={{
                     format: "jpg",
                     result: "base64",
-                    quality: 0.15, // 초기값
+                    quality: 0.15,
                 }}
             >
                 <View
