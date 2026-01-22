@@ -9,6 +9,12 @@ import { Telemetry } from "@/src/apis/types/run";
 import { Stat, StatRow, Typography, showToast } from "@/src/components/ui";
 import { interpolateTelemetries } from "@/src/utils/interpolateTelemetries";
 import { normalizeTimestamps } from "@/src/utils/normalizeTimestamps";
+import {
+    captureError,
+    ERROR_PRIORITY,
+    trackDuration,
+    addPhase,
+} from "@/src/utils/sentryTools";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { Camera } from "@rnmapbox/maps";
 import * as FileSystem from "expo-file-system";
@@ -24,6 +30,11 @@ import {
 import { AppState, AppStateStatus, Platform, View } from "react-native";
 import Share from "react-native-share";
 import ViewShot, { captureRef } from "react-native-view-shot";
+import {
+    getRecordingConfig,
+    clampQuality,
+} from "./config/recordingConfig";
+import { useRecordingMetrics } from "./hooks/useRecordingMetrics";
 import { useReplay } from "./hooks/useReplay";
 import PreviewMap from "./PreviewMap";
 
@@ -58,7 +69,7 @@ const roughBase64Bytes = (b64: string) => Math.floor((b64.length * 3) / 4);
 export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     {
         telemetries,
-        visualFps = 22,
+        visualFps: visualFpsProp,
         width = 360,
         height = 350,
         autoShare = false,
@@ -69,17 +80,26 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         distance = 0,
         onProgress,
         onFinish,
-        base64BytesBudget = 120 * 1024 * 1024,
-        captureTargetWidth = 393,
+        base64BytesBudget: budgetProp,
+        captureTargetWidth: widthProp,
     },
     ref
 ) {
+    // 기기별 최적화된 설정 적용
+    const config = useMemo(() => getRecordingConfig(), []);
+    const visualFps = visualFpsProp ?? config.visualFps;
+    const base64BytesBudget = budgetProp ?? config.base64BytesBudget;
+    const captureTargetWidth = widthProp ?? config.targetWidth;
+
     if (Platform.OS !== "ios") {
         console.warn(`${TAG} Tuned for iOS, but works cross-platform base64.`);
     }
 
     const cameraRef = useRef<Camera | null>(null);
     const viewShotRef = useRef<ViewShot | null>(null);
+
+    // 성능 메트릭 수집
+    const metrics = useRecordingMetrics();
 
     // 데이터 전처리
     const interpolatedTelemetries = useMemo(
@@ -108,7 +128,6 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
 
     // 재생 훅
     const {
-        state,
         progress,
         position,
         reset: resetReplay,
@@ -125,6 +144,10 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     const base64BytesRef = useRef(0);
     const indexRef = useRef(0);
 
+    // progress를 ref로 추적하여 콜백 의존성 안정화
+    const progressRef = useRef(progress);
+    progressRef.current = progress;
+
     type TimeoutId = ReturnType<typeof setTimeout>;
     const timerRef = useRef<TimeoutId | null>(null);
 
@@ -135,9 +158,9 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     const targetWidth = Math.max(128, Math.min(captureTargetWidth, 420));
     const targetHeight = Math.max(1, Math.round((targetWidth / 393) * 586));
 
-    // 품질
-    const currentQualityRef = useRef(0.15);
-    const clampQ = (q: number) => Math.max(0.1, Math.min(0.2, q));
+    // 품질 (기기별 설정에 따른 초기값 및 범위)
+    const currentQualityRef = useRef(config.initialQuality);
+    const clampQ = (q: number) => clampQuality(q, config);
 
     // 유틸
     const combineFramesToVideo = useCallback(async (): Promise<
@@ -146,23 +169,59 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         const outputPath = `${
             FileSystem.documentDirectory
         }replay_${Date.now()}.mp4`;
+
+        const timer = trackDuration("replay.combineFramesToVideo", {
+            frameCount: base64FramesRef.current.length,
+            totalBytes: base64BytesRef.current,
+            quality: currentQualityRef.current,
+        });
+
+        metrics.markEncodeStart();
+
         try {
             const frames = base64FramesRef.current;
-            if (!frames.length) return null;
+            if (!frames.length) {
+                timer.end({ status: "no_frames" });
+                metrics.endSession(false);
+                return null;
+            }
             const fps = replayVisualFps ?? visualFps;
+            addPhase("replay.encoding_start", {
+                frameCount: frames.length,
+                fps,
+            });
+
             const result = await createVideoFromBase64(frames, outputPath, fps);
+
+            timer.end({ status: "success", outputPath: result });
+            metrics.endSession(true);
             return result.startsWith("file://") ? result : `file://${result}`;
         } catch (err) {
+            timer.end({ status: "error" });
+            metrics.endSession(false);
+            captureError(
+                "replay.combineFramesToVideo",
+                err,
+                {
+                    frameCount: base64FramesRef.current.length,
+                    totalBytes: base64BytesRef.current,
+                    quality: currentQualityRef.current,
+                    platform: Platform.OS,
+                },
+                { feature: "replay-video" },
+                ERROR_PRIORITY.HIGH
+            );
             return null;
         }
-    }, [replayVisualFps, visualFps]);
+    }, [replayVisualFps, visualFps, metrics]);
 
     const resetBuffers = useCallback(() => {
         base64FramesRef.current = [];
         base64BytesRef.current = 0;
         indexRef.current = 0;
-        currentQualityRef.current = 0.15;
-    }, []);
+        currentQualityRef.current = config.initialQuality;
+        metrics.reset();
+    }, [config.initialQuality, metrics]);
 
     // Frame-Locked 루프
     const frameLockedLoop = useCallback(async () => {
@@ -177,7 +236,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         }
 
         // 완료면 종료
-        if (progress >= 1) {
+        if (progressRef.current >= 1) {
             recordingRef.current = false;
             return;
         }
@@ -197,8 +256,13 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
 
             if (uri) {
                 const b64 = uri as string;
+                const frameBytes = roughBase64Bytes(b64);
                 base64FramesRef.current.push(b64);
-                base64BytesRef.current += roughBase64Bytes(b64);
+                base64BytesRef.current += frameBytes;
+
+                // 캡처 메트릭 기록
+                const captureTime = Date.now() - started;
+                metrics.recordCapture(captureTime, base64BytesRef.current);
 
                 // 메모리 예산 초과 시, 프레임은 유지하고 품질만 내림
                 if (base64BytesRef.current > base64BytesBudget) {
@@ -213,8 +277,22 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
 
                 indexRef.current++;
             }
-        } catch {
+        } catch (err) {
             // 캡처 실패는 드물게 발생하므로 프레임은 전진 (부드러움 유지)
+            // 단, 에러는 Sentry에 기록하여 패턴 파악
+            metrics.recordDrop();
+            captureError(
+                "replay.frameCapture",
+                err,
+                {
+                    frameIndex: indexRef.current,
+                    quality: currentQualityRef.current,
+                    memoryUsage: base64BytesRef.current,
+                    progress: progressRef.current,
+                },
+                { feature: "replay-video" },
+                ERROR_PRIORITY.MEDIUM
+            );
         }
 
         const elapsed = Date.now() - started;
@@ -244,20 +322,21 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         targetWidth,
         targetHeight,
         frameMs,
-        progress,
         stepForward,
         base64BytesBudget,
+        metrics,
     ]);
 
     // 수명주기/제어
     const startLoop = useCallback(async () => {
         resetBuffers();
+        metrics.startSession();
         setRecording(true);
         recordingRef.current = true;
 
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(frameLockedLoop, 0);
-    }, [resetBuffers, frameLockedLoop]);
+    }, [resetBuffers, frameLockedLoop, metrics]);
 
     const stopLoop = useCallback(() => {
         recordingRef.current = false;
@@ -310,7 +389,19 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                         base64FramesRef.current.push(b64);
                         base64BytesRef.current += roughBase64Bytes(b64);
                     }
-                } catch {}
+                } catch (err) {
+                    captureError(
+                        "replay.fallbackCapture",
+                        err,
+                        {
+                            quality: currentQualityRef.current,
+                            targetWidth,
+                            targetHeight,
+                        },
+                        { feature: "replay-video" },
+                        ERROR_PRIORITY.MEDIUM
+                    );
+                }
             }
 
             const path = await combineFramesToVideo();
@@ -329,7 +420,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                             variant: "video",
                         });
                     })
-                    .catch((e) => {
+                    .catch(() => {
                         showToast("info", "공유에 실패했습니다", 100);
                     });
             }
@@ -363,7 +454,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                             type: "video/mp4",
                             saveToFiles: false,
                             failOnCancel: false,
-                        }).catch((e) => {
+                        }).catch(() => {
                             showToast("info", "공유에 실패했습니다", 100);
                         });
                 })

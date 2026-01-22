@@ -2,7 +2,6 @@ import { useCallback } from "react";
 import { ReplayStats, Sample } from "../types";
 import {
     applySmoothingToPosition,
-    getProgressFromPosition,
     getPoseAtTimestamp,
 } from "../utils/index";
 import {
@@ -96,12 +95,15 @@ export function useReplayAnimation(
             refs.smoothH.current = smoothed.heading;
             refs.currLogicalTs.current = ts;
 
-            // 시작/끝에서는 정확한 progress, 그 외는 position 기준
+            // 시간 기반 progress 계산 (위치 기반보다 안정적)
+            // 스무딩으로 인해 위치 기반 progress는 불규칙하게 점프할 수 있음
             const progress = reachedEnd
                 ? 1
                 : reachedStart
                   ? 0
-                  : getProgressFromPosition(smoothed.x, smoothed.y, samples);
+                  : total > 0
+                    ? (ts - t0) / total
+                    : 0;
 
             // 스로틀링 체크
             const now = performance.now();
