@@ -140,6 +140,8 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
 
     // 청크 버퍼 (CHUNK_SIZE 프레임마다 네이티브로 전송 후 비움)
     const chunkBufferRef = useRef<string[]>([]);
+    // 폴백 버퍼 (스트리밍 실패 시 일괄 인코딩용)
+    const fallbackBufferRef = useRef<string[]>([]);
     const indexRef = useRef(0);
 
     // 스트리밍 인코더 세션 ID
@@ -185,15 +187,38 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         }
     }, []);
 
+    // 폴백 인코딩 (스트리밍 실패 시 버퍼의 프레임으로 일괄 생성)
+    const fallbackEncode = useCallback(async (): Promise<string | null> => {
+        if (fallbackBufferRef.current.length === 0) return null;
+
+        try {
+            const fallbackPath = `${FileSystem.documentDirectory}replay_fallback_${Date.now()}.mp4`;
+            const fps = replayVisualFps ?? visualFps;
+            const result = await createVideoFromBase64(
+                fallbackBufferRef.current,
+                fallbackPath,
+                fps
+            );
+            return result.startsWith("file://") ? result : `file://${result}`;
+        } catch {
+            return null;
+        }
+    }, [replayVisualFps, visualFps]);
+
     // 인코딩 완료
     const finishEncoding = useCallback(async (): Promise<string | null> => {
-        if (!sessionIdRef.current) return null;
-
         const timer = trackDuration("replay.finishEncoding", {
             frameCount: indexRef.current,
         });
 
         metrics.markEncodeStart();
+
+        // 스트리밍 세션이 없으면 폴백 인코딩
+        if (!sessionIdRef.current) {
+            timer.end({ status: "fallback", reason: "no_session" });
+            metrics.endSession(true);
+            return fallbackEncode();
+        }
 
         try {
             // 남은 청크 전송
@@ -207,6 +232,8 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
 
             const result = await finishStreamingEncoder(sessionIdRef.current);
             sessionIdRef.current = null;
+            // 스트리밍 성공 시 폴백 버퍼 해제
+            fallbackBufferRef.current = [];
 
             timer.end({ status: "success", outputPath: result });
             metrics.endSession(true);
@@ -226,26 +253,13 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
             );
 
             // 폴백: 버퍼에 남은 프레임으로 일괄 인코딩 시도
-            if (chunkBufferRef.current.length > 0) {
-                try {
-                    const fallbackPath = `${FileSystem.documentDirectory}replay_fallback_${Date.now()}.mp4`;
-                    const fps = replayVisualFps ?? visualFps;
-                    const result = await createVideoFromBase64(
-                        chunkBufferRef.current,
-                        fallbackPath,
-                        fps
-                    );
-                    return result.startsWith("file://") ? result : `file://${result}`;
-                } catch {
-                    return null;
-                }
-            }
-            return null;
+            return fallbackEncode();
         }
-    }, [flushChunk, metrics, replayVisualFps, visualFps]);
+    }, [flushChunk, metrics, fallbackEncode]);
 
     const resetBuffers = useCallback(() => {
         chunkBufferRef.current = [];
+        fallbackBufferRef.current = [];
         indexRef.current = 0;
         sessionIdRef.current = null;
         currentQualityRef.current = config.initialQuality;
@@ -286,6 +300,8 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
             if (uri) {
                 const b64 = uri as string;
                 chunkBufferRef.current.push(b64);
+                // 폴백용 버퍼에도 저장 (스트리밍 실패 시 사용)
+                fallbackBufferRef.current.push(b64);
 
                 // 캡처 메트릭 기록
                 const captureTime = Date.now() - started;
