@@ -8,6 +8,8 @@
 import AppIntents
 import WidgetKit
 
+private let kCompleteNotification = "com.sgmrt.ghostrunner.complete" as CFString
+
 @available(iOS 16.2, *)
 struct CompleteIntent: AppIntent, LiveActivityIntent {
     static var title: LocalizedStringResource = "Complete Exercise"
@@ -15,9 +17,17 @@ struct CompleteIntent: AppIntent, LiveActivityIntent {
     static var openAppWhenRun: Bool = true
 
     init() {}
-    func perform() async throws -> some IntentResult {
-        NotificationCenter.default.post(name: Notification.Name("completeActivityFromWidget"), object: nil)
 
+    func perform() async throws -> some IntentResult {
+        // Darwin Notification 사용 (프로세스 간 통신)
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        CFNotificationCenterPostNotification(
+            center,
+            CFNotificationName(kCompleteNotification),
+            nil,
+            nil,
+            true
+        )
         return .result()
     }
 }

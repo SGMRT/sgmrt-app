@@ -1,4 +1,11 @@
-import { MessageType, RunType } from "./types";
+import {
+    ExpoLiveActivityModuleEvents,
+    MessageType,
+    RunType,
+} from "./types";
+
+type EventName = keyof ExpoLiveActivityModuleEvents;
+type EventSubscription = { remove: () => void };
 
 const Noop = {
     hasActiveActivities(): boolean {
@@ -32,6 +39,10 @@ const Noop = {
     },
     endActivity(): void {
         /* no-op */
+    },
+    // 이벤트 리스너 (Android에서는 no-op)
+    addListener(_eventName: EventName, _listener: () => void): EventSubscription {
+        return { remove: () => {} };
     },
 };
 
