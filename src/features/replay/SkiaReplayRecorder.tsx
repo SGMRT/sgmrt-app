@@ -263,14 +263,20 @@ export default forwardRef<SkiaReplayRecorderHandle, Props>(function SkiaReplayRe
             if (canvasRef.current) {
                 const image = await canvasRef.current.makeImageSnapshotAsync();
                 if (image) {
-                    const bytes = image.encodeToBytes();
-                    if (bytes) {
-                        const base64 = uint8ArrayToBase64(bytes);
-                        base64FramesRef.current.push(base64);
+                    try {
+                        const bytes = image.encodeToBytes();
+                        if (bytes) {
+                            const base64 = uint8ArrayToBase64(bytes);
+                            base64FramesRef.current.push(base64);
 
-                        const captureTime = Date.now() - started;
-                        metrics.recordCapture(captureTime, base64.length);
-                        indexRef.current++;
+                            const captureTime = Date.now() - started;
+                            // 바이트 단위로 메트릭 기록 (base64.length가 아닌 실제 바이트 크기)
+                            metrics.recordCapture(captureTime, bytes.byteLength);
+                            indexRef.current++;
+                        }
+                    } finally {
+                        // SkImage 네이티브 메모리 해제
+                        image.dispose();
                     }
                 }
             }

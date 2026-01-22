@@ -89,6 +89,9 @@ export function buildStaticMapUrl(
     samples: Sample[],
     options: UseMapSnapshotOptions
 ): string | null {
+    // MAPBOX_TOKEN이 없으면 URL 생성하지 않음 (401 에러 방지)
+    if (!MAPBOX_TOKEN) return null;
+
     const bounds = calculateBounds(samples);
     if (!bounds) return null;
 
@@ -118,7 +121,7 @@ export function useMapSnapshot(
 ) {
     const url = useMemo(
         () => buildStaticMapUrl(samples, options),
-        [samples, options.width, options.height, options.padding, options.style]
+        [samples, options.width, options.height, options.padding, options.style, options.pitch, options.bearing]
     );
 
     const image = useImage(url);
@@ -152,11 +155,21 @@ export function geoToCanvas(
     const lngRange = bounds.maxLng - bounds.minLng;
     const latRange = bounds.maxLat - bounds.minLat;
 
-    // 경도는 왼쪽→오른쪽
-    const x = offsetX + ((lng - bounds.minLng) / lngRange) * paddedWidth;
+    // 범위가 0인 경우 (단일 포인트) 중앙에 배치
+    let x: number;
+    let y: number;
 
-    // 위도는 위쪽→아래쪽 (Canvas Y는 아래로 증가)
-    const y = offsetY + ((bounds.maxLat - lat) / latRange) * paddedHeight;
+    if (lngRange === 0) {
+        x = offsetX + paddedWidth / 2;
+    } else {
+        x = offsetX + ((lng - bounds.minLng) / lngRange) * paddedWidth;
+    }
+
+    if (latRange === 0) {
+        y = offsetY + paddedHeight / 2;
+    } else {
+        y = offsetY + ((bounds.maxLat - lat) / latRange) * paddedHeight;
+    }
 
     return { x, y };
 }

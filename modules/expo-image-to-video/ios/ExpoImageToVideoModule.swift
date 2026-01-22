@@ -159,6 +159,16 @@ public class ExpoImageToVideoModule: Module {
   // MARK: - Streaming Encoder
 
   private func startStreamingEncoder(sessionId: String, outputPath: String, fps: Double, width: Int, height: Int) async throws {
+    // 기존 세션이 있으면 정리
+    if let existingEncoder = streamingSessions[sessionId] {
+      do {
+        _ = try await existingEncoder.finish()
+      } catch {
+        // 기존 세션 종료 실패해도 계속 진행
+      }
+      streamingSessions.removeValue(forKey: sessionId)
+    }
+
     let outputPathStr = stripFileScheme(outputPath)
     let outputURL = URL(fileURLWithPath: outputPathStr)
 
@@ -192,8 +202,11 @@ public class ExpoImageToVideoModule: Module {
       throw NSError(domain: "ExpoImageToVideo", code: 10, userInfo: [NSLocalizedDescriptionKey: "Session not found: \(sessionId)"])
     }
 
+    defer {
+      streamingSessions.removeValue(forKey: sessionId)
+    }
+
     let outputPath = try await encoder.finish()
-    streamingSessions.removeValue(forKey: sessionId)
     return outputPath
   }
 

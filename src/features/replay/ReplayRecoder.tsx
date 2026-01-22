@@ -141,6 +141,8 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
     // 폴백 버퍼 (스트리밍 실패 시 일괄 인코딩용)
     const fallbackBufferRef = useRef<string[]>([]);
     const indexRef = useRef(0);
+    // 누적 바이트 추적 (메트릭용)
+    const accumulatedBytesRef = useRef(0);
 
     // 스트리밍 인코더 세션 ID
     const sessionIdRef = useRef<string | null>(null);
@@ -169,8 +171,24 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         if (!sessionIdRef.current || chunkBufferRef.current.length === 0) return;
 
         try {
-            await appendFrames(sessionIdRef.current, chunkBufferRef.current);
-            chunkBufferRef.current = []; // 버퍼 비우기 (메모리 해제)
+            const ok = await appendFrames(sessionIdRef.current, chunkBufferRef.current);
+            if (ok === true) {
+                chunkBufferRef.current = []; // 버퍼 비우기 (메모리 해제)
+            } else {
+                // 실패 시 세션 정리
+                captureError(
+                    "replay.flushChunk",
+                    new Error("appendFrames returned false"),
+                    {
+                        sessionId: sessionIdRef.current,
+                        chunkSize: chunkBufferRef.current.length,
+                    },
+                    { feature: "replay-video" },
+                    ERROR_PRIORITY.MEDIUM
+                );
+                sessionIdRef.current = null;
+                chunkBufferRef.current = []; // 메모리 누수 방지
+            }
         } catch (err) {
             captureError(
                 "replay.flushChunk",
@@ -182,6 +200,8 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                 { feature: "replay-video" },
                 ERROR_PRIORITY.MEDIUM
             );
+            sessionIdRef.current = null;
+            chunkBufferRef.current = []; // 메모리 누수 방지
         }
     }, []);
 
@@ -260,6 +280,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
         fallbackBufferRef.current = [];
         indexRef.current = 0;
         sessionIdRef.current = null;
+        accumulatedBytesRef.current = 0;
         currentQualityRef.current = config.initialQuality;
         metrics.reset();
     }, [config.initialQuality, metrics]);
@@ -301,9 +322,13 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                 // 폴백용 버퍼에도 저장 (스트리밍 실패 시 사용)
                 fallbackBufferRef.current.push(b64);
 
-                // 캡처 메트릭 기록
+                // base64 문자열 길이 → 예상 바이트 수 (base64는 원본의 약 4/3 크기)
+                const estimatedBytes = Math.ceil((b64.length * 3) / 4);
+                accumulatedBytesRef.current += estimatedBytes;
+
+                // 캡처 메트릭 기록 (바이트 단위)
                 const captureTime = Date.now() - started;
-                metrics.recordCapture(captureTime, chunkBufferRef.current.length);
+                metrics.recordCapture(captureTime, accumulatedBytesRef.current);
 
                 indexRef.current++;
 

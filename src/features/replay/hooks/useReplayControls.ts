@@ -60,11 +60,19 @@ export function useReplayControls(
         animationConfig
     );
 
-    // samples나 timeline 변경 시 상태 리셋
+    // samples나 initialPose 변경 시 상태 리셋
     const prevSamplesRef = useRef(samples);
+    const prevInitialPoseRef = useRef(initialPose);
     useEffect(() => {
-        if (prevSamplesRef.current !== samples) {
+        const samplesChanged = prevSamplesRef.current !== samples;
+        const poseChanged =
+            prevInitialPoseRef.current.x !== initialPose.x ||
+            prevInitialPoseRef.current.y !== initialPose.y ||
+            prevInitialPoseRef.current.heading !== initialPose.heading;
+
+        if (samplesChanged || poseChanged) {
             prevSamplesRef.current = samples;
+            prevInitialPoseRef.current = initialPose;
             setPose(initialPose);
             setProgress(0);
             setState("idle");

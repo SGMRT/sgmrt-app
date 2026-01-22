@@ -114,7 +114,7 @@ export function useRecordingMetrics() {
             (a, b) => a - b
         );
         if (times.length === 0) return 0;
-        const idx = Math.floor(times.length * 0.95);
+        const idx = Math.floor((times.length - 1) * 0.95);
         return times[idx] ?? times[times.length - 1] ?? 0;
     }, []);
 

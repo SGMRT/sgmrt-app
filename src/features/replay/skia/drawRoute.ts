@@ -52,6 +52,7 @@ export function createRoutePath(
  * 진행률에 해당하는 샘플 인덱스 계산
  */
 export function getProgressIndex(samples: Sample[], progress: number): number {
+    if (samples.length === 0) return 0;
     if (progress <= 0) return 0;
     if (progress >= 1) return samples.length - 1;
     return Math.floor(progress * (samples.length - 1));

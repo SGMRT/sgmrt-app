@@ -45,9 +45,10 @@ const PRESETS: Record<RecordingPreset, RecordingConfig> = {
 
 /**
  * 구형 iOS 기기 패턴 매칭
- * iPhone 6, 7, 8, SE(1세대), X (XS 제외)
+ * iPhone 6, 7, 8, X (XS 제외)
+ * SE 모델은 RAM 기반 로직으로 판단 (SE 2/3세대는 충분한 성능)
  */
-const OLD_IPHONE_PATTERN = /iPhone\s?(6|7|8|SE|X(?!S|R))/i;
+const OLD_IPHONE_PATTERN = /iPhone\s?(6|7|8|X(?!S|R))/i;
 
 /**
  * 기기 능력에 따른 녹화 설정 결정

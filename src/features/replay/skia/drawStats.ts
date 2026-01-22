@@ -255,8 +255,8 @@ export function drawMinimalStatsOnCanvas(
 ): void {
     const mergedStyle = { ...DEFAULT_STYLE, ...options.style };
 
-    const primaryFont = Skia.Font(undefined, 56);
-    const labelFont = Skia.Font(undefined, 16);
+    const primaryFont = Skia.Font(undefined, mergedStyle.primaryFontSize);
+    const labelFont = Skia.Font(undefined, mergedStyle.labelFontSize);
 
     const distance = formatDistance(distanceM);
     const time = formatTime(elapsedMs);
