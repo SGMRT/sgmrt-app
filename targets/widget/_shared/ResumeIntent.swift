@@ -8,17 +8,25 @@
 import AppIntents
 import WidgetKit
 
+private let kResumeNotification = "com.sgmrt.ghostrunner.resume" as CFString
+
 @available(iOS 16.2, *)
 struct ResumeIntent: AppIntent, LiveActivityIntent {
     static var title: LocalizedStringResource = "Resume Timer"
     static var description: IntentDescription = "Resumes the current timer."
 
-    // Ensure we can initialize from protocol
     init() {}
 
     func perform() async throws -> some IntentResult {
-        // Notify the app to resume the timer
-        NotificationCenter.default.post(name: Notification.Name("resumeTimerFromWidget"), object: nil)
+        // Darwin Notification 사용 (프로세스 간 통신)
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        CFNotificationCenterPostNotification(
+            center,
+            CFNotificationName(kResumeNotification),
+            nil,
+            nil,
+            true
+        )
         return .result()
     }
 }

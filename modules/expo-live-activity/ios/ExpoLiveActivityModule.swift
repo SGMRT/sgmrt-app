@@ -2,6 +2,13 @@ import ExpoModulesCore
 import ActivityKit
 import SwiftUI
 
+// MARK: - Darwin Notification 상수 (Widget Extension과 공유)
+private enum DarwinNotificationNames {
+    static let pause = "com.sgmrt.ghostrunner.pause" as CFString
+    static let resume = "com.sgmrt.ghostrunner.resume" as CFString
+    static let complete = "com.sgmrt.ghostrunner.complete" as CFString
+}
+
 public enum RunType: String, Codable, Hashable, Sendable {
     case solo = "SOLO"
     case ghost = "GHOST"
@@ -201,9 +208,28 @@ enum LiveActivityHelper {
 }
 
 public class ExpoLiveActivityModule: Module {
-  public func definition() -> ModuleDefinition {
-      Name("ExpoLiveActivity")
-      Events("onLiveActivityCancel")
+    private var darwinObserversRegistered = false
+    private var activityMonitorTask: Task<Void, Never>?
+
+    public func definition() -> ModuleDefinition {
+        Name("ExpoLiveActivity")
+        Events(
+            "onLiveActivityCancel",
+            "onLiveActivityDismissed",
+            "onLiveActivityStale",
+            "onWidgetPause",
+            "onWidgetResume",
+            "onWidgetComplete"
+        )
+
+        OnCreate {
+            self.registerDarwinNotificationObservers()
+        }
+
+        OnDestroy {
+            self.unregisterDarwinNotificationObservers()
+            self.activityMonitorTask?.cancel()
+        }
 
     Function("hasActiveActivities") { () -> Bool in
         if #available(iOS 16.2, *) {
@@ -231,26 +257,27 @@ public class ExpoLiveActivityModule: Module {
 
             let attributes = GoRunAttributes(runType: rt, sessionId: sessionId)
             let state = GoRunAttributes.ContentState(
-            startedAt: startedAt,
-            recentPace: recentPace,
-            distanceMeters: distanceMeters,
-            progress: progress,
-            message: message,
-            messageType: mt
+                startedAt: startedAt,
+                recentPace: recentPace,
+                distanceMeters: distanceMeters,
+                progress: progress,
+                message: message,
+                messageType: mt
             )
 
             do {
-            _ = try Activity.request(attributes: attributes,
-                                    content: ActivityContent(state: state, staleDate: nil))
-            // 옵저버 등록은 idempotent 관리 권장(여러 번 등록 방지)
-            NotificationCenter.default.addObserver(self,
-                selector: #selector(self.onLiveActivityCancel),
-                name: Notification.Name("onLiveActivityCancel"),
-                object: nil)
-            return true
+                let activity = try Activity.request(
+                    attributes: attributes,
+                    content: ActivityContent(state: state, staleDate: nil)
+                )
+
+                // Activity 상태 변화 모니터링 (스와이프 종료 감지)
+                self.startActivityStateMonitoring(activity)
+
+                return true
             } catch {
-            print("Activity.request error: \(error)")
-            return false
+                print("Activity.request error: \(error)")
+                return false
             }
         } else { return false }
     }
@@ -266,18 +293,121 @@ public class ExpoLiveActivityModule: Module {
           }
       }
       
-Function("endActivity") { () -> Void in
-      if #available(iOS 16.2, *) {
-        Task { await LiveActivityHelper.endAllImmediately() }
-        NotificationCenter.default.removeObserver(self,
-          name: Notification.Name("onLiveActivityCancel"),
-          object: nil)
-      }
+    Function("endActivity") { () -> Void in
+        if #available(iOS 16.2, *) {
+            self.activityMonitorTask?.cancel()
+            self.activityMonitorTask = nil
+            Task { await LiveActivityHelper.endAllImmediately() }
+        }
     }
   }
-    
-    @objc
-    func onLiveActivityCancel() {
-        sendEvent("onLiveActivityCancel", [:])
+
+    // MARK: - Activity State Monitoring
+
+    @available(iOS 16.2, *)
+    private func startActivityStateMonitoring(_ activity: Activity<GoRunAttributes>) {
+        // 이전 모니터링 취소
+        activityMonitorTask?.cancel()
+
+        activityMonitorTask = Task { [weak self] in
+            for await state in activity.activityStateUpdates {
+                guard !Task.isCancelled else { break }
+
+                switch state {
+                case .dismissed:
+                    // 사용자가 스와이프로 종료
+                    print("🔔 Live Activity dismissed by user")
+                    self?.sendEvent("onLiveActivityDismissed", [:])
+                case .stale:
+                    // 시스템이 자동 종료
+                    print("🔔 Live Activity became stale")
+                    self?.sendEvent("onLiveActivityStale", [:])
+                case .active:
+                    break
+                case .ended:
+                    // 앱에서 명시적으로 종료
+                    break
+                @unknown default:
+                    break
+                }
+            }
+        }
+    }
+
+    // MARK: - Darwin Notification Handling
+
+    private func registerDarwinNotificationObservers() {
+        guard !darwinObserversRegistered else { return }
+
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+
+        // Pause 알림 수신
+        CFNotificationCenterAddObserver(
+            center,
+            Unmanaged.passUnretained(self).toOpaque(),
+            { _, observer, _, _, _ in
+                guard let observer = observer else { return }
+                let module = Unmanaged<ExpoLiveActivityModule>.fromOpaque(observer).takeUnretainedValue()
+                DispatchQueue.main.async {
+                    print("🔔 Darwin: Pause notification received")
+                    module.sendEvent("onWidgetPause", [:])
+                }
+            },
+            DarwinNotificationNames.pause,
+            nil,
+            .deliverImmediately
+        )
+
+        // Resume 알림 수신
+        CFNotificationCenterAddObserver(
+            center,
+            Unmanaged.passUnretained(self).toOpaque(),
+            { _, observer, _, _, _ in
+                guard let observer = observer else { return }
+                let module = Unmanaged<ExpoLiveActivityModule>.fromOpaque(observer).takeUnretainedValue()
+                DispatchQueue.main.async {
+                    print("🔔 Darwin: Resume notification received")
+                    module.sendEvent("onWidgetResume", [:])
+                }
+            },
+            DarwinNotificationNames.resume,
+            nil,
+            .deliverImmediately
+        )
+
+        // Complete 알림 수신
+        CFNotificationCenterAddObserver(
+            center,
+            Unmanaged.passUnretained(self).toOpaque(),
+            { _, observer, _, _, _ in
+                guard let observer = observer else { return }
+                let module = Unmanaged<ExpoLiveActivityModule>.fromOpaque(observer).takeUnretainedValue()
+                DispatchQueue.main.async {
+                    print("🔔 Darwin: Complete notification received")
+                    module.sendEvent("onWidgetComplete", [:])
+                }
+            },
+            DarwinNotificationNames.complete,
+            nil,
+            .deliverImmediately
+        )
+
+        darwinObserversRegistered = true
+        print("✅ Darwin notification observers registered")
+    }
+
+    private func unregisterDarwinNotificationObservers() {
+        guard darwinObserversRegistered else { return }
+
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        CFNotificationCenterRemoveObserver(
+            center,
+            Unmanaged.passUnretained(self).toOpaque(),
+            nil,
+            nil
+        )
+
+        darwinObserversRegistered = false
+        print("✅ Darwin notification observers unregistered")
     }
 }

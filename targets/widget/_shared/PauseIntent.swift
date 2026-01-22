@@ -8,6 +8,8 @@
 import AppIntents
 import WidgetKit
 
+private let kPauseNotification = "com.sgmrt.ghostrunner.pause" as CFString
+
 @available(iOS 16.2, *)
 struct PauseIntent: AppIntent, LiveActivityIntent {
     static var title: LocalizedStringResource = "Pause Timer"
@@ -16,7 +18,15 @@ struct PauseIntent: AppIntent, LiveActivityIntent {
     init() {}
 
     func perform() async throws -> some IntentResult {
-        NotificationCenter.default.post(name: Notification.Name("pauseTimerFromWidget"), object: nil)
+        // Darwin Notification 사용 (프로세스 간 통신)
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        CFNotificationCenterPostNotification(
+            center,
+            CFNotificationName(kPauseNotification),
+            nil,
+            nil,
+            true
+        )
         return .result()
     }
 }
