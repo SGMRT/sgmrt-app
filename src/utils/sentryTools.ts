@@ -218,3 +218,53 @@ export const captureError = (
         Sentry.captureException(err);
     });
 };
+
+// ============================================================
+// 러닝 저장 실패 모니터링 (실패 시에만 Sentry 전송)
+// ============================================================
+
+export type RunSaveMode = "solo" | "course" | "ghost";
+
+export interface RunSaveContext {
+    mode: RunSaveMode;
+    courseId?: number;
+    ghostRunningId?: number;
+    telemetryCount: number;
+    distanceM: number;
+    durationSec: number;
+    hasThumbnail: boolean;
+}
+
+/**
+ * 러닝 저장 실패 시 Sentry 전송
+ * 에러에 tracked 속성이 있으면 true로 설정하여 중복 보고 방지
+ */
+export const trackRunSaveFailure = (
+    error: unknown,
+    ctx: Partial<RunSaveContext>,
+    stage: "validation" | "capture" | "upload" | "healthkit" | "unknown"
+) => {
+    const anyErr = error as any;
+    const errorCode = anyErr?.code ?? "UNKNOWN";
+
+    captureError(
+        `runSave.${stage}`,
+        error,
+        {
+            stage,
+            errorCode,
+            ...ctx,
+        },
+        {
+            "runSave.stage": stage,
+            "runSave.errorCode": errorCode,
+            "runSave.mode": ctx.mode ?? "unknown",
+        },
+        ERROR_PRIORITY.HIGH
+    );
+
+    // 중복 보고 방지를 위해 tracked 마킹
+    if (anyErr && typeof anyErr === "object") {
+        anyErr.tracked = true;
+    }
+};

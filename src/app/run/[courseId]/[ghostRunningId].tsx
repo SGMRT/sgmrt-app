@@ -42,7 +42,7 @@ import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { ShapeSource, SymbolLayer } from "@rnmapbox/maps";
 import { useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Alert, BackHandler, Pressable, StyleSheet, View } from "react-native";
 import Animated, {
@@ -57,6 +57,7 @@ import { ShareVariantWithVideo } from "../../(tabs)/stats/result/[runningId]/[co
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
     const queryClient = useQueryClient();
+    const router = useRouter();
     const [courseName, setCourseName] = useState("");
     const [isRestarting, setIsRestarting] = useState(false);
     const [isFirst, setIsFirst] = useState(true);
@@ -141,35 +142,40 @@ export default function Run() {
     // 코스 및 고스트 데이터 초기화
     useEffect(() => {
         (async () => {
-            const response = await getCourse(Number(courseId));
-            setCourseName(response.name);
-            setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
-            const userInfo = queryClient.getQueryData<GetUserInfoResponse>(
-                queryKeys.user.info()
-            );
-            controls.start(
-                "COURSE",
-                isGhostRunning ? "GHOST" : "PLAIN",
-                { distanceMeters: response.distance },
-                userInfo?.weight ?? undefined
-            );
-            if (isGhostyRunning) {
-                const pacemakerDetail = await getPacemakerDetail(
-                    Number(ghostyId)
+            try {
+                const response = await getCourse(Number(courseId));
+                setCourseName(response.name);
+                setCourseSegments(telemetriesToSegment(response.telemetries, 0)[1]);
+                const userInfo = queryClient.getQueryData<GetUserInfoResponse>(
+                    queryKeys.user.info()
                 );
-                const ghosty = mapPacemakerToTelemety({
-                    pacemaker: pacemakerDetail?.pacemakerResponse,
-                    telemetries: response.telemetries,
-                });
-                if (ghosty) {
-                    pacemakerDetailRef.current = pacemakerDetail;
-                    ghostTelemetryRef.current = ghosty.sample();
+                controls.start(
+                    "COURSE",
+                    isGhostRunning ? "GHOST" : "PLAIN",
+                    { distanceMeters: response.distance },
+                    userInfo?.weight ?? undefined
+                );
+                if (isGhostyRunning) {
+                    const pacemakerDetail = await getPacemakerDetail(
+                        Number(ghostyId)
+                    );
+                    const ghosty = mapPacemakerToTelemety({
+                        pacemaker: pacemakerDetail?.pacemakerResponse,
+                        telemetries: response.telemetries,
+                    });
+                    if (ghosty) {
+                        pacemakerDetailRef.current = pacemakerDetail;
+                        ghostTelemetryRef.current = ghosty.sample();
+                    }
                 }
-            }
-            initializeCourse(response.telemetries, response.courseCheckpoints);
-            if (isGhostRunning) {
-                const ghostRecord = await getRun(Number(ghostRunningId));
-                ghostTelemetryRef.current = ghostRecord?.telemetries ?? [];
+                initializeCourse(response.telemetries, response.courseCheckpoints);
+                if (isGhostRunning) {
+                    const ghostRecord = await getRun(Number(ghostRunningId));
+                    ghostTelemetryRef.current = ghostRecord?.telemetries ?? [];
+                }
+            } catch (error) {
+                showCompactToast("코스 정보를 불러오는데 실패했습니다.");
+                router.back();
             }
         })();
     }, [
@@ -181,6 +187,7 @@ export default function Run() {
         queryClient,
         ghostyId,
         isGhostyRunning,
+        router,
     ]);
 
     // 뒤로가기 버튼 차단

@@ -32,8 +32,35 @@ import {
   captureError,
   trackDuration,
   ERROR_PRIORITY,
+  trackRunSaveFailure,
+  type RunSaveMode,
 } from "../sentryTools"
 import { getRunName } from "./time"
+
+const MAX_RETRIES = 3
+const RETRY_DELAY_MS = 1000
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries = MAX_RETRIES,
+  delay = RETRY_DELAY_MS
+): Promise<T> {
+  let lastError: Error | null = null
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+      if (attempt < retries - 1) {
+        // 지수 백오프: 1s, 2s, 4s...
+        await new Promise((resolve) =>
+          setTimeout(resolve, delay * Math.pow(2, attempt))
+        )
+      }
+    }
+  }
+  throw lastError as Error
+}
 
 const canShare = (objectType: string): boolean => {
   try {
@@ -58,6 +85,28 @@ export interface SaveRunningProps {
   courseId?: number
 }
 
+export interface SaveRunningResult {
+  runningId: number
+  courseId?: number
+}
+
+export class SaveRunningError extends Error {
+  /** Sentry에 이미 보고되었는지 여부 */
+  public tracked = false
+
+  constructor(
+    message: string,
+    public readonly code:
+      | "SHORT_DISTANCE"
+      | "NO_RUNNING_SEGMENT"
+      | "UPLOAD_FAILED"
+      | "UNKNOWN"
+  ) {
+    super(message)
+    this.name = "SaveRunningError"
+  }
+}
+
 export async function saveRunning({
   telemetries,
   rawData,
@@ -67,7 +116,24 @@ export async function saveRunning({
   isPublic,
   ghostRunningId,
   courseId,
-}: SaveRunningProps) {
+}: SaveRunningProps): Promise<SaveRunningResult> {
+  // 러닝 모드 결정 (실패 시 컨텍스트 전달용)
+  const mode: RunSaveMode = ghostRunningId && courseId
+    ? "ghost"
+    : courseId
+      ? "course"
+      : "solo"
+
+  const saveContext = {
+    mode,
+    courseId,
+    ghostRunningId: ghostRunningId ?? undefined,
+    telemetryCount: telemetries?.length ?? 0,
+    distanceM: userDashboardData?.totalDistance ?? 0,
+    durationSec: runTime,
+    hasThumbnail: !!thumbnailUri,
+  }
+
   addPhase("precheck", {
     totalTelemetry: telemetries?.length ?? 0,
     rawDataLen: rawData?.length ?? 0,
@@ -79,7 +145,12 @@ export async function saveRunning({
         totalDistance: userDashboardData?.totalDistance,
       })
       showCompactToast("러닝 거리가 너무 짧습니다.")
-      return
+      trackRunSaveFailure(
+        new SaveRunningError("러닝 거리가 너무 짧습니다.", "SHORT_DISTANCE"),
+        saveContext,
+        "validation"
+      )
+      throw new SaveRunningError("러닝 거리가 너무 짧습니다.", "SHORT_DISTANCE")
     }
 
     const tAlt = trackDuration("applyAltitudeBiasFromBestGPS")
@@ -116,15 +187,11 @@ export async function saveRunning({
     // 마지막 isRunning인 true인 값 뒤 isRunning이 false인 값을 모두 삭제
     const lastTrueIndex = telemetries.findLastIndex((t) => t.isRunning)
     if (lastTrueIndex === -1) {
-      const err = new Error("NoRunningSegment")
-      // 러닝 세그먼트 없음은 심각한 문제이므로 HIGH
-      captureError(
-        "trim-telemetry",
-        err,
-        { telemetriesLen: telemetries.length },
-        undefined,
-        ERROR_PRIORITY.HIGH
+      const err = new SaveRunningError(
+        "러닝 데이터가 없습니다.",
+        "NO_RUNNING_SEGMENT"
       )
+      trackRunSaveFailure(err, saveContext, "validation")
       throw err
     }
     telemetries = telemetries.slice(0, lastTrueIndex + 1)
@@ -374,12 +441,20 @@ export async function saveRunning({
           type: "application/json",
         } as any)
 
-        const response = await postCourseRun(formData, courseId)
+        const response = await withRetry(() => postCourseRun(formData, courseId))
+        const runningId =
+          typeof response === "number" ? response : response?.runningId
+        if (typeof runningId !== "number") {
+          throw new SaveRunningError(
+            "서버 응답이 올바르지 않습니다.",
+            "UPLOAD_FAILED"
+          )
+        }
         addPhase("upload:postCourseRun:success", {
           response,
           courseId,
         })
-        return { runningId: response, courseId }
+        return { runningId, courseId }
       } else if (courseId) {
         const request: CourseSoloRunning = {
           ...baseReq,
@@ -396,12 +471,20 @@ export async function saveRunning({
           type: "application/json",
         } as any)
 
-        const response = await postCourseRun(formData, courseId)
+        const response = await withRetry(() => postCourseRun(formData, courseId))
+        const runningId =
+          typeof response === "number" ? response : response?.runningId
+        if (typeof runningId !== "number") {
+          throw new SaveRunningError(
+            "서버 응답이 올바르지 않습니다.",
+            "UPLOAD_FAILED"
+          )
+        }
         addPhase("upload:postCourseRun:success", {
           response,
           courseId,
         })
-        return { runningId: response, courseId }
+        return { runningId, courseId }
       } else {
         const request: BaseRunning = { ...baseReq }
         await FileSystem.writeAsStringAsync(
@@ -414,36 +497,29 @@ export async function saveRunning({
           type: "application/json",
         } as any)
 
-        const response = await postRun(formData)
+        const response = await withRetry(() => postRun(formData))
+        const runningId =
+          typeof response === "number" ? response : response?.runningId
+        if (typeof runningId !== "number") {
+          throw new SaveRunningError(
+            "서버 응답이 올바르지 않습니다.",
+            "UPLOAD_FAILED"
+          )
+        }
         addPhase("upload:postRun:success", { response })
-        return response
+        return { runningId }
       }
     } catch (e) {
-      // 업로드 실패는 핵심 비즈니스 로직이므로 HIGH
-      captureError(
-        "upload",
-        e,
-        {
-          courseId,
-          ghostRunningId,
-          thumbnail: !!thumbnailUri,
-        },
-        undefined,
-        ERROR_PRIORITY.HIGH
-      )
+      trackRunSaveFailure(e, saveContext, "upload")
       throw e
     } finally {
       tUpload.end()
     }
   } catch (error) {
-    // 이 함수의 최상위 실패 포인트 - 핵심 비즈니스 로직이므로 HIGH
-    captureError(
-      "saveRunning:top-level",
-      error,
-      undefined,
-      undefined,
-      ERROR_PRIORITY.HIGH
-    )
+    // 이미 trackRunSaveFailure로 처리되지 않은 에러만 처리
+    if (!(error instanceof SaveRunningError)) {
+      trackRunSaveFailure(error, saveContext, "unknown")
+    }
     throw error
   }
 }
