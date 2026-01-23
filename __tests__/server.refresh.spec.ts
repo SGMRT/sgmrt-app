@@ -175,20 +175,28 @@ describe("axios refresh flow", () => {
     });
 
     test("Sentry에 토큰이 마스킹되는지", async () => {
-        // 강제로 400 에러 발생
-        mock.onGet("/v1/bad").reply(500, { code: "BAD", message: "oops" });
+        // captureError는 __DEV__=true일 때 Sentry를 호출하지 않으므로 프로덕션 모드로 테스트
+        const originalDev = global.__DEV__;
+        global.__DEV__ = false;
 
-        await expect(
-            server.get("/bad", {
-                headers: { Authorization: "Bearer EXPIRED_AT" },
-            })
-        ).rejects.toBeTruthy();
+        try {
+            // 강제로 500 에러 발생
+            mock.onGet("/v1/bad").reply(500, { code: "BAD", message: "oops" });
 
-        // captureException 호출은 됐으나 토큰 원문은 포함되면 안 됨
-        const calls = (Sentry.captureException as jest.Mock).mock.calls;
-        expect(calls.length).toBeGreaterThan(0);
-        const argStr = JSON.stringify(calls[0]);
-        expect(argStr).not.toMatch(/EXPIRED_AT/);
-        expect(argStr).toMatch(/Bearer \[REDACTED\]/);
+            await expect(
+                server.get("/bad", {
+                    headers: { Authorization: "Bearer EXPIRED_AT" },
+                })
+            ).rejects.toBeTruthy();
+
+            // captureException 호출은 됐으나 토큰 원문은 포함되면 안 됨
+            const calls = (Sentry.captureException as jest.Mock).mock.calls;
+            expect(calls.length).toBeGreaterThan(0);
+            const argStr = JSON.stringify(calls[0]);
+            expect(argStr).not.toMatch(/EXPIRED_AT/);
+            expect(argStr).toMatch(/Bearer \[REDACTED\]/);
+        } finally {
+            global.__DEV__ = originalDev;
+        }
     });
 });
