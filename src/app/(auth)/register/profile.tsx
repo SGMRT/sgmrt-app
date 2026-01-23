@@ -151,11 +151,11 @@ export default function Profile() {
                 amplitude.identify(
                     new amplitude.Identify()
                         .set("server_uuid", res.uuid)
-                        .set("provider", data.provider ?? "email")
-                        .set("age", age)
+                        .set("provider", "email")
+                        .set("age", age ?? 0)
                         .set("gender", gender)
-                        .set("height", height)
-                        .set("weight", weight)
+                        .set("height", height ?? 0)
+                        .set("weight", weight ?? 0)
                         .set("nickname", nickname)
                 );
             })
