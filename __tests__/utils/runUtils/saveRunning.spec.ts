@@ -38,6 +38,7 @@ jest.mock("@/src/utils/sentryTools", () => ({
   addWarn: jest.fn(),
   captureError: jest.fn(),
   trackDuration: jest.fn(() => ({ end: jest.fn() })),
+  trackRunSaveFailure: jest.fn(),
   ERROR_PRIORITY: { HIGH: "HIGH" },
 }))
 
