@@ -76,6 +76,8 @@ export function useRunSaveFlow({
 
     const runShotRef = useRef<RunShotHandle>(null);
     const hasSavedRef = useRef(false);
+    const isSavingRef = useRef(false); // 더블클릭 방지용 동기 ref
+    const healthKitSavedRef = useRef(false); // HealthKit 중복 저장 방지
     const captureTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [captureState, setCaptureState] = useState<CaptureState>("IDLE");
 
@@ -132,8 +134,12 @@ export function useRunSaveFlow({
     }, [context.telemetries]);
 
     const requestSave = useCallback(() => {
-        if (isSaving) return;
+        // 동기 ref로 더블클릭 즉시 차단
+        if (isSavingRef.current) return;
+        isSavingRef.current = true;
+
         if (!context.telemetries.length) {
+            isSavingRef.current = false;
             router.back();
             return;
         }
@@ -144,7 +150,7 @@ export function useRunSaveFlow({
         setSavingStats(context.stats);
         setIsSaving(true);
         controls.stop();
-    }, [isSaving, context.telemetries, context.mainTimeline, context.stats, controls, router]);
+    }, [context.telemetries, context.mainTimeline, context.stats, controls, router]);
 
     // 저장 시점에 사용할 값을 ref로 캡처 (closure 문제 방지)
     const isClearCourseRef = useRef(isClearCourse);
@@ -194,7 +200,10 @@ export function useRunSaveFlow({
                     isPublic: true,
                     ghostRunningId: saveGhostId,
                     courseId: saveCourseId,
+                    skipHealthKit: healthKitSavedRef.current,
                 });
+                // 저장 성공 시 HealthKit 저장 완료로 표시
+                healthKitSavedRef.current = true;
 
                 setRunSaveResult({
                     runningId: response.runningId,
@@ -240,8 +249,15 @@ export function useRunSaveFlow({
             } catch (error: unknown) {
                 if (error instanceof SaveRunningError) {
                     showCompactToast(error.message);
+                    // validation 에러(SHORT_DISTANCE, NO_RUNNING_SEGMENT)는 HealthKit 저장 전에 발생
+                    // 그 외 에러(UPLOAD_FAILED 등)는 HealthKit 저장 후 발생하므로 재시도 시 스킵
+                    if (error.code !== "SHORT_DISTANCE" && error.code !== "NO_RUNNING_SEGMENT") {
+                        healthKitSavedRef.current = true;
+                    }
                 } else {
                     showCompactToast("기록 저장에 실패했습니다. 다시 시도해주세요.");
+                    // 알 수 없는 에러는 HealthKit 저장 후 발생했다고 가정
+                    healthKitSavedRef.current = true;
                 }
                 // saveRunning 내부에서 이미 Sentry 보고된 에러는 중복 보고하지 않음
                 const anyErr = error as { tracked?: boolean };
@@ -255,6 +271,7 @@ export function useRunSaveFlow({
                     queryKey: ["runs"],
                 });
                 setIsSaving(false);
+                isSavingRef.current = false; // 재시도 허용
                 setCaptureState("IDLE");
                 if (captureTimeoutRef.current) {
                     clearTimeout(captureTimeoutRef.current);

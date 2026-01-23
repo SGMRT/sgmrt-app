@@ -21,6 +21,9 @@ class JoinedState {
             this.listeners.delete(fn);
         };
     }
+    reset() {
+        this.last = undefined;
+    }
 }
 
 export const joinedState = new JoinedState();

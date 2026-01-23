@@ -83,6 +83,8 @@ export interface SaveRunningProps {
   isPublic: boolean
   ghostRunningId?: number | null
   courseId?: number
+  /** 재시도 시 HealthKit 중복 저장 방지 */
+  skipHealthKit?: boolean
 }
 
 export interface SaveRunningResult {
@@ -116,6 +118,7 @@ export async function saveRunning({
   isPublic,
   ghostRunningId,
   courseId,
+  skipHealthKit = false,
 }: SaveRunningProps): Promise<SaveRunningResult> {
   // 러닝 모드 결정 (실패 시 컨텍스트 전달용)
   const mode: RunSaveMode = ghostRunningId && courseId
@@ -213,7 +216,7 @@ export async function saveRunning({
 
     const tHK = trackDuration("healthkit-save")
     try {
-      if (isHealthDataAvailable) {
+      if (isHealthDataAvailable && !skipHealthKit) {
         const canWriteWorkout = canShare("HKWorkoutTypeIdentifier")
         const canWriteDistance = canShare(
           "HKQuantityTypeIdentifierDistanceWalkingRunning"
