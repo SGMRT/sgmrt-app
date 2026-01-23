@@ -32,6 +32,8 @@ import {
   captureError,
   trackDuration,
   ERROR_PRIORITY,
+  trackRunSaveFailure,
+  type RunSaveMode,
 } from "../sentryTools"
 import { getRunName } from "./time"
 
@@ -109,6 +111,23 @@ export async function saveRunning({
   ghostRunningId,
   courseId,
 }: SaveRunningProps): Promise<SaveRunningResult> {
+  // 러닝 모드 결정 (실패 시 컨텍스트 전달용)
+  const mode: RunSaveMode = ghostRunningId && courseId
+    ? "ghost"
+    : courseId
+      ? "course"
+      : "solo"
+
+  const saveContext = {
+    mode,
+    courseId,
+    ghostRunningId: ghostRunningId ?? undefined,
+    telemetryCount: telemetries?.length ?? 0,
+    distanceM: userDashboardData?.totalDistance ?? 0,
+    durationSec: runTime,
+    hasThumbnail: !!thumbnailUri,
+  }
+
   addPhase("precheck", {
     totalTelemetry: telemetries?.length ?? 0,
     rawDataLen: rawData?.length ?? 0,
@@ -120,6 +139,11 @@ export async function saveRunning({
         totalDistance: userDashboardData?.totalDistance,
       })
       showCompactToast("러닝 거리가 너무 짧습니다.")
+      trackRunSaveFailure(
+        new SaveRunningError("러닝 거리가 너무 짧습니다.", "SHORT_DISTANCE"),
+        saveContext,
+        "validation"
+      )
       throw new SaveRunningError("러닝 거리가 너무 짧습니다.", "SHORT_DISTANCE")
     }
 
@@ -161,14 +185,7 @@ export async function saveRunning({
         "러닝 데이터가 없습니다.",
         "NO_RUNNING_SEGMENT"
       )
-      // 러닝 세그먼트 없음은 심각한 문제이므로 HIGH
-      captureError(
-        "trim-telemetry",
-        err,
-        { telemetriesLen: telemetries.length },
-        undefined,
-        ERROR_PRIORITY.HIGH
-      )
+      trackRunSaveFailure(err, saveContext, "validation")
       throw err
     }
     telemetries = telemetries.slice(0, lastTrueIndex + 1)
@@ -487,31 +504,16 @@ export async function saveRunning({
         return { runningId }
       }
     } catch (e) {
-      // 업로드 실패는 핵심 비즈니스 로직이므로 HIGH
-      captureError(
-        "upload",
-        e,
-        {
-          courseId,
-          ghostRunningId,
-          thumbnail: !!thumbnailUri,
-        },
-        undefined,
-        ERROR_PRIORITY.HIGH
-      )
+      trackRunSaveFailure(e, saveContext, "upload")
       throw e
     } finally {
       tUpload.end()
     }
   } catch (error) {
-    // 이 함수의 최상위 실패 포인트 - 핵심 비즈니스 로직이므로 HIGH
-    captureError(
-      "saveRunning:top-level",
-      error,
-      undefined,
-      undefined,
-      ERROR_PRIORITY.HIGH
-    )
+    // 이미 trackRunSaveFailure로 처리되지 않은 에러만 처리
+    if (!(error instanceof SaveRunningError)) {
+      trackRunSaveFailure(error, saveContext, "unknown")
+    }
     throw error
   }
 }
