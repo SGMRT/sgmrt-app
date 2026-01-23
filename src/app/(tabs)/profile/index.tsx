@@ -3,7 +3,16 @@ import { deleteUser, invalidateToken } from "@/src/apis";
 import { UserCourseInfo } from "@/src/apis/types/course";
 import { CourseSection } from "@/src/components/profile/CourseSection";
 import { Info } from "@/src/components/profile/Info";
-import { BottomModal, ButtonWithMap, Header, ScrollButton, TabBar, TabItem, Typography, showToast } from "@/src/components/ui";
+import {
+    BottomModal,
+    ButtonWithMap,
+    Header,
+    ScrollButton,
+    TabBar,
+    TabItem,
+    Typography,
+    showToast,
+} from "@/src/components/ui";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -16,15 +25,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function ProfileScreen() {
     const { tab } = useLocalSearchParams();
     const [selectedTab, setSelectedTab] = useState<"info" | "course">(
-        tab === "course" ? "course" : "info"
+        tab === "course" ? "course" : "info",
     );
     const [modalType, setModalType] = useState<"logout" | "withdraw">("logout");
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const router = useRouter();
     const { logout } = useAuthStore();
     const [selectedCourse, setSelectedCourse] = useState<UserCourseInfo | null>(
-        null
+        null,
     );
+    const [isDeleteMode, setIsDeleteMode] = useState(false);
     const scrollViewRef = useRef<ScrollView>(null);
     const { bottom } = useSafeAreaInsets();
 
@@ -48,7 +58,7 @@ export default function ProfileScreen() {
                             showToast(
                                 "success",
                                 "회원 탈퇴 되었습니다.",
-                                bottom + 60
+                                bottom + 60,
                             );
                             logout();
                         },
@@ -56,26 +66,38 @@ export default function ProfileScreen() {
                 ]);
             }
         },
-        [bottomSheetRef, logout, bottom]
+        [bottomSheetRef, logout, bottom],
     );
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.safeAreaView}>
                 {/* Header */}
                 <View>
-                    <Header titleText="마이페이지" hasBackButton={false} />
-                    <View style={styles.header}>
-                        <TabItem
-                            title="내 정보"
-                            onPress={() => setSelectedTab("info")}
-                            isSelected={selectedTab === "info"}
-                        />
-                        <TabItem
-                            title="내 코스"
-                            onPress={() => setSelectedTab("course")}
-                            isSelected={selectedTab === "course"}
-                        />
-                    </View>
+                    <Header
+                        titleText={isDeleteMode ? "코스 삭제" : "마이페이지"}
+                        hasBackButton={isDeleteMode}
+                        onBack={() => setIsDeleteMode(false)}
+                        onDelete={
+                            selectedTab === "course" && !isDeleteMode
+                                ? () => setIsDeleteMode(true)
+                                : undefined
+                        }
+                        deleteColor="white"
+                    />
+                    {!isDeleteMode && (
+                        <View style={styles.header}>
+                            <TabItem
+                                title="내 정보"
+                                onPress={() => setSelectedTab("info")}
+                                isSelected={selectedTab === "info"}
+                            />
+                            <TabItem
+                                title="내 코스"
+                                onPress={() => setSelectedTab("course")}
+                                isSelected={selectedTab === "course"}
+                            />
+                        </View>
+                    )}
                 </View>
                 {/* Content */}
                 {selectedTab === "info" && (

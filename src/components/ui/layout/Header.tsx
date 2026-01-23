@@ -25,16 +25,17 @@ export default memo(function Header({
 }: HeaderProps) {
     const router = useRouter();
     return (
-        <View style={[styles.header]}>
-            {hasBackButton && (
-                <Pressable
-                    onPress={() => (onBack ? onBack() : router.back())}
-                    style={{ width: 20, height: 20 }}
-                >
-                    <BackIcon />
-                </Pressable>
-            )}
-            {!hasBackButton && <View style={{ width: 20, height: 20 }} />}
+        <View style={styles.header}>
+            <View style={styles.sideContainer}>
+                {hasBackButton && (
+                    <Pressable
+                        onPress={() => (onBack ? onBack() : router.back())}
+                        style={styles.iconButton}
+                    >
+                        <BackIcon />
+                    </Pressable>
+                )}
+            </View>
             {titleComponent ? (
                 titleComponent
             ) : (
@@ -42,18 +43,14 @@ export default memo(function Header({
                     {titleText}
                 </Typography>
             )}
-            {!onDelete && !rightComponent && (
-                <View style={{ width: 20, height: 20 }} />
-            )}
-            {onDelete && (
-                <Pressable onPress={onDelete}>
-                    <TrashIcon
-                        color={deleteColor}
-                        style={{ marginRight: 10 }}
-                    />
-                </Pressable>
-            )}
-            {rightComponent && rightComponent}
+            <View style={[styles.sideContainer, styles.rightContainer]}>
+                {onDelete && (
+                    <Pressable onPress={onDelete} style={styles.iconButton}>
+                        <TrashIcon color={deleteColor} />
+                    </Pressable>
+                )}
+                {rightComponent && rightComponent}
+            </View>
         </View>
     );
 });
@@ -62,8 +59,21 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 17,
+        paddingHorizontal: 16.5,
         height: 50,
         justifyContent: "space-between",
+    },
+    sideContainer: {
+        width: 40,
+        alignItems: "flex-start",
+    },
+    rightContainer: {
+        alignItems: "flex-end",
+    },
+    iconButton: {
+        width: 24,
+        height: 24,
+        justifyContent: "center",
+        alignItems: "center",
     },
 });
