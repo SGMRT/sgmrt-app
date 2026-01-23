@@ -5,6 +5,8 @@ import { showCompactToast } from "@/src/components/ui/feedback/toastConfig";
 import { RunSaveResult } from "@/src/features/run/components/RunControlButtons";
 import { RunContext } from "@/src/features/run/context/context";
 import { buildUserRecordData } from "@/src/features/run/context/record";
+import { RunningStats } from "@/src/features/run/context/stats";
+import { RawRunData } from "@/src/features/run/types";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import { getRunName, saveRunning } from "@/src/utils/runUtils";
 import { SaveRunningError } from "@/src/utils/runUtils/saveRunning";
@@ -61,6 +63,8 @@ export function useRunSaveFlow({
 
     const [isSaving, setIsSaving] = useState(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
+    const [savingMainTimeline, setSavingMainTimeline] = useState<RawRunData[]>([]);
+    const [savingStats, setSavingStats] = useState<RunningStats | null>(null);
     const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
     const [runShotType, setRunShotType] = useState<"thumbnail" | "share">(
         "thumbnail"
@@ -134,10 +138,13 @@ export function useRunSaveFlow({
             return;
         }
         hasSavedRef.current = false;
+        // 저장 시점의 데이터 캡처 (이후 도착하는 데이터는 무시)
         setSavingTelemetries(context.telemetries);
+        setSavingMainTimeline(context.mainTimeline);
+        setSavingStats(context.stats);
         setIsSaving(true);
         controls.stop();
-    }, [isSaving, context.telemetries, controls, router]);
+    }, [isSaving, context.telemetries, context.mainTimeline, context.stats, controls, router]);
 
     // 저장 시점에 사용할 값을 ref로 캡처 (closure 문제 방지)
     const isClearCourseRef = useRef(isClearCourse);
@@ -153,8 +160,17 @@ export function useRunSaveFlow({
         hasSavedRef.current = true;
 
         (async () => {
+            // 캡처된 데이터가 없으면 저장 불가
+            if (!savingStats) {
+                captureError("run.course.saveRunning", new Error("savingStats is null"));
+                showCompactToast("저장할 데이터가 없습니다.");
+                hasSavedRef.current = false;
+                return;
+            }
+
             try {
-                const userRecordData = buildUserRecordData(context.stats);
+                // 저장 시점에 캡처된 데이터 사용
+                const userRecordData = buildUserRecordData(savingStats);
 
                 // ref에서 최신 값 사용
                 const currentIsClearCourse = isClearCourseRef.current;
@@ -170,11 +186,11 @@ export function useRunSaveFlow({
                     : Number(courseId);
 
                 const response = await saveRunning({
-                    telemetries: context.telemetries,
-                    rawData: extractRawData(context.mainTimeline),
+                    telemetries: savingTelemetries,
+                    rawData: extractRawData(savingMainTimeline),
                     thumbnailUri,
                     userDashboardData: userRecordData,
-                    runTime: Math.round(context.stats.totalTimeMs / 1000),
+                    runTime: Math.round(savingStats.totalTimeMs / 1000),
                     isPublic: true,
                     ghostRunningId: saveGhostId,
                     courseId: saveCourseId,
@@ -251,10 +267,10 @@ export function useRunSaveFlow({
         isSaving,
         captureState,
         thumbnailUri,
-        context.telemetries,
-        context.mainTimeline,
+        savingTelemetries,
+        savingMainTimeline,
+        savingStats,
         router,
-        context.stats,
         ghostRunningId,
         courseId,
         queryClient,
