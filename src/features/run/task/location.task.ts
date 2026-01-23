@@ -42,7 +42,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             "location.task.error",
             error,
             { taskName: LOCATION_TASK },
-            { "location.taskError": true },
+            { "location.taskError": "true" },
             ERROR_PRIORITY.HIGH
         );
         return;

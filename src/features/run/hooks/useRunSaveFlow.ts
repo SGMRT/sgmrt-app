@@ -137,6 +137,8 @@ export function useRunSaveFlow({
         // 동기 ref로 더블클릭 즉시 차단
         if (isSavingRef.current) return;
         isSavingRef.current = true;
+        // 새 저장 플로우마다 HealthKit 저장 상태 초기화 (각 러닝 세션별로 HealthKit 저장 실행)
+        healthKitSavedRef.current = false;
 
         if (!context.telemetries.length) {
             isSavingRef.current = false;
