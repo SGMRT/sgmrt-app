@@ -5,6 +5,7 @@ import * as Location from "expo-location";
 import { Barometer, Pedometer } from "expo-sensors";
 import { useEffect, useRef } from "react";
 import { LOCATION_TASK } from "../constants";
+import { joinedState } from "../store/joinedState";
 import { sharedSensorStore } from "../store/sensorStore";
 
 export function useSensors(enabled: boolean) {
@@ -24,6 +25,7 @@ export function useSensors(enabled: boolean) {
         // 스토어 초기화를 비동기 작업 전에 동기적으로 수행
         // 이전 세션 데이터가 남아있지 않도록 보장
         sharedSensorStore.reset?.();
+        joinedState.reset();
         devLog("[SENSORS] Store reset (sync)");
 
         (async () => {
@@ -100,6 +102,7 @@ export function useSensors(enabled: boolean) {
 
             // 세션 종료/화면 전환 시 스토어 정리
             sharedSensorStore.reset?.();
+            joinedState.reset();
             devLog("[SENSORS] Cleaned up");
         };
     }, [enabled]);

@@ -1,4 +1,5 @@
 import { devLog } from "@/src/utils/devLog";
+import { captureError, ERROR_PRIORITY } from "@/src/utils/sentryTools";
 import type { LocationObject } from "expo-location";
 import { Barometer } from "expo-sensors";
 import { getStepCountAsync } from "expo-sensors/build/Pedometer";
@@ -36,7 +37,16 @@ function reset() {
 }
 
 TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
-    if (error) return;
+    if (error) {
+        captureError(
+            "location.task.error",
+            error,
+            { taskName: LOCATION_TASK },
+            { "location.taskError": "true" },
+            ERROR_PRIORITY.HIGH
+        );
+        return;
+    }
     const { locations } = (data ?? {}) as { locations?: LocationObject[] };
     if (!locations?.length) return;
 
@@ -105,13 +115,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             };
         }
 
-        const isBaroAvailable = await Barometer.isAvailableAsync();
-
-        if (isBaroAvailable && !joined.pressure?.pressure) {
-            devLog("[LOCATION] 압력 데이터 없음");
-            continue;
-        }
-
+        // 압력 데이터 없어도 위치는 처리 (GPS 고도 사용)
         const pressureAltitude = pressureAltitudeM(
             joined.pressure?.pressure,
             joined.location.altitude

@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/react-native";
+import { errorLog } from "./devLog";
 
 type JsonLike = Record<string, any>;
 
@@ -9,7 +10,8 @@ export const ERROR_PRIORITY = {
     LOW: "low", // 전송 안함
 } as const;
 
-export type ErrorPriority = (typeof ERROR_PRIORITY)[keyof typeof ERROR_PRIORITY];
+export type ErrorPriority =
+    (typeof ERROR_PRIORITY)[keyof typeof ERROR_PRIORITY];
 
 // 중복 에러 제한 로직
 const errorCountMap = new Map<string, { count: number; lastSentAt: number }>();
@@ -141,21 +143,21 @@ export const normalizeRoute = (rawUrl?: string) => {
 
 export const trackDuration = (name: string, baseData?: JsonLike) => {
     const start = Date.now();
-  
+
     // Sentry span API를 안 써도(버전차/플랫폼차) 안전하게 동작하는 타이머
     return {
-      end: (data?: JsonLike) => {
-        const ms = Date.now() - start;
-  
-        Sentry.addBreadcrumb({
-          category: "perf",
-          level: "info",
-          message: name,
-          data: { ms, ...baseData, ...data },
-        });
-      },
+        end: (data?: JsonLike) => {
+            const ms = Date.now() - start;
+
+            Sentry.addBreadcrumb({
+                category: "perf",
+                level: "info",
+                message: name,
+                data: { ms, ...baseData, ...data },
+            });
+        },
     };
-  };
+};
 
 /**
  * 센트리로 오류를 명시적으로 전송하는 함수
@@ -172,8 +174,12 @@ export const captureError = (
     err: unknown,
     extras?: JsonLike,
     tags?: Record<string, string>,
-    priority: ErrorPriority = ERROR_PRIORITY.MEDIUM
+    priority: ErrorPriority = ERROR_PRIORITY.MEDIUM,
 ) => {
+    if (__DEV__) {
+        errorLog(err);
+        return;
+    }
     Sentry.withScope((scope) => {
         // 의도적으로 보낸 이벤트 표식
         scope.setTag("where", where);
@@ -198,7 +204,7 @@ export const captureError = (
             scope.setExtra("http.response.data", sanitizeValue(maskDeep(data)));
             scope.setExtra(
                 "http.response.headers",
-                sanitizeValue(maskDeep(headers))
+                sanitizeValue(maskDeep(headers)),
             );
             scope.setExtra("http.request.url", request?.responseURL);
             scope.setTag("http.status", String(status));
@@ -211,7 +217,7 @@ export const captureError = (
             tags?.["api.response.status"] ?? tags?.["http.status"] ?? "";
         if (method || route || status) {
             scope.setFingerprint(
-                ["apis.instance", where, method, route, status].filter(Boolean)
+                ["apis.instance", where, method, route, status].filter(Boolean),
             );
         }
 
@@ -242,7 +248,7 @@ export interface RunSaveContext {
 export const trackRunSaveFailure = (
     error: unknown,
     ctx: Partial<RunSaveContext>,
-    stage: "validation" | "capture" | "upload" | "healthkit" | "unknown"
+    stage: "validation" | "capture" | "upload" | "healthkit" | "unknown",
 ) => {
     const anyErr = error as any;
     const errorCode = anyErr?.code ?? "UNKNOWN";
@@ -260,7 +266,7 @@ export const trackRunSaveFailure = (
             "runSave.errorCode": errorCode,
             "runSave.mode": ctx.mode ?? "unknown",
         },
-        ERROR_PRIORITY.HIGH
+        ERROR_PRIORITY.HIGH,
     );
 
     // 중복 보고 방지를 위해 tracked 마킹

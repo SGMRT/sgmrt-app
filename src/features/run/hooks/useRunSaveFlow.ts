@@ -5,6 +5,8 @@ import { showCompactToast } from "@/src/components/ui/feedback/toastConfig";
 import { RunSaveResult } from "@/src/features/run/components/RunControlButtons";
 import { RunContext } from "@/src/features/run/context/context";
 import { buildUserRecordData } from "@/src/features/run/context/record";
+import { RunningStats } from "@/src/features/run/context/stats";
+import { RawRunData } from "@/src/features/run/types";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
 import { getRunName, saveRunning } from "@/src/utils/runUtils";
 import { SaveRunningError } from "@/src/utils/runUtils/saveRunning";
@@ -61,6 +63,8 @@ export function useRunSaveFlow({
 
     const [isSaving, setIsSaving] = useState(false);
     const [savingTelemetries, setSavingTelemetries] = useState<Telemetry[]>([]);
+    const [savingMainTimeline, setSavingMainTimeline] = useState<RawRunData[]>([]);
+    const [savingStats, setSavingStats] = useState<RunningStats | null>(null);
     const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
     const [runShotType, setRunShotType] = useState<"thumbnail" | "share">(
         "thumbnail"
@@ -72,6 +76,8 @@ export function useRunSaveFlow({
 
     const runShotRef = useRef<RunShotHandle>(null);
     const hasSavedRef = useRef(false);
+    const isSavingRef = useRef(false); // 더블클릭 방지용 동기 ref
+    const healthKitSavedRef = useRef(false); // HealthKit 중복 저장 방지
     const captureTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [captureState, setCaptureState] = useState<CaptureState>("IDLE");
 
@@ -128,16 +134,25 @@ export function useRunSaveFlow({
     }, [context.telemetries]);
 
     const requestSave = useCallback(() => {
-        if (isSaving) return;
+        // 동기 ref로 더블클릭 즉시 차단
+        if (isSavingRef.current) return;
+        isSavingRef.current = true;
+        // 새 저장 플로우마다 HealthKit 저장 상태 초기화 (각 러닝 세션별로 HealthKit 저장 실행)
+        healthKitSavedRef.current = false;
+
         if (!context.telemetries.length) {
+            isSavingRef.current = false;
             router.back();
             return;
         }
         hasSavedRef.current = false;
+        // 저장 시점의 데이터 캡처 (이후 도착하는 데이터는 무시)
         setSavingTelemetries(context.telemetries);
+        setSavingMainTimeline(context.mainTimeline);
+        setSavingStats(context.stats);
         setIsSaving(true);
         controls.stop();
-    }, [isSaving, context.telemetries, controls, router]);
+    }, [context.telemetries, context.mainTimeline, context.stats, controls, router]);
 
     // 저장 시점에 사용할 값을 ref로 캡처 (closure 문제 방지)
     const isClearCourseRef = useRef(isClearCourse);
@@ -153,8 +168,17 @@ export function useRunSaveFlow({
         hasSavedRef.current = true;
 
         (async () => {
+            // 캡처된 데이터가 없으면 저장 불가
+            if (!savingStats) {
+                captureError("run.course.saveRunning", new Error("savingStats is null"));
+                showCompactToast("저장할 데이터가 없습니다.");
+                hasSavedRef.current = false;
+                return;
+            }
+
             try {
-                const userRecordData = buildUserRecordData(context.stats);
+                // 저장 시점에 캡처된 데이터 사용
+                const userRecordData = buildUserRecordData(savingStats);
 
                 // ref에서 최신 값 사용
                 const currentIsClearCourse = isClearCourseRef.current;
@@ -170,15 +194,18 @@ export function useRunSaveFlow({
                     : Number(courseId);
 
                 const response = await saveRunning({
-                    telemetries: context.telemetries,
-                    rawData: extractRawData(context.mainTimeline),
+                    telemetries: savingTelemetries,
+                    rawData: extractRawData(savingMainTimeline),
                     thumbnailUri,
                     userDashboardData: userRecordData,
-                    runTime: Math.round(context.stats.totalTimeMs / 1000),
+                    runTime: Math.round(savingStats.totalTimeMs / 1000),
                     isPublic: true,
                     ghostRunningId: saveGhostId,
                     courseId: saveCourseId,
+                    skipHealthKit: healthKitSavedRef.current,
                 });
+                // 저장 성공 시 HealthKit 저장 완료로 표시
+                healthKitSavedRef.current = true;
 
                 setRunSaveResult({
                     runningId: response.runningId,
@@ -224,8 +251,15 @@ export function useRunSaveFlow({
             } catch (error: unknown) {
                 if (error instanceof SaveRunningError) {
                     showCompactToast(error.message);
+                    // validation 에러(SHORT_DISTANCE, NO_RUNNING_SEGMENT)는 HealthKit 저장 전에 발생
+                    // 그 외 에러(UPLOAD_FAILED 등)는 HealthKit 저장 후 발생하므로 재시도 시 스킵
+                    if (error.code !== "SHORT_DISTANCE" && error.code !== "NO_RUNNING_SEGMENT") {
+                        healthKitSavedRef.current = true;
+                    }
                 } else {
                     showCompactToast("기록 저장에 실패했습니다. 다시 시도해주세요.");
+                    // 알 수 없는 에러는 HealthKit 저장 후 발생했다고 가정
+                    healthKitSavedRef.current = true;
                 }
                 // saveRunning 내부에서 이미 Sentry 보고된 에러는 중복 보고하지 않음
                 const anyErr = error as { tracked?: boolean };
@@ -239,6 +273,7 @@ export function useRunSaveFlow({
                     queryKey: ["runs"],
                 });
                 setIsSaving(false);
+                isSavingRef.current = false; // 재시도 허용
                 setCaptureState("IDLE");
                 if (captureTimeoutRef.current) {
                     clearTimeout(captureTimeoutRef.current);
@@ -251,10 +286,10 @@ export function useRunSaveFlow({
         isSaving,
         captureState,
         thumbnailUri,
-        context.telemetries,
-        context.mainTimeline,
+        savingTelemetries,
+        savingMainTimeline,
+        savingStats,
         router,
-        context.stats,
         ghostRunningId,
         courseId,
         queryClient,
