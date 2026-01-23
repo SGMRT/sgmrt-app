@@ -194,7 +194,11 @@ export default function Run() {
                         "기록 저장에 실패했습니다. 다시 시도해주세요."
                     );
                 }
-                captureError("run.solo.saveRunning", error as Error);
+                // saveRunning 내부에서 이미 Sentry 보고된 에러는 중복 보고하지 않음
+                const anyErr = error as { tracked?: boolean };
+                if (!anyErr?.tracked) {
+                    captureError("run.solo.saveRunning", error as Error);
+                }
                 // 저장 실패 시 재시도 가능하도록 상태 초기화
                 hasSavedRef.current = false;
             } finally {

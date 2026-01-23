@@ -237,6 +237,7 @@ export interface RunSaveContext {
 
 /**
  * 러닝 저장 실패 시 Sentry 전송
+ * 에러에 tracked 속성이 있으면 true로 설정하여 중복 보고 방지
  */
 export const trackRunSaveFailure = (
     error: unknown,
@@ -261,4 +262,9 @@ export const trackRunSaveFailure = (
         },
         ERROR_PRIORITY.HIGH
     );
+
+    // 중복 보고 방지를 위해 tracked 마킹
+    if (anyErr && typeof anyErr === "object") {
+        anyErr.tracked = true;
+    }
 };

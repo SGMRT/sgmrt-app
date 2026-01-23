@@ -52,11 +52,14 @@ async function withRetry<T>(
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error))
       if (attempt < retries - 1) {
-        await new Promise((resolve) => setTimeout(resolve, delay * (attempt + 1)))
+        // 지수 백오프: 1s, 2s, 4s...
+        await new Promise((resolve) =>
+          setTimeout(resolve, delay * Math.pow(2, attempt))
+        )
       }
     }
   }
-  throw lastError
+  throw lastError as Error
 }
 
 const canShare = (objectType: string): boolean => {
@@ -88,6 +91,9 @@ export interface SaveRunningResult {
 }
 
 export class SaveRunningError extends Error {
+  /** Sentry에 이미 보고되었는지 여부 */
+  public tracked = false
+
   constructor(
     message: string,
     public readonly code:
