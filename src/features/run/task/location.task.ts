@@ -117,9 +117,9 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
 
         const isBaroAvailable = await Barometer.isAvailableAsync();
 
-        // 압력 데이터 없어도 위치는 처리 (고도만 GPS 사용)
         if (isBaroAvailable && !joined.pressure?.pressure) {
-            devLog("[LOCATION] 압력 데이터 없음 - GPS 고도 사용");
+            devLog("[LOCATION] 압력 데이터 없음");
+            continue;
         }
 
         const pressureAltitude = pressureAltitudeM(
