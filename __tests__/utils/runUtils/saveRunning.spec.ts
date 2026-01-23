@@ -421,4 +421,97 @@ describe("saveRunning", () => {
       expect(result).toEqual({ runningId: 456, courseId: 100 })
     })
   })
+
+  describe("대용량 텔레메트리 처리", () => {
+    it("10,000개 텔레메트리 저장 성공", async () => {
+      postRun.mockResolvedValue(123)
+
+      const largeTelemetries = Array.from({ length: 10000 }, (_, i) =>
+        createMockTelemetry({
+          timeStamp: Date.now() + i * 1000,
+          dist: i * 10,
+          isRunning: true,
+        })
+      )
+
+      const props = createMockSaveRunningProps({
+        telemetries: largeTelemetries,
+        userDashboardData: createMockUserDashboardData({
+          totalDistance: 100000, // 100km
+        }),
+      })
+
+      const result = await saveRunning(props)
+
+      expect(result.runningId).toBe(123)
+      expect(postRun).toHaveBeenCalled()
+    })
+
+    it("50,000개 텔레메트리도 처리 가능", async () => {
+      postRun.mockResolvedValue(456)
+
+      const hugeTelemetries = Array.from({ length: 50000 }, (_, i) =>
+        createMockTelemetry({
+          timeStamp: Date.now() + i * 1000,
+          dist: i * 5,
+          isRunning: i % 100 !== 99, // 100개마다 한 번씩 pause
+        })
+      )
+
+      const props = createMockSaveRunningProps({
+        telemetries: hugeTelemetries,
+        userDashboardData: createMockUserDashboardData({
+          totalDistance: 250000, // 250km 울트라마라톤
+        }),
+      })
+
+      const result = await saveRunning(props)
+
+      expect(result.runningId).toBe(456)
+    })
+  })
+
+  describe("썸네일 캡처 실패 상황", () => {
+    it("API가 썸네일 없이도 저장 성공 응답", async () => {
+      postRun.mockResolvedValue(123)
+
+      const props = createMockSaveRunningProps({
+        thumbnailUri: null,
+      })
+
+      const result = await saveRunning(props)
+
+      expect(result.runningId).toBe(123)
+      // postRun이 thumbnailUri 없이 호출됨
+      expect(postRun).toHaveBeenCalled()
+    })
+
+    it("잘못된 thumbnailUri 경로도 API에 전달 (서버에서 처리)", async () => {
+      postRun.mockResolvedValue(456)
+
+      const props = createMockSaveRunningProps({
+        thumbnailUri: "/invalid/memory/error/path.jpg",
+      })
+
+      const result = await saveRunning(props)
+
+      expect(result.runningId).toBe(456)
+    })
+
+    it("API가 썸네일 업로드 실패 시 전체 저장은 재시도", async () => {
+      // 첫 번째 호출: 썸네일 관련 에러, 두 번째: 성공
+      postRun
+        .mockRejectedValueOnce(new Error("Thumbnail upload failed"))
+        .mockResolvedValueOnce(789)
+
+      const props = createMockSaveRunningProps({
+        thumbnailUri: "/problematic/thumbnail.jpg",
+      })
+
+      const result = await saveRunning(props)
+
+      expect(result.runningId).toBe(789)
+      expect(postRun).toHaveBeenCalledTimes(2)
+    })
+  })
 })
