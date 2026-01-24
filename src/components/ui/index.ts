@@ -81,6 +81,7 @@ export { StyledButton } from "./buttons/StyledButton"
 // ============================================
 // Inputs
 // ============================================
+export { Checkbox } from "./inputs/Checkbox"
 export { DualFilter } from "./inputs/DualFilter"
 export { FilterBar } from "./inputs/FilterBar"
 export { default as NameInput } from "./inputs/NameInput"

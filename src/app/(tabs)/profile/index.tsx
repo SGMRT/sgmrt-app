@@ -111,6 +111,8 @@ export default function ProfileScreen() {
                     <CourseSection
                         selectedCourse={selectedCourse}
                         setSelectedCourse={setSelectedCourse}
+                        isDeleteMode={isDeleteMode}
+                        setIsDeleteMode={setIsDeleteMode}
                     />
                 )}
             </SafeAreaView>

@@ -93,7 +93,8 @@ export const GoRunCalendar = ({
     ]);
 
     const handleDayPress = (day: { dateString: string }) => {
-        const selected = new Date(day.dateString);
+        const [year, month, date] = day.dateString.split("-").map(Number);
+        const selected = new Date(year, month - 1, date);
         const s = startOfDay(selected);
         const e = endOfDay(selected);
 

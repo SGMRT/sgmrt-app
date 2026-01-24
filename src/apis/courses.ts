@@ -14,6 +14,18 @@ import {
 import { Telemetry } from "./types/run";
 import { attachTelemetries, decodeTelemetries, getUpdateAttrs } from "./utils";
 
+export async function deleteCourses(courseIds: number[]) {
+    // delete course를 여러 번 호출하는 방식으로 구현
+    for (const courseId of courseIds) {
+        try {
+            await deleteCourse(courseId);
+        } catch (error) {
+            errorLog(error);
+            throw error;
+        }
+    }
+}
+
 export async function deleteCourse(courseId: number) {
     try {
         const response = await server.delete(`courses/${courseId}`);
@@ -27,7 +39,7 @@ export async function deleteCourse(courseId: number) {
 export async function patchCourseName(
     courseId: number,
     name: string,
-    isPublic: boolean
+    isPublic: boolean,
 ) {
     const updateAttrs = getUpdateAttrs({
         name,
@@ -47,7 +59,7 @@ export async function patchCourseName(
 }
 
 export async function getCourses(
-    request: CoursesRequest
+    request: CoursesRequest,
 ): Promise<CourseResponse[]> {
     try {
         const response = await server.get("/courses", {
@@ -55,7 +67,7 @@ export async function getCourses(
         });
         const responseData = response.data as CourseResponse[];
         const filteredResponseData = responseData.filter(
-            (course) => course.routeUrl !== null
+            (course) => course.routeUrl !== null,
         );
         const result = await attachTelemetries(filteredResponseData);
         return result;
@@ -66,7 +78,7 @@ export async function getCourses(
 }
 
 export async function getCourse(
-    courseId: number
+    courseId: number,
 ): Promise<CourseDetailResponse> {
     try {
         const response = await server.get(`/courses/${courseId}`);
@@ -183,7 +195,7 @@ interface UserCoursesResponse {
 }
 
 export async function getUserCourses(
-    pageable: Pageable
+    pageable: Pageable,
 ): Promise<UserCoursesResponse> {
     const memberUuid = useAuthStore.getState().uuid;
     if (!memberUuid) {

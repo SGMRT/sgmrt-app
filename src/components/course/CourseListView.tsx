@@ -7,7 +7,7 @@ import { getDistance } from "@/src/utils/mapUtils";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
-import { Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
+import { Checkbox, Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
@@ -166,6 +166,9 @@ export const CourseGalleryItem = ({
     isSelected,
     onClickCourse,
     showLogo = false,
+    isDeleteMode = false,
+    isChecked = false,
+    onCheck,
 }: {
     courseName: string;
     distance: number;
@@ -177,6 +180,9 @@ export const CourseGalleryItem = ({
     imageUrl: string;
     onClickCourse?: () => void;
     showLogo?: boolean;
+    isDeleteMode?: boolean;
+    isChecked?: boolean;
+    onCheck?: () => void;
 }) => {
     return (
         <Pressable
@@ -204,7 +210,11 @@ export const CourseGalleryItem = ({
                     >
                         {courseName}
                     </Typography>
-                    <ChevronIcon color={colors.gray[40]} />
+                    {isDeleteMode && onCheck ? (
+                        <Checkbox isChecked={isChecked} onPress={onCheck} />
+                    ) : (
+                        <ChevronIcon color={colors.gray[40]} />
+                    )}
                 </View>
                 {/* 코스 거리, 고도 */}
                 <View>
