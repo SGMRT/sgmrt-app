@@ -63,6 +63,9 @@ export const useLocalPrefs = create<LocalPrefsState>()(
                     cadenceAssistEnabled: s.cadenceAssistEnabled,
                     cadenceTarget: s.cadenceTarget,
                 }),
+                migrate: (persistedState, version) => {
+                    return persistedState as LocalPrefsState;
+                },
             }
         )
     )

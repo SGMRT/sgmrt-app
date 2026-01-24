@@ -1,11 +1,14 @@
 import { registerDevice } from "@/src/apis";
 import { useAuthStore } from "@/src/store/authState";
 import { devLog, errorLog } from "@/src/utils/devLog";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Application from "expo-application";
 import * as Device from "expo-device";
 import { useEffect } from "react";
 import { Platform, View } from "react-native";
 import { usePushNotifications } from "./usePushNotifications";
+
+const DEVICE_UUID_KEY = "@device_uuid";
 
 async function getDeviceUuid(): Promise<string> {
     if (Platform.OS === "ios") {
@@ -15,11 +18,17 @@ async function getDeviceUuid(): Promise<string> {
         const androidId = Application.getAndroidId();
         if (androidId) return androidId;
     }
-    return `${Device.modelName ?? "unknown"}-${Date.now()}`;
+
+    const stored = await AsyncStorage.getItem(DEVICE_UUID_KEY);
+    if (stored) return stored;
+
+    const generated = `${Device.modelName ?? "unknown"}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    await AsyncStorage.setItem(DEVICE_UUID_KEY, generated);
+    return generated;
 }
 
 export default function PushNotificationGate() {
-    const { expoPushToken, notification } = usePushNotifications();
+    const { expoPushToken } = usePushNotifications();
     const { isLoggedIn } = useAuthStore();
 
     useEffect(() => {
@@ -45,7 +54,7 @@ export default function PushNotificationGate() {
                     errorLog(error);
                 });
         }
-    }, [expoPushToken, notification, isLoggedIn]);
+    }, [expoPushToken, isLoggedIn]);
 
     return (
         <View style={{ backgroundColor: "white", display: "none" }}>
