@@ -49,7 +49,7 @@ export default memo(function Header({
                         <TrashIcon color={deleteColor} />
                     </Pressable>
                 )}
-                {rightComponent && rightComponent}
+                {rightComponent}
             </View>
         </View>
     );
