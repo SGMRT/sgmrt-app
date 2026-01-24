@@ -1,3 +1,4 @@
+import { markPushAsRead } from "@/src/apis";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as Application from "expo-application";
 import Constants from "expo-constants";
@@ -8,7 +9,7 @@ import { Linking } from "react-native";
 import { registerForPushNotificationsAsync } from "./notifications";
 
 type UrlItem = { version: string | null; url: string | null };
-type Payload = { urls: UrlItem[] };
+type Payload = { urls: UrlItem[]; messageUuid?: string };
 
 const isInternalRoute = (url: string) => url.startsWith("/");
 
@@ -42,7 +43,7 @@ const isExactSpec = (version: string | null | undefined) =>
 
 const pickTargetByVersion = (
     urls: UrlItem[],
-    currentVersion: string | null | undefined
+    currentVersion: string | null | undefined,
 ) => {
     if (!urls?.length) return undefined;
 
@@ -51,7 +52,7 @@ const pickTargetByVersion = (
             (u) =>
                 isExactSpec(u.version) &&
                 u.version?.trim() === currentVersion &&
-                u.url
+                u.url,
         );
         if (exact) return exact;
     }
@@ -81,7 +82,7 @@ const pickTargetByVersion = (
         (u) =>
             u.version === null ||
             u.version === "" ||
-            (u.version === undefined && u.url)
+            (u.version === undefined && u.url),
     );
 
     if (common) return common;
@@ -108,8 +109,8 @@ function redirectFromNotification(notification: Notifications.Notification) {
             match_type: isExactSpec(target.version)
                 ? "exact"
                 : isRangeSpec(target.version)
-                ? "range"
-                : "common",
+                  ? "range"
+                  : "common",
         });
         router.push(target.url as RelativePathString);
     } else {
@@ -138,6 +139,12 @@ export function usePushNotifications() {
             data: n.request.content.data,
         });
         handledIdsRef.current.add(id);
+
+        const data = n.request.content.data as Payload | undefined;
+        if (data?.messageUuid) {
+            markPushAsRead(data.messageUuid).catch(() => {});
+        }
+
         redirectFromNotification(n);
     };
 
@@ -165,14 +172,14 @@ export function usePushNotifications() {
             (rn) => {
                 if (!isMounted) return;
                 setNotification(rn);
-            }
+            },
         );
 
         const responseSub =
             Notifications.addNotificationResponseReceivedListener(
                 (response) => {
                     handleOnce(response.notification);
-                }
+                },
             );
 
         return () => {

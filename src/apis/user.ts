@@ -6,6 +6,7 @@ import {
     GetUserInfoResponse,
     PatchUserInfoRequest,
     PatchUserSettingsRequest,
+    RegisterDeviceRequest,
     SignInRequest,
     SignResponse,
     SignUpRequest,
@@ -149,6 +150,17 @@ export async function patchUserSettings(data: PatchUserSettingsRequest) {
     try {
         const { uuid } = useAuthStore.getState();
         const response = await server.patch(`members/${uuid}/settings`, data);
+        return response.data;
+    } catch (error) {
+        errorLog(error);
+        throw error;
+    }
+}
+
+export async function registerDevice(data: RegisterDeviceRequest) {
+    try {
+        const { uuid } = useAuthStore.getState();
+        const response = await server.post(`members/${uuid}/devices`, data);
         return response.data;
     } catch (error) {
         errorLog(error);

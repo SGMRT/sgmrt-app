@@ -42,7 +42,17 @@ type GetUserInfoResponse = {
     voiceGuidanceEnabled: boolean;
 };
 
+type RegisterDeviceRequest = {
+    deviceUuid: string;
+    appVersion: string;
+    pushToken?: string;
+    osName?: string;
+    osVersion?: string;
+    modelName?: string;
+};
+
 export type {
+    RegisterDeviceRequest,
     GetUserInfoResponse,
     PatchUserInfoRequest,
     PatchUserSettingsRequest,

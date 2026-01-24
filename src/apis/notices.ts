@@ -61,10 +61,16 @@ export async function dismiss(noticeId: number) {
     return response.data;
 }
 
+/** @deprecated POST /v1/member/{memberUuid}/push-token is deprecated. Use registerDevice from user.ts instead. */
 export async function postUserPushToken(pushToken: string) {
     const { uuid } = useAuthStore.getState();
     const response = await server.post(`/member/${uuid}/push-token`, {
         pushToken,
     });
+    return response.data;
+}
+
+export async function markPushAsRead(messageUuid: string) {
+    const response = await server.post(`/push/${messageUuid}`);
     return response.data;
 }
