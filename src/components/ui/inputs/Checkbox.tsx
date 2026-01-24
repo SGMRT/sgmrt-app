@@ -10,6 +10,8 @@ export const Checkbox = ({ isChecked, onPress }: CheckboxProps) => {
     return (
         <Pressable
             onPress={onPress}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: isChecked }}
             style={[
                 styles.container,
                 { backgroundColor: isChecked ? "#E2FF00" : "#383838" },

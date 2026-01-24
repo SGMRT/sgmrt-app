@@ -82,7 +82,7 @@ export const FilterBar = ({
             {isDeleteMode && (
                 <Pressable
                     onPress={canDelete ? onDelete : undefined}
-                    disabled={isLoading}
+                    disabled={!canDelete}
                     style={{
                         marginLeft: "auto",
                         backgroundColor: "#212121",
