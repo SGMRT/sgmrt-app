@@ -1,14 +1,28 @@
+import { deleteCourses } from "@/src/apis";
 import { UserCourseInfo } from "@/src/apis/types/course";
+import {
+    BottomModal,
+    Divider,
+    DualFilter,
+    EmptyListView,
+    FilterBar,
+    RadioButton,
+    Section,
+    showToast,
+    Typography,
+    UserCount,
+} from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { endOfDay, formatDate, startOfDay } from "@/src/utils/formatDate";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { View } from "react-native";
+import { Alert, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GoRunCalendar } from "../calendar/GoRunCalendar";
-import { BottomModal, Divider, DualFilter, EmptyListView, FilterBar, RadioButton, Section, Typography, UserCount } from "@/src/components/ui";
 import { CourseGalleryItem } from "./CourseListView";
 
 type CoursesWithFilterProps = {
@@ -24,6 +38,8 @@ type CoursesWithFilterProps = {
     };
     defaultView?: "list" | "gallery";
     showLogo?: boolean;
+    isDeleteMode?: boolean;
+    setIsDeleteMode?: (isDeleteMode: boolean) => void;
 };
 
 type FilteredData = {
@@ -45,12 +61,15 @@ export const CoursesWithFilter = ({
     filters,
     defaultView = "list",
     showLogo = true,
+    isDeleteMode = false,
+    setIsDeleteMode = () => {},
 }: CoursesWithFilterProps) => {
+    const queryClient = useQueryClient();
     const [selectedFilter, setSelectedFilter] = useState<"date" | "course">(
-        "date"
+        "date",
     );
     const [selectedView, setSelectedView] = useState<"list" | "gallery">(
-        defaultView
+        defaultView,
     );
     const [displayData, setDisplayData] = useState<FilteredData>({
         type: "date",
@@ -61,15 +80,32 @@ export const CoursesWithFilter = ({
         endDate: Date;
     }>({
         startDate: startOfDay(
-            new Date(new Date().setDate(new Date().getDate() - 30))
+            new Date(new Date().setDate(new Date().getDate() - 30)),
         ),
         endDate: endOfDay(new Date()),
     });
     const [bottomSheetType, setBottomSheetType] = useState<
         "date" | "filter" | "view"
     >("date");
+    const [selectedForDelete, setSelectedForDelete] = useState<Set<number>>(
+        new Set(),
+    );
+    const [isDeleting, setIsDeleting] = useState(false);
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const router = useRouter();
+    const { bottom } = useSafeAreaInsets();
+
+    const toggleDeleteSelection = (courseId: number) => {
+        setSelectedForDelete((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(courseId)) {
+                newSet.delete(courseId);
+            } else {
+                newSet.add(courseId);
+            }
+            return newSet;
+        });
+    };
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
@@ -130,6 +166,12 @@ export const CoursesWithFilter = ({
         }
     }, [selectedFilter, dateGroups, courseGroups]);
 
+    useEffect(() => {
+        if (!isDeleteMode) {
+            setSelectedForDelete(new Set());
+        }
+    }, [isDeleteMode]);
+
     const onPressFilterItem = (type: "date" | "filter" | "view") => {
         setBottomSheetType(type);
         bottomSheetRef.current?.present();
@@ -145,6 +187,44 @@ export const CoursesWithFilter = ({
         bottomSheetRef.current?.close();
     };
 
+    const handleDelete = async () => {
+        const selectedCourses = data.filter((course) =>
+            selectedForDelete.has(course.id),
+        );
+        Alert.alert("코스를 삭제할까요?", "삭제된 코스는 복구가 어려워요", [
+            {
+                text: "삭제하기",
+                onPress: async () => {
+                    setIsDeleting(true);
+                    try {
+                        await deleteCourses(
+                            selectedCourses.map((course) => course.id),
+                        );
+                        queryClient.invalidateQueries({
+                            queryKey: ["user-courses"],
+                        });
+                        setSelectedForDelete(new Set());
+                        setIsDeleteMode(false);
+                        showToast("success", "코스가 삭제되었어요", bottom + 60);
+                    } catch (error) {
+                        showToast(
+                            "info",
+                            "코스 삭제에 실패했어요. 다시 시도해주세요.",
+                            bottom + 60,
+                        );
+                    } finally {
+                        setIsDeleting(false);
+                    }
+                },
+            },
+            {
+                text: "나가기",
+                style: "destructive",
+                onPress: () => {},
+            },
+        ]);
+    };
+
     return (
         <View style={{ flex: 1, gap: 20 }}>
             <FilterBar
@@ -154,6 +234,10 @@ export const CoursesWithFilter = ({
                 selectedFilter={selectedFilter}
                 selectedView={selectedView}
                 filters={filters}
+                isDeleteMode={isDeleteMode}
+                selectedCount={selectedForDelete.size}
+                onDelete={handleDelete}
+                isLoading={isDeleting}
             />
             <FlashList
                 style={{ paddingHorizontal: 16.5 }}
@@ -195,7 +279,7 @@ export const CoursesWithFilter = ({
                                     cadence={course.averageFinisherCadence}
                                     onClickCourseInfo={() => {
                                         router.push(
-                                            `/profile/${course.id}/detail`
+                                            `/profile/${course.id}/detail`,
                                         );
                                     }}
                                     isSelected={
@@ -216,14 +300,23 @@ export const CoursesWithFilter = ({
                                     isSelected={
                                         course.id === selectedCourse?.id
                                     }
-                                    onClickCourse={() => {
-                                        router.push(
-                                            `/profile/${course.id}/detail`
-                                        );
-                                    }}
+                                    onClickCourse={
+                                        isDeleteMode
+                                            ? undefined
+                                            : () => {
+                                                  router.push(
+                                                      `/profile/${course.id}/detail`,
+                                                  );
+                                              }
+                                    }
                                     showLogo={showLogo}
+                                    isDeleteMode={isDeleteMode}
+                                    isChecked={selectedForDelete.has(course.id)}
+                                    onCheck={() =>
+                                        toggleDeleteSelection(course.id)
+                                    }
                                 />
-                            )
+                            ),
                         )}
                     </Section>
                 )}

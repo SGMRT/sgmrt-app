@@ -1,16 +1,20 @@
 import { getUserCourses } from "@/src/apis";
 import { GhostSortOption, UserCourseInfo } from "@/src/apis/types/course";
+import { Typography } from "@/src/components/ui";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { View } from "react-native";
 import { CoursesWithFilter } from "../course/CoursesWithFilter";
-import { Typography } from "@/src/components/ui";
 
 export const CourseSection = ({
     selectedCourse,
     setSelectedCourse,
+    isDeleteMode,
+    setIsDeleteMode,
 }: {
     selectedCourse: UserCourseInfo | null;
     setSelectedCourse: (course: UserCourseInfo | null) => void;
+    isDeleteMode: boolean;
+    setIsDeleteMode: (isDeleteMode: boolean) => void;
 }) => {
     const { data, isLoading, isError, fetchNextPage, hasNextPage } =
         useUserCourses();
@@ -52,6 +56,8 @@ export const CourseSection = ({
                 }}
                 defaultView="gallery"
                 showLogo={false}
+                isDeleteMode={isDeleteMode}
+                setIsDeleteMode={setIsDeleteMode}
             />
         </View>
     );
@@ -59,7 +65,7 @@ export const CourseSection = ({
 
 export function useUserCourses(
     size: number = 10,
-    sort: GhostSortOption = "id,asc"
+    sort: GhostSortOption = "id,asc",
 ) {
     return useInfiniteQuery({
         queryKey: ["user-courses", size, sort],

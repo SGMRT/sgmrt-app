@@ -1,7 +1,8 @@
 import { CalendarIcon, ShowIcon } from "@/assets/svgs/svgs";
 import { formatDate } from "@/src/utils/formatDate";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { ButtonWithIcon, FilterButton } from "../buttons/FilterButton";
+import { Typography } from "../display/Typography";
 
 interface FilterBarProps {
     searchPeriod: {
@@ -17,6 +18,11 @@ interface FilterBarProps {
         filter?: boolean;
         view?: boolean;
     };
+    isDeleteMode?: boolean;
+    setIsDeleteMode?: (isDeleteMode: boolean) => void;
+    selectedCount?: number;
+    onDelete?: () => void;
+    isLoading?: boolean;
 }
 
 export const FilterBar = ({
@@ -30,7 +36,14 @@ export const FilterBar = ({
         filter: true,
         view: true,
     },
+    isDeleteMode = false,
+    setIsDeleteMode = () => {},
+    selectedCount = 0,
+    onDelete,
+    isLoading = false,
 }: FilterBarProps) => {
+    const hasSelection = selectedCount > 0;
+    const canDelete = hasSelection && !isLoading;
     const { date, filter, view } = filters;
     return (
         <View style={styles.filterBar}>
@@ -39,7 +52,7 @@ export const FilterBar = ({
                     icon={<CalendarIcon />}
                     // 25.06.21 형식으로 되도록
                     title={`${formatDate(searchPeriod.startDate)} ~${formatDate(
-                        searchPeriod.endDate
+                        searchPeriod.endDate,
                     )}`}
                     onPress={() => onClickFilter("date")}
                     variant="body2"
@@ -65,6 +78,26 @@ export const FilterBar = ({
                     style={styles.pv5}
                     title={selectedFilter === "date" ? "날짜별" : "코스별"}
                 />
+            )}
+            {isDeleteMode && (
+                <Pressable
+                    onPress={canDelete ? onDelete : undefined}
+                    disabled={!canDelete}
+                    style={{
+                        marginLeft: "auto",
+                        backgroundColor: "#212121",
+                        paddingVertical: 8,
+                        paddingHorizontal: 10,
+                        borderRadius: 10,
+                    }}
+                >
+                    <Typography
+                        variant="body3"
+                        color={canDelete ? "primary" : "gray40"}
+                    >
+                        삭제하기
+                    </Typography>
+                </Pressable>
             )}
         </View>
     );
