@@ -1,4 +1,6 @@
 import { getCalories } from "@/src/utils/runUtils";
+import { GPS_PIPELINE_VERSION } from "../filters/config";
+import { paceCalculator } from "../pace/PaceCalculator";
 import { RawRunData } from "../types";
 
 export interface RunningStats {
@@ -110,9 +112,22 @@ export function updateStats(
         next.totalTimeMs += dtMs;
     }
 
-    // --- 거리 증분(글리치 필터) ---
+    // --- 거리 증분 ---
     const rawDist = sample.distance ?? 0; // Δdistance (m)
-    const filteredDistM = zero ? 0 : clampGlitch(rawDist, dtSec);
+    let filteredDistM: number;
+
+    if (GPS_PIPELINE_VERSION === "v2") {
+        // v2: 이미 필터링된 거리 사용 (정지 상태에서는 0)
+        filteredDistM = zero ? 0 : rawDist;
+        // 정지 상태면 거리 누적 안함
+        if (sample.movementState === "STATIONARY") {
+            filteredDistM = 0;
+        }
+    } else {
+        // legacy: 기존 글리치 필터 사용
+        filteredDistM = zero ? 0 : clampGlitch(rawDist, dtSec);
+    }
+
     next.totalDistanceM += filteredDistM;
 
     // --- 고도 누적 ---
@@ -148,25 +163,35 @@ export function updateStats(
         deltaSteps: deltaSteps,
     });
 
-    // --- 창 집계 ---
-    const winTimeSec =
-        next._window.length >= 2
-            ? (next._window[next._window.length - 1].ts - next._window[0].ts) /
-              1000
-            : 0;
+    // --- 창 집계 및 페이스 계산 ---
+    let rawPace: number | null;
 
-    const sumDist = next._window.reduce((a, b) => a + b.dist, 0);
+    if (GPS_PIPELINE_VERSION === "v2") {
+        // v2: EMA 기반 페이스 계산
+        const paceResult = paceCalculator.calculate(
+            filteredDistM,
+            dtMs,
+            sample.timestamp
+        );
+        rawPace = paceResult.currentPace;
+    } else {
+        // legacy: 윈도우 기반 페이스 계산
+        const winTimeSec =
+            next._window.length >= 2
+                ? (next._window[next._window.length - 1].ts -
+                      next._window[0].ts) /
+                  1000
+                : 0;
 
-    const rawPace = secPerKmFrom(sumDist, winTimeSec);
+        const sumDist = next._window.reduce((a, b) => a + b.dist, 0);
+        rawPace = secPerKmFrom(sumDist, winTimeSec);
+    }
 
     let rawCadence = sample.steps ? (sample.steps.last5sSteps / 5) * 60 : null;
 
     if (rawCadence != null && rawCadence > 300) {
         rawCadence = null;
     }
-
-    // console.log("rawCadence", rawCadence);
-    // console.log("sample.steps.last5sSteps", sample.steps?.last5sSteps);
 
     // sticky
     next.currentPaceSecPerKm = rawPace ?? prev.currentPaceSecPerKm ?? null;

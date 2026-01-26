@@ -5,6 +5,14 @@ import { Barometer } from "expo-sensors";
 import { getStepCountAsync } from "expo-sensors/build/Pedometer";
 import * as TaskManager from "expo-task-manager";
 import { LOCATION_TASK, MAX_ACCURACY_METERS } from "../constants";
+import { distanceAccumulator } from "../distance/DistanceAccumulator";
+import {
+    GPS_PIPELINE_VERSION,
+    movementClassifier,
+    outlierDetector,
+} from "../filters";
+import type { MovementState } from "../filters/types";
+import { paceCalculator } from "../pace/PaceCalculator";
 import { joinedState } from "../store/joinedState";
 import { StreamJoiner } from "../store/joiner";
 import { SensorStore, sharedSensorStore } from "../store/sensorStore";
@@ -34,6 +42,14 @@ function reset() {
     lastAcceptedPressure = null;
     lastAcceptedSteps = null;
     lastAcceptedHeartRate = null;
+
+    // v2 파이프라인 필터 초기화
+    if (GPS_PIPELINE_VERSION === "v2") {
+        outlierDetector.reset();
+        movementClassifier.reset();
+        distanceAccumulator.reset();
+        paceCalculator.reset();
+    }
 }
 
 TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
@@ -60,9 +76,33 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     for (const loc of locations) {
         const { latitude, longitude, accuracy, altitude } = loc.coords;
 
-        if (accuracy != null && accuracy > MAX_ACCURACY_METERS && !__DEV__) {
-            devLog("[LOCATION] 위치 불확실성 높음", accuracy);
-            continue;
+        // v2: OutlierDetector 사용
+        // legacy: 기존 accuracy 필터만 사용
+        let outlierResult: { isOutlier: boolean; reason?: string; confidence: number } | null = null;
+
+        if (GPS_PIPELINE_VERSION === "v2") {
+            outlierResult = outlierDetector.detect({
+                latitude,
+                longitude,
+                accuracy: accuracy ?? null,
+                timestamp: loc.timestamp,
+                speed: loc.coords.speed ?? null,
+                course: loc.coords.heading ?? null,
+            });
+
+            if (outlierResult.isOutlier) {
+                devLog(
+                    `[LOCATION:v2] 이상치 제거: ${outlierResult.reason}`,
+                    accuracy
+                );
+                continue;
+            }
+        } else {
+            // legacy: 기존 정확도 필터
+            if (accuracy != null && accuracy > MAX_ACCURACY_METERS && !__DEV__) {
+                devLog("[LOCATION] 위치 불확실성 높음", accuracy);
+                continue;
+            }
         }
 
         const filtered = geoFilter.process(
@@ -73,18 +113,64 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             loc.coords.speed ?? 0
         );
 
+        // 거리 계산
         let deltaDistance = 0;
-        if (lastAcceptedTs > 0) {
-            deltaDistance = haversineMeters(
-                lastAcceptedLat,
-                lastAcceptedLng,
-                filtered.latitude,
-                filtered.longitude
-            );
-        }
+        let movementState: MovementState | undefined;
+        let confidence: number | undefined;
 
         const sample = sharedSensorStore.pushLocation(loc);
         const joined = joiner.onNewLocation(sample);
+
+        // 스텝 정보 미리 계산 (MovementClassifier에서 사용)
+        const stepDiff =
+            joined.steps?.totalSteps != null
+                ? joined.steps.totalSteps - (lastAcceptedSteps?.totalSteps ?? 0)
+                : 0;
+
+        if (GPS_PIPELINE_VERSION === "v2") {
+            // v2: 새로운 파이프라인
+            // 1. 위에서 계산한 outlierResult에서 신뢰도 가져오기 (detect 재호출 안함!)
+            confidence = outlierResult?.confidence ?? 0.5;
+
+            // 2. 이동 상태 분류
+            const estimatedSpeed =
+                loc.coords.speed ?? outlierDetector.getAverageSpeed();
+            movementState = movementClassifier.classify(
+                estimatedSpeed,
+                { latitude: filtered.latitude, longitude: filtered.longitude },
+                stepDiff > 0 ? stepDiff : null
+            );
+
+            // 3. 정확도 가중 거리 누적
+            const distanceResult = distanceAccumulator.accumulate(
+                { latitude: filtered.latitude, longitude: filtered.longitude },
+                confidence,
+                movementState,
+                loc.timestamp
+            );
+
+            deltaDistance = distanceResult.delta;
+
+            if (__DEV__) {
+                devLog("[LOCATION:v2]", {
+                    movementState,
+                    confidence: confidence.toFixed(2),
+                    delta: deltaDistance.toFixed(2),
+                    rawDelta: distanceResult.rawDelta.toFixed(2),
+                    total: distanceResult.total.toFixed(2),
+                });
+            }
+        } else {
+            // legacy: 기존 방식
+            if (lastAcceptedTs > 0) {
+                deltaDistance = haversineMeters(
+                    lastAcceptedLat,
+                    lastAcceptedLng,
+                    filtered.latitude,
+                    filtered.longitude
+                );
+            }
+        }
 
         if (joined.pressure?.pressure != null) {
             lastAcceptedPressure = joined.pressure.pressure;
@@ -94,11 +180,6 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
                 timestamp: joined.timestamp,
             };
         }
-
-        const stepDiff =
-            joined.steps?.totalSteps != null
-                ? joined.steps.totalSteps - (lastAcceptedSteps?.totalSteps ?? 0)
-                : 0;
 
         if (joined.steps?.totalSteps != null) {
             lastAcceptedSteps = joined.steps;
@@ -145,6 +226,9 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             distance: deltaDistance,
             isRunning: null,
             bpm: joined.heartRate?.bpm ?? null,
+            // v2 파이프라인 전용 필드
+            movementState,
+            confidence,
             raw: {
                 timestamp: joined.timestamp,
                 latitude,

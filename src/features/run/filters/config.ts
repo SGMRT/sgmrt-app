@@ -1,0 +1,66 @@
+/**
+ * GPS 필터링 파이프라인 설정
+ */
+
+import type {
+    DistanceConfig,
+    MovementConfig,
+    OutlierConfig,
+    PaceConfig,
+} from "./types";
+
+/** GPS 파이프라인 버전 */
+export type GpsPipelineVersion = "legacy" | "v2";
+
+/**
+ * 현재 사용할 GPS 파이프라인 버전
+ * - legacy: 기존 칼만 필터 + haversine 방식
+ * - v2: OutlierDetector + 칼만 필터 + MovementClassifier + DistanceAccumulator
+ */
+export const GPS_PIPELINE_VERSION: GpsPipelineVersion = "v2";
+
+/** 이상치 감지 설정 */
+export const OUTLIER_CONFIG: OutlierConfig = {
+    /** 최대 허용 속도 (12m/s = 43.2km/h, 세계 기록 수준) */
+    maxSpeedMps: 12,
+    /** 최대 허용 가속도 (5m/s^2, 물리적 한계) */
+    maxAccelerationMps2: 5,
+    /** GPS 정확도 임계값 (20m 초과시 이상치) */
+    minAccuracyM: 20,
+    /** 최대 허용 순간 점프 거리 (50m) */
+    maxJumpM: 50,
+};
+
+/** 이동 분류 설정 */
+export const MOVEMENT_CONFIG: MovementConfig = {
+    /** 정지 판정 속도 (0.1m/s ≈ 0.36km/h, 매우 보수적) */
+    stationarySpeedThreshold: 0.1,
+    /** 걷기/달리기 경계 속도 (2.0m/s ≈ 7.2km/h) */
+    walkingSpeedThreshold: 2.0,
+    /** 정지 판정 위치 분산 (0.3m, 더 보수적) */
+    stationaryVarianceThreshold: 0.3,
+    /** 이동 상태 판정 윈도우 크기 */
+    windowSize: 5,
+};
+
+/** 거리 누적 설정 */
+export const DISTANCE_CONFIG: DistanceConfig = {
+    /** 최소 신뢰도 (0.3 이하는 0.3으로 클램프) */
+    minConfidence: 0.3,
+    /** 거리 스무딩 계수 (0.8 = 새 값 80% 반영) */
+    smoothingFactor: 0.8,
+    /** GPS 거리 보정 계수 (1.0 = 보정 없음, 이상치 필터에 의존) */
+    gpsCorrection: 1.0,
+    /** 최소 거리 임계값 (이 값 미만은 GPS 노이즈로 간주, 미터) */
+    minDeltaM: 1.0,
+};
+
+/** 페이스 계산 설정 */
+export const PACE_CONFIG: PaceConfig = {
+    /** EMA 시간 상수 (3초 - 더 빠른 반응) */
+    emaTauSec: 3,
+    /** 초당 최대 페이스 변화 (60초/km - 3초 간격에서 180초/km 변화 허용) */
+    maxPaceChangePerSec: 60,
+    /** 이상치 페이스 임계값 (1200초/km = 20분/km) */
+    outlierPaceThreshold: 1200,
+};

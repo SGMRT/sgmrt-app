@@ -33,24 +33,41 @@ export function useSensors(enabled: boolean) {
             const { status: fg } =
                 await Location.requestForegroundPermissionsAsync();
             if (fg !== "granted") {
-                devLog("[SENSORS] 위치 권한 거부");
+                devLog("[SENSORS] Foreground 위치 권한 거부");
                 return;
             }
 
             if (!mounted) return;
 
-            // 2) 중복 시작 방지
-            const already = await Location.hasStartedLocationUpdatesAsync(
+            // 2) 이전 세션의 좀비 태스크 정리 후 새로 시작
+            // Cold Start 시 네이티브는 태스크가 실행 중이라고 기억하지만,
+            // JS 콜백은 새 컨텍스트에서 연결되지 않으므로 항상 재시작 필요
+            const wasRunning = await Location.hasStartedLocationUpdatesAsync(
                 LOCATION_TASK
             ).catch(() => false);
-            if (!already) {
+
+            if (wasRunning) {
+                devLog("[SENSORS] 이전 세션 태스크 정리 중...");
+                await Location.stopLocationUpdatesAsync(LOCATION_TASK).catch(
+                    () => {}
+                );
+            }
+
+            if (!mounted) return;
+
+            try {
                 await Location.startLocationUpdatesAsync(LOCATION_TASK, {
                     accuracy: Location.Accuracy.BestForNavigation,
                     deferredUpdatesInterval: 3000,
+                    showsBackgroundLocationIndicator: true,
+                    foregroundService: {
+                        notificationTitle: "러닝 기록 중",
+                        notificationBody: "GPS 위치를 추적하고 있습니다",
+                    },
                 });
                 devLog("[SENSORS] Location updates started");
-            } else {
-                devLog("[SENSORS] Location updates already running");
+            } catch (err) {
+                devLog("[SENSORS] Location updates 시작 실패:", err);
             }
 
             if (!mounted) return;
