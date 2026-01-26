@@ -1,4 +1,5 @@
 // Ghost Runner Design System - Atoms
 
-export * from "./Divider";
+export * from "./Badge";
 export * from "./Control";
+export * from "./Divider";

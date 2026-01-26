@@ -37,54 +37,63 @@ export const fontWeight = {
 // Typography Variants (Figma Foundation 기반)
 export const typographyVariants = {
     display1: {
+        fontFamily: fontFamily.medium,
         fontSize: fontSize["2xl"],
         lineHeight: lineHeight["2xl"],
         fontWeight: fontWeight.medium,
         letterSpacing: -0.6,
     },
     display2: {
+        fontFamily: fontFamily.regular,
         fontSize: fontSize.xl,
         lineHeight: lineHeight.xl,
         fontWeight: fontWeight.regular,
         letterSpacing: -0.6,
     },
     headline: {
+        fontFamily: fontFamily.medium,
         fontSize: fontSize.lg,
         lineHeight: lineHeight.lg,
         fontWeight: fontWeight.medium,
         letterSpacing: -0.6,
     },
     subhead1: {
+        fontFamily: fontFamily.medium,
         fontSize: fontSize.base,
         lineHeight: lineHeight.base,
         fontWeight: fontWeight.medium,
         letterSpacing: -0.6,
     },
     subhead2: {
+        fontFamily: fontFamily.regular,
         fontSize: fontSize.md,
         lineHeight: lineHeight.md,
         fontWeight: fontWeight.medium,
         letterSpacing: -0.6,
     },
     body1: {
+        fontFamily: fontFamily.regular,
         fontSize: fontSize.base,
         lineHeight: lineHeight.base,
         fontWeight: fontWeight.regular,
         letterSpacing: -0.6,
     },
     body2: {
+        fontFamily: fontFamily.regular,
         fontSize: fontSize.md,
         lineHeight: lineHeight.md,
         fontWeight: fontWeight.regular,
         letterSpacing: -0.6,
     },
     body3: {
+        fontFamily: fontFamily.regular,
         fontSize: fontSize.sm,
         lineHeight: lineHeight.sm,
         fontWeight: fontWeight.regular,
         letterSpacing: -0.6,
     },
     caption: {
+        fontFamily: fontFamily.regular,
         fontSize: fontSize.xs,
         lineHeight: lineHeight.xs,
         fontWeight: fontWeight.regular,
@@ -97,3 +106,12 @@ export type FontSize = keyof typeof fontSize;
 export type LineHeight = keyof typeof lineHeight;
 export type FontWeight = keyof typeof fontWeight;
 export type TypographyVariant = keyof typeof typographyVariants;
+
+// Grouped export for convenience
+export const typography = {
+    fontFamily,
+    fontSize,
+    lineHeight,
+    fontWeight,
+    variants: typographyVariants,
+} as const;
