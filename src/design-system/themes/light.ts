@@ -1,6 +1,6 @@
 // Ghost Runner Design System - Light Theme (Placeholder)
 
-import { core, ghostLime, grey } from "../tokens/colors";
+import { core, ghostLime, grey, shadows } from "../tokens/colors";
 import type { SemanticColors } from "./types";
 
 // TODO: Figma Light mode 값으로 업데이트
@@ -38,4 +38,7 @@ export const lightTheme: SemanticColors = {
 
     // Divider
     divider: "rgba(121, 124, 138, 0.16)",
+
+    // Shadows
+    shadow01: shadows.shadow01,
 };

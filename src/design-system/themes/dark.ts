@@ -1,6 +1,6 @@
 // Ghost Runner Design System - Dark Theme
 
-import { core, ghostLime, grey } from "../tokens/colors";
+import { core, ghostLime, grey, shadows } from "../tokens/colors";
 import type { SemanticColors } from "./types";
 
 export const darkTheme: SemanticColors = {
@@ -37,4 +37,7 @@ export const darkTheme: SemanticColors = {
 
     // Divider
     divider: "rgba(121, 124, 138, 0.16)",
+
+    // Shadows
+    shadow01: shadows.shadow01,
 };

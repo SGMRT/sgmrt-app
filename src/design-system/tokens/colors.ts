@@ -55,7 +55,13 @@ export const core = {
     white: "#FFFFFF",
 } as const;
 
+// Shadows
+export const shadows = {
+    shadow01: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
+} as const;
+
 // Type exports
 export type GreyScale = keyof typeof grey;
 export type GhostLimeScale = keyof typeof ghostLime;
 export type GhostRedScale = keyof typeof ghostRed;
+export type ShadowScale = keyof typeof shadows;

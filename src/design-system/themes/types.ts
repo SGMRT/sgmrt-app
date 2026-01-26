@@ -34,6 +34,9 @@ export interface SemanticColors {
 
     // Divider
     divider: string;
+
+    // Shadows
+    shadow01: string;
 }
 
 export type ColorScheme = "light" | "dark";
