@@ -31,6 +31,9 @@ export interface SemanticColors {
     // Tertiary
     tertiary: string;
     tertiaryP: string;
+
+    // Divider
+    divider: string;
 }
 
 export type ColorScheme = "light" | "dark";

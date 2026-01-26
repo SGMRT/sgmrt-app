@@ -34,4 +34,7 @@ export const darkTheme: SemanticColors = {
     // Tertiary
     tertiary: grey[80],
     tertiaryP: grey[90],
+
+    // Divider
+    divider: "rgba(121, 124, 138, 0.16)",
 };
