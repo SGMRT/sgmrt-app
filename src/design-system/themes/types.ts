@@ -13,14 +13,22 @@ export interface SemanticColors {
     ui08: string;
     ui09: string;
     ui10: string;
+
+    // UI Up (elevated surfaces)
     uiUp: string;
     uiUp01: string;
     uiUp02: string;
     uiUp03: string;
+
+    // Primary (Ghost Lime)
     primary: string;
     primaryB: string;
     primaryO: string;
+
+    // Secondary (Ghost Red)
     secondary: string;
+
+    // Tertiary
     tertiary: string;
     tertiaryP: string;
 }
