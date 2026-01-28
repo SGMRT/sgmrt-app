@@ -106,25 +106,26 @@ describe("updateStats", () => {
       expect(stats3.totalDistanceM).toBe(25)
     })
 
-    it("비현실적으로 빠른 속도(15m/s 초과)는 필터링한다", () => {
+    it("v2에서는 거리 필터링 없이 그대로 누적한다 (파이프라인에서 필터링)", () => {
       const sample1 = createSample({ distance: 0 }, 1000)
       const stats1 = updateStats(DEFAULT_STATS, sample1)
 
-      // 1초에 20m = 20m/s (비현실적)
+      // v2: updateStats는 필터링하지 않음 (OutlierDetector에서 처리)
       const sample2 = createSample({ distance: 20 }, 2000)
       const stats2 = updateStats(stats1, sample2)
 
-      expect(stats2.totalDistanceM).toBe(0)
+      expect(stats2.totalDistanceM).toBe(20)
     })
 
-    it("너무 짧은 거리(0.3m 미만)는 필터링한다", () => {
+    it("v2에서는 짧은 거리도 그대로 누적한다 (파이프라인에서 필터링)", () => {
       const sample1 = createSample({ distance: 0 }, 1000)
       const stats1 = updateStats(DEFAULT_STATS, sample1)
 
+      // v2: updateStats는 필터링하지 않음 (DistanceAccumulator에서 처리)
       const sample2 = createSample({ distance: 0.1 }, 3000)
       const stats2 = updateStats(stats1, sample2)
 
-      expect(stats2.totalDistanceM).toBe(0)
+      expect(stats2.totalDistanceM).toBe(0.1)
     })
 
     it("zeroDt 옵션이 true면 거리를 증가시키지 않는다", () => {
@@ -172,15 +173,17 @@ describe("updateStats", () => {
   })
 
   describe("페이스 계산", () => {
-    it("현재 페이스를 계산한다", () => {
+    it("현재 페이스를 계산한다 (v2 EMA 적용)", () => {
       const sample1 = createSample({ distance: 0 }, 0)
       const stats1 = updateStats(DEFAULT_STATS, sample1)
 
-      // 10초간 100m 이동 = 10m/s = 100초/km
+      // 10초간 100m 이동 = 10m/s = 100초/km (이론값)
+      // v2에서는 EMA 스무딩이 적용되어 초기값에 영향받음
       const sample2 = createSample({ distance: 100 }, 10000)
       const stats2 = updateStats(stats1, sample2)
 
-      expect(stats2.currentPaceSecPerKm).toBeCloseTo(100, 0)
+      // EMA 스무딩으로 인해 100보다 약간 높은 값 (약 113)
+      expect(stats2.currentPaceSecPerKm).toBeCloseTo(113, 0)
     })
 
     it("평균 페이스를 계산한다", () => {
