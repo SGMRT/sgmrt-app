@@ -414,8 +414,6 @@ export async function saveRunning({
         record,
       };
 
-      console.log(baseReq);
-
       Sentry.setContext("runMeta", {
         courseId: courseId ?? null,
         ghostRunningId: ghostRunningId ?? null,

@@ -29,7 +29,13 @@ export default function CourseRegisterModal({
     const queryClient = useQueryClient();
 
     const handleRegister = () => {
-        patchCourseName(courseInfoId, courseName, true)
+        const trimmedName = courseName.trim();
+        if (!trimmedName) {
+            showToast("info", "코스명을 입력해주세요", bottom);
+            return;
+        }
+
+        patchCourseName(courseInfoId, trimmedName, true)
             .then(() => {
                 bottomSheetRef.current?.dismiss();
                 router.replace({
@@ -38,13 +44,11 @@ export default function CourseRegisterModal({
                 });
                 trackAmplitude("Course Created", {
                     courseId: courseInfoId,
-                    courseName: courseName,
+                    courseName: trimmedName,
                     distance: distance,
                     elevationGain: elevationGain,
                 });
                 showToast("success", "코스가 등록되었습니다", bottom);
-            })
-            .finally(() => {
                 queryClient.invalidateQueries({ queryKey: ["courses"] });
                 queryClient.invalidateQueries({
                     queryKey: ["course", courseId],
@@ -55,6 +59,9 @@ export default function CourseRegisterModal({
                     queryKey: ["runsByCourse", courseInfoId],
                 });
                 queryClient.invalidateQueries({ queryKey: ["result"] });
+            })
+            .catch(() => {
+                showToast("info", "코스 등록에 실패했습니다. 다시 시도해주세요.", bottom);
             });
     };
 

@@ -26,6 +26,10 @@ export async function deleteCourses(courseIds: number[]) {
     }
 }
 
+/**
+ * Soft deletes a course by setting isPublic to false.
+ * The course data is preserved but hidden from public view.
+ */
 export async function deleteCourse(courseId: number) {
     try {
         const updateAttrs = getUpdateAttrs({ isPublic: false });
