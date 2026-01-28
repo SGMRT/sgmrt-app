@@ -203,6 +203,17 @@ export const CoursesWithFilter = ({
                         queryClient.invalidateQueries({
                             queryKey: ["user-courses"],
                         });
+                        queryClient.invalidateQueries({
+                            queryKey: ["runs"],
+                        });
+                        selectedCourses.forEach((course) => {
+                            queryClient.invalidateQueries({
+                                queryKey: ["runsByCourse", course.id],
+                            });
+                        });
+                        queryClient.invalidateQueries({
+                            queryKey: ["result"],
+                        });
                         setSelectedForDelete(new Set());
                         setIsDeleteMode(false);
                         showToast("success", "코스가 삭제되었어요", bottom + 60);
