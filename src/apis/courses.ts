@@ -28,7 +28,11 @@ export async function deleteCourses(courseIds: number[]) {
 
 export async function deleteCourse(courseId: number) {
     try {
-        const response = await server.delete(`courses/${courseId}`);
+        const updateAttrs = getUpdateAttrs({ isPublic: false });
+        const response = await server.patch(`courses/${courseId}`, {
+            isPublic: false,
+            updateAttrs,
+        });
         return response.data;
     } catch (error) {
         errorLog(error);

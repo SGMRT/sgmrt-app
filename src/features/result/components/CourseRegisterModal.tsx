@@ -50,6 +50,11 @@ export default function CourseRegisterModal({
                     queryKey: ["course", courseId],
                 });
                 queryClient.invalidateQueries({ queryKey: ["user-courses"] });
+                queryClient.invalidateQueries({ queryKey: ["runs"] });
+                queryClient.invalidateQueries({
+                    queryKey: ["runsByCourse", courseInfoId],
+                });
+                queryClient.invalidateQueries({ queryKey: ["result"] });
             });
     };
 
