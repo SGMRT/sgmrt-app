@@ -61,10 +61,10 @@ export const DISTANCE_CONFIG: DistanceConfig = {
 
 /** 페이스 계산 설정 */
 export const PACE_CONFIG: PaceConfig = {
-    /** EMA 시간 상수 (3초 - 더 빠른 반응) */
-    emaTauSec: 3,
-    /** 초당 최대 페이스 변화 (60초/km - 3초 간격에서 180초/km 변화 허용) */
-    maxPaceChangePerSec: 60,
+    /** 페이스 합산 윈도우 (10초) */
+    windowSec: 10,
+    /** 최소 유효 페이스 (90초/km = 40km/h, Bolt 100m WR ≈ 96초/km) */
+    minPaceSecPerKm: 90,
     /** 이상치 페이스 임계값 (1200초/km = 20분/km) */
     outlierPaceThreshold: 1200,
 };

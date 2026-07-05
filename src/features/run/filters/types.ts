@@ -63,7 +63,7 @@ export interface DistanceConfig {
 
 /** 페이스 계산 설정 */
 export interface PaceConfig {
-    emaTauSec: number; // EMA 시간 상수 (초)
-    maxPaceChangePerSec: number; // 초당 최대 페이스 변화 (초/km)
+    windowSec: number; // 페이스 합산 윈도우 (초)
+    minPaceSecPerKm: number; // 최소 유효 페이스 (초/km, 이보다 빠르면 거부)
     outlierPaceThreshold: number; // 이상치 페이스 임계값 (초/km)
 }
