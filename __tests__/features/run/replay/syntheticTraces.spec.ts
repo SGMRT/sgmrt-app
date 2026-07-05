@@ -82,6 +82,10 @@ describe("합성 트레이스 측정 정확도", () => {
     expect(ctx.stats.totalDistanceM).toBeLessThan(1020)
     expect(ctx.stats.avgPaceSecPerKm).toBeGreaterThan(290)
     expect(ctx.stats.avgPaceSecPerKm).toBeLessThan(310)
+    // 순간 페이스도 정속에서는 실제 페이스(300)에 수렴해야 함
+    // (샘플별 역수 EMA는 노이즈로 인해 느린 쪽으로 ~8% 편향됨)
+    expect(ctx.stats.currentPaceSecPerKm).toBeGreaterThan(290)
+    expect(ctx.stats.currentPaceSecPerKm).toBeLessThan(310)
   })
 
   it("원형 트랙 400m x 2.5바퀴(곡선 왜곡): 거리 ±3%", async () => {
@@ -144,9 +148,10 @@ describe("합성 트레이스 측정 정확도", () => {
 
     // 갭 이후 60초 x 3.333 = 200m가 계속 누적되어야 함
     expect(postGapGain).toBeGreaterThan(180)
-    // 총거리: 갭 구간 직선 보간 포함 500m에 근접해야 함
-    expect(distFinal).toBeGreaterThan(450)
-    expect(distFinal).toBeLessThan(520)
+    // 총거리: 갭 구간 직선 보간(100m) 포함 500m에 근접해야 함
+    // (정상 속도의 긴 dt 델타가 이상치 스무딩으로 깎이면 안됨)
+    expect(distFinal).toBeGreaterThan(485)
+    expect(distFinal).toBeLessThan(515)
   })
 
   it("인터벌(5:00/km -> 3:30/km): 페이스가 15초 내 새 페이스에 수렴", async () => {
@@ -156,6 +161,11 @@ describe("합성 트레이스 측정 정확도", () => {
     ])
 
     const { statsSeries } = await replay(trace)
+
+    // 전환 직전(89s) 정속 구간의 현재 페이스는 실제 페이스(300)에 근접
+    const paceBeforeSwitch = statsSeries[89].currentPaceSecPerKm
+    expect(paceBeforeSwitch).toBeGreaterThan(285)
+    expect(paceBeforeSwitch!).toBeLessThan(315)
 
     // 전환(90s) 후 15초 시점의 현재 페이스
     const paceAt15sAfterSwitch = statsSeries[104].currentPaceSecPerKm

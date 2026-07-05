@@ -37,6 +37,43 @@ describe("DistanceAccumulator", () => {
     expect(result.delta).toBe(0)
   })
 
+  describe("이상치 스무딩 (시간 인지)", () => {
+    it("정상 속도의 긴 dt 델타(터널 회복)는 스무딩하지 않는다", () => {
+      accumulator.accumulate(position(0), 0.75, "RUNNING", 0)
+      accumulator.accumulate(position(3.3), 0.75, "RUNNING", 1000)
+      accumulator.accumulate(position(6.6), 0.75, "RUNNING", 2000)
+      accumulator.accumulate(position(9.9), 0.75, "RUNNING", 3000)
+
+      // 30초 갭 후 100m 이동 (3.33m/s — 물리적으로 정상)
+      const result = accumulator.accumulate(
+        position(109.9),
+        0.75,
+        "RUNNING",
+        33000
+      )
+
+      expect(result.delta).toBeGreaterThan(95)
+    })
+
+    it("짧은 dt의 스파이크 델타는 여전히 스무딩한다", () => {
+      accumulator.accumulate(position(0), 0.75, "RUNNING", 0)
+      accumulator.accumulate(position(3.3), 0.75, "RUNNING", 1000)
+      accumulator.accumulate(position(6.6), 0.75, "RUNNING", 2000)
+      accumulator.accumulate(position(9.9), 0.75, "RUNNING", 3000)
+
+      // 1초에 40m 점프 (40m/s — 스파이크)
+      const result = accumulator.accumulate(
+        position(49.9),
+        0.5,
+        "RUNNING",
+        4000
+      )
+
+      expect(result.delta).toBeLessThan(30)
+      expect(result.delta).toBeGreaterThan(10)
+    })
+  })
+
   describe("reanchor", () => {
     it("재앵커 시 이전 위치와의 거리를 누적하지 않는다", () => {
       accumulator.accumulate(position(0), 0.9, "RUNNING", 0)
