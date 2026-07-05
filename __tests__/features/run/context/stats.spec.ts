@@ -166,6 +166,32 @@ describe("updateStats", () => {
       expect(stats2.lossM).toBe(-10)
     })
 
+    it("기압계 노이즈 수준의 진동은 누적하지 않는다", () => {
+      // ±0.3m 진동 (기압 고도 노이즈)
+      const altitudes = [50, 50.3, 49.8, 50.2, 49.9, 50.1, 49.8, 50.2]
+
+      let stats = DEFAULT_STATS
+      altitudes.forEach((altitude, i) => {
+        stats = updateStats(stats, createSample({ altitude }, (i + 1) * 1000))
+      })
+
+      expect(stats.gainM).toBe(0)
+      expect(stats.lossM).toBe(0)
+    })
+
+    it("완만한 경사는 임계값 단위로 누적된다", () => {
+      // 샘플당 +0.2m씩 10샘플 = 실제 상승 2m
+      let stats = DEFAULT_STATS
+      for (let i = 0; i <= 10; i++) {
+        stats = updateStats(
+          stats,
+          createSample({ altitude: 50 + i * 0.2 }, (i + 1) * 1000)
+        )
+      }
+
+      expect(stats.gainM).toBeCloseTo(2, 5)
+    })
+
     it("고도가 null이면 무시한다", () => {
       const sample1 = createSample({ altitude: 50 }, 1000)
       const stats1 = updateStats(DEFAULT_STATS, sample1)
