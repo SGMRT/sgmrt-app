@@ -24,6 +24,7 @@ import {
   Telemetry,
 } from "../../apis/types/run";
 import { encodeTelemetries } from "../../apis/utils";
+import { PACE_CONFIG } from "../../features/run/filters/config";
 import { applyAltitudeBiasFromBestGPS } from "../../features/run/utils/applyAltitudeBias";
 import { RawData, UserDashBoardData } from "../../types/run";
 import {
@@ -178,32 +179,25 @@ export async function saveRunning({
     addPhase("stabilize-pace:begin");
     const isHealthDataAvailable = await isHealthDataAvailableAsync();
 
-    // 2'00"/km 미만은 물리적으로 불가능한 페이스 (인간 최고 속도 이상)
-    const MIN_VALID_PACE = 120;
+    // PaceCalculator가 이미 이 기준 미만을 거부하므로 저장 단계도 동일 기준 사용
+    // (남는 무효값은 워밍업 구간의 pace=0 뿐)
+    const MIN_VALID_PACE = PACE_CONFIG.minPaceSecPerKm;
 
-    // 첫 번째 유효한 페이스를 찾아서 백필 기준으로 사용
+    // 첫 번째 유효한 페이스를 찾아서 무효 구간 보정 기준으로 사용
     const firstValidIdx = telemetries.findIndex(
       (t) => t.pace >= MIN_VALID_PACE,
     );
-    const stablePace =
-      firstValidIdx >= 0
-        ? telemetries[firstValidIdx].pace
-        : (telemetries.at(-1)?.pace ?? 0);
 
-    // 유효 페이스 이전 구간 백필
-    const backfillEnd =
-      firstValidIdx >= 0 ? firstValidIdx : Math.min(10, telemetries.length);
-    for (let i = 0; i < backfillEnd; i++) {
-      telemetries[i].pace = stablePace;
-    }
-
-    // 전체 텔레메트리 스위프: 비현실적 페이스 보정
-    for (let i = 0; i < telemetries.length; i++) {
-      if (telemetries[i].pace < MIN_VALID_PACE) {
-        telemetries[i].pace = stablePace;
+    // 유효 페이스가 전혀 없으면(초단거리 등) 원본 유지 — 전체 덮어쓰기 방지
+    if (firstValidIdx >= 0) {
+      const stablePace = telemetries[firstValidIdx].pace;
+      for (let i = 0; i < telemetries.length; i++) {
+        if (telemetries[i].pace < MIN_VALID_PACE) {
+          telemetries[i].pace = stablePace;
+        }
       }
     }
-    addPhase("stabilize-pace:end", { stablePace, firstValidIdx });
+    addPhase("stabilize-pace:end", { firstValidIdx });
 
     // 마지막 isRunning인 true인 값 뒤 isRunning이 false인 값을 모두 삭제
     const lastTrueIndex = telemetries.findLastIndex((t) => t.isRunning);
