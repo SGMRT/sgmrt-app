@@ -554,20 +554,67 @@ describe("runReducer", () => {
       expect(state.telemetries.length).toBeGreaterThan(telemetryCountBefore)
     })
 
-    it("stats를 업데이트한다", () => {
+    it("완주 대기(COMPLETION_PENDING) 시간과 거리를 stats에 합산하지 않는다", () => {
       let state = runReducer(undefined, {
         type: "START",
         payload: { sessionId: "test", mode: "COURSE" },
       })
+      state = runReducer(state, { type: "ONCOURSE" })
+      state = runReducer(state, {
+        type: "ACCEPT_SAMPLE",
+        payload: { sample: createSample(1000) },
+      })
+      state = runReducer(state, {
+        type: "ACCEPT_SAMPLE",
+        payload: { sample: createSample(3000, 37.5001, 127.0, 10) },
+      })
+      const statsBefore = state.stats
+
+      // 완주 화면에서 90초 대기 (샘플은 계속 수신됨)
       state = runReducer(state, { type: "COMPLETE" })
       state = runReducer(state, {
         type: "ACCEPT_SAMPLE",
-        payload: { sample: createSample(1000, 37.5, 127.0, 100) },
+        payload: { sample: createSample(33000, 37.5002, 127.0, 20) },
+      })
+      state = runReducer(state, {
+        type: "ACCEPT_SAMPLE",
+        payload: { sample: createSample(93000, 37.5003, 127.0, 20) },
       })
 
       state = runReducer(state, { type: "EXTEND" })
 
-      expect(state.stats.totalDistanceM).toBeGreaterThanOrEqual(0)
+      // 대기 시간(90초)과 대기 중 이동 거리는 기록에 포함되지 않아야 함
+      // (화면 타이머도 이 구간을 제외하므로 일관성 유지)
+      expect(state.stats.totalTimeMs).toBe(statsBefore.totalTimeMs)
+      expect(state.stats.totalDistanceM).toBe(statsBefore.totalDistanceM)
+    })
+
+    it("완주 대기 샘플의 텔레메트리는 isRunning=false로 기록한다", () => {
+      let state = runReducer(undefined, {
+        type: "START",
+        payload: { sessionId: "test", mode: "COURSE" },
+      })
+      state = runReducer(state, { type: "ONCOURSE" })
+      state = runReducer(state, {
+        type: "ACCEPT_SAMPLE",
+        payload: { sample: createSample(1000) },
+      })
+      state = runReducer(state, { type: "COMPLETE" })
+      state = runReducer(state, {
+        type: "ACCEPT_SAMPLE",
+        payload: { sample: createSample(5000) },
+      })
+      state = runReducer(state, {
+        type: "ACCEPT_SAMPLE",
+        payload: { sample: createSample(8000) },
+      })
+
+      const telemetryCountBefore = state.telemetries.length
+      state = runReducer(state, { type: "EXTEND" })
+
+      const appended = state.telemetries.slice(telemetryCountBefore)
+      expect(appended.length).toBe(2)
+      expect(appended.every((t) => t.isRunning === false)).toBe(true)
     })
 
     it("pausedAtMs를 null로 설정한다", () => {
@@ -582,7 +629,7 @@ describe("runReducer", () => {
       expect(state.liveActivity.pausedAtMs).toBeNull()
     })
 
-    it("_zeroNextDt를 false로 설정한다", () => {
+    it("_zeroNextDt를 true로 설정한다 (재개 첫 샘플 dt 0 처리, RESUME과 동일)", () => {
       let state = runReducer(undefined, {
         type: "START",
         payload: { sessionId: "test", mode: "COURSE" },
@@ -591,7 +638,7 @@ describe("runReducer", () => {
 
       state = runReducer(state, { type: "EXTEND" })
 
-      expect(state._zeroNextDt).toBe(false)
+      expect(state._zeroNextDt).toBe(true)
     })
   })
 

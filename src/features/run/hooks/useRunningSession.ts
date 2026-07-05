@@ -9,7 +9,6 @@ import { initialRunContext, runReducer } from "../context/reducer";
 import { joinedState } from "../store/joinedState";
 import { RunMode } from "../types";
 import { CourseMetadata, CourseVariant } from "../types/status";
-import { geoFilter } from "../utils/geoFilter";
 import { useHeartRate } from "./useHeartRate";
 import { useLiveActivityBridge } from "./useLiveActivityBridge";
 import { useRunAnalytics } from "./useRunAnalytics";
@@ -68,8 +67,6 @@ export function useRunningSession() {
                 /** 사용자 체중 (kg), 칼로리 계산에 사용 */
                 userWeight?: number
             ) => {
-                geoFilter.reset();
-
                 dispatch({
                     type: "START",
                     payload: {
@@ -103,11 +100,9 @@ export function useRunningSession() {
                 dispatch({ type: "EXTEND" });
             },
             stop: () => {
-                geoFilter.reset();
                 dispatch({ type: "STOP" });
             },
             reset: () => {
-                geoFilter.reset();
                 dispatch({ type: "RESET" });
             },
             setLiveActivityMessage: (

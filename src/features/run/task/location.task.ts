@@ -11,25 +11,30 @@ import {
     movementClassifier,
     outlierDetector,
 } from "../filters";
-import type { MovementState } from "../filters/types";
+import type { MovementState, OutlierResult } from "../filters/types";
 import { paceCalculator } from "../pace/PaceCalculator";
 import { joinedState } from "../store/joinedState";
 import { StreamJoiner } from "../store/joiner";
 import { SensorStore, sharedSensorStore } from "../store/sensorStore";
 import { StepSample } from "../store/sensorTypes";
-import { geoFilter } from "../utils/geoFilter";
 import { haversineMeters } from "../utils/haversineMeters";
 import { pressureAltitudeM } from "../utils/pressureAltitudeM";
 
 const joiner = new StreamJoiner(sharedSensorStore, 3000);
 
+// 스트림 중단 시 마지막 값 유지 한도 — 초과 시 스테일로 간주하고 null 보고
+// (끊긴 워치의 심박이 러닝 끝까지 살아있는 값처럼 기록되는 것 방지)
+const HEART_RATE_STALE_MS = 15_000;
+const PRESSURE_STALE_MS = 60_000;
+
 let lastAcceptedTs = 0;
 let lastAcceptedLat = 0;
 let lastAcceptedLng = 0;
 
-let lastAcceptedPressure: number | null = null;
+let lastAcceptedPressure: { pressure: number; timestamp: number } | null =
+    null;
 let lastAcceptedSteps: StepSample | null = null;
-let lastAcceptedHeartRate: number | null = null;
+let lastAcceptedHeartRate: { bpm: number; timestamp: number } | null = null;
 
 function isFirstSample(sharedSensorStore: SensorStore) {
     return sharedSensorStore.locations.last() === undefined;
@@ -52,7 +57,13 @@ function reset() {
     }
 }
 
-TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
+async function handleLocationBatch({
+    data,
+    error,
+}: {
+    data: unknown;
+    error: unknown;
+}) {
     if (error) {
         captureError(
             "location.task.error",
@@ -76,9 +87,15 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
     for (const loc of locations) {
         const { latitude, longitude, accuracy, altitude } = loc.coords;
 
+        // iOS는 속도가 무효일 때 -1을 보고하므로 음수는 null 처리
+        const sanitizedSpeed =
+            loc.coords.speed != null && loc.coords.speed >= 0
+                ? loc.coords.speed
+                : null;
+
         // v2: OutlierDetector 사용
         // legacy: 기존 accuracy 필터만 사용
-        let outlierResult: { isOutlier: boolean; reason?: string; confidence: number } | null = null;
+        let outlierResult: OutlierResult | null = null;
 
         if (GPS_PIPELINE_VERSION === "v2") {
             outlierResult = outlierDetector.detect({
@@ -86,7 +103,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
                 longitude,
                 accuracy: accuracy ?? null,
                 timestamp: loc.timestamp,
-                speed: loc.coords.speed ?? null,
+                speed: sanitizedSpeed,
                 course: loc.coords.heading ?? null,
             });
 
@@ -97,6 +114,17 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
                 );
                 continue;
             }
+
+            // 연속 거부 후 재앵커: 이전 위치와의 점프 거리를 누적하지 않도록
+            // 거리/분류 상태도 새 위치 기준으로 재설정
+            if (outlierResult.reanchored) {
+                devLog("[LOCATION:v2] 재앵커", { latitude, longitude });
+                movementClassifier.reset();
+                distanceAccumulator.reanchor(
+                    { latitude, longitude },
+                    loc.timestamp
+                );
+            }
         } else {
             // legacy: 기존 정확도 필터
             if (accuracy != null && accuracy > MAX_ACCURACY_METERS && !__DEV__) {
@@ -105,13 +133,8 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
             }
         }
 
-        const filtered = geoFilter.process(
-            latitude,
-            longitude,
-            accuracy ?? 10,
-            loc.timestamp,
-            loc.coords.speed ?? 0
-        );
+        // iOS BestForNavigation이 이미 칼만 필터를 적용하므로 직접 사용
+        const filtered = { latitude, longitude };
 
         // 거리 계산
         let deltaDistance = 0;
@@ -134,7 +157,7 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
 
             // 2. 이동 상태 분류
             const estimatedSpeed =
-                loc.coords.speed ?? outlierDetector.getAverageSpeed();
+                sanitizedSpeed ?? outlierDetector.getAverageSpeed();
             movementState = movementClassifier.classify(
                 estimatedSpeed,
                 { latitude: filtered.latitude, longitude: filtered.longitude },
@@ -173,10 +196,17 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         }
 
         if (joined.pressure?.pressure != null) {
-            lastAcceptedPressure = joined.pressure.pressure;
-        } else if (lastAcceptedPressure != null) {
+            lastAcceptedPressure = {
+                pressure: joined.pressure.pressure,
+                timestamp: joined.pressure.timestamp,
+            };
+        } else if (
+            lastAcceptedPressure != null &&
+            joined.timestamp - lastAcceptedPressure.timestamp <=
+                PRESSURE_STALE_MS
+        ) {
             joined.pressure = {
-                pressure: lastAcceptedPressure,
+                pressure: lastAcceptedPressure.pressure,
                 timestamp: joined.timestamp,
             };
         }
@@ -188,10 +218,17 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         }
 
         if (joined.heartRate?.bpm != null) {
-            lastAcceptedHeartRate = joined.heartRate.bpm;
-        } else if (lastAcceptedHeartRate != null) {
+            lastAcceptedHeartRate = {
+                bpm: joined.heartRate.bpm,
+                timestamp: joined.heartRate.timestamp,
+            };
+        } else if (
+            lastAcceptedHeartRate != null &&
+            joined.timestamp - lastAcceptedHeartRate.timestamp <=
+                HEART_RATE_STALE_MS
+        ) {
             joined.heartRate = {
-                bpm: lastAcceptedHeartRate,
+                bpm: lastAcceptedHeartRate.bpm,
                 timestamp: joined.timestamp,
             };
         }
@@ -246,4 +283,15 @@ TaskManager.defineTask(LOCATION_TASK, async ({ data, error }) => {
         lastAcceptedLat = filtered.latitude;
         lastAcceptedLng = filtered.longitude;
     }
+}
+
+// TaskManager는 async 핸들러를 직렬화하지 않으므로 인보케이션을 체인으로
+// 직렬화한다. 동시 실행되면 공유 필터/스토어 상태가 중간에 오염된다.
+let taskChain: Promise<void> = Promise.resolve();
+
+TaskManager.defineTask(LOCATION_TASK, (body) => {
+    const run = taskChain.then(() => handleLocationBatch(body));
+    // 실패해도 다음 인보케이션은 계속 처리
+    taskChain = run.catch(() => {});
+    return run;
 });

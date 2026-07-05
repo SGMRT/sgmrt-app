@@ -4,7 +4,13 @@ import {
   updateStats,
   UpdateStatsOptions,
 } from "@/src/features/run/context/stats"
+import { paceCalculator } from "@/src/features/run/pace/PaceCalculator"
 import { RawRunData } from "@/src/features/run/types"
+
+// updateStats가 사용하는 싱글톤 상태가 테스트 간 누적되지 않도록 초기화
+beforeEach(() => {
+  paceCalculator.reset()
+})
 
 // 테스트용 RawRunData 생성
 const createSample = (
@@ -160,6 +166,32 @@ describe("updateStats", () => {
       expect(stats2.lossM).toBe(-10)
     })
 
+    it("기압계 노이즈 수준의 진동은 누적하지 않는다", () => {
+      // ±0.3m 진동 (기압 고도 노이즈)
+      const altitudes = [50, 50.3, 49.8, 50.2, 49.9, 50.1, 49.8, 50.2]
+
+      let stats = DEFAULT_STATS
+      altitudes.forEach((altitude, i) => {
+        stats = updateStats(stats, createSample({ altitude }, (i + 1) * 1000))
+      })
+
+      expect(stats.gainM).toBe(0)
+      expect(stats.lossM).toBe(0)
+    })
+
+    it("완만한 경사는 임계값 단위로 누적된다", () => {
+      // 샘플당 +0.2m씩 10샘플 = 실제 상승 2m
+      let stats = DEFAULT_STATS
+      for (let i = 0; i <= 10; i++) {
+        stats = updateStats(
+          stats,
+          createSample({ altitude: 50 + i * 0.2 }, (i + 1) * 1000)
+        )
+      }
+
+      expect(stats.gainM).toBeCloseTo(2, 5)
+    })
+
     it("고도가 null이면 무시한다", () => {
       const sample1 = createSample({ altitude: 50 }, 1000)
       const stats1 = updateStats(DEFAULT_STATS, sample1)
@@ -173,17 +205,16 @@ describe("updateStats", () => {
   })
 
   describe("페이스 계산", () => {
-    it("현재 페이스를 계산한다 (v2 EMA 적용)", () => {
+    it("현재 페이스를 계산한다 (윈도우 합산)", () => {
       const sample1 = createSample({ distance: 0 }, 0)
       const stats1 = updateStats(DEFAULT_STATS, sample1)
 
-      // 10초간 100m 이동 = 10m/s = 100초/km (이론값)
-      // v2에서는 EMA 스무딩이 적용되어 초기값에 영향받음
+      // 10초간 100m 이동 = 10m/s = 100초/km
       const sample2 = createSample({ distance: 100 }, 10000)
       const stats2 = updateStats(stats1, sample2)
 
-      // EMA 스무딩으로 인해 100보다 약간 높은 값 (약 113)
-      expect(stats2.currentPaceSecPerKm).toBeCloseTo(113, 0)
+      // 윈도우 합산 방식은 편향 없이 이론값 그대로 산출
+      expect(stats2.currentPaceSecPerKm).toBeCloseTo(100, 5)
     })
 
     it("평균 페이스를 계산한다", () => {

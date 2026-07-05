@@ -22,7 +22,7 @@ export function buildTelemetry(
         cadence: isRunning
             ? statsAfterUpdate.currentCadenceSpm ?? prev?.cadence ?? 0
             : prev?.cadence ?? 0,
-        bpm: prev?.bpm ?? 0,
+        bpm: sample.bpm ?? prev?.bpm ?? 0,
         isRunning,
     };
 }

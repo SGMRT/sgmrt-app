@@ -265,6 +265,48 @@ describe("saveRunning", () => {
     })
   })
 
+  describe("페이스 안정화", () => {
+    it("워밍업 구간(pace 0)을 첫 유효 페이스로 백필한다", async () => {
+      postRun.mockResolvedValue({ runningId: 123 })
+      const telemetries = [
+        createMockTelemetry({ pace: 0 }),
+        createMockTelemetry({ pace: 0 }),
+        createMockTelemetry({ pace: 300 }),
+        createMockTelemetry({ pace: 320 }),
+      ]
+
+      await saveRunning(createMockSaveRunningProps({ telemetries }))
+
+      expect(telemetries.map((t) => t.pace)).toEqual([300, 300, 300, 320])
+    })
+
+    it("90~120초/km의 정상 빠른 페이스는 보존한다 (PaceCalculator 하한과 동일 기준)", async () => {
+      postRun.mockResolvedValue({ runningId: 123 })
+      const telemetries = [
+        createMockTelemetry({ pace: 300 }),
+        createMockTelemetry({ pace: 100 }), // 스프린트 구간 (유효)
+        createMockTelemetry({ pace: 310 }),
+      ]
+
+      await saveRunning(createMockSaveRunningProps({ telemetries }))
+
+      expect(telemetries.map((t) => t.pace)).toEqual([300, 100, 310])
+    })
+
+    it("유효 페이스가 전혀 없으면 원본을 유지한다 (전체 덮어쓰기 방지)", async () => {
+      postRun.mockResolvedValue({ runningId: 123 })
+      const telemetries = [
+        createMockTelemetry({ pace: 0 }),
+        createMockTelemetry({ pace: 50 }),
+        createMockTelemetry({ pace: 0 }),
+      ]
+
+      await saveRunning(createMockSaveRunningProps({ telemetries }))
+
+      expect(telemetries.map((t) => t.pace)).toEqual([0, 50, 0])
+    })
+  })
+
   describe("API 응답 처리", () => {
     it("postRun 응답이 숫자면 { runningId: 숫자 } 반환", async () => {
       postRun.mockResolvedValue(123) // 숫자 직접 반환
