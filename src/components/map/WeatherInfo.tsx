@@ -1,17 +1,20 @@
 import { Typography } from "@/src/components/ui";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { devLog } from "@/src/utils/devLog";
-import { getDistance } from "@/src/utils/mapUtils";
 import axios from "axios";
 import * as Location from "expo-location";
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
-
-const WEATHER_CACHE_MS = 60 * 60 * 1000; // 날씨: 1시간
-const ADDRESS_DISTANCE_M = 3000; // 주소: 3km 이동 시
+import {
+    GEOCODE_BACKOFF_MS,
+    needAddressUpdate,
+    needWeatherUpdate,
+} from "./weatherInfoPolicy";
 
 export default function WeatherInfo() {
     const isLoadingRef = useRef(false);
+    // 지오코딩 실패 후 재시도 억제 마감 시각 (rate-limit 재호출 증폭 방지)
+    const geocodeBackoffUntilRef = useRef(0);
     const { address, temperature } = useLocationInfoStore();
 
     useEffect(() => {
@@ -36,15 +39,19 @@ export default function WeatherInfo() {
             // 날씨 업데이트 필요 여부 (1시간 경과)
             const weatherTime = weatherLastUpdated
                 ? new Date(weatherLastUpdated).getTime()
-                : 0;
-            const needWeatherUpdate = now - weatherTime >= WEATHER_CACHE_MS;
+                : null;
+            const shouldUpdateWeather = needWeatherUpdate(now, weatherTime);
 
-            // 주소 업데이트 필요 여부 (3km 이동)
-            const distance = coords ? getDistance(coords, currentCoord) : Infinity;
-            const needAddressUpdate = distance >= ADDRESS_DISTANCE_M;
+            // 주소 업데이트 필요 여부 (3km 이동 && backoff 아님)
+            const shouldUpdateAddress = needAddressUpdate({
+                now,
+                current: currentCoord,
+                stored: coords,
+                backoffUntil: geocodeBackoffUntilRef.current,
+            });
 
             // 둘 다 필요 없으면 스킵
-            if (!needWeatherUpdate && !needAddressUpdate) {
+            if (!shouldUpdateWeather && !shouldUpdateAddress) {
                 return;
             }
 
@@ -52,7 +59,7 @@ export default function WeatherInfo() {
 
             try {
                 // 주소 업데이트 (3km 이상 이동 시)
-                if (needAddressUpdate) {
+                if (shouldUpdateAddress) {
                     devLog("주소 정보 요청");
                     try {
                         const addressResult = await Location.reverseGeocodeAsync({
@@ -68,14 +75,19 @@ export default function WeatherInfo() {
                                 addr.country ??
                                 "--";
                             updateAddress(currentCoord, place);
+                            geocodeBackoffUntilRef.current = 0;
                         }
                     } catch (e) {
+                        // rate-limit 등 실패 시 backoff — 매 위치 업데이트마다
+                        // 지오코딩을 재호출하는 증폭을 차단 (마지막 주소는 persist로 유지)
+                        geocodeBackoffUntilRef.current =
+                            now + GEOCODE_BACKOFF_MS;
                         devLog("주소 요청 실패", e);
                     }
                 }
 
                 // 날씨 업데이트 (1시간 경과 시)
-                if (needWeatherUpdate) {
+                if (shouldUpdateWeather) {
                     devLog("날씨 정보 요청");
                     const weatherResult = await axios.get(
                         `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.EXPO_PUBLIC_OWM_TOKEN}`
