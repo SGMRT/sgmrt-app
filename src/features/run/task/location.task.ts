@@ -22,13 +22,19 @@ import { pressureAltitudeM } from "../utils/pressureAltitudeM";
 
 const joiner = new StreamJoiner(sharedSensorStore, 3000);
 
+// 스트림 중단 시 마지막 값 유지 한도 — 초과 시 스테일로 간주하고 null 보고
+// (끊긴 워치의 심박이 러닝 끝까지 살아있는 값처럼 기록되는 것 방지)
+const HEART_RATE_STALE_MS = 15_000;
+const PRESSURE_STALE_MS = 60_000;
+
 let lastAcceptedTs = 0;
 let lastAcceptedLat = 0;
 let lastAcceptedLng = 0;
 
-let lastAcceptedPressure: number | null = null;
+let lastAcceptedPressure: { pressure: number; timestamp: number } | null =
+    null;
 let lastAcceptedSteps: StepSample | null = null;
-let lastAcceptedHeartRate: number | null = null;
+let lastAcceptedHeartRate: { bpm: number; timestamp: number } | null = null;
 
 function isFirstSample(sharedSensorStore: SensorStore) {
     return sharedSensorStore.locations.last() === undefined;
@@ -190,10 +196,17 @@ async function handleLocationBatch({
         }
 
         if (joined.pressure?.pressure != null) {
-            lastAcceptedPressure = joined.pressure.pressure;
-        } else if (lastAcceptedPressure != null) {
+            lastAcceptedPressure = {
+                pressure: joined.pressure.pressure,
+                timestamp: joined.pressure.timestamp,
+            };
+        } else if (
+            lastAcceptedPressure != null &&
+            joined.timestamp - lastAcceptedPressure.timestamp <=
+                PRESSURE_STALE_MS
+        ) {
             joined.pressure = {
-                pressure: lastAcceptedPressure,
+                pressure: lastAcceptedPressure.pressure,
                 timestamp: joined.timestamp,
             };
         }
@@ -205,10 +218,17 @@ async function handleLocationBatch({
         }
 
         if (joined.heartRate?.bpm != null) {
-            lastAcceptedHeartRate = joined.heartRate.bpm;
-        } else if (lastAcceptedHeartRate != null) {
+            lastAcceptedHeartRate = {
+                bpm: joined.heartRate.bpm,
+                timestamp: joined.heartRate.timestamp,
+            };
+        } else if (
+            lastAcceptedHeartRate != null &&
+            joined.timestamp - lastAcceptedHeartRate.timestamp <=
+                HEART_RATE_STALE_MS
+        ) {
             joined.heartRate = {
-                bpm: lastAcceptedHeartRate,
+                bpm: lastAcceptedHeartRate.bpm,
                 timestamp: joined.timestamp,
             };
         }

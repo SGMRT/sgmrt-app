@@ -121,4 +121,50 @@ describe("location.task", () => {
 
     expect(pushSpy).toHaveBeenCalledTimes(1)
   })
+
+  describe("스테일 센서 값 처리", () => {
+    it("심박 스트림이 끊기면 15초 후 bpm을 null로 보고한다", async () => {
+      sharedSensorStore.pushHeartRate({ bpm: 150, timestamp: 1000 })
+
+      await taskCallback({
+        data: { locations: [makeLocation(1000, 0)] },
+        error: null,
+      })
+      // 조인 윈도우(3초)는 벗어났지만 15초 이내 → 마지막 값 유지
+      await taskCallback({
+        data: { locations: [makeLocation(10000, 27)] },
+        error: null,
+      })
+      // 15초 초과 → 스테일, null 보고
+      await taskCallback({
+        data: { locations: [makeLocation(20000, 57)] },
+        error: null,
+      })
+
+      const bpms = pushSpy.mock.calls.map(([s]) => s.bpm)
+      expect(bpms).toEqual([150, 150, null])
+    })
+
+    it("기압 스트림이 끊기면 60초 후 압력을 null로 보고한다", async () => {
+      sharedSensorStore.pushPressure({ pressure: 1013, timestamp: 1000 })
+
+      await taskCallback({
+        data: { locations: [makeLocation(1000, 0)] },
+        error: null,
+      })
+      // 60초 이내 → 마지막 값 유지
+      await taskCallback({
+        data: { locations: [makeLocation(30000, 87)] },
+        error: null,
+      })
+      // 60초 초과 → 스테일, null 보고
+      await taskCallback({
+        data: { locations: [makeLocation(65000, 192)] },
+        error: null,
+      })
+
+      const pressures = pushSpy.mock.calls.map(([s]) => s.pressure)
+      expect(pressures).toEqual([1013, 1013, null])
+    })
+  })
 })
