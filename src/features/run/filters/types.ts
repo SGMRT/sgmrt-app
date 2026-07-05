@@ -17,6 +17,8 @@ export interface OutlierResult {
     isOutlier: boolean;
     reason?: "accuracy" | "speed" | "acceleration" | "jump";
     confidence: number; // 0-1, 유효 신뢰도
+    /** 연속 거부 후 현재 포인트를 새 앵커로 수용했는지 여부 */
+    reanchored?: boolean;
 }
 
 /** 이동 상태 */

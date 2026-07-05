@@ -30,7 +30,7 @@ export class KalmanFilter1D {
     // 튜닝 파라미터
     private WARMUP_MS = 3000; // 시작 3초간 부스트
     private INIT_P_MULTIPLIER = 50; // 초기 P를 크게 → 측정을 더 빨리 신뢰
-    private BASE_Q = 1e-9; // 도^2 / s 기준의 베이스 공정잡음 (아주 작게)
+    private BASE_Q = 1e-9; // 도^2 / s 기준의 베이스 공정잡음
     private SPEED_Q_GAIN = 5e-8; // 속도에 따른 Q 증가량 계수
     private lastStartTs = 0;
 
@@ -131,15 +131,17 @@ class KalmanFilter2D {
             latitude
         );
 
-        const filteredLatitude = Number(
-            this.latitudeKalmanFilter
-                .process(latitude, accLatDeg, timestamp, speed)
-                .toFixed(6)
+        const filteredLatitude = this.latitudeKalmanFilter.process(
+            latitude,
+            accLatDeg,
+            timestamp,
+            speed
         );
-        const filteredLongitude = Number(
-            this.longitudeKalmanFilter
-                .process(longitude, accLonDeg, timestamp, speed)
-                .toFixed(6)
+        const filteredLongitude = this.longitudeKalmanFilter.process(
+            longitude,
+            accLonDeg,
+            timestamp,
+            speed
         );
 
         return {

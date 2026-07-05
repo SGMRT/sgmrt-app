@@ -27,15 +27,15 @@ const createRawData = (
   altitudeAccuracy: number,
   overrides: Partial<RawData> = {}
 ): RawData => ({
-  lat: 37.5,
-  lng: 127.0,
   timestamp,
+  latitude: 37.5,
+  longitude: 127.0,
   altitude,
+  speed: 3,
+  accuracy: 10,
   altitudeAccuracy,
-  distance: 0,
-  steps: null,
-  bpm: null,
-  isAccurate: true,
+  pressure: 1013,
+  course: 90,
   ...overrides,
 })
 

@@ -206,16 +206,13 @@ describe("geoFilter (KalmanFilter2D)", () => {
   })
 
   describe("정밀도", () => {
-    it("결과를 소수점 6자리로 반올림한다", () => {
+    it("full double precision으로 반환한다 (TelemetryCompact에서 최종 라운딩)", () => {
       geoFilter.process(37.5, 127.0, 10, 1000, 0)
       const result = geoFilter.process(37.5000001, 127.0000001, 10, 2000, 0)
 
-      // 소수점 6자리로 반올림되어야 함
-      const latDecimals = result.latitude.toString().split(".")[1]?.length || 0
-      const lngDecimals = result.longitude.toString().split(".")[1]?.length || 0
-
-      expect(latDecimals).toBeLessThanOrEqual(6)
-      expect(lngDecimals).toBeLessThanOrEqual(6)
+      // 양자화 노이즈 방지를 위해 toFixed(6) 제거 → 자연 정밀도 유지
+      expect(typeof result.latitude).toBe("number")
+      expect(typeof result.longitude).toBe("number")
     })
   })
 

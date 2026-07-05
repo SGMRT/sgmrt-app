@@ -52,8 +52,8 @@ export class PaceCalculator {
             };
         }
 
-        // 너무 빠른 페이스도 필터링 (1분/km 미만 = 60km/h 이상)
-        if (instantPace < 60) {
+        // 너무 빠른 페이스도 필터링 (1분30초/km 미만 = 40km/h 이상, Bolt 100m WR ≈ 96초/km)
+        if (instantPace < 90) {
             return {
                 currentPace: this.emaPace,
                 isStable: this.sampleCount >= 5,

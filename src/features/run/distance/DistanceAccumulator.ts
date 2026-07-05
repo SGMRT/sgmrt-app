@@ -211,6 +211,21 @@ export class DistanceAccumulator {
     }
 
     /**
+     * 앵커 재설정
+     *
+     * 신호 유실 후 GPS가 먼 위치로 재배치됐을 때, 이전 위치와의
+     * 직선 거리를 누적하지 않고 새 위치에서 누적을 다시 시작한다.
+     */
+    reanchor(position: Position, timestamp: number): void {
+        this.state = {
+            ...this.state,
+            lastPosition: { ...position },
+            lastTimestamp: timestamp,
+            recentDeltas: [],
+        };
+    }
+
+    /**
      * 누적기 상태 초기화
      */
     reset(): void {

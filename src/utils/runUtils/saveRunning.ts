@@ -177,15 +177,33 @@ export async function saveRunning({
 
     addPhase("stabilize-pace:begin");
     const isHealthDataAvailable = await isHealthDataAvailableAsync();
+
+    // 2'00"/km 미만은 물리적으로 불가능한 페이스 (인간 최고 속도 이상)
+    const MIN_VALID_PACE = 120;
+
+    // 첫 번째 유효한 페이스를 찾아서 백필 기준으로 사용
+    const firstValidIdx = telemetries.findIndex(
+      (t) => t.pace >= MIN_VALID_PACE,
+    );
     const stablePace =
-      telemetries.length > 10
-        ? telemetries.at(10)!.pace
+      firstValidIdx >= 0
+        ? telemetries[firstValidIdx].pace
         : (telemetries.at(-1)?.pace ?? 0);
 
-    for (let i = 0; i < Math.min(10, telemetries.length); i++) {
+    // 유효 페이스 이전 구간 백필
+    const backfillEnd =
+      firstValidIdx >= 0 ? firstValidIdx : Math.min(10, telemetries.length);
+    for (let i = 0; i < backfillEnd; i++) {
       telemetries[i].pace = stablePace;
     }
-    addPhase("stabilize-pace:end", { stablePace });
+
+    // 전체 텔레메트리 스위프: 비현실적 페이스 보정
+    for (let i = 0; i < telemetries.length; i++) {
+      if (telemetries[i].pace < MIN_VALID_PACE) {
+        telemetries[i].pace = stablePace;
+      }
+    }
+    addPhase("stabilize-pace:end", { stablePace, firstValidIdx });
 
     // 마지막 isRunning인 true인 값 뒤 isRunning이 false인 값을 모두 삭제
     const lastTrueIndex = telemetries.findLastIndex((t) => t.isRunning);
