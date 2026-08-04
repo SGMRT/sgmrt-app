@@ -1,6 +1,7 @@
 import { getCourses } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
 import { usePinnedCourses } from "@/src/features/pacemaker/hooks/usePinnedCourses";
+import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import { useAuthStore } from "@/src/store/authState";
 import { devLog } from "@/src/utils/devLog";
@@ -24,6 +25,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CourseListView from "../course/CourseListView";
 import { ActionButton, StyledBottomSheet } from "@/src/components/ui";
 import CourseMarkers from "./CourseMarkers";
+import { REGION_DEFAULT_RADIUS_M, shouldAttachRegionId } from "./regionPolicy";
 import MapViewWrapper from "./MapViewWrapper";
 import { HomeBottomModal } from "./HomeBottomModal";
 import { ListBottomSheetHandle } from "./ListBottomSheetHandle";
@@ -74,6 +76,8 @@ export default function HomeMap({
     });
     const cameraRef = useRef<Camera>(null);
     const firstRenderRef = useRef(true);
+    // 최초 진입 시의 사용자 GPS — regionId 첨부 판정(지도 중심 ≈ 사용자 위치) 기준점
+    const userGpsRef = useRef<Coordinate | null>(null);
 
     const [zoomLevel, setZoomLevel] = useState(16);
     const { requestOptional, requestOrAlert } = useAppPermissions();
@@ -195,10 +199,19 @@ export default function HomeMap({
         queryKey: ["courses", refreshKey],
         queryFn: async () => {
             markRefreshable(false);
+            // 홈 기본 조회(지도 중심 ≈ 사용자 GPS)만 regionId를 첨부해 서버 지역 캐시를 탄다.
+            // 이때 반경도 서버 캐시 고정값(2km)으로 보낸다 — 3km 초과 반경은 서버가 캐시를 우회한다.
+            const { regionId } = useLocationInfoStore.getState();
+            const attachRegionId = shouldAttachRegionId({
+                regionId,
+                mapCenter: { lat: center![1]!, lng: center![0]! },
+                userGps: userGpsRef.current,
+            });
             const courses = await getCourses({
                 lat: center![1]!,
                 lng: center![0]!,
-                radiusM: distance,
+                radiusM: attachRegionId ? REGION_DEFAULT_RADIUS_M : distance,
+                ...(attachRegionId ? { regionId: regionId! } : {}),
             });
             trackAmplitude("gotten_courses_info", {
                 lat: center![1]!,
@@ -239,6 +252,10 @@ export default function HomeMap({
             Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.BestForNavigation,
             }).then((location) => {
+                userGpsRef.current = {
+                    lat: location.coords.latitude,
+                    lng: location.coords.longitude,
+                };
                 setCenter([
                     location.coords.longitude,
                     location.coords.latitude,

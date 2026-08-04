@@ -4,6 +4,8 @@ export interface CoursesRequest {
     lat: number;
     lng: number;
     radiusM?: number;
+    /** 지도 캐시키 — 홈 기본 조회(지도 중심 ≈ 사용자 GPS)에만 첨부. regionPolicy.ts 참고 */
+    regionId?: number;
     sort?: "DISTANCE" | "POPULARITY";
     ownerUuid?: string;
     minDistance?: number;
