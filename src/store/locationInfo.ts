@@ -6,6 +6,7 @@ import { Coordinate } from "../utils/mapUtils";
 interface LocationInfoState {
     coords: Coordinate | null;
     address: string | null;
+    regionId: number | null; // 서버 지도 캐시키 — 주소 갱신 시 함께 resolve (regionPolicy.ts)
     temperature: number | null;
     lastUpdated: Date | null; // 주소 업데이트 시간
     weatherLastUpdated: Date | null; // 날씨 업데이트 시간 (별도 관리)
@@ -15,6 +16,7 @@ interface LocationInfoState {
         temperature: number
     ) => void;
     updateAddress: (coords: Coordinate, address: string) => void;
+    updateRegionId: (regionId: number | null) => void;
     updateTemperature: (temperature: number) => void;
 }
 
@@ -23,6 +25,7 @@ export const useLocationInfoStore = create<LocationInfoState>()(
         (set) => ({
             coords: null,
             address: null,
+            regionId: null,
             temperature: null,
             lastUpdated: null,
             weatherLastUpdated: null,
@@ -40,6 +43,7 @@ export const useLocationInfoStore = create<LocationInfoState>()(
                     address,
                     lastUpdated: new Date(),
                 }),
+            updateRegionId: (regionId) => set({ regionId }),
             updateTemperature: (temperature) =>
                 set({
                     temperature,
