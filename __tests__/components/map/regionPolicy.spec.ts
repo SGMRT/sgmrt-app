@@ -21,16 +21,16 @@ describe("composeRegionName", () => {
     ).toBe("서울특별시 강남구 역삼동")
   })
 
-  it("없는 단계는 건너뛰고 있는 것만 결합한다", () => {
+  it("district(동)가 없으면 null — 구 단위는 너무 넓어 캐시 키로 쓰지 않는다 (regionId 없이 폴백)", () => {
     expect(
       composeRegionName({ region: "서울특별시", city: "강남구", district: null })
-    ).toBe("서울특별시 강남구")
+    ).toBeNull()
   })
 
-  it("셋 다 없으면 null — resolve를 건너뛴다", () => {
+  it("상위 행정구역이 비어도 district가 있으면 있는 것만 결합한다", () => {
     expect(
-      composeRegionName({ region: null, city: null, district: null })
-    ).toBeNull()
+      composeRegionName({ region: null, city: "강남구", district: "역삼동" })
+    ).toBe("강남구 역삼동")
   })
 })
 
