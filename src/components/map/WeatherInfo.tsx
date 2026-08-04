@@ -5,11 +5,13 @@ import axios from "axios";
 import * as Location from "expo-location";
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
+import { resolveRegion } from "@/src/apis";
 import {
     GEOCODE_BACKOFF_MS,
     needAddressUpdate,
     needWeatherUpdate,
 } from "./weatherInfoPolicy";
+import { composeRegionName } from "./regionPolicy";
 
 export default function WeatherInfo() {
     const isLoadingRef = useRef(false);
@@ -29,6 +31,7 @@ export default function WeatherInfo() {
                 coords,
                 weatherLastUpdated,
                 updateAddress,
+                updateRegionId,
                 updateTemperature,
             } = state;
 
@@ -76,6 +79,26 @@ export default function WeatherInfo() {
                                 "--";
                             updateAddress(currentCoord, place);
                             geocodeBackoffUntilRef.current = 0;
+
+                            // 지역 캐시키(regionId) 발급 — 주소 갱신(3km 이동)과 같은 빈도.
+                            // 실패는 지오코딩 backoff와 무관하며, 코스 조회는 regionId 없이 동작한다(서버 폴백).
+                            const regionName = composeRegionName(addr);
+                            if (regionName) {
+                                try {
+                                    const { regionId } = await resolveRegion({
+                                        name: regionName,
+                                        lat: latitude,
+                                        lng: longitude,
+                                    });
+                                    updateRegionId(regionId);
+                                } catch (e) {
+                                    // 이전 동네의 regionId가 새 위치에 남으면 엉뚱한 동네 캐시를 타므로 비운다
+                                    updateRegionId(null);
+                                    devLog("지역 등록 실패", e);
+                                }
+                            } else {
+                                updateRegionId(null);
+                            }
                         }
                     } catch (e) {
                         // rate-limit 등 실패 시 backoff — 매 위치 업데이트마다
