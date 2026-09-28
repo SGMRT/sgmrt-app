@@ -116,6 +116,9 @@ const config = {
                 {
                     ios: {
                         useFrameworks: "static",
+                        // Xcode 26 은 iOS 15 미만을 지원하지 않는다.
+                        // 일부 서드파티 Pod 가 12.0 을 지정하고 있어 명시적으로 올린다.
+                        deploymentTarget: "15.1",
                         forceStaticLinking: [
                             "RNFBApp",
                             "RNFBAuth",
