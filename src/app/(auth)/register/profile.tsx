@@ -4,6 +4,10 @@ import { queryKeys } from "@/src/apis/queryKeys";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import { Header, InfoFieldTitle, InfoItem, StyledButton, Typography, showToast } from "@/src/components/ui";
+import { Avatar } from "@/src/design-system/atoms/Avatar";
+import { Button } from "@/src/design-system/atoms/Button";
+import { FieldLabel } from "@/src/design-system/atoms/FieldLabel";
+import { Input } from "@/src/design-system/atoms/Input";
 import { useAuthStore } from "@/src/store/authState";
 import { useSignupStore } from "@/src/store/signupStore";
 import { pickImage } from "@/src/utils/pickImage";
@@ -63,6 +67,12 @@ export default function Profile() {
     const specialCharacterRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
     // 숫자만 입력 가능 regex
     const numberOnlyRegex = /^[0-9]*$/;
+
+    // 입력한 값이 규칙을 어겼는지. 비어 있을 때는 아직 나무라지 않는다
+    const nicknameError =
+        !!nickname && nickname.length > 0 && specialCharacterRegex.test(nickname);
+    const ageError =
+        !!age && age.toString().length > 0 && !numberOnlyRegex.test(age.toString());
 
     const isActive =
         nickname !== null &&
@@ -200,90 +210,100 @@ export default function Profile() {
                         </Typography>
                         {/* 프로필 이미지 */}
                         <View style={styles.profileContainer}>
-                            <Image
-                                source={
-                                    image
-                                        ? { uri: image.uri }
-                                        : DefaultProfileIcon
-                                }
-                                style={styles.profileImage}
+                            <Avatar
+                                source={image ? { uri: image.uri } : null}
+                                diameter={90}
                             />
-                            <StyledButton
+                            <Button
                                 title="프로필 이미지 등록"
                                 onPress={onPickImage}
-                                style={{ width: 178 }}
+                                size="medium"
+                                variant="line"
                             />
                         </View>
                         <View style={{ gap: 20 }}>
-                            {/* 닉네임 */}
-                            <InfoItem
-                                title="닉네임"
+                            {/* 닉네임 — 디자인 시스템 Input 시험 적용 */}
+                            <Input
+                                label="닉네임"
+                                required
+                                labelPosition="outside"
                                 placeholder="특수문자 제외 최대 10자"
                                 maxLength={10}
                                 value={nickname}
                                 onChangeText={setNickname}
-                                required
+                                counter
+                                error={nicknameError}
+                                message={
+                                    nicknameError
+                                        ? "특수문자는 사용할 수 없습니다"
+                                        : undefined
+                                }
                             />
                             {/* 성별 */}
                             <View>
-                                <InfoFieldTitle title="성별" required />
+                                <FieldLabel label="성별" required />
                                 <View style={styles.genderButtonContainer}>
-                                    <StyledButton
+                                    <Button
                                         title="여성"
-                                        onPress={() => {
-                                            setGender("FEMALE");
-                                        }}
+                                        onPress={() => setGender("FEMALE")}
+                                        size="large"
+                                        theme="ui01"
+                                        selected={gender === "FEMALE"}
                                         style={styles.genderButton}
-                                        active={gender === "FEMALE"}
-                                        activeTextColor="primary"
                                     />
-                                    <StyledButton
+                                    <Button
                                         title="남성"
-                                        onPress={() => {
-                                            setGender("MALE");
-                                        }}
+                                        onPress={() => setGender("MALE")}
+                                        size="large"
+                                        theme="ui01"
+                                        selected={gender === "MALE"}
                                         style={styles.genderButton}
-                                        active={gender === "MALE"}
-                                        activeTextColor="primary"
                                     />
                                 </View>
                             </View>
                             {/* 연령 */}
-                            <InfoItem
-                                title="연령"
+                            <Input
+                                label="연령"
+                                required
+                                labelPosition="outside"
                                 placeholder="숫자 입력 (예: 20)"
                                 keyboardType="numeric"
                                 maxLength={3}
                                 unit="세"
                                 value={age?.toString()}
                                 onChangeText={(text) => {
-                                    setAge(Number(text));
+                                    setAge(text ? Number(text) : null);
                                 }}
-                                required
+                                error={ageError}
+                                message={
+                                    ageError ? "숫자만 입력해 주세요" : undefined
+                                }
                             />
-                            {/* 신장 */}
-                            <InfoItem
-                                title="신장"
+                            {/* 신장 — 라벨 바깥 변형 */}
+                            <Input
+                                label="신장"
+                                labelPosition="outside"
                                 placeholder="소숫점 제외 입력 (예: 172)"
                                 keyboardType="numeric"
                                 maxLength={3}
                                 unit="cm"
                                 value={height?.toString()}
                                 onChangeText={(text) => {
-                                    setHeight(Number(text));
+                                    setHeight(text ? Number(text) : null);
                                 }}
                             />
                             {/* 몸무게 */}
                             <View>
-                                <InfoItem
-                                    title="몸무게"
+                                <Input
+                                    label="몸무게"
+                                    labelPosition="outside"
                                     placeholder="소숫점 제외 입력 (예: 60)"
                                     keyboardType="numeric"
                                     maxLength={3}
                                     unit="kg"
                                     value={weight?.toString()}
                                     onChangeText={(text) => {
-                                        setWeight(Number(text));
+                                        setWeight(text ? Number(text) : null);
                                     }}
                                 />
                                 <Typography
@@ -313,7 +333,7 @@ export default function Profile() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: "#141414",
     },
     scrollView: {
         flex: 1,
@@ -337,11 +357,10 @@ const styles = StyleSheet.create({
 
     genderButtonContainer: {
         flexDirection: "row",
-        gap: 4,
-        paddingVertical: 3,
+        gap: 8,
     },
+    // Button 이 크기를 직접 들고 있으므로 여기서는 폭만 나눈다
     genderButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 7,
+        flex: 1,
     },
 });
