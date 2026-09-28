@@ -23,6 +23,9 @@ export class OutlierDetector {
     private readonly config: OutlierConfig;
     private readonly history: HistoryPoint[] = [];
     private readonly HISTORY_SIZE = 5;
+    private consecutiveRejects = 0;
+    /** 이동 필터에 연속 거부되면 현재 포인트를 새 앵커로 수용 (데드엔드 방지) */
+    private readonly REANCHOR_AFTER = 3;
 
     constructor(config: OutlierConfig = OUTLIER_CONFIG) {
         this.config = config;
@@ -64,45 +67,39 @@ export class OutlierDetector {
         }
 
         // 2. 점프 거리 필터
+        // 신호 유실(터널/다리) 동안의 정상 이동을 거부하지 않도록
+        // 경과 시간 기준 최대 이동 가능 거리와 비교
         const jumpDist = haversineMeters(
             lastPoint.latitude,
             lastPoint.longitude,
             latitude,
             longitude
         );
+        const maxPlausibleJumpM = Math.max(
+            this.config.maxJumpM,
+            this.config.maxSpeedMps * dtSec
+        );
 
-        if (jumpDist > this.config.maxJumpM) {
-            return {
-                isOutlier: true,
-                reason: "jump",
-                confidence: 0,
-            };
+        if (jumpDist > maxPlausibleJumpM) {
+            return this.rejectOrReanchor(point, "jump");
         }
 
         // 3. 속도 기반 필터
         const calculatedSpeed = jumpDist / dtSec;
         if (calculatedSpeed > this.config.maxSpeedMps) {
-            return {
-                isOutlier: true,
-                reason: "speed",
-                confidence: 0,
-            };
+            return this.rejectOrReanchor(point, "speed");
         }
 
         // 4. 가속도 기반 필터
-        const previousSpeed = speed ?? calculatedSpeed;
         const speedChange = Math.abs(calculatedSpeed - lastPoint.speed);
         const acceleration = dtSec > 0 ? speedChange / dtSec : 0;
 
         if (acceleration > this.config.maxAccelerationMps2) {
-            return {
-                isOutlier: true,
-                reason: "acceleration",
-                confidence: 0,
-            };
+            return this.rejectOrReanchor(point, "acceleration");
         }
 
         // 유효한 포인트
+        this.consecutiveRejects = 0;
         this.addToHistory({
             latitude,
             longitude,
@@ -115,6 +112,38 @@ export class OutlierDetector {
         return {
             isOutlier: false,
             confidence: this.calculateConfidence(accuracy),
+        };
+    }
+
+    /**
+     * 이동 필터 거부 처리
+     *
+     * 연속 거부가 임계값에 도달하면 현재 포인트를 새 앵커로 수용한다.
+     * 앵커가 갱신되지 않은 채 모든 포인트가 영구 거부되는
+     * 데드엔드(거리 측정 정지)를 방지한다.
+     * 정확도 거부는 카운터에 포함하지 않는다 (나쁜 픽스가 앵커가 되면 안됨).
+     */
+    private rejectOrReanchor(
+        point: GpsPoint,
+        reason: "jump" | "speed" | "acceleration"
+    ): OutlierResult {
+        this.consecutiveRejects++;
+
+        if (this.consecutiveRejects >= this.REANCHOR_AFTER) {
+            this.consecutiveRejects = 0;
+            this.history.length = 0;
+            this.addToHistory(point);
+            return {
+                isOutlier: false,
+                reanchored: true,
+                confidence: this.calculateConfidence(point.accuracy),
+            };
+        }
+
+        return {
+            isOutlier: true,
+            reason,
+            confidence: 0,
         };
     }
 
@@ -183,6 +212,7 @@ export class OutlierDetector {
      */
     reset(): void {
         this.history.length = 0;
+        this.consecutiveRejects = 0;
     }
 
     /**

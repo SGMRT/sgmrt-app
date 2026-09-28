@@ -37,8 +37,12 @@ export const MOVEMENT_CONFIG: MovementConfig = {
     stationarySpeedThreshold: 0.1,
     /** 걷기/달리기 경계 속도 (2.0m/s ≈ 7.2km/h) */
     walkingSpeedThreshold: 2.0,
-    /** 정지 판정 위치 분산 (0.3m, 더 보수적) */
-    stationaryVarianceThreshold: 0.3,
+    /**
+     * 정지 판정 위치 분산 (m)
+     * raw GPS는 정지 상태에서도 1~3m 지터가 있으므로 이를 흡수해야 함
+     * (속도 + 스텝 게이트가 함께 걸려 있어 이동 중 오판 위험은 낮음)
+     */
+    stationaryVarianceThreshold: 2.5,
     /** 이동 상태 판정 윈도우 크기 */
     windowSize: 5,
 };
@@ -49,7 +53,7 @@ export const DISTANCE_CONFIG: DistanceConfig = {
     minConfidence: 0.3,
     /** 거리 스무딩 계수 (0.8 = 새 값 80% 반영) */
     smoothingFactor: 0.8,
-    /** GPS 거리 보정 계수 (1.0 = 보정 없음, 이상치 필터에 의존) */
+    /** GPS 거리 보정 계수 (실측 후 재조정, 1.0 = 보정 없음) */
     gpsCorrection: 1.0,
     /** 최소 거리 임계값 (이 값 미만은 GPS 노이즈로 간주, 미터) */
     minDeltaM: 1.0,
@@ -57,10 +61,10 @@ export const DISTANCE_CONFIG: DistanceConfig = {
 
 /** 페이스 계산 설정 */
 export const PACE_CONFIG: PaceConfig = {
-    /** EMA 시간 상수 (3초 - 더 빠른 반응) */
-    emaTauSec: 3,
-    /** 초당 최대 페이스 변화 (60초/km - 3초 간격에서 180초/km 변화 허용) */
-    maxPaceChangePerSec: 60,
+    /** 페이스 합산 윈도우 (10초) */
+    windowSec: 10,
+    /** 최소 유효 페이스 (90초/km = 40km/h, Bolt 100m WR ≈ 96초/km) */
+    minPaceSecPerKm: 90,
     /** 이상치 페이스 임계값 (1200초/km = 20분/km) */
     outlierPaceThreshold: 1200,
 };

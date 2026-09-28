@@ -115,14 +115,23 @@ describe("buildTelemetry", () => {
       expect(result.alt).toBe(75)
     })
 
-    it("bpm은 prev에서 가져온다", () => {
+    it("bpm은 현재 샘플에서 가져온다", () => {
       const stats = createStats()
       const sample = createSample({ bpm: 150 })
       const prev = createTelemetry({ bpm: 140 })
 
       const result = buildTelemetry(stats, sample, prev, true)
 
-      // bpm은 prev에서 가져옴 (sample.bpm은 무시)
+      expect(result.bpm).toBe(150)
+    })
+
+    it("샘플에 bpm이 없으면 prev 값을 유지한다", () => {
+      const stats = createStats()
+      const sample = createSample({ bpm: null })
+      const prev = createTelemetry({ bpm: 140 })
+
+      const result = buildTelemetry(stats, sample, prev, true)
+
       expect(result.bpm).toBe(140)
     })
   })
@@ -226,9 +235,9 @@ describe("buildTelemetry", () => {
       expect(result.alt).toBe(0)
     })
 
-    it("bpm 기본값은 0", () => {
+    it("샘플과 prev 모두 bpm이 없으면 기본값 0", () => {
       const stats = createStats()
-      const sample = createSample()
+      const sample = createSample({ bpm: null })
 
       const result = buildTelemetry(stats, sample, undefined, true)
 

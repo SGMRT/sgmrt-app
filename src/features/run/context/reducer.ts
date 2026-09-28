@@ -145,10 +145,11 @@ export function runReducer(
         }
 
         // 완주 이후 계속 러닝 대기
+        // COMPLETION_PENDING 구간은 일시정지와 동일하게 취급:
+        // 대기 중 시간/거리는 stats에 합산하지 않고 (화면 타이머와 일관성),
+        // 트랙 연속성을 위해 텔레메트리만 isRunning=false로 기록
         case "EXTEND": {
             const merged = state.postCompleteBuffer;
-            let stats = state.stats;
-            let zeroFlag = state._zeroNextDt; // 첫 샘플에만 zeroDt 적용
             const telemetries: Telemetry[] = [];
             let segments = state.segments.slice();
 
@@ -161,24 +162,18 @@ export function runReducer(
                     ? (state.liveActivity.startedAtMs ?? now) + (now - pausedAt)
                     : state.liveActivity.startedAtMs ?? now;
 
-            merged.forEach((sample, i) => {
-                stats = updateStats(stats, sample, {
-                    zeroDt: zeroFlag,
-                    weight: state.userWeight,
-                });
-                zeroFlag = false;
-
+            merged.forEach((sample) => {
                 const t = buildTelemetry(
-                    stats,
+                    state.stats,
                     sample,
                     prevT,
-                    /* isRunning */ true
+                    /* isRunning */ false
                 );
                 telemetries.push(t);
                 prevT = t;
 
                 const idx = state.telemetries.length + telemetries.length - 1;
-                segments = appendOne(segments, idx, true);
+                segments = appendOne(segments, idx, false);
             });
 
             return {
@@ -186,8 +181,7 @@ export function runReducer(
                 status: "RUNNING_EXTENDED",
                 mainTimeline: [...state.mainTimeline, ...merged],
                 postCompleteBuffer: [],
-                stats,
-                _zeroNextDt: false,
+                _zeroNextDt: true,
                 telemetries: [...state.telemetries, ...telemetries],
                 segments,
                 liveActivity: {
