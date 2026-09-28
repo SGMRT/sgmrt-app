@@ -128,7 +128,7 @@ export { UserCount } from "./display/UserCount"
 // ============================================
 // Navigation
 // ============================================
-export { default as TabBar } from "./navigation/TabBar"
+export { default as TabBar, TAB_BAR_HEIGHT } from "./navigation/TabBar"
 export { TabItem } from "./navigation/TabItem"
 
 // ============================================
