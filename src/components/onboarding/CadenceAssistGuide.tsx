@@ -7,7 +7,7 @@ import { Step } from "./Onboarding";
 
 const steps: Step[] = [
     {
-        title: "러닝 중 보폭 리듬이 흔들리지 않도록\n템포를 유지해 주는 기능이에요",
+        title: "러닝 중 발걸음 리듬이 흐트러지지 않도록\n템포를 잡아 주는 기능이에요",
         image: require("@/assets/images/onboarding/cadence_assist_1.png"),
     },
 ];

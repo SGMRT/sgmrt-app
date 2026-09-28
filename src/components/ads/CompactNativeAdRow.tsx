@@ -122,7 +122,7 @@ export default function CompactNativeAdRow({ style }: Props) {
                     GhostRunner
                 </Typography>
                 <Typography variant="caption1" color="gray20">
-                    바로 지금 어제의 나를 뛰어넘어보세요!
+                    바로 지금 어제의 나를 뛰어넘어 보세요!
                 </Typography>
             </View>
         );
