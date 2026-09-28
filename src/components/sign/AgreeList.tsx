@@ -45,7 +45,7 @@ export default function AgreeList() {
                     }}
                 />
                 <AgreeItem
-                    title="[필수]  개인정보 처리방침"
+                    title="[필수] 개인정보 처리방침"
                     isAgreed={agreement.privacyPolicyAgreed}
                     onPressAgree={() => {
                         toggleAgreement("privacyPolicyAgreed");
@@ -61,7 +61,7 @@ export default function AgreeList() {
                     }}
                 />
                 <AgreeItem
-                    title="[필수]  개인정보 수집 및 이용 동의"
+                    title="[필수] 개인정보 수집 및 이용 동의"
                     isAgreed={agreement.personalInformationUsageConsentAgreed}
                     onPressAgree={() => {
                         toggleAgreement(

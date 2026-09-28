@@ -68,7 +68,7 @@ export default function Health() {
     const handleHealthKitChange = () => {
         Alert.alert(
             "애플 건강 연동",
-            "앱 > 건강 > 데이터 접근 및 기기에서 고스트러너의 건강 권한을 허용해주세요.",
+            "앱 > 건강 > 데이터 접근 및 기기에서 고스트러너의 건강 권한을 허용해 주세요.",
             [
                 { text: "취소", style: "destructive" },
                 { text: "설정 열기", onPress: () => Linking.openSettings() },

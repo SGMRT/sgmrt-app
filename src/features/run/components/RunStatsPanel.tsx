@@ -48,7 +48,7 @@ export default function RunStatsPanel({
                     style={{ textAlign: "center" }}
                 >
                     {status !== "PAUSED_OFFCOURSE"
-                        ? `러닝 기록을 위해\n코스 시작 지점으로 이동해주세요`
+                        ? `러닝 기록을 위해\n코스 시작 지점으로 이동해 주세요`
                         : `10분 뒤 자동 종료돼요\n러닝을 이어서 진행하기 위해\n이탈 지점으로 돌아가 주세요`}
                 </Typography>
             </View>

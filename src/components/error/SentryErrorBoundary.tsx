@@ -20,7 +20,7 @@ function ErrorFallback({ resetError }: FallbackProps) {
                 <Text style={styles.title}>문제가 발생했습니다</Text>
                 <Text style={styles.message}>
                     앱에서 오류가 발생했습니다.{"\n"}
-                    다시 시도해주세요.
+                    다시 시도해 주세요.
                 </Text>
                 <TouchableOpacity style={styles.button} onPress={resetError}>
                     <Text style={styles.buttonText}>다시 시도</Text>

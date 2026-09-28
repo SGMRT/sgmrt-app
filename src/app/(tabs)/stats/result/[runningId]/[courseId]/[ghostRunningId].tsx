@@ -184,7 +184,7 @@ export default function Result() {
                             <View style={styles.titleInputContainer}>
                                 <NameInput
                                     defaultValue={runData.runningName}
-                                    placeholder="제목을 입력해주세요"
+                                    placeholder="제목을 입력해 주세요"
                                     onChangeText={setRecordTitle}
                                     onBlur={async () => {
                                         await patchRunName(

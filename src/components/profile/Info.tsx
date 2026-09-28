@@ -66,7 +66,7 @@ export const Info = ({
             try {
                 return await getUserInfo();
             } catch (e) {
-                Alert.alert("회원 정보 조회 실패", "다시 시도해주세요.", [
+                Alert.alert("회원 정보 조회 실패", "다시 시도해 주세요.", [
                     { text: "확인", onPress: logout },
                 ]);
                 throw e;
@@ -115,7 +115,7 @@ export const Info = ({
             }
             showToast(
                 "info",
-                "서버 동기화에 실패했어요. 다시 시도해주세요.",
+                "서버 동기화에 실패했어요. 다시 시도해 주세요.",
                 bottom
             );
         },
@@ -200,7 +200,7 @@ export const Info = ({
         onError: () => {
             showToast(
                 "info",
-                "프로필 이미지 변경에 실패했어요. 다시 시도해주세요.",
+                "프로필 이미지 변경에 실패했어요. 다시 시도해 주세요.",
                 bottom
             );
         },

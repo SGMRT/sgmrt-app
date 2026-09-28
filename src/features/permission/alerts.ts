@@ -3,7 +3,7 @@ import { Alert, Linking, Platform } from "react-native";
 export function showMissingPermissionAlert(title: string, missing: string[]) {
     const message = `${missing.join(
         ", "
-    )} 권한이 허용되지 않았습니다. \n\n설정에서 권한을 허용해주세요.`;
+    )} 권한이 허용되지 않았습니다. \n\n설정에서 권한을 허용해 주세요.`;
 
     Alert.alert(title, message, [
         { text: "취소", style: "cancel" },

@@ -205,7 +205,7 @@ export function useAppPermissions() {
         ): Promise<boolean> => {
             const res = await request(group);
             if (!res.ok && res.missing.length > 0) {
-                Alert.alert(alertTitle, "설정에서 권한을 허용해주세요.", [
+                Alert.alert(alertTitle, "설정에서 권한을 허용해 주세요.", [
                     {
                         text: "설정",
                         style: "default",

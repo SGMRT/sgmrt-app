@@ -220,7 +220,7 @@ export const CoursesWithFilter = ({
                     } catch (error) {
                         showToast(
                             "info",
-                            "코스 삭제에 실패했어요. 다시 시도해주세요.",
+                            "코스 삭제에 실패했어요. 다시 시도해 주세요.",
                             bottom + 60,
                         );
                     } finally {
@@ -256,7 +256,7 @@ export const CoursesWithFilter = ({
                 ListEmptyComponent={
                     <Section>
                         <EmptyListView
-                            description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
+                            description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해 주세요.`}
                         />
                     </Section>
                 }

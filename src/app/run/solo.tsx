@@ -191,7 +191,7 @@ export default function Run() {
                     showCompactToast(error.message);
                 } else {
                     showCompactToast(
-                        "기록 저장에 실패했습니다. 다시 시도해주세요."
+                        "기록 저장에 실패했습니다. 다시 시도해 주세요."
                     );
                 }
                 // saveRunning 내부에서 이미 Sentry 보고된 에러는 중복 보고하지 않음

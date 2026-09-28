@@ -131,7 +131,7 @@ const CourseListView = ({
                     data={sortedCourses}
                     ListEmptyComponent={
                         <EmptyListView
-                            description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해주세요.`}
+                            description={`등록된 코스 정보가 존재하지 않습니다.\n러닝을 통해 코스를 등록해 주세요.`}
                         />
                     }
                     renderItem={({ item, index }) => (

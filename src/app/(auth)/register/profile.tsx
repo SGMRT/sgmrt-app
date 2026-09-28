@@ -113,7 +113,7 @@ export default function Profile() {
             if (uploadResult) {
                 data.profileImageUrl = imageUrl.presignUrl.split("?X-Amz-")[0];
             } else {
-                showToast("info", "회원가입 오류. 다시 시도해주세요.", bottom);
+                showToast("info", "회원가입에 실패했습니다. 다시 시도해 주세요.", bottom);
                 return;
             }
         }
@@ -182,7 +182,7 @@ export default function Profile() {
                 } else {
                     showToast(
                         "info",
-                        "오류가 발생했습니다. 다시 시도해주세요",
+                        "오류가 발생했습니다. 다시 시도해 주세요",
                         bottom
                     );
                 }
@@ -283,7 +283,7 @@ export default function Profile() {
                             <Input
                                 label="신장"
                                 labelPosition="outside"
-                                placeholder="소숫점 제외 입력 (예: 172)"
+                                placeholder="소수점 제외 입력 (예: 172)"
                                 keyboardType="numeric"
                                 maxLength={3}
                                 unit="cm"
@@ -297,7 +297,7 @@ export default function Profile() {
                                 <Input
                                     label="몸무게"
                                     labelPosition="outside"
-                                    placeholder="소숫점 제외 입력 (예: 60)"
+                                    placeholder="소수점 제외 입력 (예: 60)"
                                     keyboardType="numeric"
                                     maxLength={3}
                                     unit="kg"
@@ -311,7 +311,7 @@ export default function Profile() {
                                     color="gray60"
                                     style={{ paddingTop: 12 }}
                                 >
-                                    신체 스펙 입력시 더 정확한 데이터를 제공해
+                                    신체 정보를 입력하시면 더 정확한 기록을 제공해
                                     드릴 수 있습니다
                                 </Typography>
                             </View>

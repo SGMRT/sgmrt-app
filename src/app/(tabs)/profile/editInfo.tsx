@@ -101,7 +101,7 @@ export default function EditInfo() {
         onError: (_err, _vars, ctx) => {
             if (ctx?.previous)
                 queryClient.setQueryData(["user", "info"], ctx.previous);
-            Alert.alert("회원 정보 변경 실패", "다시 시도해주세요.");
+            Alert.alert("회원 정보 변경 실패", "다시 시도해 주세요.");
         },
         onSuccess: () => {
             showToast("success", "회원 정보가 변경되었습니다.", bottom);
@@ -225,7 +225,7 @@ export default function EditInfo() {
                             marginTop: -14,
                         }}
                     >
-                        신체 스펙 입력시 더 정확한 데이터를 제공해 드릴 수
+                        신체 정보를 입력하시면 더 정확한 기록을 제공해 드릴 수
                         있습니다
                     </Typography>
                 </ScrollView>

@@ -257,7 +257,7 @@ export function useRunSaveFlow({
                         healthKitSavedRef.current = true;
                     }
                 } else {
-                    showCompactToast("기록 저장에 실패했습니다. 다시 시도해주세요.");
+                    showCompactToast("기록 저장에 실패했습니다. 다시 시도해 주세요.");
                     // 알 수 없는 에러는 HealthKit 저장 후 발생했다고 가정
                     healthKitSavedRef.current = true;
                 }
