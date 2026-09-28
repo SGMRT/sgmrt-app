@@ -39,7 +39,8 @@ export interface SemanticColors {
     shadow01: string;
 }
 
-export type ColorScheme = "light" | "dark";
+// 현재 다크만 지원한다. 라이트를 추가하면 "light" 를 되살린다.
+export type ColorScheme = "dark";
 
 export interface ThemeContextValue {
     theme: SemanticColors;

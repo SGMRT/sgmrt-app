@@ -1,37 +1,28 @@
 // Ghost Runner Design System - Theme Provider
+//
+// 현재 다크 테마만 지원한다.
+// 라이트 테마가 필요해지면 themes/light.ts 를 다시 만들고,
+// types.ts 의 ColorScheme 에 "light" 를 되살린 뒤 여기서 분기하면 된다.
 
-import React, { createContext, useMemo } from "react";
-import { useColorScheme } from "react-native";
+import React, { createContext } from "react";
 import { darkTheme } from "./dark";
-import { lightTheme } from "./light";
-import type { ColorScheme, SemanticColors, ThemeContextValue } from "./types";
+import type { SemanticColors, ThemeContextValue } from "./types";
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+const DARK_CONTEXT: ThemeContextValue = {
+    theme: darkTheme,
+    colorScheme: "dark",
+    isDark: true,
+};
+
 interface ThemeProviderProps {
     children: React.ReactNode;
-    forcedColorScheme?: ColorScheme;
 }
 
-export function ThemeProvider({
-    children,
-    forcedColorScheme,
-}: ThemeProviderProps) {
-    const systemColorScheme = useColorScheme();
-    const colorScheme: ColorScheme =
-        forcedColorScheme ?? systemColorScheme ?? "dark";
-
-    const value = useMemo<ThemeContextValue>(
-        () => ({
-            theme: colorScheme === "dark" ? darkTheme : lightTheme,
-            colorScheme,
-            isDark: colorScheme === "dark",
-        }),
-        [colorScheme]
-    );
-
+export function ThemeProvider({ children }: ThemeProviderProps) {
     return (
-        <ThemeContext.Provider value={value}>
+        <ThemeContext.Provider value={DARK_CONTEXT}>
             {children}
         </ThemeContext.Provider>
     );
