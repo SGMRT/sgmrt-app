@@ -22,6 +22,8 @@ import "@features/run/task/location.task";
 import PushNotificationGate from "../features/notifications/PushNotificationGate";
 
 import { DarkTheme, ThemeProvider } from "@react-navigation/native";
+import { ThemeProvider as DesignSystemThemeProvider } from "@/src/design-system/themes/ThemeProvider";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import CompactNativeAdRow from "../components/ads/CompactNativeAdRow";
 import { useShouldShowAd } from "../components/ads/useShouldShowAd";
 import { SentryErrorBoundary } from "../components/error/SentryErrorBoundary";
@@ -104,15 +106,16 @@ function RootLayout() {
 
     return (
         <SentryErrorBoundary>
+            <DesignSystemThemeProvider>
             <GestureHandlerRootView
-                style={{ flex: 1, backgroundColor: "#111111" }}
+                style={{ flex: 1, backgroundColor: darkTheme.uiBackground }}
             >
                 <ThemeProvider
                     value={{
                         ...DarkTheme,
                         colors: {
                             ...DarkTheme.colors,
-                            background: "#111111",
+                            background: darkTheme.uiBackground,
                         },
                     }}
                 >
@@ -123,7 +126,7 @@ function RootLayout() {
                             <Stack
                                 screenOptions={{
                                     headerShown: false,
-                                    contentStyle: { backgroundColor: "#111111" },
+                                    contentStyle: { backgroundColor: darkTheme.uiBackground },
                                     animation: "fade",
                                 }}
                             >
@@ -146,6 +149,7 @@ function RootLayout() {
                     </QueryClientProvider>
                 </ThemeProvider>
             </GestureHandlerRootView>
+            </DesignSystemThemeProvider>
         </SentryErrorBoundary>
     );
 }
