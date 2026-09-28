@@ -10,7 +10,7 @@ import {
 import { ConfettiMethods } from "react-native-fast-confetti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, Typography } from "@/src/components/ui";
-import { DotProgress } from "./DotProgress";
+import { PageIndicator } from "@/src/design-system/atoms";
 
 export type Step = {
     title: string;
@@ -150,10 +150,10 @@ export const Onboarding = ({
                     />
 
                     {steps.length > 0 && (
-                        <DotProgress
-                            progress={currentIndex}
+                        <PageIndicator
+                            current={currentIndex}
                             total={steps.length}
-                            handlePress={(index) => onDotPress(index)}
+                            onPressPage={onDotPress}
                         />
                     )}
 
