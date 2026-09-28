@@ -1,7 +1,6 @@
-import { CheckIcon, ChevronIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
-import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
-import { Typography } from "@/src/components/ui";
+import { ChevronIcon } from "@/assets/svgs/svgs";
+import { CheckRow } from "@/src/design-system/molecules/CheckRow";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface AgreeItemProps {
     title: string;
@@ -10,59 +9,23 @@ interface AgreeItemProps {
     onPressDetail: () => void;
 }
 
+/** 개별 약관 한 줄. 체크 마크 + 제목 + 상세 보기 화살표 */
 const AgreeItem = ({
     title,
     isAgreed,
     onPressAgree,
     onPressDetail,
 }: AgreeItemProps) => {
-    // const [isOpen, setIsOpen] = useState(false);
     return (
-        <>
-            <View style={styles.container}>
-                <View style={styles.contentContainer}>
-                    <TouchableOpacity onPress={onPressAgree}>
-                        <CheckIcon
-                            color={isAgreed ? colors.primary : colors.gray[60]}
-                        />
-                    </TouchableOpacity>
-                    <Typography variant="body2" color="gray40">
-                        {title}
-                    </Typography>
-                </View>
-                <Pressable onPress={onPressDetail}>
-                    <ChevronIcon
-                        color={colors.gray[40]}
-                        // style={{
-                        //     transform: [{ rotate: isOpen ? "90deg" : "0deg" }],
-                        // }}
-                    />
-                </Pressable>
-            </View>
-            {/* {isOpen && (
-                <View>
-                    <Typography variant="body2" color="gray40">
-                        {content}
-                    </Typography>
-                </View>
-            )} */}
-        </>
+        <CheckRow
+            control="check"
+            label={title}
+            checked={isAgreed}
+            onToggle={onPressAgree}
+            trailing={<ChevronIcon color={darkTheme.ui05} />}
+            onPressTrailing={onPressDetail}
+        />
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        height: 40,
-        paddingHorizontal: 4,
-    },
-    contentContainer: {
-        gap: 8,
-        alignItems: "center",
-        flexDirection: "row",
-    },
-});
 
 export default AgreeItem;

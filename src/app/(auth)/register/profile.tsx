@@ -309,7 +309,7 @@ export default function Profile() {
                                 <Typography
                                     variant="caption1"
                                     color="gray60"
-                                    style={{ paddingTop: 10 }}
+                                    style={{ paddingTop: 12 }}
                                 >
                                     신체 스펙 입력시 더 정확한 데이터를 제공해
                                     드릴 수 있습니다
@@ -339,13 +339,13 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollViewContentContainer: {
-        paddingHorizontal: 17,
+        paddingHorizontal: 16,
         marginTop: 20,
-        paddingBottom: 30,
+        paddingBottom: 32,
     },
     profileContainer: {
         marginTop: 28,
-        marginBottom: 18,
+        marginBottom: 16,
         gap: 16,
         alignItems: "center",
     },
