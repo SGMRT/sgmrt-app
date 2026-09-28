@@ -7,8 +7,10 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withTiming,
+    withSpring,
 } from "react-native-reanimated";
 import { useTheme } from "../../../themes";
+import { spring } from "../../../tokens/motion";
 import type { ControlVariantProps } from "../types";
 
 const TOGGLE_WIDTH = 44;
@@ -22,7 +24,7 @@ export function Toggle({ status, disabled, onPress }: ControlVariantProps) {
     const progress = useSharedValue(status ? 1 : 0);
 
     useEffect(() => {
-        progress.value = withTiming(status ? 1 : 0, { duration: 80 });
+        progress.value = withSpring(status ? 1 : 0, spring.toggle);
     }, [status, progress]);
 
     const trackStyle = useAnimatedStyle(() => ({

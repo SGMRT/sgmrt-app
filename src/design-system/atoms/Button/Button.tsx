@@ -25,7 +25,7 @@
 // 누를 때 0.96 으로 줄어든다. 버튼은 자주 눌리는 요소라 120ms 로 짧게 잡았고,
 // 크기 변화만으로는 상태를 알 수 없으므로 색도 함께 바뀐다.
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import {
     Pressable,
     StyleProp,
@@ -36,12 +36,16 @@ import {
 } from "react-native";
 import Animated, {
     useAnimatedStyle,
+    useReducedMotion,
     useSharedValue,
     withTiming,
 } from "react-native-reanimated";
 import { darkTheme } from "../../themes/dark";
+import { duration, easing, pressScale } from "../../tokens/motion";
 import { radius } from "../../tokens/radius";
 import { spacing } from "../../tokens/spacing";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export type ButtonSize = "small" | "medium" | "large";
 export type ButtonTheme =
@@ -54,25 +58,66 @@ export type ButtonTheme =
     | "primaryO"
     | "secondary";
 
-/** 크기별 치수. 높이와 모서리는 피그마 실측값이다. */
+/**
+ * 크기별 치수. 높이와 모서리는 피그마 실측값이다.
+ * 간격과 모서리는 4px 단위 규칙을 따르므로 계산하지 않고 토큰에서 직접 고른다.
+ */
 const SIZE: Record<
     ButtonSize,
-    { height: number; radius: number; fontSize: number; gap: number }
+    {
+        height: number;
+        radius: number;
+        fontSize: number;
+        gap: number;
+        paddingHorizontal: number;
+    }
 > = {
-    small: { height: 24, radius: radius.md, fontSize: 12, gap: spacing[4] },
-    medium: { height: 40, radius: radius.base, fontSize: 14, gap: spacing[6] },
-    large: { height: 56, radius: radius.xl, fontSize: 16, gap: spacing[8] },
+    small: {
+        height: 24,
+        radius: radius.md,
+        fontSize: 12,
+        gap: spacing[4],
+        paddingHorizontal: spacing[8],
+    },
+    medium: {
+        height: 40,
+        radius: radius.base,
+        fontSize: 14,
+        gap: spacing[6],
+        paddingHorizontal: spacing[16],
+    },
+    large: {
+        height: 56,
+        radius: radius.xl,
+        fontSize: 16,
+        gap: spacing[8],
+        paddingHorizontal: spacing[24],
+    },
 };
 
-/** 테마별 배경과 글자색 */
-const THEME: Record<ButtonTheme, { bg: string; fg: string }> = {
+/**
+ * 테마별 배경과 글자색.
+ *
+ * onLight 는 밝은 면 위에 어두운 글자가 오는 조합이다.
+ * 이 경우 같은 굵기라도 글자가 가늘어 보인다. 배경 빛이 획을 파고들기 때문이고,
+ * 어두운 면 위 밝은 글자가 두꺼워 보이는 것과 짝을 이루는 현상이다.
+ * 눈에 같은 무게로 보이도록 굵기를 한 단계 올린다.
+ */
+const THEME: Record<
+    ButtonTheme,
+    { bg: string; fg: string; onLight?: boolean }
+> = {
     ui01: { bg: darkTheme.ui01, fg: darkTheme.ui10 },
     ui01P: { bg: darkTheme.ui01, fg: darkTheme.primary },
     ui02: { bg: darkTheme.ui02, fg: darkTheme.ui10 },
     // 선택된 상태. 배경이 한 단계 올라가서 고르지 않은 것과 면으로 구분된다
     ui02P: { bg: darkTheme.ui02, fg: darkTheme.primary },
     ui03: { bg: darkTheme.ui03, fg: darkTheme.ui10 },
-    primary: { bg: darkTheme.primary, fg: darkTheme.uiBackground },
+    primary: {
+        bg: darkTheme.primary,
+        fg: darkTheme.uiBackground,
+        onLight: true,
+    },
     primaryO: { bg: darkTheme.primaryB, fg: darkTheme.primary },
     secondary: { bg: darkTheme.secondary, fg: darkTheme.ui10 },
 };
@@ -95,6 +140,12 @@ interface ButtonProps {
     leading?: ReactNode;
     /** 글자 오른쪽 아이콘 */
     trailing?: ReactNode;
+    /**
+     * 누름을 막는다. 색은 바꾸지 않는다.
+     * 투명도를 낮추면 면과 글자가 한꺼번에 흐려져
+     * "못 누른다"가 아니라 "화면이 흐리다"로 읽힌다.
+     * 못 누르는 상태는 부르는 쪽에서 theme 으로 나타낸다.
+     */
     disabled?: boolean;
     /** 가로를 꽉 채운다 */
     block?: boolean;
@@ -142,14 +193,36 @@ export function Button({
           ? darkTheme.ui10
           : t.fg;
 
+    const reduceMotion = useReducedMotion();
+
     const scale = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
         transform: [{ scale: scale.value }],
     }));
 
+    // 조건을 채워 버튼이 살아나는 순간은 폼에서 가장 중요한 신호다.
+    // 색이 툭 바뀌면 그 순간을 놓치기 쉬워 전환으로 잇는다.
+    // 움직임이 아니라 색이라 모션을 줄인 기기에서도 남기되 더 짧게 끝낸다.
+    const bg = useSharedValue(line ? "transparent" : t.bg);
+    const fg = useSharedValue(textColor);
+
+    useEffect(() => {
+        const ms = reduceMotion ? duration.fast : duration.normal;
+        bg.value = withTiming(line ? "transparent" : t.bg, {
+            duration: ms,
+            easing: easing.out,
+        });
+        fg.value = withTiming(textColor, { duration: ms, easing: easing.out });
+    }, [t.bg, textColor, line, reduceMotion, bg, fg]);
+
+    const surfaceStyle = useAnimatedStyle(() => ({
+        backgroundColor: bg.value,
+    }));
+    const labelColorStyle = useAnimatedStyle(() => ({ color: fg.value }));
+
     const press = (to: number) => {
         if (noScale || disabled) return;
-        scale.value = withTiming(to, { duration: 120 });
+        scale.value = withTiming(to, { duration: duration.fast });
     };
 
     return (
@@ -158,9 +231,9 @@ export function Button({
         <Animated.View
             style={[block ? styles.block : null, style, animatedStyle]}
         >
-            <Pressable
+            <AnimatedPressable
                 onPress={disabled ? undefined : onPress}
-                onPressIn={() => press(0.96)}
+                onPressIn={() => press(pressScale.wide)}
                 onPressOut={() => press(1)}
                 disabled={disabled}
                 style={[
@@ -168,28 +241,33 @@ export function Button({
                     {
                         height: s.height,
                         borderRadius: s.radius,
-                        paddingHorizontal: s.height / 2 - 4,
+                        paddingHorizontal: s.paddingHorizontal,
                         gap: s.gap,
-                        backgroundColor: line ? "transparent" : t.bg,
                         borderWidth: borderColor ? 1 : 0,
                         borderColor,
-                        opacity: disabled ? 0.4 : 1,
                     },
+                    surfaceStyle,
                 ]}
             >
                 {leading}
-                <Text
+                <Animated.Text
                     style={[
                         styles.label,
-                        { fontSize: s.fontSize, color: textColor },
+                        {
+                            fontSize: s.fontSize,
+                            fontFamily: t.onLight
+                                ? "SpoqaHanSansNeo-Bold"
+                                : "SpoqaHanSansNeo-Medium",
+                        },
+                        labelColorStyle,
                         textStyle,
                     ]}
                     numberOfLines={1}
                 >
                     {title}
-                </Text>
+                </Animated.Text>
                 {trailing}
-            </Pressable>
+            </AnimatedPressable>
         </Animated.View>
     );
 }
