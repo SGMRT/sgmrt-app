@@ -7,6 +7,9 @@ import {
 } from "@/src/apis";
 import IntervalTimeline from "@/src/components/chart/interval/IntervalTimeline";
 import { Button, Divider, Header, Section, Typography } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { convertToName } from "@/src/features/pacemaker/utils/convertToName";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
@@ -203,22 +206,22 @@ const PlanItem = ({
 
 const styles = StyleSheet.create({
     planSection: {
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        backgroundColor: "#222222",
-        borderRadius: 8,
+        paddingHorizontal: spacing[16],
+        paddingVertical: spacing[12],
+        backgroundColor: darkTheme.ui01,
+        borderRadius: radius.md,
     },
     planSummarySection: {
-        gap: 13.5,
+        gap: spacing[12],
         flexDirection: "row",
         justifyContent: "center",
         alignItems: "center",
     },
     scrollViewContentContainer: {
-        marginTop: 20,
-        marginBottom: 8,
+        marginTop: spacing[20],
+        marginBottom: spacing[8],
         alignItems: "center",
-        marginHorizontal: 16.5,
+        marginHorizontal: spacing[16],
     },
     flexibleContainer: {
         flex: 1,
@@ -238,7 +241,7 @@ const styles = StyleSheet.create({
     },
     ghostyMessageContainer: {
         width: "100%",
-        marginBottom: 20,
+        marginBottom: spacing[20],
         alignItems: "center",
     },
     ghostyMessageText: {
@@ -248,9 +251,9 @@ const styles = StyleSheet.create({
         width: "100%",
     },
     planStyle: {
-        gap: 20,
+        gap: spacing[20],
     },
     planInterval: {
-        paddingBottom: 18,
+        paddingBottom: spacing[20],
     },
 });

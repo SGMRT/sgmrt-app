@@ -2,6 +2,8 @@ import { getRuns, getRunsByCourse } from "@/src/apis";
 import { RunResponse } from "@/src/apis/types/run";
 import { HistoryWithFilter } from "@/src/components/course/HistoryWithFilter";
 import { Header, TabBar, Typography } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { endOfDay, startOfDay } from "@/src/utils/formatDate";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -21,9 +23,9 @@ export default function Stats() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#111111" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: darkTheme.uiBackground }}>
             <Header titleText="내 기록" hasBackButton={false} />
-            <View style={{ flex: 1, marginTop: 20 }}>
+            <View style={{ flex: 1, marginTop: spacing[20] }}>
                 <UserHistory
                     initialCourseId={courseId ? Number(courseId) : null}
                     initialCourseName={courseName ? String(courseName) : null}
@@ -121,7 +123,7 @@ const UserHistory = ({
             <Typography
                 color="white"
                 variant="body2"
-                style={{ alignSelf: "center", marginTop: 20 }}
+                style={{ alignSelf: "center", marginTop: spacing[20] }}
             >
                 에러가 발생했습니다.
             </Typography>

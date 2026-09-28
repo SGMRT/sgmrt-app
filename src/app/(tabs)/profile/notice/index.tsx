@@ -3,6 +3,7 @@ import localEvent from "@/src/components/notice/localEvent.json";
 import { NoticePreviewList } from "@/src/components/notice/NoticePreviewList";
 import { NoticePageHeader } from "@/src/components/notice/ui/NoticePageHeader";
 import { ScrollButton, TabBar } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import { FlashListRef } from "@shopify/flash-list";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
@@ -103,7 +104,7 @@ export default function NoticePage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
         paddingBottom: 50,
     },
 });

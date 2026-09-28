@@ -1,5 +1,7 @@
 import { getDataFromS3 } from "@/src/apis";
 import { Header, Typography } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import colors from "@/src/theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
@@ -44,15 +46,15 @@ export default function TermDetail() {
             <Typography
                 variant="headline"
                 color="white"
-                style={{ paddingHorizontal: 16 }}
+                style={{ paddingHorizontal: spacing[16] }}
             >
                 {title}
             </Typography>
             <ScrollView
                 style={{ flex: 1 }}
                 contentContainerStyle={{
-                    paddingHorizontal: 16,
-                    paddingBottom: 50,
+                    paddingHorizontal: spacing[16],
+                    paddingBottom: spacing[48],
                 }}
             >
                 <Markdown style={markdownStyles}>{content}</Markdown>
@@ -71,7 +73,7 @@ export default function TermDetail() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     button: {
         width: "100%",

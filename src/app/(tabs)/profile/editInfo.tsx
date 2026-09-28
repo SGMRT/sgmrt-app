@@ -5,6 +5,8 @@ import {
 } from "@/src/apis/types/user";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import { Header, InfoFieldTitle, InfoItem, StyledButton, Typography, showToast } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -134,7 +136,7 @@ export default function EditInfo() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: "#111111" }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: darkTheme.uiBackground }}>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -142,9 +144,9 @@ export default function EditInfo() {
                 <Header titleText="회원 정보 변경" />
                 <ScrollView
                     contentContainerStyle={{
-                        paddingHorizontal: 17,
-                        paddingTop: 20,
-                        gap: 20,
+                        paddingHorizontal: spacing[16],
+                        paddingTop: spacing[20],
+                        gap: spacing[20],
                     }}
                 >
                     {/* 닉네임 */}
@@ -159,15 +161,15 @@ export default function EditInfo() {
                         required
                     />
                     {/* 성별 */}
-                    <View style={{ gap: 3 }}>
+                    <View style={{ gap: spacing[4] }}>
                         <InfoFieldTitle title="성별" required />
-                        <View style={{ flexDirection: "row", gap: 4, flex: 1 }}>
+                        <View style={{ flexDirection: "row", gap: spacing[4], flex: 1 }}>
                             <StyledButton
                                 title="여성"
                                 onPress={() => {
                                     handleUpdateUserInfo("gender", "FEMALE");
                                 }}
-                                style={{ paddingHorizontal: 12 }}
+                                style={{ paddingHorizontal: spacing[12] }}
                                 activeTextColor="primary"
                                 active={userInfo?.gender === "FEMALE"}
                             />
@@ -176,7 +178,7 @@ export default function EditInfo() {
                                 onPress={() => {
                                     handleUpdateUserInfo("gender", "MALE");
                                 }}
-                                style={{ paddingHorizontal: 12 }}
+                                style={{ paddingHorizontal: spacing[12] }}
                                 activeTextColor="primary"
                                 active={userInfo?.gender === "MALE"}
                             />

@@ -7,6 +7,9 @@ import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
 import { Divider, Header, ScrollButton, Section, ShareButton, StatRow, TabBar, Typography, UserCount } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
@@ -146,9 +149,9 @@ export default function Result() {
                         {/* 코스 지도 파트 */}
                         <View
                             style={{
-                                borderRadius: 20,
+                                borderRadius: radius["2xl"],
                                 alignItems: "center",
-                                backgroundColor: "#171717",
+                                backgroundColor: darkTheme.ui01,
                             }}
                         >
                             <ResultCorseMap
@@ -172,7 +175,7 @@ export default function Result() {
                                     style={{
                                         flexDirection: "row",
                                         alignItems: "center",
-                                        marginVertical: 12,
+                                        marginVertical: spacing[12],
                                     }}
                                 >
                                     <Typography variant="body2" color="gray40">
@@ -188,12 +191,12 @@ export default function Result() {
                             title="코스 정보"
                             titleColor="white"
                             titleVariant="sectionhead"
-                            style={{ gap: 15 }}
+                            style={{ gap: spacing[16] }}
                         >
                             <StatRow
                                 color="gray20"
                                 style={{
-                                    gap: 20,
+                                    gap: spacing[20],
                                 }}
                                 stats={courseAverageStats}
                             />
@@ -226,7 +229,7 @@ export default function Result() {
                                         style={{
                                             flexDirection: "row",
                                             alignItems: "center",
-                                            gap: 4,
+                                            gap: spacing[4],
                                         }}
                                         onPress={() => {
                                             setShowInfo(true);
@@ -306,23 +309,23 @@ export default function Result() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
         paddingBottom: 45,
     },
     titleInputContainer: {
         flexDirection: "row",
-        gap: 6,
+        gap: spacing[6],
         alignItems: "center",
         justifyContent: "flex-start",
         flex: 1,
         maxWidth: "50%",
     },
     content: {
-        backgroundColor: "#111111",
-        marginHorizontal: 16.5,
-        marginTop: 20,
-        paddingBottom: 20,
-        gap: 20,
+        backgroundColor: darkTheme.uiBackground,
+        marginHorizontal: spacing[16],
+        marginTop: spacing[20],
+        paddingBottom: spacing[20],
+        gap: spacing[20],
     },
     titleContainer: {
         flexDirection: "row",
@@ -337,17 +340,17 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
     bottomSheetContent: {
-        paddingVertical: 30,
+        paddingVertical: spacing[32],
         alignItems: "center",
         justifyContent: "center",
-        gap: 4,
+        gap: spacing[4],
     },
     handle: {
-        paddingTop: 10,
+        paddingTop: spacing[12],
         paddingBottom: 0,
     },
     shareButton: {
-        marginLeft: 8,
+        marginLeft: spacing[8],
         flex: 1,
     },
 });

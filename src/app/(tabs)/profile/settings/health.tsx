@@ -3,6 +3,8 @@ import {
     ListSectionContainer,
     ListSectionItem,
 } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { useAppPermissions } from "@/src/features/permission/useAppPermissions";
 import {
     AuthorizationStatus,
@@ -184,10 +186,10 @@ export default function Health() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     content: {
-        marginTop: 20,
-        paddingHorizontal: 16.5,
+        marginTop: spacing[20],
+        paddingHorizontal: spacing[16],
     },
 });

@@ -1,5 +1,7 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { Header, ListSectionContainer, ListSectionItem } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import colors from "@/src/theme/colors";
 import { useRouter } from "expo-router";
 import { SafeAreaView, StyleSheet, View } from "react-native";
@@ -56,10 +58,10 @@ export default function Legal() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     content: {
-        marginTop: 20,
-        paddingHorizontal: 16.5,
+        marginTop: spacing[20],
+        paddingHorizontal: spacing[16],
     },
 });

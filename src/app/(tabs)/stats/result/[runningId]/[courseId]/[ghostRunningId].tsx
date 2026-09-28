@@ -13,6 +13,9 @@ import RunShot from "@/src/components/share/RunShot";
 import { ShareBottomSheet } from "@/src/components/share/ShareBottomSheet";
 import { ShareVariant } from "@/src/components/share/types";
 import { Button, Header, LoadingLayer, NameInput, ScrollButton, Section, StatRow, StyledButton, TabBar, Typography, showToast } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import ReplayRecoder from "@/src/features/replay/ReplayRecoder";
 import CourseRegisterModal from "@/src/features/result/components/CourseRegisterModal";
 import GhostComparisonSection from "@/src/features/result/components/GhostComparisonSection";
@@ -246,14 +249,14 @@ export default function Result() {
                                             : "내 페이스"
                                     }
                                     onPress={changeDisplayMode}
-                                    style={{ paddingHorizontal: 12 }}
+                                    style={{ paddingHorizontal: spacing[12] }}
                                 />
                             }
-                            style={{ gap: 15 }}
+                            style={{ gap: spacing[16] }}
                         >
                             <StatRow
                                 color="gray20"
-                                style={{ gap: 20 }}
+                                style={{ gap: spacing[20] }}
                                 stats={
                                     displayMode === "pace"
                                         ? paceStats
@@ -303,7 +306,7 @@ export default function Result() {
                             >
                                 <StatRow
                                     color="gray20"
-                                    style={{ gap: 20 }}
+                                    style={{ gap: spacing[20] }}
                                     stats={runningStats}
                                 />
                             </Section>
@@ -389,14 +392,14 @@ export default function Result() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     content: {
-        backgroundColor: "#111111",
-        marginHorizontal: 16.5,
-        marginTop: 20,
-        gap: 20,
-        paddingBottom: 20,
+        backgroundColor: darkTheme.uiBackground,
+        marginHorizontal: spacing[16],
+        marginTop: spacing[20],
+        gap: spacing[20],
+        paddingBottom: spacing[20],
     },
     titleContainer: {
         flexDirection: "row",
@@ -405,21 +408,21 @@ const styles = StyleSheet.create({
     },
     titleInputContainer: {
         flexDirection: "row",
-        gap: 4,
+        gap: spacing[4],
         alignItems: "center",
         justifyContent: "flex-start",
         flex: 1,
         maxWidth: "50%",
     },
     mapContainer: {
-        borderRadius: 20,
+        borderRadius: radius["2xl"],
         alignItems: "center",
-        backgroundColor: "#171717",
+        backgroundColor: darkTheme.ui01,
         width: "100%",
     },
     courseLink: {
         flexDirection: "row",
         alignItems: "center",
-        marginVertical: 12,
+        marginVertical: spacing[12],
     },
 });

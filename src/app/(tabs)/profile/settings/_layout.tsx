@@ -1,3 +1,4 @@
+import { darkTheme } from "@/src/design-system/themes/dark";
 import { Stack } from "expo-router";
 
 const SettingsLayout = () => {
@@ -5,7 +6,7 @@ const SettingsLayout = () => {
         <Stack
             screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: "#111111" },
+                contentStyle: { backgroundColor: darkTheme.uiBackground },
             }}
         >
             <Stack.Screen name="legal" />

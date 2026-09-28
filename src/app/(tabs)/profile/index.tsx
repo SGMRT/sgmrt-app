@@ -8,11 +8,14 @@ import {
     ButtonWithMap,
     Header,
     ScrollButton,
+    TAB_BAR_HEIGHT,
     TabBar,
     TabItem,
     Typography,
     showToast,
 } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { useAuthStore } from "@/src/store/authState";
 import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -179,31 +182,31 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     safeAreaView: {
         flex: 1,
-        backgroundColor: "#111111",
-        marginBottom: 83,
+        backgroundColor: darkTheme.uiBackground,
+        marginBottom: TAB_BAR_HEIGHT,
     },
     header: {
-        marginTop: 10,
+        marginTop: spacing[12],
         flexDirection: "row",
     },
     handle: {
-        paddingTop: 10,
-        paddingBottom: 30,
+        paddingTop: spacing[12],
+        paddingBottom: spacing[32],
     },
     modalContainer: {
-        gap: 30,
+        gap: spacing[32],
     },
     modalContent: {
-        gap: 15,
+        gap: spacing[16],
         alignItems: "center",
-        marginBottom: 30,
+        marginBottom: spacing[32],
     },
     modalText: {
-        gap: 4,
+        gap: spacing[4],
         alignItems: "center",
     },
 });

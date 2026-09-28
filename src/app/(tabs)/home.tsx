@@ -6,6 +6,8 @@ import WeatherInfo from "@/src/components/map/WeatherInfo";
 import { HomeNotices } from "@/src/components/notice/HomeNotices";
 import { WelcomeOnboarding } from "@/src/components/onboarding/WelcomOnboarding";
 import { ShuffleButton, TabBar, TopBlurView } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { core } from "@/src/design-system/tokens/colors";
 import { useSplashUntilLocationReady } from "@/src/features/permission/useSplashUntilLocationReady";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -78,7 +80,9 @@ export default function Home() {
                 ref={confettiRef}
                 fallDuration={4000}
                 count={100}
-                colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
+                // 색종이는 장식 그래픽이라 면·글자 토큰을 쓰지 않는다.
+                // 강조색만 토큰에서 가져와 Primary 가 바뀌면 함께 따라간다.
+                colors={["#D9D9D9", darkTheme.primary, core.white]}
                 flakeSize={{ width: 12, height: 8 }}
                 fadeOutOnEnd={true}
                 cannonsPositions={[

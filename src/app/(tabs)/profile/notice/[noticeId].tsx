@@ -1,6 +1,9 @@
 import { getNotice, Notice } from "@/src/apis";
 import localEvent from "@/src/components/notice/localEvent.json";
 import { Divider, Header, TabBar, Typography } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import colors from "@/src/theme/colors";
 import { formatDate } from "@/src/utils/formatDate";
 import { useQuery } from "@tanstack/react-query";
@@ -111,19 +114,19 @@ export default function NoticeDetailPage() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
         paddingBottom: 60,
     },
     contentContainer: {
-        gap: 20,
-        marginTop: 20,
-        marginHorizontal: 16,
+        gap: spacing[20],
+        marginTop: spacing[20],
+        marginHorizontal: spacing[16],
     },
     titleContainer: {
-        gap: 10,
+        gap: spacing[12],
     },
     image: {
-        borderRadius: 20,
+        borderRadius: radius["2xl"],
         flex: 1,
         width: "100%",
         height: "100%",

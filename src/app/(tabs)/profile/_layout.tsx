@@ -1,3 +1,4 @@
+import { darkTheme } from "@/src/design-system/themes/dark";
 import { SplashScreen, Stack } from "expo-router";
 
 export default function ProfileLayout() {
@@ -6,7 +7,7 @@ export default function ProfileLayout() {
         <Stack
             screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: "#111111" },
+                contentStyle: { backgroundColor: darkTheme.uiBackground },
             }}
         >
             <Stack.Screen name="index" />
