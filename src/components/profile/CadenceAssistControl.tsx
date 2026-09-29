@@ -95,30 +95,32 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: spacing[4],
     },
+    // 값을 올리고 내리는 보조 행동이라 line 이다.
+    // 면을 채우면 이 조작이 카드 안에서 가장 밝아져
+    // 정작 읽어야 할 값보다 먼저 눈에 들어온다.
     cadenceAssistButton: {
         height: 32,
         paddingHorizontal: spacing[12],
         borderRadius: radius.sm,
-        backgroundColor: darkTheme.ui03,
-        justifyContent: "center",
-        alignItems: "center",
-        borderWidth: 1,
-        borderColor: darkTheme.ui01,
-        boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
-    },
-    cadenceAssistPanel: {
-        flex: 1,
-        height: 32,
-        borderRadius: radius.sm,
-        backgroundColor: darkTheme.ui01,
+        backgroundColor: "transparent",
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 1,
         borderColor: darkTheme.ui03,
     },
+    // 지금 값을 보여 줄 뿐 누를 수 없다.
+    // 테두리는 누를 수 있다는 뜻이므로 여기서는 쓰지 않고 면으로 둔다.
+    cadenceAssistPanel: {
+        flex: 1,
+        height: 32,
+        borderRadius: radius.sm,
+        backgroundColor: darkTheme.ui02,
+        justifyContent: "center",
+        alignItems: "center",
+    },
     // 이 조작은 위의 케이던스 보조 토글이 꺼지면 따라 꺼진다.
     // 제 사정으로 못 쓰게 된 것이 아니라 딸려서 꺼진 것이므로
-    // 면을 잃고 배경 높이로 내려앉는다.
+    // 면과 테두리를 잃고 배경 높이로 내려앉는다.
     disabledCadenceAssistControl: {
         backgroundColor: darkTheme.uiBackground,
         borderColor: darkTheme.uiBackground,
