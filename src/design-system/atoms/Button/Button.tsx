@@ -47,7 +47,7 @@ import { spacing } from "../../tokens/spacing";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-export type ButtonSize = "small" | "medium" | "large";
+export type ButtonSize = "small" | "medium" | "select" | "large";
 export type ButtonTheme =
     | "ui01"
     | "ui01P"
@@ -85,6 +85,17 @@ const SIZE: Record<
         fontSize: 14,
         gap: spacing[6],
         paddingHorizontal: spacing[16],
+    },
+    // 둘 중 하나를 고르는 선택지.
+    // 주 행동과 같은 56 으로 두면 화면에서 무엇이 주된 행동인지 흐려진다.
+    // 입력(56)보다 한 단계 낮되 딸린 보조 행동(40)보다는 높아야
+    // 폼 안에서 고를 것과 딸린 것이 갈린다.
+    select: {
+        height: 48,
+        radius: radius.base,
+        fontSize: 16,
+        gap: spacing[8],
+        paddingHorizontal: spacing[20],
     },
     large: {
         height: 56,
@@ -155,6 +166,21 @@ interface ButtonProps {
     textStyle?: StyleProp<TextStyle>;
 }
 
+// 선택지 묶음의 고름은 면 밝기로 나타낸다.
+//
+// 테두리로 나타내면 고른 쪽만 윤곽이 생겨, 크기가 같은데도 커 보인다.
+// 양쪽에 테두리를 둘러 맞출 수는 있지만 이번에는 화면에 라인 버튼이 늘어난다.
+// 면으로 두면 입력과 같은 언어가 되고 크기도 그대로 읽힌다.
+const SELECTED_BG = darkTheme.ui10;
+const SELECTED_FG = darkTheme.uiBackground;
+// 밝은 면 위 어두운 글자는 한 단계 굵게 해야 같은 굵기로 읽힌다
+const SELECTED_ON_LIGHT = true;
+// 테두리를 가진 버튼은 같은 높이의 채워진 면보다 커 보인다.
+// 밝은 선이 실루엣 맨 바깥 픽셀에 얹히면 바깥으로 번져 보이는데,
+// 면만 있는 입력은 배경과 차이가 3뿐이라 윤곽이 서지 않아 견줄 선이 없다.
+// 좌우 1px 씩 줄여 선이 더하는 무게를 상쇄한다.
+const OUTLINE_TRIM = 2;
+
 export function Button({
     title,
     onPress,
@@ -195,22 +221,27 @@ export function Button({
         ? darkTheme.uiDisabledUpFg
         : darkTheme.uiDisabledFg;
 
+    // 선택지 묶음에서는 고르지 않은 쪽도 테두리 자리를 잡아 둔다.
+    // 고른 쪽만 테두리가 생기면 두 버튼의 내용 상자가 2px 달라진다.
+    // 자리를 투명으로 비워 두면 배경이 비쳐 면이 그만큼 작아 보이므로
+    // 제 면과 같은 색으로 칠해 보이지 않게 둔다.
     const borderColor = disabled
         ? line
             ? disabledBg
             : undefined
-        : selected
-          ? darkTheme.ui07
-          : line
-            ? darkTheme.ui02
-            : undefined;
+        : line
+          ? darkTheme.ui02
+          : undefined;
 
+    // 고르지 않은 쪽 글자를 비활성(ui05)과 같은 값으로 두면
+    // 면까지 같은 #383838 이라 두 상태가 완전히 겹쳐 못 누르는 것처럼 보인다.
+    // 한 단계 올려 "누를 수 있지만 지금 안 골랐다" 로 읽히게 한다.
     const textColor = disabled
         ? disabledFg
         : inGroup
           ? selected
-              ? darkTheme.ui10
-              : darkTheme.ui05
+              ? SELECTED_FG
+              : darkTheme.ui07
           : line
             ? darkTheme.ui10
             : t.fg;
@@ -219,7 +250,9 @@ export function Button({
         ? "transparent"
         : disabled
           ? disabledBg
-          : t.bg;
+          : selected
+            ? SELECTED_BG
+            : t.bg;
 
     const reduceMotion = useReducedMotion();
 
@@ -233,6 +266,7 @@ export function Button({
     // 움직임이 아니라 색이라 모션을 줄인 기기에서도 남기되 더 짧게 끝낸다.
     const bg = useSharedValue(backgroundColor);
     const fg = useSharedValue(textColor);
+    const bd = useSharedValue(borderColor ?? "transparent");
 
     useEffect(() => {
         const ms = reduceMotion ? duration.fast : duration.normal;
@@ -241,10 +275,15 @@ export function Button({
             easing: easing.out,
         });
         fg.value = withTiming(textColor, { duration: ms, easing: easing.out });
-    }, [backgroundColor, textColor, reduceMotion, bg, fg]);
+        bd.value = withTiming(borderColor ?? "transparent", {
+            duration: ms,
+            easing: easing.out,
+        });
+    }, [backgroundColor, textColor, borderColor, reduceMotion, bg, fg, bd]);
 
     const surfaceStyle = useAnimatedStyle(() => ({
         backgroundColor: bg.value,
+        borderColor: bd.value,
     }));
     const labelColorStyle = useAnimatedStyle(() => ({ color: fg.value }));
 
@@ -267,12 +306,11 @@ export function Button({
                 style={[
                     styles.base,
                     {
-                        height: s.height,
+                        height: s.height - (borderColor ? OUTLINE_TRIM : 0),
                         borderRadius: s.radius,
                         paddingHorizontal: s.paddingHorizontal,
                         gap: s.gap,
                         borderWidth: borderColor ? 1 : 0,
-                        borderColor,
                     },
                     surfaceStyle,
                 ]}
@@ -283,9 +321,11 @@ export function Button({
                         styles.label,
                         {
                             fontSize: s.fontSize,
-                            fontFamily: t.onLight
-                                ? "SpoqaHanSansNeo-Bold"
-                                : "SpoqaHanSansNeo-Medium",
+                            fontFamily:
+                                t.onLight ||
+                                (selected && SELECTED_ON_LIGHT)
+                                    ? "SpoqaHanSansNeo-Bold"
+                                    : "SpoqaHanSansNeo-Medium",
                         },
                         labelColorStyle,
                         textStyle,

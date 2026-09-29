@@ -219,7 +219,7 @@ export default function Profile() {
                                 title="프로필 이미지 등록"
                                 onPress={onPickImage}
                                 size="medium"
-                                variant="line"
+                                theme="ui02"
                             />
                         </View>
                         <View style={{ gap: 20 }}>
@@ -247,16 +247,16 @@ export default function Profile() {
                                     <Button
                                         title="여성"
                                         onPress={() => setGender("FEMALE")}
-                                        size="large"
-                                        theme="ui01"
+                                        size="select"
+                                        theme="ui02"
                                         selected={gender === "FEMALE"}
                                         style={styles.genderButton}
                                     />
                                     <Button
                                         title="남성"
                                         onPress={() => setGender("MALE")}
-                                        size="large"
-                                        theme="ui01"
+                                        size="select"
+                                        theme="ui02"
                                         selected={gender === "MALE"}
                                         style={styles.genderButton}
                                     />

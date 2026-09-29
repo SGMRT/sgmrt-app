@@ -210,8 +210,8 @@ export default function EditInfo() {
                                             "FEMALE"
                                         );
                                     }}
-                                    size="large"
-                                    theme="ui01"
+                                    size="select"
+                                    theme="ui02"
                                     selected={userInfo?.gender === "FEMALE"}
                                     style={styles.genderButton}
                                 />
@@ -220,8 +220,8 @@ export default function EditInfo() {
                                     onPress={() => {
                                         handleUpdateUserInfo("gender", "MALE");
                                     }}
-                                    size="large"
-                                    theme="ui01"
+                                    size="select"
+                                    theme="ui02"
                                     selected={userInfo?.gender === "MALE"}
                                     style={styles.genderButton}
                                 />

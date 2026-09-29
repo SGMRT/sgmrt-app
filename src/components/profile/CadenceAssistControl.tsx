@@ -265,20 +265,19 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: spacing[4],
     },
-    // 값을 올리고 내리는 보조 행동이라 line 이다.
-    // 면을 채우면 이 조작이 카드 안에서 가장 밝아져
-    // 정작 읽어야 할 값보다 먼저 눈에 들어온다.
+    // 값을 올리고 내리는 보조 행동이다.
+    // 카드(ui01) 위에 얹히므로 면을 한 단계 올려 uiUp 을 쓴다.
+    // 테두리로 두면 화면에 라인 버튼이 늘어나 손댈 것과 읽을 것이 섞여 보인다.
+    //
     // 면이 아니라 조작이므로 카드와의 동심 계산을 하지 않고 제 크기를 따른다.
     // 높이 32 이니 8 이다. 값 칸도 같은 줄에 선 한 덩어리라 같은 값을 쓴다.
     cadenceAssistButton: {
         height: 32,
         paddingHorizontal: spacing[12],
         borderRadius: radius.md,
-        backgroundColor: "transparent",
+        backgroundColor: darkTheme.uiUp,
         justifyContent: "center",
         alignItems: "center",
-        borderWidth: 1,
-        borderColor: darkTheme.ui02,
     },
     // 지금 값을 보여 줄 뿐 누를 수 없다.
     // 테두리는 누를 수 있다는 뜻이므로 여기서는 쓰지 않고 면으로 둔다.
