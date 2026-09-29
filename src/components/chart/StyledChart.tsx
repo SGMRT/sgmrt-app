@@ -13,6 +13,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { CartesianChart, Line, useChartPressState } from "victory-native";
 import { Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface StyledChartProps {
     label: string;
@@ -200,7 +201,7 @@ function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }) {
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#222222",
-        borderRadius: 8,
+        borderRadius: radius.md,
         padding: 10,
         gap: 10,
     },
@@ -215,10 +216,10 @@ const styles = StyleSheet.create({
         justifyContent: "flex-end",
         alignSelf: "flex-start",
         backgroundColor: "#2D2D2D",
-        borderTopLeftRadius: 6,
-        borderTopRightRadius: 6,
-        borderBottomLeftRadius: 1,
-        borderBottomRightRadius: 1,
+        borderTopLeftRadius: radius.sm,
+        borderTopRightRadius: radius.sm,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
         paddingHorizontal: 12,
         marginLeft: 8.5,
     },
@@ -229,10 +230,10 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gray[80],
         paddingHorizontal: 8,
         paddingTop: 4,
-        borderTopLeftRadius: 6,
-        borderTopRightRadius: 6,
-        borderBottomLeftRadius: 1,
-        borderBottomRightRadius: 1,
+        borderTopLeftRadius: radius.sm,
+        borderTopRightRadius: radius.sm,
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
     },
 });
 

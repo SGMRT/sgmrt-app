@@ -54,11 +54,11 @@ const styles = StyleSheet.create({
     },
     DaySelected: { backgroundColor: "#404512", width: "101%" },
     DayStarting: {
-        borderTopLeftRadius: 10,
-        borderBottomLeftRadius: 10,
+        borderTopLeftRadius: radius.md,
+        borderBottomLeftRadius: radius.md,
     },
-    DayEnding: { borderTopRightRadius: 10, borderBottomRightRadius: 10 },
-    DaySoloPeriod: { borderRadius: 10, width: 40 },
+    DayEnding: { borderTopRightRadius: radius.md, borderBottomRightRadius: radius.md },
+    DaySoloPeriod: { borderRadius: radius.md, width: 40 },
     Dot: {
         width: 2,
         height: 2,

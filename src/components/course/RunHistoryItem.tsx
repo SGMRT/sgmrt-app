@@ -3,6 +3,7 @@ import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Divider, Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export interface RunHistoryItemProps {
     mode: "SOLO" | "GHOST";
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     iconCompactContainer: {
         width: 22,
         height: 22,
-        borderRadius: 6,
+        borderRadius: radius.sm,
         backgroundColor: "rgba(226, 255, 0, 0.2)",
         justifyContent: "center",
         alignItems: "center",

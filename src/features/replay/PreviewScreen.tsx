@@ -10,6 +10,7 @@ import { Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useReplay } from "./hooks/useReplay";
 import PreviewMap from "./PreviewMap";
+import { radius } from "@/src/design-system/tokens/radius";
 
 const PreviewScreen = ({ courseId }: { courseId: number }) => {
     const cameraRef = useRef<Camera | null>(null);
@@ -61,7 +62,7 @@ const PreviewScreen = ({ courseId }: { courseId: number }) => {
                 style={{
                     flex: 1,
                     marginHorizontal: 16.5,
-                    borderRadius: 20,
+                    borderRadius: radius.base,
                     overflow: "hidden",
                 }}
                 onPress={() => {

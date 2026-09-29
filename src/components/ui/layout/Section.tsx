@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Divider } from "./Divider";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface SectionProps {
     children: React.ReactNode;
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
         backgroundColor: darkTheme.ui01,
         paddingHorizontal: 20,
         paddingVertical: 20,
-        borderRadius: 20,
+        borderRadius: radius.base,
     },
     titleContainer: {
         marginBottom: 20,

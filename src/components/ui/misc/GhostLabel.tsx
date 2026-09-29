@@ -1,6 +1,7 @@
 import { GhostIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface GhostLabelProps {
     width?: number;
@@ -24,7 +25,7 @@ const styles = StyleSheet.create({
     logoContainer: {
         width: 34,
         height: 34,
-        borderRadius: 10,
+        borderRadius: radius.md,
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "rgba(226, 255, 0, 0.2)",

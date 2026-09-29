@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     surface: {
         minHeight: 60,
         backgroundColor: darkTheme.ui01,
-        borderRadius: radius.xl,
+        borderRadius: radius.base,
         paddingHorizontal: spacing[20],
         paddingVertical: spacing[16],
     },

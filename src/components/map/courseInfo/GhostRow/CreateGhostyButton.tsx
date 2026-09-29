@@ -2,6 +2,7 @@ import { AddIcon, InfoIcon } from "@/assets/svgs/svgs";
 import { Beta, Typography } from "@/src/components/ui";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface CreateGhostyButtonProps {
     remainingCount?: number;
@@ -48,7 +49,7 @@ export const CreateGhostyButton = ({
 const styles = StyleSheet.create({
     createGhostButton: {
         backgroundColor: "#222222",
-        borderRadius: 10,
+        borderRadius: radius.base,
         paddingVertical: 10,
         paddingHorizontal: 14,
         justifyContent: "space-between",

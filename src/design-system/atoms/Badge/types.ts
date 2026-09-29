@@ -1,7 +1,7 @@
 // Ghost Runner Design System - Badge Types
 
 import type { SvgProps } from "react-native-svg";
-import { typography } from "../../tokens";
+import { radius, typography } from "../../tokens";
 
 export type BadgeSize = "small" | "large";
 export type BadgeTheme = "uiB" | "ui02" | "primary";
@@ -50,7 +50,7 @@ export const NORMAL_CONFIG = {
     small: {
         height: 26,
         paddingHorizontal: 6,
-        borderRadius: 8,
+        borderRadius: radius.md,
         gap: 2,
         iconSize: 16,
         ...typography.variants.caption,
@@ -58,7 +58,7 @@ export const NORMAL_CONFIG = {
     large: {
         height: 35,
         paddingHorizontal: 8,
-        borderRadius: 10,
+        borderRadius: radius.md,
         gap: 4,
         iconSize: 20,
         ...typography.variants.body2,

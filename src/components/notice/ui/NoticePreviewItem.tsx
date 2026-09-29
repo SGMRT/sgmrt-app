@@ -4,6 +4,7 @@ import { formatDate } from "@/src/utils/formatDate";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface NoticePreviewItemProps {
     title: string;
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
         gap: 4,
         padding: 20,
         backgroundColor: "#171717",
-        borderRadius: 20,
+        borderRadius: radius.base,
     },
     noticePreviewHeader: {
         flexDirection: "row",

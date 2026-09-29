@@ -52,7 +52,7 @@ export const RunningRecord = ({
 const styles = StyleSheet.create({
     container: {
         backgroundColor: "#222222",
-        borderRadius: 8,
+        borderRadius: radius.md,
         paddingHorizontal: 14,
         paddingVertical: 10,
         gap: 14,

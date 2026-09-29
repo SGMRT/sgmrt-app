@@ -4,6 +4,7 @@ import colors from "@/src/theme/colors";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Divider, Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export interface RunHistoryGalleryItemProps {
     mode: "SOLO" | "GHOST";
@@ -130,14 +131,14 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gray[80],
         width: 120,
         height: 120,
-        borderRadius: 10,
+        borderRadius: radius.base,
         alignItems: "center",
         justifyContent: "center",
     },
     image: {
         width: 120,
         height: 120,
-        borderRadius: 10,
+        borderRadius: radius.base,
     },
     contentContainer: {
         gap: 5,
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
     iconContainer: {
         width: 34,
         height: 34,
-        borderRadius: 10,
+        borderRadius: radius.md,
         backgroundColor: "rgba(226, 255, 0, 0.2)",
         justifyContent: "center",
         alignItems: "center",

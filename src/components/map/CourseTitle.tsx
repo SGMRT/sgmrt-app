@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(63, 63, 63, 0.8)",
         height: 34,
         justifyContent: "center",
-        borderRadius: 10,
+        borderRadius: radius.md,
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
         gap: 1,
         paddingLeft: 12,

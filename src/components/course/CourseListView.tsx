@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
 import { Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
 import { Control } from "@/src/design-system/atoms/Control";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
         backgroundColor: "gray",
         width: 120,
         height: 120,
-        borderRadius: 10,
+        borderRadius: radius.base,
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
     image: {
         width: 120,
         height: 120,
-        borderRadius: 10,
+        borderRadius: radius.base,
     },
     contentContainer: {
         marginVertical: 4,

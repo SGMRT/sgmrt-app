@@ -54,7 +54,7 @@ const ListSectionItem = ({
 const styles = StyleSheet.create({
     container: {
         backgroundColor: darkTheme.ui01,
-        borderRadius: radius.md,
+        borderRadius: radius.base,
     },
     listSectionItem: {
         height: 62,

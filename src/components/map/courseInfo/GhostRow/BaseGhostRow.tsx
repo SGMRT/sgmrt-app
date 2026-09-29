@@ -1,6 +1,7 @@
 import { Divider } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface BaseGhostRowProps {
     active?: boolean;
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
         paddingVertical: 9,
         paddingLeft: 13.5,
         backgroundColor: "#222222",
-        borderRadius: 8,
+        borderRadius: radius.md,
         flexDirection: "row",
         alignItems: "center",
         gap: 13.5,

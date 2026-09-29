@@ -8,6 +8,7 @@ import {
     ViewStyle,
 } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
+import { radius } from "@/src/design-system/tokens/radius";
 
 type ButtonType =
     | "active"
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
         flex: 1,
         maxHeight: 58,
         height: 58,
-        borderRadius: 16,
+        borderRadius: radius.base,
         marginHorizontal: 16.5,
         flexDirection: "row",
         alignItems: "center",

@@ -84,8 +84,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#111111",
-        borderTopStartRadius: 20,
-        borderTopEndRadius: 20,
+        borderTopStartRadius: radius["2xl"],
+        borderTopEndRadius: radius["2xl"],
     },
     handle: {
         paddingTop: 10,

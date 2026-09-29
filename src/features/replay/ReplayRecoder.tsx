@@ -41,6 +41,7 @@ import {
 import { useRecordingMetrics } from "./hooks/useRecordingMetrics";
 import { useReplay } from "./hooks/useReplay";
 import PreviewMap from "./PreviewMap";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export type ReplayRecorderHandle = {
     startRecording: () => Promise<void>;
@@ -557,7 +558,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                         style={{
                             width,
                             height,
-                            borderRadius: 16,
+                            borderRadius: radius.base,
                             overflow: "hidden",
                             marginHorizontal: 16,
                         }}

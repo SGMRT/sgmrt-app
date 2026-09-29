@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
         maxWidth: "50%",
     },
     mapContainer: {
-        borderRadius: radius["2xl"],
+        borderRadius: radius.base,
         alignItems: "center",
         backgroundColor: darkTheme.ui01,
         width: "100%",

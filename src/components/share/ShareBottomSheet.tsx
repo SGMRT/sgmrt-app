@@ -19,6 +19,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomModal, Button, Section, Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 const types = [
     { title: "기본", asset: ShareDefault, variant: "default" },
@@ -135,7 +136,7 @@ const ShareCard = ({
                 flexBasis: "48.5%",
                 alignItems: "center",
                 justifyContent: "center",
-                borderRadius: 16,
+                borderRadius: radius.base,
                 overflow: "hidden",
             }}
         >

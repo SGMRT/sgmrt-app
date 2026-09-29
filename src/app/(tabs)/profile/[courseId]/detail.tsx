@@ -149,7 +149,7 @@ export default function Result() {
                         {/* 코스 지도 파트 */}
                         <View
                             style={{
-                                borderRadius: radius["2xl"],
+                                borderRadius: radius.base,
                                 alignItems: "center",
                                 backgroundColor: darkTheme.ui01,
                             }}

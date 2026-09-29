@@ -231,12 +231,12 @@ const styles = StyleSheet.create({
         marginLeft: "auto",
         backgroundColor: colors.gray[60],
         paddingHorizontal: 4,
-        borderRadius: 8,
+        borderRadius: radius.md,
         marginRight: 18,
     },
     icon: {
         width: 20,
         height: 20,
-        borderRadius: 4,
+        borderRadius: radius.sm,
     },
 });

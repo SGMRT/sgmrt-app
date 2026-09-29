@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
         gap: spacing[12],
     },
     image: {
-        borderRadius: radius["2xl"],
+        borderRadius: radius.base,
         flex: 1,
         width: "100%",
         height: "100%",

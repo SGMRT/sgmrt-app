@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "flex-start",
         backgroundColor: darkTheme.ui01,
-        borderRadius: radius.md,
+        borderRadius: radius.base,
     },
     chevron: {
         marginLeft: "auto",

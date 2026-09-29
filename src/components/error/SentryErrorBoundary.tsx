@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react-native";
 import { PropsWithChildren } from "react";
+import { radius } from "@/src/design-system/tokens/radius";
 import {
     Text,
     View,
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#00C896",
         paddingHorizontal: 32,
         paddingVertical: 14,
-        borderRadius: 8,
+        borderRadius: radius.md,
     },
     buttonText: {
         fontSize: 16,

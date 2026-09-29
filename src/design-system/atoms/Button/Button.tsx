@@ -88,7 +88,7 @@ const SIZE: Record<
     },
     large: {
         height: 56,
-        radius: radius.xl,
+        radius: radius.base,
         fontSize: 16,
         gap: spacing[8],
         paddingHorizontal: spacing[24],

@@ -11,6 +11,7 @@ import { ConfettiMethods } from "react-native-fast-confetti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, Typography } from "@/src/components/ui";
 import { PageIndicator } from "@/src/design-system/atoms";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export type Step = {
     title: string;
@@ -189,8 +190,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16.5,
         paddingTop: 34,
         backgroundColor: "#111111",
-        borderTopStartRadius: 20,
-        borderTopEndRadius: 20,
+        borderTopStartRadius: radius["2xl"],
+        borderTopEndRadius: radius["2xl"],
     },
     content: {
         gap: 15,

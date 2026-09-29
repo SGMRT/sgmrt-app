@@ -1,4 +1,5 @@
 import { StyleSheet, View } from "react-native";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export const Divider = ({
     direction = "vertical",
@@ -19,12 +20,12 @@ const styles = StyleSheet.create({
     vertical: {
         height: 10,
         width: 1,
-        borderRadius: 4,
+        borderRadius: radius.xs,
     },
     horizontal: {
         height: 1,
         width: "100%",
         opacity: 0.3,
-        borderRadius: 4,
+        borderRadius: radius.xs,
     },
 });

@@ -7,6 +7,7 @@ import {
     ViewStyle,
 } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface FilterButtonProps {
     onPress: () => void;
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 12,
         paddingVertical: 8,
-        borderRadius: 6,
+        borderRadius: radius.md,
         borderWidth: 1,
         backgroundColor: "#171717",
         borderColor: colors.gray[80],

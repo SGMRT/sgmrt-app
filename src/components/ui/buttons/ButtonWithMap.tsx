@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { Button, ButtonProps } from "./Button";
 import { Typography } from "../display/Typography";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;
@@ -101,7 +102,7 @@ export default function ButtonWithIcon({
 const styles = StyleSheet.create({
     button: {
         backgroundColor: "#222222",
-        borderRadius: 16,
+        borderRadius: radius.base,
         alignItems: "center",
         justifyContent: "center",
         width: 58,
