@@ -123,7 +123,7 @@ export default function ResultCourseMap({
                                         "HH:MM:SS"
                                     )}
                                 </Typography>
-                                <Divider color={colors.gray[40]} />
+                                <Divider />
                                 <Typography variant="caption1" color="gray20">
                                     {yKey === "pace"
                                         ? getFormattedPace(

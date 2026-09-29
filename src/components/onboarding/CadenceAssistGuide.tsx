@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { BottomModal, Typography } from "@/src/components/ui";
 import { Step } from "./Onboarding";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 const steps: Step[] = [
     {
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
     container: {
         gap: 15,
         alignItems: "center",
-        paddingHorizontal: 16.5,
+        paddingHorizontal: screenGutter,
         marginBottom: 30,
     },
     image: {

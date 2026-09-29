@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, Typography } from "@/src/components/ui";
 import { PageIndicator } from "@/src/design-system/atoms";
 import { radius } from "@/src/design-system/tokens/radius";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 export type Step = {
     title: string;
@@ -30,7 +31,7 @@ interface OnboardingProps {
     showButton?: boolean;
 }
 
-const PAGE_H_PADDING = 16.5 * 2;
+const PAGE_H_PADDING = screenGutter * 2;
 
 export const Onboarding = ({
     steps,
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         alignItems: "center",
-        paddingHorizontal: 16.5,
+        paddingHorizontal: screenGutter,
         paddingTop: 34,
         backgroundColor: "#111111",
         borderTopStartRadius: radius["2xl"],

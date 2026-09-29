@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import Animated from "react-native-reanimated";
 import { radius } from "@/src/design-system/tokens/radius";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 type TrackPhase = "idle" | "follow" | "heading";
 
@@ -40,7 +41,7 @@ export default function ControlPannel({
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
-        left: 16.5,
+        left: screenGutter,
         bottom: 16,
         height: 48,
         width: 48,

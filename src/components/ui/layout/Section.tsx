@@ -12,6 +12,7 @@ import { Divider } from "./Divider";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
+import { sectionPadding } from "@/src/design-system/tokens/layout";
 
 interface SectionProps {
     children: React.ReactNode;
@@ -55,7 +56,7 @@ export default function Section({
                             </Typography>
                             {onClickInfo && (
                                 <TouchableOpacity onPress={onClickInfo}>
-                                    <InfoIcon />
+                                    <InfoIcon color={darkTheme.ui07} />
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -85,8 +86,8 @@ const styles = StyleSheet.create({
     // 제목과 내용 사이도 여기서 정해, 여백과 간격이 늘 같이 움직이게 한다.
     container: {
         backgroundColor: darkTheme.ui01,
-        padding: spacing[20],
-        gap: spacing[20],
+        padding: sectionPadding,
+        gap: sectionPadding,
         borderRadius: radius.base,
     },
     // 선은 제목에 딸린 밑줄이라 바짝 붙인다.

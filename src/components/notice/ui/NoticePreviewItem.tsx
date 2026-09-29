@@ -5,6 +5,9 @@ import { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { sectionPadding } from "@/src/design-system/tokens/layout";
+import { spacing } from "@/src/design-system/tokens/spacing";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface NoticePreviewItemProps {
     title: string;
@@ -65,10 +68,11 @@ export const NoticePreviewItem = ({
 };
 
 const styles = StyleSheet.create({
+    // 배경 위에 놓이는 카드다. 다른 섹션과 같은 면과 같은 사방 여백을 쓴다.
     noticePreviewContainer: {
-        gap: 4,
-        padding: 20,
-        backgroundColor: "#171717",
+        gap: spacing[4],
+        padding: sectionPadding,
+        backgroundColor: darkTheme.ui01,
         borderRadius: radius.base,
     },
     noticePreviewHeader: {
@@ -77,12 +81,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     noticePreviewTitle: {
-        paddingRight: 8,
+        paddingRight: spacing[8],
     },
     noticePreviewContent: {
-        paddingRight: 8,
+        paddingRight: spacing[8],
     },
     noticePreviewChevron: {
-        marginRight: -8,
+        marginRight: -spacing[8],
     },
 });

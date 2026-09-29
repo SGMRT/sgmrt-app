@@ -10,6 +10,7 @@ import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
 import { Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
 import { Control } from "@/src/design-system/atoms/Control";
 import { radius } from "@/src/design-system/tokens/radius";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
@@ -112,7 +113,7 @@ const CourseListView = ({
     return (
         <View
             style={{
-                marginHorizontal: 16.5,
+                marginHorizontal: screenGutter,
                 maxHeight: maxHeight,
             }}
         >

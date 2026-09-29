@@ -5,6 +5,7 @@ import { Button, Typography } from "@/src/components/ui";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View } from "react-native";
 import { CreateGhosty } from "./CreateGhosty";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 interface BottomGuideProps {
     course: CourseResponse;
@@ -35,7 +36,7 @@ export const BottomGuide = ({
                     </Typography>
                     <Button
                         style={{
-                            marginHorizontal: 16.5,
+                            marginHorizontal: screenGutter,
                         }}
                         type="active"
                         title="네, 확인했어요"

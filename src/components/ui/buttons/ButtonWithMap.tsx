@@ -17,6 +17,7 @@ import {
 import { Button, ButtonProps } from "./Button";
 import { Typography } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
-        marginHorizontal: 16.5,
+        marginHorizontal: screenGutter,
         paddingTop: 12,
     },
     topStroke: {

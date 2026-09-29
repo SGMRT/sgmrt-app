@@ -10,6 +10,7 @@ import { GoRunCalendar } from "../calendar/GoRunCalendar";
 import { BottomModal, DualFilter, EmptyListView, FilterBar, ScrollButton, Section } from "@/src/components/ui";
 import { RunHistoryItem } from "./RunHistoryItem";
 import { RunHistoryGalleryItem } from "./RunHistoryGalleryItem";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 type HistoryWithFilterProps = {
     data: RunResponse[];
@@ -150,7 +151,7 @@ export const HistoryWithFilter = ({
             <FlashList
                 ref={scrollViewRef}
                 data={displayData.data}
-                style={{ paddingHorizontal: 16.5 }}
+                style={{ paddingHorizontal: screenGutter }}
                 contentContainerStyle={{
                     paddingBottom: 100,
                 }}

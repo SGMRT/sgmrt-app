@@ -14,6 +14,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { darkTheme } from "../../themes/dark";
 import { radius } from "../../tokens/radius";
 import { spacing } from "../../tokens/spacing";
+import { sectionPadding } from "../../tokens/layout";
 
 export interface SplitActionItem {
     label: string;
@@ -61,10 +62,10 @@ const styles = StyleSheet.create({
     // 칸이 여백을 가지면 가운데 선이 위아래 끝까지 닿아 덩어리가 잘려 보인다.
     container: {
         flexDirection: "row",
-        padding: spacing[20],
+        padding: sectionPadding,
         // 칸과 선 사이도 섹션의 줄 사이와 같은 20 이다.
         // 붙여 두면 선이 칸의 테두리처럼 읽혀 두 칸이 따로 놀아 보인다.
-        gap: spacing[20],
+        gap: sectionPadding,
         borderRadius: radius.base,
         backgroundColor: darkTheme.ui01,
     },

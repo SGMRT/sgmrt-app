@@ -5,6 +5,7 @@ import { spacing } from "@/src/design-system/tokens/spacing";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet } from "react-native";
 import { Typography } from "@/src/components/ui";
+import { sectionPadding } from "@/src/design-system/tokens/layout";
 
 export const ProfileNoticeSection = ({ onPress }: { onPress: () => void }) => {
     return (
@@ -12,7 +13,7 @@ export const ProfileNoticeSection = ({ onPress }: { onPress: () => void }) => {
             <Typography variant="subhead2" color="white">
                 공지사항 및 이벤트
             </Typography>
-            <ChevronIcon color={colors.gray[40]} style={styles.chevron} />
+            <ChevronIcon color={darkTheme.ui03} style={styles.chevron} />
         </Pressable>
     );
 };
@@ -20,7 +21,7 @@ export const ProfileNoticeSection = ({ onPress }: { onPress: () => void }) => {
 const styles = StyleSheet.create({
     // 여백은 다른 섹션과 같은 사방 20 이다.
     container: {
-        padding: spacing[20],
+        padding: sectionPadding,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "flex-start",

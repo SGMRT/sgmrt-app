@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 type ButtonType =
     | "active"
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
         maxHeight: 58,
         height: 58,
         borderRadius: radius.base,
-        marginHorizontal: 16.5,
+        marginHorizontal: screenGutter,
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",

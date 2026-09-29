@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Typography } from "../display/Typography";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 interface HeaderProps {
     titleText: string;
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: "row",
         alignItems: "center",
-        paddingHorizontal: 16.5,
+        paddingHorizontal: screenGutter,
         height: 50,
         justifyContent: "space-between",
     },

@@ -24,6 +24,7 @@ import { Alert, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GoRunCalendar } from "../calendar/GoRunCalendar";
 import { CourseGalleryItem } from "./CourseListView";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 type CoursesWithFilterProps = {
     data: UserCourseInfo[];
@@ -251,7 +252,7 @@ export const CoursesWithFilter = ({
                 isLoading={isDeleting}
             />
             <FlashList
-                style={{ paddingHorizontal: 16.5 }}
+                style={{ paddingHorizontal: screenGutter }}
                 data={displayData.data}
                 ListEmptyComponent={
                     <Section>

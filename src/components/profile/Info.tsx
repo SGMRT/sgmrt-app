@@ -1,4 +1,3 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
 import {
     getPresignedUrl,
     getUserInfo,
@@ -12,6 +11,7 @@ import { useLocalNotificationPermission } from "@/src/features/notifications/use
 import { useAuthStore } from "@/src/store/authState";
 import { useLocalPrefs } from "@/src/store/localPrefs";
 import colors from "@/src/theme/colors";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import { pickImage } from "@/src/utils/pickImage";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -61,6 +61,7 @@ export const Info = ({
 
     const {
         data: userInfo,
+        isLoading,
         isFetching,
         isRefetching,
         refetch,
@@ -251,8 +252,11 @@ export const Info = ({
                 }
             >
                 {/* Profile */}
-                <View style={{ gap: spacing[16], marginTop: spacing[12] }}>
-                    <ProfileCard userInfo={userInfo ?? null} loading={isFetching} />
+                <View style={{ marginTop: spacing[12] }}>
+                    {/* isFetching 은 배경 갱신에도 참이라, 토글을 누를 때마다
+                        회원 정보를 다시 부르는 동안 이름과 신체 정보가 빈칸이 되어
+                        카드가 깜빡였다. 들고 있는 값이 없을 때만 빈칸으로 둔다. */}
+                    <ProfileCard userInfo={userInfo ?? null} loading={isLoading} />
                     {/* 둘 다 "내 것을 고친다"는 한 갈래 안의 두 길이라
                         따로 떼지 않고 한 덩어리로 묶어 가운데만 가른다 */}
                     <SplitAction
@@ -326,7 +330,7 @@ export const Info = ({
                     />
                     <ListSectionItem
                         title="애플 건강 연동"
-                        rightElement={<ChevronIcon color={colors.gray[40]} />}
+                        chevron
                         onPress={() => {
                             router.push("/(tabs)/profile/settings/health");
                         }}
@@ -337,7 +341,7 @@ export const Info = ({
                 <ListSectionContainer>
                     <ListSectionItem
                         title="법적 정보 및 기타"
-                        rightElement={<ChevronIcon color={colors.gray[40]} />}
+                        chevron
                         onPress={() => {
                             router.push("/(tabs)/profile/settings/legal");
                         }}
@@ -349,7 +353,7 @@ export const Info = ({
                                 "https://forms.gle/YhnuYBBqBD8beV4L6"
                             );
                         }}
-                        rightElement={<ChevronIcon color={colors.gray[40]} />}
+                        chevron
                     />
                     <ListSectionItem
                         title="버전 정보"
@@ -373,7 +377,7 @@ export const Info = ({
                             setModalType("logout");
                             modalRef.current?.present();
                         }}
-                        rightElement={<ChevronIcon color={colors.gray[40]} />}
+                        chevron
                     />
                 </ListSectionContainer>
                 <View />

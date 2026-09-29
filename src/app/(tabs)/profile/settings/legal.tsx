@@ -1,4 +1,3 @@
-import { ChevronIcon } from "@/assets/svgs/svgs";
 import { Header, ListSectionContainer, ListSectionItem } from "@/src/components/ui";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
@@ -23,7 +22,7 @@ export default function Legal() {
                                 },
                             });
                         }}
-                        rightElement={<ChevronIcon color={colors.gray[40]} />}
+                        chevron
                     />
                     <ListSectionItem
                         title="개인정보 처리방침"
@@ -35,7 +34,7 @@ export default function Legal() {
                                 },
                             });
                         }}
-                        rightElement={<ChevronIcon color={colors.gray[40]} />}
+                        chevron
                     />
                     <ListSectionItem
                         title="개인정보 수집 및 이용 동의"
@@ -47,7 +46,7 @@ export default function Legal() {
                                 },
                             });
                         }}
-                        rightElement={<ChevronIcon color={colors.gray[40]} />}
+                        chevron
                     />
                 </ListSectionContainer>
             </View>

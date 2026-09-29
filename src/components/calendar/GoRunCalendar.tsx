@@ -7,6 +7,7 @@ import { Calendar } from "react-native-calendars";
 import { Section } from "@/src/components/ui";
 import { CustomHeader } from "./CustomHeader";
 import { DayComponent } from "./DayComponent";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 import {
     formatKey,
     parseYM,
@@ -219,7 +220,7 @@ export const GoRunCalendar = ({
     }, [markedDates, runSet]);
 
     return (
-        <Section containerStyle={{ marginBottom: 30, marginHorizontal: 16.5 }}>
+        <Section containerStyle={{ marginBottom: 30, marginHorizontal: screenGutter }}>
             <Calendar
                 current={initialDate}
                 onMonthChange={(d) => {

@@ -6,6 +6,7 @@ import { forwardRef } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Typography } from "@/src/components/ui";
 import { NoticePreviewItem } from "./ui/NoticePreviewItem";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 type Props = {
     data: Notice[];
@@ -22,7 +23,10 @@ export const NoticePreviewList = forwardRef<FlashListRef<Notice>, Props>(
                 data={data}
                 keyExtractor={(item) => String(item.id)}
                 contentContainerStyle={styles.contentContainer}
-                ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
+                // 카드끼리 쌓일 때의 간격은 화면마다 같다
+                ItemSeparatorComponent={() => (
+                    <View style={{ height: spacing[12] }} />
+                )}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.6}
                 renderItem={({ item }) => (
@@ -61,7 +65,7 @@ NoticePreviewList.displayName = "NoticePreviewList";
 
 const styles = StyleSheet.create({
     contentContainer: {
-        paddingVertical: 20,
-        paddingHorizontal: 16.5,
+        paddingVertical: spacing[20],
+        paddingHorizontal: spacing[16],
     },
 });

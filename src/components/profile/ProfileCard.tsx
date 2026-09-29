@@ -3,6 +3,7 @@ import { Divider, Typography } from "@/src/components/ui";
 import { Avatar } from "@/src/design-system/atoms/Avatar";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { StyleSheet, View } from "react-native";
+import { sectionPadding } from "@/src/design-system/tokens/layout";
 
 interface ProfileCardProps {
     userInfo: GetUserInfoResponse | null;
@@ -62,10 +63,13 @@ export const ProfileCard = ({ userInfo, loading }: ProfileCardProps) => {
 };
 
 const styles = StyleSheet.create({
+    // 면도 모서리도 없는 영역이다. 아래 여백만 제가 갖는다.
+    // 감싸는 쪽이 gap 으로 주면 이 값이 화면마다 달라진다.
     profileContent: {
         flexDirection: "row",
         gap: spacing[16],
         alignItems: "center",
+        paddingBottom: sectionPadding,
     },
     profileInfo: {
         flexDirection: "row",

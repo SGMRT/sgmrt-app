@@ -3,6 +3,7 @@ import StyledChart from "@/src/components/chart/StyledChart";
 import { Divider, Section, Stat, StatRow, Typography } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 export const CourseInfoSection = ({
     courseName,
@@ -33,7 +34,7 @@ export const CourseInfoSection = ({
                             <ChevronIcon color={colors.gray[40]} />
                         </Pressable>
                     </View>
-                    <Divider direction="horizontal" color={colors.gray[40]} />
+                    <Divider direction="horizontal" />
                 </View>
                 <StatRow
                     stats={stats}
@@ -55,7 +56,7 @@ export const CourseInfoSection = ({
 
 const styles = StyleSheet.create({
     courseInfoSection: {
-        marginHorizontal: 16.5,
+        marginHorizontal: screenGutter,
     },
     courseInfoSectionTitle: {
         marginBottom: 5,

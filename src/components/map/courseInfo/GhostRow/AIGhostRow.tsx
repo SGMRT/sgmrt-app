@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
 import { radius } from "@/src/design-system/tokens/radius";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 const CREATE_DURATION_MS = 2 * 60 * 1000 + 30 * 1000; // 2분 30초
 const MAX_PROGRESS = 0.98; // 98%
@@ -107,7 +108,7 @@ export const AIGhostRow = ({
         <TouchableOpacity
             disabled={!active}
             onPress={handleDelete}
-            style={{ marginRight: 16.5 }}
+            style={{ marginRight: screenGutter }}
         >
             <TrashIcon color={active ? colors.gray[40] : colors.gray[60]} />
         </TouchableOpacity>

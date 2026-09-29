@@ -5,6 +5,7 @@ import { BlurView } from "expo-blur";
 import { Pressable, StyleSheet } from "react-native";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 interface NoticeProps {
     content: string;
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         borderRadius: radius.full,
         flexDirection: "row",
-        marginHorizontal: 16.5,
+        marginHorizontal: screenGutter,
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },
     content: {

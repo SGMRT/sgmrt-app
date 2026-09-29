@@ -1,10 +1,11 @@
-import { InfoIcon } from "@/assets/svgs/svgs";
+import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import colors from "@/src/theme/colors";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Typography, TypographyColor } from "../display/Typography";
+import { sectionPadding } from "@/src/design-system/tokens/layout";
 
 const ListSectionContainer = ({ children }: { children: React.ReactNode }) => {
     return <View style={styles.container}>{children}</View>;
@@ -15,6 +16,14 @@ interface ListSectionItemProps {
     titleColor?: TypographyColor;
     onPress?: () => void;
     rightElement?: React.ReactNode;
+    /**
+     * 줄 끝에 들어가는 화살표.
+     *
+     * 호출부가 아이콘을 직접 만들어 넘기면 색을 빠뜨린 화면이 생긴다.
+     * 실제로 마이페이지만 시인성을 낮추고 설정 화면은 그대로 남았다.
+     * 어떤 모양에 어떤 색인지는 이 컴포넌트가 정한다.
+     */
+    chevron?: boolean;
     onHintPress?: () => void;
 }
 
@@ -23,6 +32,7 @@ const ListSectionItem = ({
     titleColor = "white",
     onPress,
     rightElement,
+    chevron = false,
     onHintPress,
 }: ListSectionItemProps) => {
     return (
@@ -41,11 +51,12 @@ const ListSectionItem = ({
                     </Typography>
                     {onHintPress && (
                         <TouchableOpacity onPress={onHintPress}>
-                            <InfoIcon color={colors.gray[40]} />
+                            <InfoIcon color={darkTheme.ui03} />
                         </TouchableOpacity>
                     )}
                 </View>
                 {rightElement}
+                {chevron && <ChevronIcon color={darkTheme.ui03} />}
             </View>
         </TouchableOpacity>
     );
@@ -59,14 +70,18 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: darkTheme.ui01,
         borderRadius: radius.base,
-        padding: spacing[20],
-        gap: spacing[20],
+        padding: sectionPadding,
+        gap: sectionPadding,
     },
     // 높이를 적지 않고 패딩으로 잡는다.
     // 높이로 적으면 눈에 보이는 여백이 "높이 빼기 내용" 의 나머지가 되어
     // 스케일 밖 값으로 떨어진다. 62 일 때 가장자리 19, 줄 사이 38 이 그랬다.
     //
+    // 줄 자체도 제 여백을 조금 갖는다.
+    // 글자 높이(24)만으로 두면 누르는 자리와 읽는 자리가 정확히 겹쳐
+    // 줄이 면이 아니라 글자 한 줄로만 읽힌다.
     listSectionItem: {
+        padding: spacing[4],
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",

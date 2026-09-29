@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useReplay } from "./hooks/useReplay";
 import PreviewMap from "./PreviewMap";
 import { radius } from "@/src/design-system/tokens/radius";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 const PreviewScreen = ({ courseId }: { courseId: number }) => {
     const cameraRef = useRef<Camera | null>(null);
@@ -61,7 +62,7 @@ const PreviewScreen = ({ courseId }: { courseId: number }) => {
             <Pressable
                 style={{
                     flex: 1,
-                    marginHorizontal: 16.5,
+                    marginHorizontal: screenGutter,
                     borderRadius: radius.base,
                     overflow: "hidden",
                 }}
@@ -89,7 +90,7 @@ const PreviewScreen = ({ courseId }: { courseId: number }) => {
                 />
             </Pressable>
             <Section
-                containerStyle={{ marginHorizontal: 16.5, marginBottom: 6 }}
+                containerStyle={{ marginHorizontal: screenGutter, marginBottom: 6 }}
             >
                 <StatRow
                     color="gray20"
