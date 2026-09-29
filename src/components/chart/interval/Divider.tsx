@@ -1,6 +1,7 @@
 import colors from "@/src/theme/colors";
 import { memo } from "react";
 import { View } from "react-native";
+import { radius } from "@/src/design-system/tokens/radius";
 
 /**
  * 점 + 세로 라인 컴포넌트
@@ -12,7 +13,7 @@ export const Divider = memo(function Divider() {
                 style={{
                     width: 6,
                     height: 6,
-                    borderRadius: 100,
+                    borderRadius: radius.full,
                     borderWidth: 1,
                     borderColor: colors.primary,
                 }}

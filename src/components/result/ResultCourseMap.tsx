@@ -14,6 +14,7 @@ import { SharedValue, runOnJS, useDerivedValue } from "react-native-reanimated";
 import CourseLayer from "../map/CourseLayer";
 import MapViewWrapper from "../map/MapViewWrapper";
 import { Divider, Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface ResultCourseMapProps {
     telemetries: Telemetry[];
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     chartMarker: {
         width: 8,
         height: 8,
-        borderRadius: 7,
+        borderRadius: radius.full,
         backgroundColor: colors.primary,
         borderColor: "#FFFFFF",
     },

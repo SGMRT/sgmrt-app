@@ -5,6 +5,7 @@ import { GhostLabel, Typography } from "@/src/components/ui";
 import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface CourseTitleProps {
     course: CourseResponse;
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     topUserImage: {
         width: 40,
         height: 40,
-        borderRadius: 100,
+        borderRadius: radius.full,
         backgroundColor: "white",
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
     },
     userCountContainer: {
         backgroundColor: "rgba(63, 63, 63, 0.8)",
-        borderRadius: 100,
+        borderRadius: radius.full,
         width: 40,
         height: 40,
         marginLeft: -14,

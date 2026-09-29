@@ -30,6 +30,7 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export default function Profile() {
     const {
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
     profileImage: {
         width: 90,
         height: 90,
-        borderRadius: 100,
+        borderRadius: radius.full,
     },
 
     genderButtonContainer: {

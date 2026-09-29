@@ -12,6 +12,7 @@ import Animated, {
 import { useTheme } from "../../../themes";
 import { spring } from "../../../tokens/motion";
 import type { ControlVariantProps } from "../types";
+import { radius } from "@/src/design-system/tokens/radius";
 
 const TOGGLE_WIDTH = 44;
 const TOGGLE_HEIGHT = 24;
@@ -49,7 +50,7 @@ export function Toggle({ status, disabled, onPress }: ControlVariantProps) {
                     {
                         width: TOGGLE_WIDTH,
                         height: TOGGLE_HEIGHT,
-                        borderRadius: TOGGLE_HEIGHT / 2,
+                        borderRadius: radius.full,
                         justifyContent: "center",
                         paddingHorizontal: THUMB_OFFSET,
                     },
@@ -64,7 +65,7 @@ export function Toggle({ status, disabled, onPress }: ControlVariantProps) {
                         {
                             width: TOGGLE_THUMB,
                             height: TOGGLE_THUMB,
-                            borderRadius: TOGGLE_THUMB / 2,
+                            borderRadius: radius.full,
                             backgroundColor: disabled
                                 ? theme.uiDisabledFg
                                 : theme.ui10,

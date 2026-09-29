@@ -23,6 +23,7 @@ import {
 } from "@/assets/icons/icons";
 import colors from "@/src/theme/colors";
 import ControlPannel from "./ControlPannel";
+import { radius } from "@/src/design-system/tokens/radius";
 
 type TrackPhase = "idle" | "follow" | "heading";
 
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
         width: 18,
         height: 18,
         backgroundColor: colors.primary,
-        borderRadius: 999,
+        borderRadius: radius.full,
     },
     bearing: {
         width: 60,

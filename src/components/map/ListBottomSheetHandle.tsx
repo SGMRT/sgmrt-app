@@ -3,6 +3,7 @@ import colors from "@/src/theme/colors";
 import { BottomSheetHandle } from "@gorhom/bottom-sheet";
 import { StyleSheet, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export const ListBottomSheetHandle = () => {
     const animatedIndex = useSharedValue(0);
@@ -26,6 +27,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gray[40],
         width: 50,
         height: 5,
-        borderRadius: 100,
+        borderRadius: radius.full,
     },
 });

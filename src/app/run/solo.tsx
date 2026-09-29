@@ -31,6 +31,7 @@ import Animated, {
     useSharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { radius } from "@/src/design-system/tokens/radius";
 
 const CAPTURE_TIMEOUT_MS = 10000;
 
@@ -440,6 +441,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gray[40],
         width: 50,
         height: 5,
-        borderRadius: 100,
+        borderRadius: radius.full,
     },
 });

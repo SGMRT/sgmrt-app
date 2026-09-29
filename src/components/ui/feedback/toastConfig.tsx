@@ -4,6 +4,7 @@ import Constants from "expo-constants";
 import { StyleSheet } from "react-native";
 import Toast, { ToastShowParams } from "react-native-toast-message";
 import { Typography } from "../display/Typography";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export const showCompactToast = (
     text: string,
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         height: 52,
         paddingHorizontal: 20,
-        borderRadius: 30,
+        borderRadius: radius.full,
         overflow: "hidden",
         zIndex: 100,
     },

@@ -5,6 +5,7 @@ import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface UserGhostRowProps {
     profileUrl: string;
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 40,
         height: 40,
-        borderRadius: 100,
+        borderRadius: radius.full,
         backgroundColor: "#333333",
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },

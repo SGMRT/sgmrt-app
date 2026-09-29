@@ -8,6 +8,7 @@ import { useCallback } from "react";
 import { Dimensions, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { SharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface BottomModalProps {
     bottomSheetRef?: React.RefObject<BottomSheetModal | null>;
@@ -94,6 +95,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gray[40],
         width: 50,
         height: 5,
-        borderRadius: 100,
+        borderRadius: radius.full,
     },
 });

@@ -2,6 +2,7 @@ import { RedoIcon } from "@/assets/svgs/svgs";
 import { useEffect, useRef } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { Typography } from "../display/Typography";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export const ShuffleButton = ({ onPress }: { onPress: () => void }) => {
     const pressedRef = useRef(false);
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         backgroundColor: "rgba(92, 92, 92, 0.8)",
-        borderRadius: 30,
+        borderRadius: radius.full,
         flexDirection: "row",
         gap: 8,
         alignSelf: "center",

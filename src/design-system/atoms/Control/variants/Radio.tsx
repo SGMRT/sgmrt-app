@@ -15,6 +15,7 @@ import { CheckIcon } from "../../../icons";
 import { useTheme } from "../../../themes";
 import { duration, pressScale, spring } from "../../../tokens/motion";
 import { SIZE, type ControlVariantProps } from "../types";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export function Radio({ status, disabled, onPress }: ControlVariantProps) {
     const theme = useTheme();
@@ -66,7 +67,7 @@ export function Radio({ status, disabled, onPress }: ControlVariantProps) {
                     {
                         width: SIZE,
                         height: SIZE,
-                        borderRadius: SIZE / 2,
+                        borderRadius: radius.full,
                         alignItems: "center",
                         justifyContent: "center",
                     },

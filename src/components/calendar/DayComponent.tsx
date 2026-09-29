@@ -1,6 +1,7 @@
 import colors from "@/src/theme/colors";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export const DayComponent = (day: any) => {
     //boolean
@@ -61,6 +62,6 @@ const styles = StyleSheet.create({
     Dot: {
         width: 2,
         height: 2,
-        borderRadius: 100,
+        borderRadius: radius.full,
     },
 });

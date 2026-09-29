@@ -1,6 +1,7 @@
 import { ScrollTopIcon } from "@/assets/svgs/svgs";
 import { useGlobalStyles } from "@/src/theme/useGlobalStyles";
 import { StyleSheet, TouchableOpacity } from "react-native";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface ScrollButtonProps {
     onPress: () => void;
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         zIndex: 10,
         right: 16.5,
-        borderRadius: 100,
+        borderRadius: radius.full,
         alignItems: "center",
         justifyContent: "center",
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",

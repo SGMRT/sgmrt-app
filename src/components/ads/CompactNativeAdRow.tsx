@@ -22,6 +22,7 @@ import {
 } from "react-native-google-mobile-ads";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 type Props = { style?: ViewStyle };
 const AD_UNIT_ID = __DEV__
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
     badge: {
         width: 28,
         height: 18,
-        borderRadius: 9,
+        borderRadius: radius.full,
         backgroundColor: "#28323B",
         alignItems: "center",
         justifyContent: "center",

@@ -7,6 +7,7 @@ import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
+import { radius } from "@/src/design-system/tokens/radius";
 
 const CREATE_DURATION_MS = 2 * 60 * 1000 + 30 * 1000; // 2분 30초
 const MAX_PROGRESS = 0.98; // 98%
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 40,
         height: 40,
-        borderRadius: 100,
+        borderRadius: radius.full,
         backgroundColor: "#333333",
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },

@@ -2,6 +2,7 @@ import { LocateMe } from "@/assets/svgs/svgs";
 import { useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import Animated from "react-native-reanimated";
+import { radius } from "@/src/design-system/tokens/radius";
 
 type TrackPhase = "idle" | "follow" | "heading";
 
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
     },
     buttonContainer: {
         backgroundColor: "rgba(17, 17, 17, 0.8)",
-        borderRadius: 100,
+        borderRadius: radius.full,
         width: 48,
         height: 48,
         justifyContent: "center",

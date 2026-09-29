@@ -1,6 +1,7 @@
 import { darkTheme } from "@/src/design-system/themes/dark";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface RadioButtonProps {
     isSelected: boolean;
@@ -54,7 +55,7 @@ const styles = StyleSheet.create({
     container: {
         width: 20,
         height: 20,
-        borderRadius: 100,
+        borderRadius: radius.full,
         borderWidth: 1.5,
         justifyContent: "center",
         alignItems: "center",

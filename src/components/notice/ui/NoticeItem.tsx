@@ -4,6 +4,7 @@ import { darkTheme } from "@/src/design-system/themes/dark";
 import { BlurView } from "expo-blur";
 import { Pressable, StyleSheet } from "react-native";
 import { Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 interface NoticeProps {
     content: string;
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         alignItems: "center",
         justifyContent: "space-between",
-        borderRadius: 200,
+        borderRadius: radius.full,
         flexDirection: "row",
         marginHorizontal: 16.5,
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",

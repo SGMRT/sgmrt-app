@@ -4,6 +4,7 @@ import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 import { Divider, Stat, StatRow, Typography } from "@/src/components/ui";
+import { radius } from "@/src/design-system/tokens/radius";
 
 export const RunningRecord = ({
     user,
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
     avatar: {
         width: 40,
         height: 40,
-        borderRadius: 100,
+        borderRadius: radius.full,
     },
     icon: {
         position: "absolute",
