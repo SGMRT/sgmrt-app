@@ -33,6 +33,7 @@ import { CadenceAssistGuide } from "../onboarding/CadenceAssistGuide";
 import { ListSectionContainer, ListSectionItem, Typography, showToast } from "@/src/components/ui";
 import { Button } from "@/src/design-system/atoms/Button";
 import { Control } from "@/src/design-system/atoms/Control";
+import { SplitAction } from "@/src/design-system/molecules/SplitAction";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { CadenceAssistControl } from "./CadenceAssistControl";
 import { ProfileCard } from "./ProfileCard";
@@ -249,25 +250,20 @@ export const Info = ({
                 {/* Profile */}
                 <View style={{ gap: spacing[16], marginTop: spacing[12] }}>
                     <ProfileCard userInfo={userInfo ?? null} loading={isFetching} />
-                    {/* 프로필 카드에 딸린 보조 행동이라 medium 과 line 을 쓴다 */}
-                    <View style={{ flexDirection: "row", gap: spacing[8] }}>
-                        <Button
-                            title="프로필 이미지 변경"
-                            onPress={onPickImage}
-                            size="medium"
-                            variant="line"
-                            style={{ flex: 1 }}
-                        />
-                        <Button
-                            title="회원 정보 변경"
-                            onPress={() => {
+                    {/* 둘 다 "내 것을 고친다"는 한 갈래 안의 두 길이라
+                        따로 떼지 않고 한 덩어리로 묶어 가운데만 가른다 */}
+                    <SplitAction
+                        left={{
+                            label: "프로필 이미지 변경",
+                            onPress: onPickImage,
+                        }}
+                        right={{
+                            label: "회원 정보 변경",
+                            onPress: () => {
                                 router.push("/(tabs)/profile/editInfo");
-                            }}
-                            size="medium"
-                            variant="line"
-                            style={{ flex: 1 }}
-                        />
-                    </View>
+                            },
+                        }}
+                    />
                 </View>
                 {/*  공지사항 및 이벤트 */}
                 <ProfileNoticeSection
