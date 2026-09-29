@@ -3,6 +3,7 @@ import { Beta, Typography } from "@/src/components/ui";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface CreateGhostyButtonProps {
     remainingCount?: number;
@@ -25,7 +26,7 @@ export const CreateGhostyButton = ({
                             고스티 만들기
                         </Typography>
                         <TouchableOpacity onPress={onClickGuide}>
-                            <InfoIcon />
+                            <InfoIcon color={darkTheme.ui07} />
                         </TouchableOpacity>
                     </View>
                     <Typography variant="caption1" color="gray60">

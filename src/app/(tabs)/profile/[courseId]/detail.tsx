@@ -241,7 +241,7 @@ export default function Result() {
                                         >
                                             고스트
                                         </Typography>
-                                        <InfoIcon />
+                                        <InfoIcon color={darkTheme.ui07} />
                                     </TouchableOpacity>
                                 }
                             >
