@@ -1,3 +1,4 @@
+import { darkTheme } from "@/src/design-system/themes/dark";
 import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -13,7 +14,8 @@ export default function RadioButton({
     isSelected,
     showMyRecord = false,
     onPress,
-    activeColor = colors.primary,
+    // 고름 표시에 강조색을 쓰지 않는다. 강조색은 주 행동 몫이다
+    activeColor = darkTheme.ui07,
     inactiveColor = colors.gray[60],
 }: RadioButtonProps) {
     return (

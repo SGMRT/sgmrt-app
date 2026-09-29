@@ -1,5 +1,6 @@
 // NoticeItem.tsx
 import { CloseIcon, SpeakerIcon } from "@/assets/svgs/svgs";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import { BlurView } from "expo-blur";
 import { Pressable, StyleSheet } from "react-native";
 import { Typography } from "@/src/components/ui";
@@ -14,7 +15,7 @@ export const NoticeItem = ({ content, onPress, onClose }: NoticeProps) => {
     return (
         <BlurView intensity={1} style={styles.container}>
             <Pressable style={styles.content} onPress={onPress}>
-                <SpeakerIcon />
+                <SpeakerIcon color={darkTheme.ui07} />
                 <Typography
                     variant="caption1"
                     color="gray40"

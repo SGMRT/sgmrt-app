@@ -42,7 +42,7 @@ export const RunHistoryItem = ({
                     )}
                     <Typography
                         variant="subhead1"
-                        color={isSelected ? "primary" : "gray20"}
+                        color={isSelected ? "white" : "gray20"}
                     >
                         {name}
                     </Typography>
