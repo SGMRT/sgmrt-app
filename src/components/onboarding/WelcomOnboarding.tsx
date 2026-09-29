@@ -19,12 +19,12 @@ const steps: Step[] = [
         image: require("@/assets/images/onboarding/onboarding_4.png"),
     },
     {
-        title: "나의 러닝메이트 고스티 생성으로\n맞춤 플랜을 제공받아 보세요",
+        title: "나만의 러닝메이트 고스티를 만들고\n맞춤 플랜을 받아 보세요",
         image: require("@/assets/images/onboarding/onboarding_ghosty.png"),
     },
     {
-        title: "모든 준비가 끝났어요\n어제의 나를 뛰어넘을 준비가 되셨나요?",
-        subTitle: "내 정보는 마이페이지의 회원 정보에서 변경 가능해요",
+        title: "모든 준비가 끝났어요\n이제 어제의 나를 뛰어넘어 볼까요?",
+        subTitle: "입력한 정보는 마이페이지의 회원 정보에서 바꿀 수 있어요",
         image: require("@/assets/images/onboarding/onboarding_5.png"),
     },
 ];

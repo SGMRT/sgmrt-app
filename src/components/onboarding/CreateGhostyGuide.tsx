@@ -2,7 +2,7 @@ import { Onboarding, Step } from "./Onboarding";
 
 const steps: Step[] = [
     {
-        title: "나의 러닝메이트 고스티 생성으로\n맞춤 플랜을 제공받아 보세요",
+        title: "나만의 러닝메이트 고스티를 만들고\n맞춤 플랜을 받아 보세요",
         image: require("@/assets/images/onboarding/onboarding_ghosty.png"),
     },
 ];
