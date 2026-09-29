@@ -30,7 +30,10 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ProfileNoticeSection } from "../notice/ui/ProfileNoticeSection";
 import { CadenceAssistGuide } from "../onboarding/CadenceAssistGuide";
-import { ListSectionContainer, ListSectionItem, StyledButton, StyledSwitch, Typography, showToast } from "@/src/components/ui";
+import { ListSectionContainer, ListSectionItem, Typography, showToast } from "@/src/components/ui";
+import { Button } from "@/src/design-system/atoms/Button";
+import { Control } from "@/src/design-system/atoms/Control";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { CadenceAssistControl } from "./CadenceAssistControl";
 import { ProfileCard } from "./ProfileCard";
 
@@ -244,20 +247,25 @@ export const Info = ({
                 }
             >
                 {/* Profile */}
-                <View style={{ gap: 15, marginTop: 10 }}>
+                <View style={{ gap: spacing[16], marginTop: spacing[12] }}>
                     <ProfileCard userInfo={userInfo ?? null} loading={isFetching} />
-                    <View style={{ flexDirection: "row", gap: 4 }}>
-                        <StyledButton
+                    {/* 프로필 카드에 딸린 보조 행동이라 medium 과 line 을 쓴다 */}
+                    <View style={{ flexDirection: "row", gap: spacing[8] }}>
+                        <Button
                             title="프로필 이미지 변경"
                             onPress={onPickImage}
-                            style={{ width: "50%" }}
+                            size="medium"
+                            variant="line"
+                            style={{ flex: 1 }}
                         />
-                        <StyledButton
+                        <Button
                             title="회원 정보 변경"
                             onPress={() => {
                                 router.push("/(tabs)/profile/editInfo");
                             }}
-                            style={{ width: "50%" }}
+                            size="medium"
+                            variant="line"
+                            style={{ flex: 1 }}
                         />
                     </View>
                 </View>
@@ -272,12 +280,13 @@ export const Info = ({
                     <ListSectionItem
                         title="알림"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     (userInfo?.pushAlarmEnabled && granted) ??
                                     false
                                 }
-                                onValueChange={(value) => {
+                                onChange={(value) => {
                                     handlePushAlarmChange(value);
                                 }}
                             />
@@ -286,24 +295,26 @@ export const Info = ({
                     <ListSectionItem
                         title="음성 안내"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     userInfo?.voiceGuidanceEnabled ??
                                     false
                                 }
-                                onValueChange={handleSpeechChange}
+                                onChange={handleSpeechChange}
                             />
                         }
                     />
                     {/* <ListSectionItem
                         title="진동 안내"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     userInfo?.voiceGuidanceEnabled ??
                                     false
                                 }
-                                onValueChange={handleSpeechChange}
+                                onChange={handleSpeechChange}
                             />
                         }
                     /> */}
@@ -313,9 +324,10 @@ export const Info = ({
                             setCadenceAssistGuideShow(true);
                         }}
                         rightElement={
-                            <StyledSwitch
-                                isSelected={isCadenceAssistEnabled}
-                                onValueChange={(v) => {
+                            <Control
+                                type="toggle"
+                                status={isCadenceAssistEnabled}
+                                onChange={(v) => {
                                     handleCadenceAssistChange(v);
                                 }}
                             />

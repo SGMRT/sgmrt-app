@@ -12,7 +12,10 @@ import ResultCourseMap from "@/src/components/result/ResultCourseMap";
 import RunShot from "@/src/components/share/RunShot";
 import { ShareBottomSheet } from "@/src/components/share/ShareBottomSheet";
 import { ShareVariant } from "@/src/components/share/types";
-import { Button, Header, LoadingLayer, NameInput, ScrollButton, Section, StatRow, StyledButton, TabBar, Typography, showToast } from "@/src/components/ui";
+import { Header, LoadingLayer, ScrollButton, Section, StatRow, TabBar, Typography, showToast } from "@/src/components/ui";
+import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
+import { Button } from "@/src/design-system/atoms/Button";
+import { InlineInput } from "@/src/design-system/atoms/InlineInput";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
@@ -132,8 +135,8 @@ export default function Result() {
             const canMakeCourse = !runData?.courseInfo?.isPublic;
             if (canMakeCourse) {
                 return (
-                    <Button
-                        type="active"
+                    <BottomAgreementButton
+                        isActive
                         title="코스 등록"
                         onPress={() => bottomSheetRef.current?.present()}
                         topStroke
@@ -185,7 +188,7 @@ export default function Result() {
                         {/* 제목 파트 */}
                         <View style={styles.titleContainer}>
                             <View style={styles.titleInputContainer}>
-                                <NameInput
+                                <InlineInput
                                     defaultValue={runData.runningName}
                                     placeholder="제목을 입력해 주세요"
                                     onChangeText={setRecordTitle}
@@ -242,14 +245,17 @@ export default function Result() {
                             titleColor="white"
                             titleVariant="sectionhead"
                             titleRightChildren={
-                                <StyledButton
+                                /* 섹션 제목 줄에 놓인 작은 조작이라 small 을 쓴다.
+                                   보여 줄 내용을 바꾸는 보조 행동이므로 line 이다. */
+                                <Button
                                     title={
                                         displayMode === "pace"
                                             ? "코스 정보"
                                             : "내 페이스"
                                     }
                                     onPress={changeDisplayMode}
-                                    style={{ paddingHorizontal: spacing[12] }}
+                                    size="small"
+                                    variant="line"
                                 />
                             }
                             style={{ gap: spacing[16] }}
