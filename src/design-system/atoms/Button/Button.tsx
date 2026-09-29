@@ -202,7 +202,7 @@ export function Button({
         : selected
           ? darkTheme.ui07
           : line
-            ? darkTheme.ui03
+            ? darkTheme.ui02
             : undefined;
 
     const textColor = disabled

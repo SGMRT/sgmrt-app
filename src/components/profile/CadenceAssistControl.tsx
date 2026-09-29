@@ -106,15 +106,20 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: darkTheme.ui03,
+        borderColor: darkTheme.ui02,
     },
     // 지금 값을 보여 줄 뿐 누를 수 없다.
     // 테두리는 누를 수 있다는 뜻이므로 여기서는 쓰지 않고 면으로 둔다.
+    //
+    // 면은 카드 위가 아니라 아래로 둔다.
+    // 고스티의 통계 박스는 카드 안에 다시 놓인 카드라 uiUp 이 맞지만,
+    // 이것은 설정 한 줄에 딸린 값 칸이라 카드보다 앞설 이유가 없다.
+    // 카드보다 어두우면 파여 들어간 칸으로 읽혀 읽을 것과 누를 것이 갈린다.
     cadenceAssistPanel: {
         flex: 1,
         height: 32,
         borderRadius: radius.sm,
-        backgroundColor: darkTheme.uiUp,
+        backgroundColor: darkTheme.uiBackground,
         justifyContent: "center",
         alignItems: "center",
     },
