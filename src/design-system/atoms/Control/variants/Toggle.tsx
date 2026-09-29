@@ -27,11 +27,14 @@ export function Toggle({ status, disabled, onPress }: ControlVariantProps) {
         progress.value = withSpring(status ? 1 : 0, spring.toggle);
     }, [status, progress]);
 
+    // 꺼짐은 ui03 이다. 예전에는 ui07 이라 거의 흰색으로 읽혀
+    // 꺼져 있는데도 켜진 것처럼 보였다.
+    // 체크의 꺼짐(ui02)과 같은 어두운 대역에 두어 둘이 서로 어울리게 한다.
     const trackStyle = useAnimatedStyle(() => ({
         backgroundColor: interpolateColor(
             progress.value,
             [0, 1],
-            [theme.ui07, theme.primary],
+            [theme.ui03, theme.primary],
         ),
     }));
 
