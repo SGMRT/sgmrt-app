@@ -7,7 +7,8 @@ import { getDistance } from "@/src/utils/mapUtils";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
-import { Checkbox, Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
+import { Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
+import { Control } from "@/src/design-system/atoms/Control";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
@@ -211,7 +212,11 @@ export const CourseGalleryItem = ({
                         {courseName}
                     </Typography>
                     {isDeleteMode && onCheck ? (
-                        <Checkbox isChecked={isChecked} onPress={onCheck} />
+                        <Control
+                            type="checkFill"
+                            status={isChecked}
+                            onChange={onCheck}
+                        />
                     ) : (
                         <ChevronIcon color={colors.gray[40]} />
                     )}

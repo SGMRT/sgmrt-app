@@ -1,4 +1,5 @@
-import { Header, StyledSwitch } from "@/src/components/ui";
+import { Header } from "@/src/components/ui";
+import { Control } from "@/src/design-system/atoms/Control";
 import {
     ListSectionContainer,
     ListSectionItem,
@@ -105,48 +106,52 @@ export default function Health() {
                     <ListSectionItem
                         title="쓰기: 걷기 + 달리기"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     healthKitAuth.writeWRAuth ===
                                     AuthorizationStatus.sharingAuthorized
                                 }
-                                onValueChange={handleHealthKitChange}
+                                onChange={handleHealthKitChange}
                             />
                         }
                     />
                     <ListSectionItem
                         title="쓰기: 운동"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     healthKitAuth.writeWorkoutAuth ===
                                     AuthorizationStatus.sharingAuthorized
                                 }
-                                onValueChange={handleHealthKitChange}
+                                onChange={handleHealthKitChange}
                             />
                         }
                     />
                     <ListSectionItem
                         title="쓰기: 운동 경로"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     healthKitAuth.writeRouteAuth ===
                                     AuthorizationStatus.sharingAuthorized
                                 }
-                                onValueChange={handleHealthKitChange}
+                                onChange={handleHealthKitChange}
                             />
                         }
                     />
                     <ListSectionItem
                         title="쓰기: 활동 에너지"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     healthKitAuth.writeEnergyAuth ===
                                     AuthorizationStatus.sharingAuthorized
                                 }
-                                onValueChange={handleHealthKitChange}
+                                onChange={handleHealthKitChange}
                             />
                         }
                     />
@@ -155,12 +160,13 @@ export default function Health() {
                     {/* <ListSectionItem
                         title="읽기: 심박수"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     healthKitAuth.readHeartRateAuth ===
                                     AuthorizationStatus.sharingAuthorized
                                 }
-                                onValueChange={handleHealthKitChange}
+                                onChange={handleHealthKitChange}
                             />
                         }
                     /> */}
@@ -168,12 +174,13 @@ export default function Health() {
                     {/* <ListSectionItem
                         title="읽기: 운동"
                         rightElement={
-                            <StyledSwitch
-                                isSelected={
+                            <Control
+                                type="toggle"
+                                status={
                                     healthKitAuth.readWorkoutAuth ===
                                     AuthorizationStatus.sharingAuthorized
                                 }
-                                onValueChange={handleHealthKitChange}
+                                onChange={handleHealthKitChange}
                             />
                         }
                     /> */}

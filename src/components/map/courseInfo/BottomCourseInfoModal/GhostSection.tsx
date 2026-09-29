@@ -1,6 +1,7 @@
 import { getGhostyRateLimit } from "@/src/apis";
 import { PacemakerByCourseIdResponse } from "@/src/apis/types/ghosty";
-import { Section, Stat, StyledSwitch } from "@/src/components/ui";
+import { Section, Stat } from "@/src/components/ui";
+import { Control } from "@/src/design-system/atoms/Control";
 import { convertToName } from "@/src/features/pacemaker/utils/convertToName";
 import { getFormattedPace } from "@/src/utils/runUtils";
 import { useEffect, useMemo, useState } from "react";
@@ -50,9 +51,10 @@ export const GhostSection = ({
             onClickInfo={() => onClickGuide("ghost")}
             titleRightChildren={
                 (userGhost || aiGhost?.processingStatus === "COMPLETED") && (
-                    <StyledSwitch
-                        isSelected={selectedGhost !== null}
-                        onValueChange={(value) => {
+                    <Control
+                                type="toggle"
+                        status={selectedGhost !== null}
+                        onChange={(value) => {
                             onSwitchChange(
                                 value ? (userGhost ? "user" : "ai") : null
                             );
