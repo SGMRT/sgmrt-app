@@ -1,6 +1,8 @@
 import { CalendarIcon, ShowIcon } from "@/assets/svgs/svgs";
+import { Button } from "@/src/design-system/atoms/Button";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { formatDate } from "@/src/utils/formatDate";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { ButtonWithIcon, FilterButton } from "../buttons/FilterButton";
 import { Typography } from "../display/Typography";
 
@@ -80,24 +82,17 @@ export const FilterBar = ({
                 />
             )}
             {isDeleteMode && (
-                <Pressable
-                    onPress={canDelete ? onDelete : undefined}
+                /* 고른 코스를 지우는 행동이라 되돌릴 수 없다.
+                   secondary 로 두어 다른 필터와 성격이 다름을 드러낸다. */
+                <Button
+                    title="삭제하기"
+                    onPress={onDelete ?? (() => {})}
                     disabled={!canDelete}
-                    style={{
-                        marginLeft: "auto",
-                        backgroundColor: "#212121",
-                        paddingVertical: 8,
-                        paddingHorizontal: 10,
-                        borderRadius: 10,
-                    }}
-                >
-                    <Typography
-                        variant="body3"
-                        color={canDelete ? "primary" : "gray40"}
-                    >
-                        삭제하기
-                    </Typography>
-                </Pressable>
+                    size="small"
+                    theme="secondary"
+                    variant="line"
+                    style={styles.deleteButton}
+                />
             )}
         </View>
     );
@@ -108,10 +103,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "flex-start",
         alignItems: "center",
-        gap: 6,
-        paddingHorizontal: 16.5,
+        gap: spacing[6],
+        paddingHorizontal: spacing[16],
     },
     pv5: {
-        paddingVertical: 5,
+        paddingVertical: spacing[4],
+    },
+    deleteButton: {
+        marginLeft: "auto",
     },
 });
