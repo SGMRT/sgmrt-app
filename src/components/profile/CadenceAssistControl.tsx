@@ -179,6 +179,17 @@ export const CadenceAssistControl = ({ isEnabled }: CadenceAssistControlProps) =
         previous.current = value;
     }, [value]);
 
+    // 첫 마운트에서는 움직이지 않는다.
+    //
+    // 오르내림은 "값이 방금 바뀌었다" 는 뜻이다. 화면에 처음 그려질 때까지 움직이면
+    // 탭을 옮겨 돌아올 때마다 숫자가 굴러 들어와, 건드리지도 않은 값이
+    // 방금 바뀐 것처럼 읽힌다.
+    // ref 로 두는 것은 이 값이 바뀌었다고 다시 그릴 필요가 없기 때문이다.
+    const mounted = useRef(false);
+    useEffect(() => {
+        mounted.current = true;
+    }, []);
+
     const reduced = useReducedMotion();
     const { enter, exit } = makeTransition(direction, reduced);
 
@@ -223,8 +234,8 @@ export const CadenceAssistControl = ({ isEnabled }: CadenceAssistControlProps) =
                             {/* 숫자가 바뀐 자리만 key 가 바뀌어 움직인다 */}
                             <Animated.View
                                 key={digit}
-                                entering={enter}
-                                exiting={exit}
+                                entering={mounted.current ? enter : undefined}
+                                exiting={mounted.current ? exit : undefined}
                                 style={styles.digitLayer}
                             >
                                 <Typography
