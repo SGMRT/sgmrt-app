@@ -24,7 +24,7 @@ import { Alert, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GoRunCalendar } from "../calendar/GoRunCalendar";
 import { CourseGalleryItem } from "./CourseListView";
-import { screenGutter } from "@/src/design-system/tokens/layout";
+import { screenGutter, sectionGap } from "@/src/design-system/tokens/layout";
 
 type CoursesWithFilterProps = {
     data: UserCourseInfo[];
@@ -238,7 +238,7 @@ export const CoursesWithFilter = ({
     };
 
     return (
-        <View style={{ flex: 1, gap: 20 }}>
+        <View style={{ flex: 1, gap: sectionGap }}>
             <FilterBar
                 searchPeriod={searchPeriod}
                 setSearchPeriod={setSearchPeriod}

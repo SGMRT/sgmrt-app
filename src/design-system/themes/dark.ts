@@ -1,6 +1,6 @@
 // Ghost Runner Design System - Dark Theme
 
-import { core, ghostLime, grey, shadows } from "../tokens/colors";
+import { core, ghostLime, ghostRed, grey, shadows } from "../tokens/colors";
 import type { SemanticColors } from "./types";
 
 export const darkTheme: SemanticColors = {
@@ -68,6 +68,24 @@ export const darkTheme: SemanticColors = {
     uiDisabledFg: grey[60],
     uiDisabledUp: grey[80],
     uiDisabledUpFg: grey[50],
+
+    /**
+     * 눌린 순간의 면.
+     *
+     * 누르는 동안 한 단계 밝아져 어디를 눌렀는지 알린다.
+     * 크기 변화만으로는 손가락에 가려 보이지 않는 자리가 있고,
+     * 여러 칸이 붙어 있는 조작에서는 어느 칸을 눌렀는지도 알 수 없다.
+     *
+     * 흰 면은 위로 올라갈 자리가 없으므로 한 단계 내려온다.
+     * 뜻은 같다 — 누르는 동안 면이 한 단계 움직인다.
+     */
+    ui01Pressed: grey[95],
+    ui02Pressed: grey[80],
+    ui03Pressed: grey[70],
+    ui10Pressed: grey[20],
+    primaryPressed: ghostLime[40],
+    primaryBPressed: ghostLime[80],
+    secondaryPressed: ghostRed[60],
 
     // Divider
     // 카드(#1A1A1A) 위에서 11 밝아진다.

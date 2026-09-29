@@ -59,7 +59,6 @@ export const FilterBar = ({
                     onPress={() => onClickFilter("date")}
                     variant="body2"
                     color="gray20"
-                    style={styles.pv5}
                 />
             )}
             {view && (
@@ -69,7 +68,6 @@ export const FilterBar = ({
                     onPress={() => onClickFilter("view")}
                     variant="body2"
                     color="gray20"
-                    style={styles.pv5}
                 />
             )}
             {filter && (
@@ -77,7 +75,6 @@ export const FilterBar = ({
                     onPress={() => onClickFilter("filter")}
                     variant="body2"
                     color="gray20"
-                    style={styles.pv5}
                     title={selectedFilter === "date" ? "날짜별" : "코스별"}
                 />
             )}
@@ -105,9 +102,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: spacing[6],
         paddingHorizontal: spacing[16],
-    },
-    pv5: {
-        paddingVertical: spacing[4],
     },
     deleteButton: {
         marginLeft: "auto",

@@ -8,6 +8,8 @@ import {
 } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface FilterButtonProps {
     onPress: () => void;
@@ -66,14 +68,20 @@ export const ButtonWithIcon = ({
 };
 
 const styles = StyleSheet.create({
+    // 배경 위에 직접 놓이는 면이라 1뎁스를 따른다.
+    // 면은 ui01, 모서리는 12 다.
+    // 테두리로 두면 화면에 라인 요소가 늘어나고,
+    // 같은 높이의 채워진 면보다 커 보인다.
     container: {
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: radius.md,
-        borderWidth: 1,
-        backgroundColor: "#171717",
-        borderColor: colors.gray[80],
-        gap: 4,
+        padding: spacing[12],
+        // 왼쪽에만 아이콘이 있어 사방을 같게 두면 오른쪽이 좁아 보인다.
+        // 아이콘은 제 그림 안에 여백을 갖는데 글자는 끝이 딱 떨어지기 때문이다.
+        // 눈에 같아 보이도록 오른쪽만 2 더 준다.
+        // 스케일 밖 값이지만 시각 보정은 스케일이 아니라 눈이 정한다.
+        paddingRight: spacing[12] + 2,
+        borderRadius: radius.base,
+        backgroundColor: darkTheme.ui01,
+        gap: spacing[4],
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",

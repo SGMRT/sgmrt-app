@@ -10,7 +10,7 @@ import { GoRunCalendar } from "../calendar/GoRunCalendar";
 import { BottomModal, DualFilter, EmptyListView, FilterBar, ScrollButton, Section } from "@/src/components/ui";
 import { RunHistoryItem } from "./RunHistoryItem";
 import { RunHistoryGalleryItem } from "./RunHistoryGalleryItem";
-import { screenGutter } from "@/src/design-system/tokens/layout";
+import { screenGutter, sectionGap } from "@/src/design-system/tokens/layout";
 
 type HistoryWithFilterProps = {
     data: RunResponse[];
@@ -140,7 +140,7 @@ export const HistoryWithFilter = ({
 
     const router = useRouter();
     return (
-        <View style={{ flex: 1, gap: 20 }}>
+        <View style={{ flex: 1, gap: sectionGap }}>
             <FilterBar
                 searchPeriod={searchPeriod}
                 setSearchPeriod={setSearchPeriod}

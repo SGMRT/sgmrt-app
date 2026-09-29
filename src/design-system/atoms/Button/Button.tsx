@@ -116,21 +116,50 @@ const SIZE: Record<
  */
 const THEME: Record<
     ButtonTheme,
-    { bg: string; fg: string; onLight?: boolean }
+    { bg: string; pressedBg: string; fg: string; onLight?: boolean }
 > = {
-    ui01: { bg: darkTheme.ui01, fg: darkTheme.ui10 },
-    ui01P: { bg: darkTheme.ui01, fg: darkTheme.primary },
-    ui02: { bg: darkTheme.ui02, fg: darkTheme.ui10 },
+    ui01: {
+        bg: darkTheme.ui01,
+        pressedBg: darkTheme.ui01Pressed,
+        fg: darkTheme.ui10,
+    },
+    ui01P: {
+        bg: darkTheme.ui01,
+        pressedBg: darkTheme.ui01Pressed,
+        fg: darkTheme.primary,
+    },
+    ui02: {
+        bg: darkTheme.ui02,
+        pressedBg: darkTheme.ui02Pressed,
+        fg: darkTheme.ui10,
+    },
     // 선택된 상태. 배경이 한 단계 올라가서 고르지 않은 것과 면으로 구분된다
-    ui02P: { bg: darkTheme.ui02, fg: darkTheme.primary },
-    ui03: { bg: darkTheme.ui03, fg: darkTheme.ui10 },
+    ui02P: {
+        bg: darkTheme.ui02,
+        pressedBg: darkTheme.ui02Pressed,
+        fg: darkTheme.primary,
+    },
+    ui03: {
+        bg: darkTheme.ui03,
+        pressedBg: darkTheme.ui03Pressed,
+        fg: darkTheme.ui10,
+    },
     primary: {
         bg: darkTheme.primary,
+        pressedBg: darkTheme.primaryPressed,
         fg: darkTheme.uiBackground,
         onLight: true,
     },
-    primaryO: { bg: darkTheme.primaryB, fg: darkTheme.primary },
-    secondary: { bg: darkTheme.secondary, fg: darkTheme.ui10 },
+    primaryO: {
+        bg: darkTheme.primaryB,
+        pressedBg: darkTheme.primaryBPressed,
+        fg: darkTheme.primary,
+    },
+    secondary: {
+        bg: darkTheme.secondary,
+        pressedBg: darkTheme.secondaryPressed,
+        fg: darkTheme.ui10,
+    },
 };
 
 export type ButtonVariant = "filled" | "line";
@@ -254,6 +283,20 @@ export function Button({
             ? SELECTED_BG
             : t.bg;
 
+    // 누르는 동안의 면.
+    //
+    // 크기가 줄어드는 것만으로는 손가락에 가린 자리에서 보이지 않고,
+    // 선택지처럼 여러 칸이 붙어 있으면 어느 칸을 눌렀는지도 알 수 없다.
+    // 면이 한 단계 움직이면 그 자리가 눈에 남는다.
+    //
+    // line 은 면이 비어 있으므로 누를 때만 1뎁스가 들어온다.
+    // 고른 쪽은 흰 면이라 위로 올라갈 자리가 없어 한 단계 내려온다.
+    const pressedBackgroundColor = line
+        ? darkTheme.ui01
+        : selected
+          ? darkTheme.ui10Pressed
+          : t.pressedBg;
+
     const reduceMotion = useReducedMotion();
 
     const scale = useSharedValue(1);
@@ -287,9 +330,15 @@ export function Button({
     }));
     const labelColorStyle = useAnimatedStyle(() => ({ color: fg.value }));
 
-    const press = (to: number) => {
-        if (noScale || disabled) return;
-        scale.value = withTiming(to, { duration: duration.fast });
+    const press = (to: number, down: boolean) => {
+        if (disabled) return;
+        if (!noScale) scale.value = withTiming(to, { duration: duration.fast });
+        // 색은 누름을 끈 버튼에서도 바뀐다.
+        // 눌렸다는 사실은 크기가 아니라 상태로 알려야 한다.
+        bg.value = withTiming(down ? pressedBackgroundColor : backgroundColor, {
+            duration: duration.press,
+            easing: easing.out,
+        });
     };
 
     return (
@@ -300,8 +349,8 @@ export function Button({
         >
             <AnimatedPressable
                 onPress={disabled ? undefined : onPress}
-                onPressIn={() => press(pressScale.wide)}
-                onPressOut={() => press(1)}
+                onPressIn={() => press(pressScale.wide, true)}
+                onPressOut={() => press(1, false)}
                 disabled={disabled}
                 style={[
                     styles.base,

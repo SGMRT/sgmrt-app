@@ -36,6 +36,15 @@ export interface SemanticColors {
     uiDisabledUpFg: string;
 
     // Divider
+    /** 눌린 순간의 면. 누르는 동안 한 단계 움직인다 */
+    ui01Pressed: string;
+    ui02Pressed: string;
+    ui03Pressed: string;
+    ui10Pressed: string;
+    primaryPressed: string;
+    primaryBPressed: string;
+    secondaryPressed: string;
+
     divider: string;
 
     // Shadows
