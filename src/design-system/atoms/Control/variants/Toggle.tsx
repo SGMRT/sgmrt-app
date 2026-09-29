@@ -52,9 +52,11 @@ export function Toggle({ status, disabled, onPress }: ControlVariantProps) {
                         borderRadius: TOGGLE_HEIGHT / 2,
                         justifyContent: "center",
                         paddingHorizontal: THUMB_OFFSET,
-                        opacity: disabled ? 0.5 : 1,
                     },
                     trackStyle,
+                    // 못 누르는 상태는 켜짐과 꺼짐을 가리지 않고 같은 면이 된다.
+                    // 이때는 값보다 누를 수 없다는 사실이 먼저 읽혀야 한다.
+                    disabled ? { backgroundColor: theme.uiDisabled } : null,
                 ]}
             >
                 <Animated.View
@@ -63,8 +65,10 @@ export function Toggle({ status, disabled, onPress }: ControlVariantProps) {
                             width: TOGGLE_THUMB,
                             height: TOGGLE_THUMB,
                             borderRadius: TOGGLE_THUMB / 2,
-                            backgroundColor: theme.ui10,
-                            boxShadow: theme.shadow01,
+                            backgroundColor: disabled
+                                ? theme.uiDisabledFg
+                                : theme.ui10,
+                            boxShadow: disabled ? undefined : theme.shadow01,
                         },
                         thumbStyle,
                     ]}

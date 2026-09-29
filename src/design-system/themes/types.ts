@@ -32,6 +32,12 @@ export interface SemanticColors {
     tertiary: string;
     tertiaryP: string;
 
+    // Disabled (못 누르는 상태). 위계에 따라 두 단계로 나뉜다
+    uiDisabled: string;
+    uiDisabledFg: string;
+    uiDisabledUp: string;
+    uiDisabledUpFg: string;
+
     // Divider
     divider: string;
 

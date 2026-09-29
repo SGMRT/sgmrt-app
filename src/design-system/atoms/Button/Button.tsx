@@ -179,19 +179,47 @@ export function Button({
     // selected 를 넘겼다면 선택지 묶음의 하나다
     const inGroup = selected !== undefined;
 
-    const borderColor = selected
-        ? darkTheme.ui07
-        : line
-          ? darkTheme.ui03
-          : undefined;
+    // 못 누르는 상태는 테마를 덮어쓴다.
+    // 예전에는 부르는 쪽이 어두운 theme 을 골라 나타냈는데,
+    // 화면마다 고르는 값이 달라 같은 비활성이 서로 다르게 보였다.
+    //
+    // 색은 위계에 따라 갈린다. large 는 주 행동이거나 입력과 같은 위계의
+    // 선택지라 면이 넓다. 넓은 면은 같은 색이라도 더 어둡게 읽혀서,
+    // 작은 조작과 같은 값을 쓰면 화면 아래에서 배경에 묻힌다.
+    // 못 누른다는 것은 알리되 거기에 버튼이 있다는 사실까지 지우면 안 된다.
+    const mainAction = size === "large";
+    const disabledBg = mainAction
+        ? darkTheme.uiDisabledUp
+        : darkTheme.uiDisabled;
+    const disabledFg = mainAction
+        ? darkTheme.uiDisabledUpFg
+        : darkTheme.uiDisabledFg;
 
-    const textColor = inGroup
-        ? selected
+    const borderColor = disabled
+        ? line
+            ? disabledBg
+            : undefined
+        : selected
+          ? darkTheme.ui07
+          : line
+            ? darkTheme.ui03
+            : undefined;
+
+    const textColor = disabled
+        ? disabledFg
+        : inGroup
+          ? selected
+              ? darkTheme.ui10
+              : darkTheme.ui05
+          : line
             ? darkTheme.ui10
-            : darkTheme.ui05
-        : line
-          ? darkTheme.ui10
-          : t.fg;
+            : t.fg;
+
+    const backgroundColor = line
+        ? "transparent"
+        : disabled
+          ? disabledBg
+          : t.bg;
 
     const reduceMotion = useReducedMotion();
 
@@ -203,17 +231,17 @@ export function Button({
     // 조건을 채워 버튼이 살아나는 순간은 폼에서 가장 중요한 신호다.
     // 색이 툭 바뀌면 그 순간을 놓치기 쉬워 전환으로 잇는다.
     // 움직임이 아니라 색이라 모션을 줄인 기기에서도 남기되 더 짧게 끝낸다.
-    const bg = useSharedValue(line ? "transparent" : t.bg);
+    const bg = useSharedValue(backgroundColor);
     const fg = useSharedValue(textColor);
 
     useEffect(() => {
         const ms = reduceMotion ? duration.fast : duration.normal;
-        bg.value = withTiming(line ? "transparent" : t.bg, {
+        bg.value = withTiming(backgroundColor, {
             duration: ms,
             easing: easing.out,
         });
         fg.value = withTiming(textColor, { duration: ms, easing: easing.out });
-    }, [t.bg, textColor, line, reduceMotion, bg, fg]);
+    }, [backgroundColor, textColor, reduceMotion, bg, fg]);
 
     const surfaceStyle = useAnimatedStyle(() => ({
         backgroundColor: bg.value,

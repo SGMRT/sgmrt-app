@@ -17,16 +17,25 @@ export function CheckFill({ status, disabled, onPress }: ControlVariantProps) {
                 width: SIZE,
                 height: SIZE,
                 borderRadius: radius.sm,
-                backgroundColor: status ? theme.primary : theme.ui02,
+                backgroundColor: disabled
+                    ? theme.uiDisabled
+                    : status
+                      ? theme.primary
+                      : theme.ui02,
                 alignItems: "center",
                 justifyContent: "center",
-                opacity: disabled ? 0.5 : 1,
             }}
         >
             <CheckIcon
                 width={20}
                 height={20}
-                color={status ? theme.ui01 : theme.ui08}
+                color={
+                    disabled
+                        ? theme.uiDisabledFg
+                        : status
+                          ? theme.ui01
+                          : theme.ui08
+                }
             />
         </Pressable>
     );

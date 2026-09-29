@@ -13,8 +13,12 @@ interface BottomAgreementButtonProps {
 /**
  * 화면 맨 아래 붙는 주 행동 버튼.
  *
- * 조건을 채우기 전에는 ui03 로 두어 눌러야 할 것처럼 보이지 않게 하고,
- * 채우고 나면 Primary 로 바뀌어 화면에서 유일한 강조가 된다.
+ * 조건을 채우기 전에는 못 누르는 상태이고, 채우고 나면 Primary 로 바뀌어
+ * 화면에서 유일한 강조가 된다.
+ *
+ * 못 누르는 상태의 색은 Button 이 정한다.
+ * 예전에는 여기서 ui03 을 골라 넘겼는데, 화면마다 고르는 값이 달라
+ * 같은 비활성이 서로 다르게 보였다.
  */
 export default function BottomAgreementButton({
     isActive,
@@ -29,8 +33,8 @@ export default function BottomAgreementButton({
                 title={title}
                 onPress={onPress}
                 size="large"
-                theme={isActive ? "primary" : "ui03"}
-                disabled={!canPress}
+                theme="primary"
+                disabled={!isActive || !canPress}
                 block
             />
         </View>

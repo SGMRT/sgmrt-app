@@ -50,13 +50,18 @@ export function Check({ status, disabled, onPress }: ControlVariantProps) {
             onPressOut={() => press(0)}
             disabled={disabled}
             hitSlop={8}
-            style={{ opacity: disabled ? 0.5 : 1 }}
         >
             <Animated.View style={style}>
                 <CheckIcon
                     width={SIZE}
                     height={SIZE}
-                    color={status ? theme.primary : theme.ui06}
+                    color={
+                        disabled
+                            ? theme.uiDisabledFg
+                            : status
+                              ? theme.primary
+                              : theme.ui06
+                    }
                 />
             </Animated.View>
         </Pressable>

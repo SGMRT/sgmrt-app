@@ -12,12 +12,17 @@ export function Heart({ status, disabled, onPress }: ControlVariantProps) {
         <Pressable
             onPress={onPress}
             disabled={disabled}
-            style={{ opacity: disabled ? 0.5 : 1 }}
         >
             <HeartIcon
                 width={SIZE}
                 height={SIZE}
-                color={status ? theme.primary : theme.ui07}
+                color={
+                    disabled
+                        ? theme.uiDisabledFg
+                        : status
+                          ? theme.primary
+                          : theme.ui07
+                }
             />
         </Pressable>
     );

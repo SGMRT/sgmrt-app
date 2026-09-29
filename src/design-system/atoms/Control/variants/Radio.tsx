@@ -69,16 +69,22 @@ export function Radio({ status, disabled, onPress }: ControlVariantProps) {
                         borderRadius: SIZE / 2,
                         alignItems: "center",
                         justifyContent: "center",
-                        opacity: disabled ? 0.5 : 1,
                     },
                     circleStyle,
+                    disabled ? { backgroundColor: theme.uiDisabled } : null,
                 ]}
             >
                 <Animated.View style={iconStyle}>
                     <CheckIcon
                         width={20}
                         height={20}
-                        color={status ? theme.ui01 : theme.ui10}
+                        color={
+                            disabled
+                                ? theme.uiDisabledFg
+                                : status
+                                  ? theme.ui01
+                                  : theme.ui10
+                        }
                     />
                 </Animated.View>
             </Animated.View>
