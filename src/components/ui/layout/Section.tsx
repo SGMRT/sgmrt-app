@@ -11,6 +11,7 @@ import {
 import { Divider } from "./Divider";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface SectionProps {
     children: React.ReactNode;
@@ -80,15 +81,18 @@ export default function Section({
 }
 
 const styles = StyleSheet.create({
+    // 여백은 다른 섹션과 같이 덩어리가 갖는다.
+    // 제목과 내용 사이도 여기서 정해, 여백과 간격이 늘 같이 움직이게 한다.
     container: {
         backgroundColor: darkTheme.ui01,
-        paddingHorizontal: 20,
-        paddingVertical: 20,
+        padding: spacing[20],
+        gap: spacing[20],
         borderRadius: radius.base,
     },
+    // 선은 제목에 딸린 밑줄이라 바짝 붙인다.
+    // 10 은 4px 규칙 밖의 값이었다.
     titleContainer: {
-        marginBottom: 20,
-        gap: 10,
+        gap: spacing[8],
     },
     title: {
         flexDirection: "row",
@@ -98,12 +102,12 @@ const styles = StyleSheet.create({
     titleLeft: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 6,
+        gap: spacing[6],
     },
     shortcutTitle: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 4,
+        gap: spacing[4],
     },
     centerTitle: {
         textAlign: "center",

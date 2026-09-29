@@ -269,9 +269,8 @@ export const CadenceAssistControl = ({ isEnabled }: CadenceAssistControlProps) =
 };
 
 const styles = StyleSheet.create({
+    // 여백은 감싸는 섹션이 갖는다
     cadenceAssistControl: {
-        paddingHorizontal: spacing[16],
-        paddingBottom: spacing[16],
         flexDirection: "row",
         alignItems: "center",
         gap: spacing[4],

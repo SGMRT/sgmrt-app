@@ -230,10 +230,13 @@ export const Info = ({
             <ScrollView
                 ref={scrollViewRef}
                 contentContainerStyle={{
-                    marginHorizontal: 17,
-                    marginTop: 20,
-                    paddingBottom: 10,
-                    gap: 20,
+                    marginHorizontal: spacing[16],
+                    marginTop: spacing[20],
+                    paddingBottom: spacing[8],
+                    // 섹션끼리는 바짝 붙인다.
+                    // 각 섹션이 사방 20 을 가지므로 사이까지 20 을 두면
+                    // 가장자리 여백이 두 번 겹쳐 섹션이 서로 멀어진다.
+                    gap: spacing[12],
                 }}
                 refreshControl={
                     <RefreshControl
