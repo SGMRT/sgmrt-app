@@ -1,5 +1,6 @@
 import { patchCourseName } from "@/src/apis";
-import { BottomModal, Button, NameInput, Typography, showToast } from "@/src/components/ui";
+import { BottomModal, Button, Typography, showToast } from "@/src/components/ui";
+import { InlineInput } from "@/src/design-system/atoms/InlineInput";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useQueryClient } from "@tanstack/react-query";
@@ -72,7 +73,7 @@ export default function CourseRegisterModal({
             handleStyle={styles.handle}
         >
             <View style={styles.content}>
-                <NameInput
+                <InlineInput
                     placeholder="코스명을 입력해 주세요"
                     onChangeText={setCourseName}
                     bottomSheet
