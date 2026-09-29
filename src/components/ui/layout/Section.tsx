@@ -1,4 +1,5 @@
 import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import colors from "@/src/theme/colors";
 import {
     StyleProp,
@@ -79,7 +80,7 @@ export default function Section({
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#171717",
+        backgroundColor: darkTheme.ui01,
         paddingHorizontal: 20,
         paddingVertical: 20,
         borderRadius: 20,

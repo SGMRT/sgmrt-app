@@ -14,6 +14,9 @@ export interface SemanticColors {
     ui09: string;
     ui10: string;
 
+    // 카드 위에 얹히는 면
+    uiUp: string;
+
     // Primary (Ghost Lime)
     primary: string;
     primaryB: string;

@@ -205,10 +205,11 @@ const PlanItem = ({
 };
 
 const styles = StyleSheet.create({
+    // 바깥 Section 안에 놓이는 카드 안의 카드다.
     planSection: {
         paddingHorizontal: spacing[16],
         paddingVertical: spacing[12],
-        backgroundColor: darkTheme.ui01,
+        backgroundColor: darkTheme.uiUp,
         borderRadius: radius.md,
     },
     planSummarySection: {

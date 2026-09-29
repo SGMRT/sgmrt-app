@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
         flex: 1,
         height: 32,
         borderRadius: radius.sm,
-        backgroundColor: darkTheme.ui02,
+        backgroundColor: darkTheme.uiUp,
         justifyContent: "center",
         alignItems: "center",
     },

@@ -17,6 +17,19 @@ export const darkTheme: SemanticColors = {
     ui09: grey[20],
     ui10: grey[10],
 
+    /**
+     * 카드 위에 얹히는 면.
+     *
+     * 카드(ui01) 안에 다시 카드가 놓이는 자리에 쓴다.
+     * 같은 ui01 을 쓰면 두 층이 붙어 어느 것이 안쪽인지 알 수 없고,
+     * ui02 를 쓰면 안쪽이 바깥보다 훨씬 밝아 주객이 바뀐다.
+     *
+     * 이 이름은 한 번 지웠다가 되살렸다.
+     * 예전에는 uiUp 부터 uiUp03 까지 넷이 있었는데 값이 ui01~ui04 와 똑같고
+     * 쓰이는 곳도 없어 지웠다. 지금은 하나만, 뜻을 갖고 돌아왔다.
+     */
+    uiUp: grey[95],
+
     // Primary (Ghost Lime)
     primary: core.primary,
     primaryB: ghostLime[90],
