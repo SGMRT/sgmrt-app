@@ -275,23 +275,8 @@ export const Info = ({
                         router.push("/(tabs)/profile/notice");
                     }}
                 />
-                {/* 디바이스 옵션 */}
+                {/* 러닝 중 동작 — 이 앱을 쓰는 가장 잦은 상황이라 맨 위에 둔다 */}
                 <ListSectionContainer>
-                    <ListSectionItem
-                        title="알림"
-                        rightElement={
-                            <Control
-                                type="toggle"
-                                status={
-                                    (userInfo?.pushAlarmEnabled && granted) ??
-                                    false
-                                }
-                                onChange={(value) => {
-                                    handlePushAlarmChange(value);
-                                }}
-                            />
-                        }
-                    />
                     <ListSectionItem
                         title="음성 안내"
                         rightElement={
@@ -305,19 +290,6 @@ export const Info = ({
                             />
                         }
                     />
-                    {/* <ListSectionItem
-                        title="진동 안내"
-                        rightElement={
-                            <Control
-                                type="toggle"
-                                status={
-                                    userInfo?.voiceGuidanceEnabled ??
-                                    false
-                                }
-                                onChange={handleSpeechChange}
-                            />
-                        }
-                    /> */}
                     <ListSectionItem
                         title="케이던스 보조"
                         onHintPress={() => {
@@ -336,19 +308,23 @@ export const Info = ({
                     <CadenceAssistControl isEnabled={isCadenceAssistEnabled} />
                 </ListSectionContainer>
 
-                {/* 법적 정보 */}
+                {/* 앱 바깥과의 연결 — 기기 권한을 함께 쓰는 것들 */}
                 <ListSectionContainer>
                     <ListSectionItem
-                        title="법적 정보 및 기타"
-                        rightElement={<ChevronIcon color={colors.gray[40]} />}
-                        onPress={() => {
-                            router.push("/(tabs)/profile/settings/legal");
-                        }}
+                        title="알림"
+                        rightElement={
+                            <Control
+                                type="toggle"
+                                status={
+                                    (userInfo?.pushAlarmEnabled && granted) ??
+                                    false
+                                }
+                                onChange={(value) => {
+                                    handlePushAlarmChange(value);
+                                }}
+                            />
+                        }
                     />
-                </ListSectionContainer>
-
-                {/* 건강 권한 */}
-                <ListSectionContainer>
                     <ListSectionItem
                         title="애플 건강 연동"
                         rightElement={<ChevronIcon color={colors.gray[40]} />}
@@ -358,14 +334,14 @@ export const Info = ({
                     />
                 </ListSectionContainer>
 
+                {/* 가끔 찾아보는 정보 */}
                 <ListSectionContainer>
                     <ListSectionItem
-                        title="버전 정보"
-                        rightElement={
-                            <Typography variant="body2" color="primary">
-                                {`${Application.nativeApplicationVersion}`}
-                            </Typography>
-                        }
+                        title="법적 정보 및 기타"
+                        rightElement={<ChevronIcon color={colors.gray[40]} />}
+                        onPress={() => {
+                            router.push("/(tabs)/profile/settings/legal");
+                        }}
                     />
                     <ListSectionItem
                         title="문의하기"
@@ -376,6 +352,21 @@ export const Info = ({
                         }}
                         rightElement={<ChevronIcon color={colors.gray[40]} />}
                     />
+                    <ListSectionItem
+                        title="버전 정보"
+                        rightElement={
+                            /* 읽기만 하는 값이라 강조색을 쓰지 않는다.
+                               옆 줄의 화살표와 같은 무게로 둬서
+                               오른쪽 칸이 한 덩어리로 읽히게 한다. */
+                            <Typography variant="body2" color="gray40">
+                                {`${Application.nativeApplicationVersion}`}
+                            </Typography>
+                        }
+                    />
+                </ListSectionContainer>
+
+                {/* 계정에서 빠져나가는 행동 — 되돌리기 어려우므로 맨 아래에 모은다 */}
+                <ListSectionContainer>
                     <ListSectionItem
                         title="로그아웃"
                         titleColor="red"
