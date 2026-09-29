@@ -3,7 +3,7 @@ import { getPresignedUrl, signUp, uploadToS3 } from "@/src/apis";
 import { queryKeys } from "@/src/apis/queryKeys";
 import { GetUserInfoResponse } from "@/src/apis/types/user";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
-import { Header, InfoFieldTitle, InfoItem, StyledButton, Typography, showToast } from "@/src/components/ui";
+import { Header, Typography, showToast } from "@/src/components/ui";
 import { Avatar } from "@/src/design-system/atoms/Avatar";
 import { Button } from "@/src/design-system/atoms/Button";
 import { FieldLabel } from "@/src/design-system/atoms/FieldLabel";

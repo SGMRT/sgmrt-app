@@ -4,7 +4,10 @@ import {
     PatchUserInfoRequest,
 } from "@/src/apis/types/user";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
-import { Header, InfoFieldTitle, InfoItem, StyledButton, Typography, showToast } from "@/src/components/ui";
+import { Header, Typography, showToast } from "@/src/components/ui";
+import { Button } from "@/src/design-system/atoms/Button";
+import { FieldLabel } from "@/src/design-system/atoms/FieldLabel";
+import { Input } from "@/src/design-system/atoms/Input";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,6 +19,7 @@ import {
     Platform,
     SafeAreaView,
     ScrollView,
+    StyleSheet,
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -44,7 +48,7 @@ export default function EditInfo() {
         }
     }, [origin]);
 
-    const isActive = useMemo(() => {
+    const hasChanges = useMemo(() => {
         if (!origin || !userInfo) return false;
         return (
             userInfo.nickname !== origin.nickname ||
@@ -54,6 +58,34 @@ export default function EditInfo() {
             userInfo.weight !== origin.weight
         );
     }, [origin, userInfo]);
+
+    // 특수문자 검사 regex
+    const specialCharacterRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+    // 숫자만 입력 가능 regex
+    const numberOnlyRegex = /^[0-9]*$/;
+
+    const nickname = userInfo?.nickname ?? "";
+    const age = userInfo?.age?.toString() ?? "";
+    const height = userInfo?.height?.toString() ?? "";
+    const weight = userInfo?.weight?.toString() ?? "";
+
+    // 입력한 값이 규칙을 어겼는지. 비어 있을 때는 아직 나무라지 않는다
+    const nicknameError =
+        nickname.length > 0 && specialCharacterRegex.test(nickname);
+    const ageError = age.length > 0 && !numberOnlyRegex.test(age);
+
+    // 바뀐 것이 있고, 바뀐 값이 규칙에 맞아야 누를 수 있다.
+    // 회원가입 화면과 같은 검사를 쓴다. 지금까지는 이 화면에만 검사가 없어
+    // 가입할 때는 막히는 값이 정보 변경에서는 통과했다.
+    // 연령도 회원가입과 같이 필수로 둔다.
+    const isActive =
+        hasChanges &&
+        nickname.length > 0 &&
+        !nicknameError &&
+        age.length > 0 &&
+        !ageError &&
+        (height === "" || numberOnlyRegex.test(height)) &&
+        (weight === "" || numberOnlyRegex.test(weight));
 
     // 변경된 부분만 전송
     const diff = (next: PatchUserInfoRequest, prev: GetUserInfoResponse) => {
@@ -136,100 +168,120 @@ export default function EditInfo() {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: darkTheme.uiBackground }}>
+        <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
             >
                 <Header titleText="회원 정보 변경" />
                 <ScrollView
-                    contentContainerStyle={{
-                        paddingHorizontal: spacing[16],
-                        paddingTop: spacing[20],
-                        gap: spacing[20],
-                    }}
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollViewContentContainer}
                 >
-                    {/* 닉네임 */}
-                    <InfoItem
-                        title="닉네임"
-                        placeholder={userInfo?.nickname ?? "닉네임"}
-                        maxLength={10}
-                        value={userInfo?.nickname ?? ""}
-                        onChangeText={(text) => {
-                            handleUpdateUserInfo("nickname", text);
-                        }}
-                        required
-                    />
-                    {/* 성별 */}
-                    <View style={{ gap: spacing[4] }}>
-                        <InfoFieldTitle title="성별" required />
-                        <View style={{ flexDirection: "row", gap: spacing[4], flex: 1 }}>
-                            <StyledButton
-                                title="여성"
-                                onPress={() => {
-                                    handleUpdateUserInfo("gender", "FEMALE");
+                    <View style={styles.fields}>
+                        {/* 닉네임 */}
+                        <Input
+                            label="닉네임"
+                            required
+                            labelPosition="outside"
+                            placeholder="특수문자 제외 최대 10자"
+                            maxLength={10}
+                            value={userInfo?.nickname ?? ""}
+                            onChangeText={(text) => {
+                                handleUpdateUserInfo("nickname", text);
+                            }}
+                            counter
+                            error={nicknameError}
+                            message={
+                                nicknameError
+                                    ? "특수문자는 사용할 수 없습니다"
+                                    : undefined
+                            }
+                        />
+                        {/* 성별 */}
+                        <View>
+                            <FieldLabel label="성별" required />
+                            <View style={styles.genderButtonContainer}>
+                                <Button
+                                    title="여성"
+                                    onPress={() => {
+                                        handleUpdateUserInfo(
+                                            "gender",
+                                            "FEMALE"
+                                        );
+                                    }}
+                                    size="large"
+                                    theme="ui01"
+                                    selected={userInfo?.gender === "FEMALE"}
+                                    style={styles.genderButton}
+                                />
+                                <Button
+                                    title="남성"
+                                    onPress={() => {
+                                        handleUpdateUserInfo("gender", "MALE");
+                                    }}
+                                    size="large"
+                                    theme="ui01"
+                                    selected={userInfo?.gender === "MALE"}
+                                    style={styles.genderButton}
+                                />
+                            </View>
+                        </View>
+                        {/* 연령 */}
+                        <Input
+                            label="연령"
+                            required
+                            labelPosition="outside"
+                            placeholder="숫자 입력 (예: 20)"
+                            keyboardType="numeric"
+                            maxLength={3}
+                            unit="세"
+                            value={userInfo?.age?.toString() ?? ""}
+                            onChangeText={(text) => {
+                                handleUpdateUserInfo("age", text);
+                            }}
+                            error={ageError}
+                            message={
+                                ageError ? "숫자만 입력해 주세요" : undefined
+                            }
+                        />
+                        {/* 신장 */}
+                        <Input
+                            label="신장"
+                            labelPosition="outside"
+                            placeholder="소수점 제외 입력 (예: 172)"
+                            keyboardType="numeric"
+                            maxLength={3}
+                            unit="cm"
+                            value={userInfo?.height?.toString() ?? ""}
+                            onChangeText={(text) => {
+                                handleUpdateUserInfo("height", text);
+                            }}
+                        />
+                        {/* 몸무게 */}
+                        <View>
+                            <Input
+                                label="몸무게"
+                                labelPosition="outside"
+                                placeholder="소수점 제외 입력 (예: 60)"
+                                keyboardType="numeric"
+                                maxLength={3}
+                                unit="kg"
+                                value={userInfo?.weight?.toString() ?? ""}
+                                onChangeText={(text) => {
+                                    handleUpdateUserInfo("weight", text);
                                 }}
-                                style={{ paddingHorizontal: spacing[12] }}
-                                activeTextColor="primary"
-                                active={userInfo?.gender === "FEMALE"}
                             />
-                            <StyledButton
-                                title="남성"
-                                onPress={() => {
-                                    handleUpdateUserInfo("gender", "MALE");
-                                }}
-                                style={{ paddingHorizontal: spacing[12] }}
-                                activeTextColor="primary"
-                                active={userInfo?.gender === "MALE"}
-                            />
+                            <Typography
+                                variant="caption1"
+                                color="gray60"
+                                style={{ paddingTop: spacing[12] }}
+                            >
+                                신체 정보를 입력하시면 더 정확한 기록을 제공해
+                                드릴 수 있습니다
+                            </Typography>
                         </View>
                     </View>
-                    {/* 연령 */}
-                    <InfoItem
-                        title="연령"
-                        placeholder={userInfo?.age?.toString() ?? "ex) 20"}
-                        keyboardType="numeric"
-                        maxLength={3}
-                        unit="세"
-                        value={userInfo?.age?.toString() ?? ""}
-                        onChangeText={(text) => {
-                            handleUpdateUserInfo("age", text);
-                        }}
-                    />
-                    {/* 신장 */}
-                    <InfoItem
-                        title="신장"
-                        placeholder={userInfo?.height?.toString() ?? "ex) 170"}
-                        keyboardType="numeric"
-                        maxLength={3}
-                        unit="cm"
-                        value={userInfo?.height?.toString() ?? ""}
-                        onChangeText={(text) => {
-                            handleUpdateUserInfo("height", text);
-                        }}
-                    />
-                    {/* 몸무게 */}
-                    <InfoItem
-                        title="몸무게"
-                        placeholder={userInfo?.weight?.toString() ?? "ex) 60"}
-                        keyboardType="numeric"
-                        maxLength={3}
-                        unit="kg"
-                        value={userInfo?.weight?.toString() ?? ""}
-                        onChangeText={(text) => {
-                            handleUpdateUserInfo("weight", text);
-                        }}
-                    />
-                    <Typography
-                        variant="caption1"
-                        color="gray60"
-                        style={{
-                            marginTop: -14,
-                        }}
-                    >
-                        신체 정보를 입력하시면 더 정확한 기록을 제공해 드릴 수
-                        있습니다
-                    </Typography>
                 </ScrollView>
                 <BottomAgreementButton
                     isActive={isActive}
@@ -242,3 +294,29 @@ export default function EditInfo() {
         </SafeAreaView>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: darkTheme.uiBackground,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollViewContentContainer: {
+        paddingHorizontal: spacing[16],
+        marginTop: spacing[20],
+        paddingBottom: spacing[32],
+    },
+    fields: {
+        gap: spacing[20],
+    },
+    genderButtonContainer: {
+        flexDirection: "row",
+        gap: spacing[8],
+    },
+    // Button 이 크기를 직접 들고 있으므로 여기서는 폭만 나눈다
+    genderButton: {
+        flex: 1,
+    },
+});
