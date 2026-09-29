@@ -70,7 +70,10 @@ export const darkTheme: SemanticColors = {
     uiDisabledUpFg: grey[50],
 
     // Divider
-    divider: "rgba(121, 124, 138, 0.16)",
+    // 카드(#1A1A1A) 위에서 8 밝아진다. 면 사다리의 한 단계와 같은 세기다.
+    // 0.16 일 때는 15 벌어져, 배경과 카드 사이(6)보다도 크게 벌어진 선이 됐다.
+    // 선은 면보다 얇으니 면 단계보다 세면 눈에 먼저 들어온다.
+    divider: "rgba(121, 124, 138, 0.08)",
 
     // Shadows
     shadow01: shadows.shadow01,
