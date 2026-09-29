@@ -13,15 +13,12 @@
  * - ScrollButton: 스크롤 버튼
  * - ShareButton: 공유 버튼
  * - ShuffleButton: 셔플 버튼
- * - StyledButton: 스타일 버튼
  * - SlideToAction: 슬라이드 액션 버튼
  * - SlideToDualAction: 이중 슬라이드 액션 버튼
  *
  * ## Inputs (입력)
- * - NameInput: 이름 입력
  * - DualFilter: 이중 필터
  * - FilterBar: 필터 바
- * - StyledSwitch: 스위치
  *
  * ## Layout (레이아웃)
  * - Section: 섹션
@@ -76,16 +73,12 @@ export { default as ShareButton } from "./buttons/ShareButton"
 export { ShuffleButton } from "./buttons/ShuffleButton"
 export { default as SlideToAction } from "./buttons/SlideToAction"
 export { default as SlideToDualAction } from "./buttons/SlideToDualAction"
-export { StyledButton } from "./buttons/StyledButton"
 
 // ============================================
 // Inputs
 // ============================================
-export { Checkbox } from "./inputs/Checkbox"
 export { DualFilter } from "./inputs/DualFilter"
 export { FilterBar } from "./inputs/FilterBar"
-export { default as NameInput } from "./inputs/NameInput"
-export { StyledSwitch } from "./inputs/StyledSwitch"
 
 // ============================================
 // Layout
