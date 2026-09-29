@@ -9,7 +9,13 @@ import { sectionPadding } from "@/src/design-system/tokens/layout";
 
 export const ProfileNoticeSection = ({ onPress }: { onPress: () => void }) => {
     return (
-        <Pressable style={styles.container} onPress={onPress}>
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [
+                styles.container,
+                pressed ? styles.pressed : null,
+            ]}
+        >
             <Typography variant="subhead2" color="white">
                 공지사항 및 이벤트
             </Typography>
@@ -27,6 +33,9 @@ const styles = StyleSheet.create({
         justifyContent: "flex-start",
         backgroundColor: darkTheme.ui01,
         borderRadius: radius.base,
+    },
+    pressed: {
+        backgroundColor: darkTheme.ui01Pressed,
     },
     chevron: {
         marginLeft: "auto",

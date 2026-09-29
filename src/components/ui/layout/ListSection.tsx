@@ -3,7 +3,7 @@ import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import colors from "@/src/theme/colors";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { Typography, TypographyColor } from "../display/Typography";
 import { sectionPadding } from "@/src/design-system/tokens/layout";
 
@@ -36,9 +36,13 @@ const ListSectionItem = ({
     onHintPress,
 }: ListSectionItemProps) => {
     return (
-        <TouchableOpacity
+        <Pressable
             onPress={onPress}
-            activeOpacity={onPress ? 0.5 : 1}
+            // 누르는 동안 면이 한 단계 밝아진다.
+            // 투명도를 낮추면 어두운 배경 위에서 오히려 어두워 보인다.
+            style={({ pressed }) =>
+                pressed && onPress ? styles.pressed : undefined
+            }
             // 줄 자체는 글자 높이(24)뿐이라 그대로는 누르기에 좁다.
             // 줄 사이 간격의 절반까지만 넓힌다. 그 이상은 이웃한 줄과 겹쳐
             // 겹친 자리에서 나중에 그려진 줄이 탭을 가져간다.
@@ -50,15 +54,18 @@ const ListSectionItem = ({
                         {title}
                     </Typography>
                     {onHintPress && (
-                        <TouchableOpacity onPress={onHintPress}>
+                        <Pressable
+                            onPress={onHintPress}
+                            hitSlop={spacing[8]}
+                        >
                             <InfoIcon color={darkTheme.ui03} />
-                        </TouchableOpacity>
+                        </Pressable>
                     )}
                 </View>
                 {rightElement}
                 {chevron && <ChevronIcon color={darkTheme.ui03} />}
             </View>
-        </TouchableOpacity>
+        </Pressable>
     );
 };
 
@@ -80,6 +87,10 @@ const styles = StyleSheet.create({
     // 줄 자체도 제 여백을 조금 갖는다.
     // 글자 높이(24)만으로 두면 누르는 자리와 읽는 자리가 정확히 겹쳐
     // 줄이 면이 아니라 글자 한 줄로만 읽힌다.
+    pressed: {
+        backgroundColor: darkTheme.ui01Pressed,
+        borderRadius: radius.md,
+    },
     listSectionItem: {
         padding: spacing[4],
         flexDirection: "row",

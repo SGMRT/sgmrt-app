@@ -35,22 +35,24 @@ export const NoticePreviewItem = ({
     }, [content]);
 
     return (
-        <Pressable style={styles.noticePreviewContainer} onPress={onPress}>
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [
+                styles.noticePreviewContainer,
+                pressed ? styles.pressed : null,
+            ]}
+        >
             <View style={styles.noticePreviewHeader}>
                 <Typography variant="caption1" color="gray40">
                     {formattedDate}
                 </Typography>
-                <ChevronIcon
-                    color={colors.gray[40]}
-                    style={styles.noticePreviewChevron}
-                />
+                <ChevronIcon color={darkTheme.ui03} />
             </View>
             <Typography
                 variant="subhead1"
                 color="gray20"
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                style={styles.noticePreviewTitle}
             >
                 {title}
             </Typography>
@@ -59,7 +61,6 @@ export const NoticePreviewItem = ({
                 color="gray40"
                 numberOfLines={1}
                 ellipsizeMode="tail"
-                style={styles.noticePreviewContent}
             >
                 {parsedContent}
             </Typography>
@@ -75,18 +76,12 @@ const styles = StyleSheet.create({
         backgroundColor: darkTheme.ui01,
         borderRadius: radius.base,
     },
+    pressed: {
+        backgroundColor: darkTheme.ui01Pressed,
+    },
     noticePreviewHeader: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-    },
-    noticePreviewTitle: {
-        paddingRight: spacing[8],
-    },
-    noticePreviewContent: {
-        paddingRight: spacing[8],
-    },
-    noticePreviewChevron: {
-        marginRight: -spacing[8],
     },
 });

@@ -360,8 +360,9 @@ export const Info = ({
                         rightElement={
                             /* 읽기만 하는 값이라 강조색을 쓰지 않는다.
                                옆 줄의 화살표와 같은 무게로 둬서
-                               오른쪽 칸이 한 덩어리로 읽히게 한다. */
-                            <Typography variant="body2" color="gray40">
+                               오른쪽 칸이 한 덩어리로 읽히게 한다.
+                               화살표가 ui03 으로 내려갔으므로 함께 내린다. */
+                            <Typography variant="body2" color="gray80">
                                 {`${Application.nativeApplicationVersion}`}
                             </Typography>
                         }

@@ -1,11 +1,6 @@
 import { FilterIcon } from "@/assets/svgs/svgs";
 import colors from "@/src/theme/colors";
-import {
-    StyleProp,
-    StyleSheet,
-    TouchableOpacity,
-    ViewStyle,
-} from "react-native";
+import { Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
@@ -56,14 +51,24 @@ export const ButtonWithIcon = ({
     style,
 }: ButtonWithIconProps) => {
     return (
-        <TouchableOpacity onPress={onPress} style={[styles.container, style]}>
-            <>
-                {icon ? icon : null}
-                <Typography variant={variant} color={color}>
-                    {title}
-                </Typography>
-            </>
-        </TouchableOpacity>
+        // 누르는 동안 면이 한 단계 밝아진다. 버튼과 같은 규칙이다.
+        //
+        // TouchableOpacity 의 투명도 감소는 어두운 배경 위에서
+        // 면을 배경 쪽으로 끌어내려 오히려 어두워 보인다.
+        // 눌린 자리는 밝아져야 손가락 아래에서도 읽힌다.
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [
+                styles.container,
+                pressed ? styles.pressed : null,
+                style,
+            ]}
+        >
+            {icon ? icon : null}
+            <Typography variant={variant} color={color}>
+                {title}
+            </Typography>
+        </Pressable>
     );
 };
 
@@ -85,5 +90,8 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
+    },
+    pressed: {
+        backgroundColor: darkTheme.ui01Pressed,
     },
 });
