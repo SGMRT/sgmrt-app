@@ -1,5 +1,7 @@
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { useLocalPrefs } from "@/src/store/localPrefs";
-import colors from "@/src/theme/colors";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Typography } from "@/src/components/ui";
 
@@ -28,7 +30,12 @@ export const CadenceAssistControl = ({ isEnabled }: CadenceAssistControlProps) =
             >
                 <Typography
                     variant="subhead3"
-                    color={isEnabled ? "white" : "gray60"}
+                    style={
+                        isEnabled
+                            ? undefined
+                            : { color: darkTheme.uiDisabledFg }
+                    }
+                    color="white"
                 >
                     -10
                 </Typography>
@@ -43,7 +50,12 @@ export const CadenceAssistControl = ({ isEnabled }: CadenceAssistControlProps) =
             >
                 <Typography
                     variant="subhead3"
-                    color={isEnabled ? "white" : "gray60"}
+                    style={
+                        isEnabled
+                            ? undefined
+                            : { color: darkTheme.uiDisabledFg }
+                    }
+                    color="white"
                 >
                     {value} spm
                 </Typography>
@@ -61,7 +73,12 @@ export const CadenceAssistControl = ({ isEnabled }: CadenceAssistControlProps) =
             >
                 <Typography
                     variant="subhead3"
-                    color={isEnabled ? "white" : "gray60"}
+                    style={
+                        isEnabled
+                            ? undefined
+                            : { color: darkTheme.uiDisabledFg }
+                    }
+                    color="white"
                 >
                     +10
                 </Typography>
@@ -72,36 +89,38 @@ export const CadenceAssistControl = ({ isEnabled }: CadenceAssistControlProps) =
 
 const styles = StyleSheet.create({
     cadenceAssistControl: {
-        marginTop: -2,
-        paddingHorizontal: 17,
-        paddingBottom: 17,
+        paddingHorizontal: spacing[16],
+        paddingBottom: spacing[16],
         flexDirection: "row",
         alignItems: "center",
-        gap: 4,
+        gap: spacing[4],
     },
     cadenceAssistButton: {
         height: 32,
-        paddingHorizontal: 12,
-        borderRadius: 6,
-        backgroundColor: colors.gray[80],
+        paddingHorizontal: spacing[12],
+        borderRadius: radius.sm,
+        backgroundColor: darkTheme.ui03,
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: "#171717",
+        borderColor: darkTheme.ui01,
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
     },
     cadenceAssistPanel: {
         flex: 1,
         height: 32,
-        borderRadius: 6,
-        backgroundColor: "#171717",
+        borderRadius: radius.sm,
+        backgroundColor: darkTheme.ui01,
         justifyContent: "center",
         alignItems: "center",
         borderWidth: 1,
-        borderColor: colors.gray[80],
+        borderColor: darkTheme.ui03,
     },
+    // 이 조작은 위의 케이던스 보조 토글이 꺼지면 따라 꺼진다.
+    // 제 사정으로 못 쓰게 된 것이 아니라 딸려서 꺼진 것이므로
+    // 면을 잃고 배경 높이로 내려앉는다.
     disabledCadenceAssistControl: {
-        backgroundColor: "#171717",
-        borderColor: "#171717",
+        backgroundColor: darkTheme.uiBackground,
+        borderColor: darkTheme.uiBackground,
     },
 });

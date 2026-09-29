@@ -17,12 +17,6 @@ export const darkTheme: SemanticColors = {
     ui09: grey[20],
     ui10: grey[10],
 
-    // UI Up (elevated surfaces)
-    uiUp: grey[100],
-    uiUp01: grey[90],
-    uiUp02: grey[80],
-    uiUp03: grey[70],
-
     // Primary (Ghost Lime)
     primary: core.primary,
     primaryB: ghostLime[90],
@@ -43,15 +37,19 @@ export const darkTheme: SemanticColors = {
      * "화면이 흐리다" 로 읽히기 때문이다.
      *
      * 위계에 따라 두 단계로 나뉜다.
-     * 같은 색이라도 면이 넓을수록 어둡게 읽혀서,
-     * 주 행동 버튼에 작은 조작과 같은 값을 쓰면 배경에 묻힌다.
-     * 못 누른다는 것은 알리되 거기에 버튼이 있다는 사실까지 지우면 안 된다.
      *
+     *   uiDisabledUp  주 행동 버튼
      *   uiDisabled    토글·체크처럼 작은 조작, 그리고 보조 행동 버튼
-     *   uiDisabledUp  주 행동 버튼. 한 단계 밝다
      *
-     * 글자도 함께 한 단계 올린다.
-     * 면이 밝아진 만큼 글자를 그대로 두면 대비가 줄어 무슨 버튼인지 읽히지 않는다.
+     * 주 행동 버튼은 면이 넓다. 같은 색이라도 면이 넓을수록 어둡게 읽혀서
+     * 작은 조작과 같은 값을 쓰면 배경에 묻힌다.
+     * 못 누른다는 것은 알리되 거기에 버튼이 있다는 사실까지 지우면 안 된다.
+     * 글자도 함께 올린다. 면만 바꾸면 대비가 어긋나 무슨 버튼인지 읽히지 않는다.
+     *
+     * 다른 조작이 꺼져서 따라 꺼진 딸린 조작은 세 번째 단계를 두지 않는다.
+     * 카드(ui01)와 배경의 차이가 3뿐이라 그 사이에 면 단계를 둘 자리가 없다.
+     * 대신 제 면을 잃고 배경 높이로 내려앉게 한다.
+     * 면을 가진 다른 비활성과 달리 면이 사라지는 것으로 딸려 있음이 읽힌다.
      */
     uiDisabled: grey[90],
     uiDisabledFg: grey[60],

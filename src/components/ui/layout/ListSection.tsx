@@ -1,4 +1,7 @@
 import { InfoIcon } from "@/assets/svgs/svgs";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import colors from "@/src/theme/colors";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Typography, TypographyColor } from "../display/Typography";
@@ -50,21 +53,21 @@ const ListSectionItem = ({
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#171717",
-        borderRadius: 8,
+        backgroundColor: darkTheme.ui01,
+        borderRadius: radius.md,
     },
     listSectionItem: {
         height: 62,
-        paddingHorizontal: 17,
+        paddingHorizontal: spacing[16],
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        borderBottomColor: "#212121",
+        borderBottomColor: darkTheme.divider,
     },
     listSectionItemTitle: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 6,
+        gap: spacing[6],
     },
 });
 
