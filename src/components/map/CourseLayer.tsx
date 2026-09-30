@@ -22,6 +22,17 @@ export default memo(function CourseLayer({
     onClickCourse,
     displayArrow = false,
 }: CourseProps) {
+    // 좌표가 없는 코스는 그릴 것이 없다.
+    //
+    // 예전에는 마지막 점을 telemetries[length - 1] 로 바로 읽었다.
+    // 빈 배열이면 그 값이 undefined 라 .lng 에서 터졌고,
+    // 코스 하나가 비어 있으면 지도 화면 전체가 오류 화면으로 빠졌다.
+    // 서버가 좌표를 아직 돌려주지 않은 코스에서도 이 조건에 걸린다.
+    const points = course.telemetries ?? [];
+    if (points.length === 0) return null;
+
+    const lastPoint = points[points.length - 1];
+
     return (
         <>
             <ShapeSource
@@ -35,7 +46,7 @@ export default memo(function CourseLayer({
                     },
                     geometry: {
                         type: "LineString",
-                        coordinates: course.telemetries.map((telemetry) => [
+                        coordinates: points.map((telemetry) => [
                             telemetry.lng,
                             telemetry.lat,
                         ]),
@@ -72,12 +83,7 @@ export default memo(function CourseLayer({
                     type: "Feature",
                     geometry: {
                         type: "Point",
-                        coordinates: [
-                            course.telemetries[course.telemetries.length - 1]
-                                .lng,
-                            course.telemetries[course.telemetries.length - 1]
-                                .lat,
-                        ],
+                        coordinates: [lastPoint.lng, lastPoint.lat],
                     },
                     properties: {},
                 }}
