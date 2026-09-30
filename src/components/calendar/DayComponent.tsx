@@ -1,5 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Typography } from "@/src/components/ui";
+import { ghostLime } from "@/src/design-system/tokens/colors";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
@@ -53,7 +54,12 @@ const styles = StyleSheet.create({
         marginVertical: -5,
         marginHorizontal: 0,
     },
-    DaySelected: { backgroundColor: "#404512", width: "101%" },
+    // 고른 기간을 덮는 띠.
+    //
+    // Primary 를 어둡게 깐 자리다. 예전에는 사다리 밖 값(#404512)이었다.
+    // 강조색 사다리의 100 은 그보다 한 끗 밝아 고른 기간이 또렷해지고,
+    // 흰 날짜 글자와의 대비도 넉넉하다.
+    DaySelected: { backgroundColor: ghostLime[100], width: "101%" },
     DayStarting: {
         borderTopLeftRadius: radius.md,
         borderBottomLeftRadius: radius.md,

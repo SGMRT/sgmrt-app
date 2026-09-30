@@ -1,4 +1,3 @@
-import colors from "@/src/theme/colors";
 import { StyleSheet, Text, TextProps } from "react-native";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { core } from "@/src/design-system/tokens/colors";
@@ -200,8 +199,10 @@ export const typographyStyles = StyleSheet.create({
         lineHeight: 18,
         letterSpacing: -0.46,
     },
+    // 밝은 면(Primary 또는 밝은 회색) 위에 얹히는 글자.
+    // 디자인 시스템 Button 이 Primary 면 위 글자에 쓰는 값과 같다.
     black: {
-        color: colors.black,
+        color: darkTheme.uiBackground,
     },
     gray80: {
         color: darkTheme.ui02,

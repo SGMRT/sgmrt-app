@@ -1,5 +1,4 @@
 import { PlayIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { useGlobalStyles } from "@/src/theme/useGlobalStyles";
 import { BlurView } from "expo-blur";
 import {
@@ -96,7 +95,7 @@ export const ActionButton = ({
                 ) : (
                     <PlayIcon
                         color={
-                            type === "active" ? colors.black : darkTheme.ui07
+                            type === "active" ? darkTheme.uiBackground : darkTheme.ui07
                         }
                     />
                 )}

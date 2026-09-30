@@ -216,7 +216,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "flex-end",
         alignSelf: "flex-start",
-        backgroundColor: "#2D2D2D",
+        backgroundColor: darkTheme.ui02,
         borderTopLeftRadius: radius.sm,
         borderTopRightRadius: radius.sm,
         borderBottomLeftRadius: 0,

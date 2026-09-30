@@ -1,5 +1,4 @@
 import { darkTheme } from "@/src/design-system/themes/dark";
-import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { radius } from "@/src/design-system/tokens/radius";
 
@@ -38,7 +37,7 @@ export default function RadioButton({
                 {showMyRecord && (
                     <Text
                         style={{
-                            color: colors.black,
+                            color: darkTheme.uiBackground,
                             fontFamily: "SpoqaHanSansNeo-Bold",
                             fontSize: 12,
                         }}

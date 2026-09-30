@@ -162,13 +162,13 @@ export default function SlideToAction({
                             direction === "left"
                                 ? [
                                       "rgba(0, 0, 0, 0)",
-                                      color === "red" ? darkTheme.secondary : "#CFE900",
+                                      color === "red" ? darkTheme.secondary : darkTheme.primary,
                                       "rgba(0, 0, 0, 0)",
                                   ]
                                 : [
-                                      color === "red" ? darkTheme.secondary : "#CFE900",
+                                      color === "red" ? darkTheme.secondary : darkTheme.primary,
                                       "rgba(0, 0, 0, 0)",
-                                      color === "red" ? darkTheme.secondary : "#CFE900",
+                                      color === "red" ? darkTheme.secondary : darkTheme.primary,
                                   ]
                         }
                         style={[

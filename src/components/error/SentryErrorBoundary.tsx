@@ -70,20 +70,21 @@ const styles = StyleSheet.create({
     message: {
         fontSize: 14,
         fontFamily: "SpoqaHanSansNeo-Regular",
-        color: "#999999",
+        color: darkTheme.ui05,
         textAlign: "center",
         lineHeight: 22,
         marginBottom: 32,
     },
     button: {
-        backgroundColor: "#00C896",
+        backgroundColor: darkTheme.primary,
         paddingHorizontal: 32,
         paddingVertical: spacing[12],
         borderRadius: radius.md,
     },
     buttonText: {
         fontSize: 16,
-        fontFamily: "SpoqaHanSansNeo-Medium",
-        color: core.white,
+        // 밝은 면 위 어두운 글자는 한 단계 굵게 해야 같은 굵기로 읽힌다
+        fontFamily: "SpoqaHanSansNeo-Bold",
+        color: darkTheme.uiBackground,
     },
 });
