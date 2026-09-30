@@ -5,7 +5,7 @@ import type { SemanticColors } from "./types";
 
 export const darkTheme: SemanticColors = {
     // UI Background & Surfaces
-    uiBackground: grey[110],
+    uiBackground: grey[120],
     ui01: grey[100],
     ui02: grey[90],
     ui03: grey[80],
