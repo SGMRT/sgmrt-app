@@ -5,6 +5,7 @@ import { StyleSheet, View } from "react-native";
 import { BottomModal, Typography } from "@/src/components/ui";
 import { Step } from "./Onboarding";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 const steps: Step[] = [
     {
@@ -41,7 +42,7 @@ export const CadenceAssistGuide = ({
                 <Typography
                     variant="headline"
                     color="white"
-                    style={{ textAlign: "center", marginBottom: 10 }}
+                    style={{ textAlign: "center", marginBottom: spacing[8] }}
                 >
                     {steps[0].title}
                 </Typography>
@@ -57,10 +58,10 @@ export const CadenceAssistGuide = ({
 
 const styles = StyleSheet.create({
     container: {
-        gap: 15,
+        gap: spacing[16],
         alignItems: "center",
         paddingHorizontal: screenGutter,
-        marginBottom: 30,
+        marginBottom: spacing[28],
     },
     image: {
         width: "100%",

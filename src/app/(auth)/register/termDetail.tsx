@@ -9,6 +9,7 @@ import { ScrollView, StyleSheet, View } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export default function TermDetail() {
     const { title, key } = useLocalSearchParams();
@@ -68,7 +69,7 @@ export default function TermDetail() {
                 style={{ flex: 1, marginTop: 16 }}
                 contentContainerStyle={{
                     paddingHorizontal: 16,
-                    paddingBottom: 50,
+                    paddingBottom: spacing[48],
                 }}
             >
                 <Markdown style={markdownStyles}>{content}</Markdown>

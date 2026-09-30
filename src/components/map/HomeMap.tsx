@@ -27,6 +27,7 @@ import CourseMarkers from "./CourseMarkers";
 import MapViewWrapper from "./MapViewWrapper";
 import { HomeBottomModal } from "./HomeBottomModal";
 import { ListBottomSheetHandle } from "./ListBottomSheetHandle";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface HomeMapProps {
     courseType: "all" | "my";
@@ -108,6 +109,7 @@ export default function HomeMap({
             zoomLevel: zoomLevel,
             padding: {
                 paddingTop: 0,
+                // 지도 위 요소를 비켜 가는 값이라 간격 스케일 대상이 아니다
                 paddingBottom: 200,
                 paddingLeft: 0,
                 paddingRight: 0,

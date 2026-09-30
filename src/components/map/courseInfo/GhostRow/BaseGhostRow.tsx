@@ -2,6 +2,7 @@ import { Divider } from "@/src/components/ui";
 import { Pressable, StyleSheet, View } from "react-native";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface BaseGhostRowProps {
     active?: boolean;
@@ -35,13 +36,13 @@ export const BaseGhostRow = ({
 
 const styles = StyleSheet.create({
     ghostRow: {
-        paddingVertical: 9,
-        paddingLeft: 13.5,
+        paddingVertical: spacing[8],
+        paddingLeft: spacing[12],
         backgroundColor: darkTheme.uiUp,
         borderRadius: radius.md,
         flexDirection: "row",
         alignItems: "center",
-        gap: 13.5,
+        gap: spacing[12],
         borderWidth: 0.5,
         borderColor: darkTheme.uiUp,
     },
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
         position: "relative",
     },
     ghostStats: {
-        gap: 14,
+        gap: spacing[12],
         flex: 1,
     },
     ghostRowActive: {

@@ -14,6 +14,7 @@ import { CartesianChart, Line, useChartPressState } from "victory-native";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface StyledChartProps {
     label: string;
@@ -202,8 +203,8 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: darkTheme.uiUp,
         borderRadius: radius.md,
-        padding: 10,
-        gap: 10,
+        padding: spacing[8],
+        gap: spacing[8],
     },
     chevronContainer: {
         width: 20,
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 0,
         borderBottomRightRadius: 0,
         paddingHorizontal: 12,
-        marginLeft: 8.5,
+        marginLeft: spacing[8],
     },
     tooltip: {
         position: "absolute",

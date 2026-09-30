@@ -2,6 +2,7 @@ import { StatsIndicator, TextWithSub, Typography } from "@/src/components/ui";
 import { Telemetry } from "@/src/apis/types/run";
 import { RunStatus } from "@/src/features/run/context/context";
 import { View } from "react-native";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export interface StatsDisplayItem {
     label: string;
@@ -38,8 +39,8 @@ export default function RunStatsPanel({
             <View
                 style={{
                     alignItems: "center",
-                    marginTop: 30,
-                    marginBottom: 65,
+                    marginTop: spacing[28],
+                    marginBottom: spacing[64],
                 }}
             >
                 <Typography
@@ -57,12 +58,12 @@ export default function RunStatsPanel({
 
     // 일반 스탯 표시
     return (
-        <View style={{ marginVertical: 30 }}>
+        <View style={{ marginVertical: spacing[28] }}>
             {runShotType === "share" && (
                 <TextWithSub
                     title={courseName}
                     sub="완주한 기록은 내 기록에서 확인할 수 있어요."
-                    containerStyle={{ marginBottom: 30 }}
+                    containerStyle={{ marginBottom: spacing[28] }}
                 />
             )}
             <StatsIndicator

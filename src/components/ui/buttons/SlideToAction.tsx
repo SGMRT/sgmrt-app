@@ -12,6 +12,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Typography } from "../display/Typography";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface SlideToActionProps {
     label: string;
@@ -104,7 +105,7 @@ export default function SlideToAction({
                         justifyContent: "center",
                         alignItems: "center",
                         flexDirection: "row",
-                        gap: 10,
+                        gap: spacing[8],
                     }}
                 >
                     <Image

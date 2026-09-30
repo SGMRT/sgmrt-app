@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: darkTheme.uiBackground,
-        paddingBottom: 60,
+        paddingBottom: spacing[64],
     },
     contentContainer: {
         gap: spacing[20],

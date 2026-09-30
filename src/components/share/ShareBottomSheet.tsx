@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomModal, Button, Section, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 const types = [
     { title: "기본", asset: ShareDefault, variant: "default" },
@@ -64,7 +65,7 @@ export const ShareBottomSheet = ({
                 titleVariant="subhead1"
                 containerStyle={{
                     backgroundColor: "transparent",
-                    gap: 10,
+                    gap: spacing[8],
                 }}
                 centerTitle
             >
@@ -78,7 +79,7 @@ export const ShareBottomSheet = ({
                             flex: 1,
                             flexDirection: "row",
                             flexWrap: "wrap",
-                            gap: 10,
+                            gap: spacing[8],
                         }}
                     >
                         {types.map((item, index) => (
@@ -152,7 +153,7 @@ const ShareCard = ({
             <Typography
                 variant="subhead2"
                 color={selected ? "primary" : "gray40"}
-                style={{ marginTop: 10, marginBottom: 16 }}
+                style={{ marginTop: spacing[8], marginBottom: 16 }}
             >
                 {title}
             </Typography>

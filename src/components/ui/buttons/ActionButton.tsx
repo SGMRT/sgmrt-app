@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Typography } from "../display/Typography";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 type ActionButtonProps =
     | {
@@ -71,7 +72,7 @@ export const ActionButton = ({
                               backgroundColor: darkTheme.primary,
                               boxShadow:
                                   "0px 0px 14px 0px rgba(226, 255, 0, 0.2)",
-                              paddingHorizontal: 30,
+                              paddingHorizontal: spacing[28],
                           }
                         : type === "active"
                         ? {

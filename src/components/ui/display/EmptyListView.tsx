@@ -2,6 +2,7 @@ import { AlertIcon } from "@/assets/svgs/svgs";
 import { View } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "./Typography";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export default function EmptyListView({
     iconColor = darkTheme.ui04,
@@ -15,7 +16,7 @@ export default function EmptyListView({
     fontColor?: TypographyColor;
 }) {
     return (
-        <View style={{ gap: 15, alignItems: "center" }}>
+        <View style={{ gap: spacing[16], alignItems: "center" }}>
             <AlertIcon color={iconColor} />
             <Typography
                 variant={fontSize}

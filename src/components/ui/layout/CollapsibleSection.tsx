@@ -2,6 +2,7 @@ import { ChevronIcon } from "@/assets/svgs/svgs";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { Typography } from "../display/Typography";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface CollapsibleSectionProps {
     title: string;
@@ -18,7 +19,7 @@ export default function CollapsibleSection({
 }: CollapsibleSectionProps) {
     const [open, setOpen] = useState(defaultOpen);
     return (
-        <View style={{ paddingVertical: 15, gap: 10 }}>
+        <View style={{ paddingVertical: spacing[16], gap: spacing[8] }}>
             <View
                 style={{
                     flexDirection: "row",

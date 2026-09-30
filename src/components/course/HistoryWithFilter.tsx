@@ -11,6 +11,7 @@ import { BottomModal, DualFilter, EmptyListView, FilterBar, ScrollButton, Sectio
 import { RunHistoryItem } from "./RunHistoryItem";
 import { RunHistoryGalleryItem } from "./RunHistoryGalleryItem";
 import { screenGutter, sectionGap } from "@/src/design-system/tokens/layout";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 type HistoryWithFilterProps = {
     data: RunResponse[];
@@ -153,6 +154,7 @@ export const HistoryWithFilter = ({
                 data={displayData.data}
                 style={{ paddingHorizontal: screenGutter }}
                 contentContainerStyle={{
+                    // 탭 바를 비켜 가는 값이라 간격 스케일 대상이 아니다
                     paddingBottom: 100,
                 }}
                 ListEmptyComponent={
@@ -282,7 +284,7 @@ export const HistoryWithFilter = ({
                         selected={
                             selectedFilter === "date" ? "first" : "second"
                         }
-                        style={{ marginBottom: 30 }}
+                        style={{ marginBottom: spacing[28] }}
                     />
                 )}
                 {bottomSheetType === "view" && (
@@ -292,7 +294,7 @@ export const HistoryWithFilter = ({
                         onPressFirst={() => onPressViewType("list")}
                         onPressSecond={() => onPressViewType("gallery")}
                         selected={selectedView === "list" ? "first" : "second"}
-                        style={{ marginBottom: 30 }}
+                        style={{ marginBottom: spacing[28] }}
                     />
                 )}
             </BottomModal>

@@ -3,6 +3,7 @@ import { getFormattedPace } from "@/src/utils/runUtils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import TextWithUnit from "./TextWithUnit";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface StatsIndicatorProps {
     stats: { label: string; value: string | number; unit: string }[];
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         width: "100%",
-        marginBottom: 10,
+        marginBottom: spacing[8],
     },
     tabItem: {
         flex: 1,

@@ -9,6 +9,7 @@ import { useLocationInfoStore } from "@/src/store/locationInfo";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dispatch, useEffect, useReducer, useState } from "react";
 import { View } from "react-native";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 const initialState: {
     experience: VDOTLevel | null;
@@ -158,9 +159,9 @@ const StepCheckExperience = ({
             <TextWithSub
                 title="러닝 경험이 있으신가요?"
                 sub="첫 러닝 이후엔 고스티가 이전 기록을 참고할게요"
-                containerStyle={{ marginBottom: 30 }}
+                containerStyle={{ marginBottom: spacing[28] }}
             />
-            <View style={{ gap: 10, marginBottom: 30 }}>
+            <View style={{ gap: spacing[8], marginBottom: spacing[28] }}>
                 {Object.values(VDOTLevel).map((experience) => (
                     <Button
                         key={experience}
@@ -200,9 +201,9 @@ const StepSelectGhosty = ({
             <TextWithSub
                 title="고스티의 특성을 선택해 주세요"
                 sub={`${courseName}을 함께할 고스티들이에요`}
-                containerStyle={{ marginBottom: 30 }}
+                containerStyle={{ marginBottom: spacing[28] }}
             />
-            <View style={{ gap: 10, marginBottom: 30 }}>
+            <View style={{ gap: spacing[8], marginBottom: spacing[28] }}>
                 {Object.values(GhostyType).map((ghosty) => (
                     <Button
                         key={ghosty}
@@ -238,7 +239,7 @@ const StepConditionCheck = ({
     };
 
     return (
-        <View style={{ alignItems: "center", gap: 10, marginBottom: 32 }}>
+        <View style={{ alignItems: "center", gap: spacing[8], marginBottom: 32 }}>
             {isCreating ? (
                 <ProgressLing containerSize={80} />
             ) : (
@@ -246,7 +247,7 @@ const StepConditionCheck = ({
                     <TextWithSub
                         title={`오늘의 컨디션은 어떤가요?\n고스티가 참고할게요`}
                         sub="나쁨, 좋음을 기준으로 5단계 중 선택해 주세요"
-                        containerStyle={{ marginBottom: 10 }}
+                        containerStyle={{ marginBottom: spacing[8] }}
                     />
                     <LevelCheck
                         maxLevel={5}
@@ -254,9 +255,9 @@ const StepConditionCheck = ({
                         setLevel={(level) =>
                             handleCondition(level as Condition)
                         }
-                        label={{ left: "나쁨", right: "좋음", gap: 23 }}
-                        icon={{ icon: <HeartIcon />, gap: 14 }}
-                        style={{ marginVertical: 19 }}
+                        label={{ left: "나쁨", right: "좋음", gap: spacing[24] }}
+                        icon={{ icon: <HeartIcon />, gap: spacing[12] }}
+                        style={{ marginVertical: spacing[20] }}
                     />
                 </>
             )}
@@ -266,11 +267,11 @@ const StepConditionCheck = ({
 
 const StepCreating = () => {
     return (
-        <View style={{ marginBottom: 45, alignItems: "center" }}>
+        <View style={{ marginBottom: spacing[48], alignItems: "center" }}>
             <Typography
                 variant="sectionhead"
                 color="white"
-                style={{ textAlign: "center", marginBottom: 30 }}
+                style={{ textAlign: "center", marginBottom: spacing[28] }}
             >
                 어떤 고스티가 함께할까요?{"\n"}고스티가 준비되면 알려드릴게요
             </Typography>

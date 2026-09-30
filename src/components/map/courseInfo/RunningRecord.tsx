@@ -5,6 +5,7 @@ import { StyleSheet, View } from "react-native";
 import { Divider, Stat, StatRow, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export const RunningRecord = ({
     user,
@@ -53,9 +54,9 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: darkTheme.uiUp,
         borderRadius: radius.md,
-        paddingHorizontal: 14,
-        paddingVertical: 10,
-        gap: 14,
+        paddingHorizontal: spacing[12],
+        paddingVertical: spacing[8],
+        gap: spacing[12],
     },
     titleContainer: {
         gap: 4,
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
         width: "100%",
         flexDirection: "row",
         alignItems: "center",
-        gap: 14,
+        gap: spacing[12],
     },
     avatarContainer: {
         position: "relative",
@@ -80,6 +81,6 @@ const styles = StyleSheet.create({
         right: 0,
     },
     stats: {
-        gap: 14,
+        gap: spacing[12],
     },
 });

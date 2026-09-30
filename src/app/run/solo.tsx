@@ -33,6 +33,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { core } from "@/src/design-system/tokens/colors";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 const CAPTURE_TIMEOUT_MS = 10000;
 
@@ -432,10 +433,10 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
     bottomSheetContent: {
-        paddingVertical: 30,
+        paddingVertical: spacing[28],
     },
     handle: {
-        paddingTop: 10,
+        paddingTop: spacing[8],
         paddingBottom: 0,
     },
     handleIndicator: {

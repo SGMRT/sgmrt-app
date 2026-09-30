@@ -6,6 +6,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View } from "react-native";
 import { CreateGhosty } from "./CreateGhosty";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface BottomGuideProps {
     course: CourseResponse;
@@ -23,7 +24,7 @@ export const BottomGuide = ({
     switch (type) {
         case "run":
             return (
-                <View style={{ gap: 35, marginTop: 10 }}>
+                <View style={{ gap: spacing[36], marginTop: spacing[8] }}>
                     <Typography
                         variant="sectionhead"
                         color="white"

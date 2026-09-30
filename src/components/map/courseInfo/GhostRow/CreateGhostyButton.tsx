@@ -4,6 +4,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface CreateGhostyButtonProps {
     remainingCount?: number;
@@ -38,7 +39,7 @@ export const CreateGhostyButton = ({
                 <TouchableOpacity
                     disabled={remainingCount === 0}
                     onPress={onPress}
-                    style={{ marginRight: 13.5 }}
+                    style={{ marginRight: spacing[12] }}
                 >
                     <AddIcon color={darkTheme.ui07} />
                 </TouchableOpacity>
@@ -51,8 +52,8 @@ const styles = StyleSheet.create({
     createGhostButton: {
         backgroundColor: darkTheme.uiUp,
         borderRadius: radius.base,
-        paddingVertical: 10,
-        paddingHorizontal: 14,
+        paddingVertical: spacing[8],
+        paddingHorizontal: spacing[12],
         justifyContent: "space-between",
         flexDirection: "row",
     },

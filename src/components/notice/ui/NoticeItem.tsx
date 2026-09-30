@@ -6,6 +6,7 @@ import { Pressable, StyleSheet } from "react-native";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface NoticeProps {
     content: string;
@@ -38,8 +39,8 @@ const styles = StyleSheet.create({
     container: {
         alignSelf: "stretch",
         backgroundColor: "rgba(17, 17, 17, 0.8)",
-        paddingVertical: 10,
-        paddingHorizontal: 15,
+        paddingVertical: spacing[8],
+        paddingHorizontal: spacing[16],
         alignItems: "center",
         justifyContent: "space-between",
         borderRadius: radius.full,
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 6,
-        paddingRight: 30,
+        paddingRight: spacing[28],
         flexShrink: 1,
     },
     closeButton: {

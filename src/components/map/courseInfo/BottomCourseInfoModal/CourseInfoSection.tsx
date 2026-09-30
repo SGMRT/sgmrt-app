@@ -4,6 +4,7 @@ import { Divider, Section, Stat, StatRow, Typography } from "@/src/components/ui
 import { Pressable, StyleSheet, View } from "react-native";
 import { screenGutter } from "@/src/design-system/tokens/layout";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export const CourseInfoSection = ({
     courseName,
@@ -59,8 +60,8 @@ const styles = StyleSheet.create({
         marginHorizontal: screenGutter,
     },
     courseInfoSectionTitle: {
-        marginBottom: 5,
-        gap: 10,
+        marginBottom: spacing[4],
+        gap: spacing[8],
     },
     courseInfoSectionTitleText: {
         flexDirection: "row",
@@ -75,6 +76,6 @@ const styles = StyleSheet.create({
         gap: 20,
     },
     courseInfoSectionContent: {
-        gap: 15,
+        gap: spacing[16],
     },
 });

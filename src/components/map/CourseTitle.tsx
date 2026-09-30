@@ -6,6 +6,7 @@ import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 import { radius } from "@/src/design-system/tokens/radius";
 import { core } from "@/src/design-system/tokens/colors";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface CourseTitleProps {
     course: CourseResponse;
@@ -73,7 +74,7 @@ export default function CourseTitle({
 
 const styles = StyleSheet.create({
     container: {
-        gap: 10,
+        gap: spacing[8],
         alignItems: "center",
     },
     titleContainer: {
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
         boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
         gap: 1,
         paddingLeft: 12,
-        paddingRight: 7,
+        paddingRight: spacing[6],
     },
 
     topUsersContainer: {

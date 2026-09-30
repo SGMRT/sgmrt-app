@@ -11,6 +11,7 @@ import { Control } from "@/src/design-system/atoms/Control";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         marginVertical: 4,
-        gap: 5,
+        gap: spacing[4],
         flex: 1,
     },
     contentHeader: {
@@ -286,12 +287,12 @@ const styles = StyleSheet.create({
     distanceContainer: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
+        gap: spacing[8],
     },
     elevationContainer: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
+        gap: spacing[8],
     },
     ghostLabel: {
         position: "absolute",

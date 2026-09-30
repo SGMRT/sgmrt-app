@@ -16,6 +16,7 @@ import { Divider, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { core } from "@/src/design-system/tokens/colors";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface ResultCourseMapProps {
     telemetries: Telemetry[];
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
         borderRadius: radius.md,
         paddingVertical: 6,
         paddingHorizontal: 12,
-        marginBottom: 10,
+        marginBottom: spacing[8],
     },
     chartMarker: {
         width: 8,

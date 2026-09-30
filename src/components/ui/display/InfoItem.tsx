@@ -1,6 +1,7 @@
 import { KeyboardType, StyleSheet, TextInput, View } from "react-native";
 import { Typography } from "./Typography";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface InfoItemProps {
     title: string;
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "space-between",
         paddingTop: 6,
-        paddingBottom: 10,
+        paddingBottom: spacing[8],
         borderBottomWidth: 1,
         borderBottomColor: darkTheme.ui01,
     },

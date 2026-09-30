@@ -48,6 +48,7 @@ import { buildStaticMapUrl, calculateBounds } from "./skia/useMapSnapshot";
 import { createRoutePath, createProgressPath, getProgressPosition, ROUTE_STYLE_PRESETS } from "./skia/drawRoute";
 import { core } from "@/src/design-system/tokens/colors";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export type SkiaReplayRecorderHandle = {
     startRecording: () => Promise<void>;
@@ -140,6 +141,7 @@ export default forwardRef<SkiaReplayRecorderHandle, Props>(function SkiaReplayRe
             buildStaticMapUrl(samples, {
                 width,
                 height,
+                // 영상 위에 그리는 값이라 화면 간격 스케일과 다르다
                 padding: 0.15,
                 style: "mapbox/dark-v11",
             }),

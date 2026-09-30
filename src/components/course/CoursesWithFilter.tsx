@@ -25,6 +25,7 @@ import { GoRunCalendar } from "../calendar/GoRunCalendar";
 import { CourseGalleryItem } from "./CourseListView";
 import { screenGutter, sectionGap } from "@/src/design-system/tokens/layout";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 type CoursesWithFilterProps = {
     data: UserCourseInfo[];
@@ -357,7 +358,7 @@ export const CoursesWithFilter = ({
                         selected={
                             selectedFilter === "date" ? "first" : "second"
                         }
-                        style={{ marginBottom: 30 }}
+                        style={{ marginBottom: spacing[28] }}
                     />
                 )}
                 {bottomSheetType === "view" && (
@@ -368,7 +369,7 @@ export const CoursesWithFilter = ({
                         onPressFirst={() => onPressViewType("list")}
                         onPressSecond={() => onPressViewType("gallery")}
                         selected={selectedView === "list" ? "first" : "second"}
-                        style={{ marginBottom: 30 }}
+                        style={{ marginBottom: spacing[28] }}
                     />
                 )}
             </BottomModal>
@@ -448,7 +449,7 @@ const CourseItem = ({
                     style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        gap: 10,
+                        gap: spacing[8],
                     }}
                 >
                     <Typography

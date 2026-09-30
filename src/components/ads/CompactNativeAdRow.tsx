@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 type Props = { style?: ViewStyle };
 const AD_UNIT_ID = __DEV__
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
         backgroundColor: darkTheme.ui04,
         paddingHorizontal: 4,
         borderRadius: radius.md,
-        marginRight: 18,
+        marginRight: spacing[16],
     },
     icon: {
         width: 20,

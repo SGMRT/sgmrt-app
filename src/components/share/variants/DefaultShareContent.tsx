@@ -4,6 +4,7 @@ import ResultCourseMap from "../../result/ResultCourseMap";
 import { Stat, StatRow, Typography } from "@/src/components/ui";
 import { CommonShareProps } from "../types";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 function DefaultShareContent({
     telemetries,
@@ -20,7 +21,7 @@ function DefaultShareContent({
                 <Typography variant="display2" color="white">
                     {title}
                 </Typography>
-                <View style={{ flexDirection: "row", gap: 5 }}>
+                <View style={{ flexDirection: "row", gap: spacing[4] }}>
                     <Typography variant="share_headline" color="gray20">
                         {distance?.toString()}
                     </Typography>
@@ -71,12 +72,12 @@ export default DefaultShareContent;
 
 const styles = StyleSheet.create({
     shareCard: {
-        paddingVertical: 29,
+        paddingVertical: spacing[28],
         flexDirection: "column",
         backgroundColor: darkTheme.uiBackground,
     },
     shareCardHeader: {
-        marginBottom: 10,
+        marginBottom: spacing[8],
         marginLeft: 16,
     },
     ghostIcon: {

@@ -24,6 +24,7 @@ import { SplashScreen, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -78,7 +79,7 @@ export default function Login() {
                 <Image source={Logo} style={styles.logo} resizeMode="contain" />
                 <View
                     style={{
-                        gap: 10,
+                        gap: spacing[8],
                         width: "100%",
                     }}
                 >

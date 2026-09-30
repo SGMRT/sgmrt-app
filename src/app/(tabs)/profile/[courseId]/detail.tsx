@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: darkTheme.uiBackground,
-        paddingBottom: 45,
+        paddingBottom: spacing[48],
     },
     titleInputContainer: {
         flexDirection: "row",

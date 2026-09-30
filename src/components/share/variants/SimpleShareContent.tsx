@@ -3,6 +3,7 @@ import { Stat, Typography } from "@/src/components/ui";
 import Track from "../Track";
 import { CommonShareProps } from "../types";
 import { core } from "@/src/design-system/tokens/colors";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 function SimpleShareContent({
     telemetries,
@@ -13,9 +14,9 @@ function SimpleShareContent({
         <View
             style={{
                 backgroundColor: "transparent",
-                gap: 7,
+                gap: spacing[6],
                 alignItems: "center",
-                paddingVertical: 45,
+                paddingVertical: spacing[48],
                 paddingHorizontal: 16,
             }}
         >

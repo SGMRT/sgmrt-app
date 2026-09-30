@@ -1,6 +1,7 @@
 import { Stat, StatRow, Typography } from "@/src/components/ui";
 import { View } from "react-native";
 import { CommonShareProps } from "../types";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export default function RecordShareContent({
     stats = [] as Stat[],
@@ -11,9 +12,10 @@ export default function RecordShareContent({
         <View
             style={{
                 backgroundColor: "transparent",
+                // 공유 이미지의 여백이라 화면 간격 스케일과 다르다
                 paddingVertical: 120,
                 paddingHorizontal: 16,
-                gap: 60,
+                gap: spacing[64],
             }}
         >
             <View>

@@ -8,6 +8,7 @@ import { useRouter } from "expo-router";
 import { RefObject, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface Props {
     bottomSheetRef: RefObject<BottomSheetModal | null>;
@@ -90,15 +91,15 @@ export default function CourseRegisterModal({
 
 const styles = StyleSheet.create({
     content: {
-        paddingTop: 30,
-        paddingBottom: 50,
+        paddingTop: spacing[28],
+        paddingBottom: spacing[48],
         alignItems: "center",
         justifyContent: "center",
         gap: 4,
         backgroundColor: darkTheme.uiBackground,
     },
     handle: {
-        paddingTop: 10,
+        paddingTop: spacing[8],
         paddingBottom: 0,
     },
 });

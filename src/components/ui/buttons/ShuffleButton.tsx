@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Pressable, StyleSheet } from "react-native";
 import { Typography } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export const ShuffleButton = ({ onPress }: { onPress: () => void }) => {
     const pressedRef = useRef(false);
@@ -37,8 +38,8 @@ export const ShuffleButton = ({ onPress }: { onPress: () => void }) => {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 10,
-        paddingVertical: 10,
+        marginTop: spacing[8],
+        paddingVertical: spacing[8],
         paddingHorizontal: 20,
         backgroundColor: "rgba(92, 92, 92, 0.8)",
         borderRadius: radius.full,

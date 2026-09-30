@@ -9,6 +9,7 @@ import { CustomHeader } from "./CustomHeader";
 import { DayComponent } from "./DayComponent";
 import { screenGutter } from "@/src/design-system/tokens/layout";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import {
     formatKey,
     parseYM,
@@ -221,7 +222,7 @@ export const GoRunCalendar = ({
     }, [markedDates, runSet]);
 
     return (
-        <Section containerStyle={{ marginBottom: 30, marginHorizontal: screenGutter }}>
+        <Section containerStyle={{ marginBottom: spacing[28], marginHorizontal: screenGutter }}>
             <Calendar
                 current={initialDate}
                 onMonthChange={(d) => {

@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { Stat, Typography } from "@/src/components/ui";
 import Track from "../Track";
 import { CommonShareProps } from "../types";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 function LogoShareContent({
     telemetries,
@@ -14,13 +15,13 @@ function LogoShareContent({
         <View
             style={{
                 alignItems: "center",
-                gap: 7,
+                gap: spacing[6],
                 backgroundColor: "transparent",
-                paddingVertical: 68,
+                paddingVertical: spacing[64],
                 paddingHorizontal: 16,
             }}
         >
-            <View style={{ alignItems: "center", gap: 10 }}>
+            <View style={{ alignItems: "center", gap: spacing[8] }}>
                 <View style={{ alignItems: "center" }}>
                     <Typography
                         variant="share_logo_stat_description"

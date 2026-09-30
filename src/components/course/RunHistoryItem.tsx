@@ -4,6 +4,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Divider, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export interface RunHistoryItemProps {
     mode: "SOLO" | "GHOST";
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
     content: {
         flexDirection: "row",
         alignItems: "center",
-        gap: 10,
+        gap: spacing[8],
     },
     dateContainer: {
         flexDirection: "row",

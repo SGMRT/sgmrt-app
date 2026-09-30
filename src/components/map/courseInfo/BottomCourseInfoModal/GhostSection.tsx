@@ -11,6 +11,7 @@ import { CreateGhostyButton } from "../GhostRow/CreateGhostyButton";
 import { UserGhostRow } from "../GhostRow/UserGhostRow";
 import { GuideType } from "./BottomCourseInfoModal";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface GhostSectionProps {
     courseId: number;
@@ -106,10 +107,10 @@ export const GhostSection = ({
 
 const styles = StyleSheet.create({
     ghostInfoSection: {
-        marginBottom: 30,
+        marginBottom: spacing[28],
         marginHorizontal: screenGutter,
     },
     ghostSectionContent: {
-        gap: 10,
+        gap: spacing[8],
     },
 });

@@ -9,6 +9,7 @@ import { SharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface BottomModalProps {
     bottomSheetRef?: React.RefObject<BottomSheetModal | null>;
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
         borderTopEndRadius: radius["2xl"],
     },
     handle: {
-        paddingTop: 10,
+        paddingTop: spacing[8],
         paddingBottom: 20,
     },
     handleIndicator: {

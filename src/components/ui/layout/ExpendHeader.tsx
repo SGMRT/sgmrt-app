@@ -2,6 +2,7 @@ import { ChevronIcon } from "@/assets/svgs/svgs";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Typography, TypographyColor } from "../display/Typography";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface ExpendHeaderProps {
     title: string;
@@ -22,7 +23,7 @@ export default function ExpendHeader({
         <View
             style={[
                 styles.ghostListContainer,
-                marginHorizontal && { paddingHorizontal: 17 },
+                marginHorizontal && { paddingHorizontal: spacing[16] },
             ]}
         >
             <Typography variant="body2" color={titleColor}>

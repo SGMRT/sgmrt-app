@@ -2,6 +2,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export const DayComponent = (day: any) => {
     //boolean
@@ -44,7 +45,7 @@ export const DayComponent = (day: any) => {
 
 const styles = StyleSheet.create({
     DayContainer: {
-        paddingTop: 5,
+        paddingTop: spacing[4],
         paddingBottom: 8,
         width: 40,
         alignItems: "center",

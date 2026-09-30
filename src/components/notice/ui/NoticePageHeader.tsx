@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Header, TabItem } from "@/src/components/ui";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export const NoticePageHeader = ({
     selectedTab,
@@ -51,7 +52,7 @@ export const NoticePageHeader = ({
 
 const styles = StyleSheet.create({
     header: {
-        marginTop: 10,
+        marginTop: spacing[8],
         flexDirection: "row",
     },
 });

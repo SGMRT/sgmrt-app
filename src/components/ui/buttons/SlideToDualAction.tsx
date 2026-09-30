@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 import SlideToAction from "./SlideToAction";
 import { Typography } from "../display/Typography";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 interface SlideToDualActionProps {
     onSlideLeft: () => void;
@@ -73,7 +74,7 @@ export default function SlideToDualAction({
                 justifyContent: "space-between",
                 alignItems: "center",
                 height: 56,
-                paddingHorizontal: 26.5,
+                paddingHorizontal: spacing[28],
             }}
         >
             <TouchableOpacity
