@@ -51,7 +51,7 @@
  *
  * ## Navigation (네비게이션)
  * - TabBar: 탭 바
- * - TabItem: 탭 아이템
+ * - TabItem 은 디자인 시스템으로 옮겼습니다 (design-system/molecules/Tabs)
  *
  * ## Misc (기타)
  * - Beta: 베타 라벨
@@ -119,7 +119,6 @@ export { UserCount } from "./display/UserCount"
 // Navigation
 // ============================================
 export { default as TabBar, TAB_BAR_HEIGHT, TAB_BAR_HEIGHT_FLAT } from "./navigation/TabBar"
-export { TabItem } from "./navigation/TabItem"
 
 // ============================================
 // Misc

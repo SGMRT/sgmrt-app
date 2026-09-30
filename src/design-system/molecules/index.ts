@@ -4,3 +4,4 @@
 
 export * from "./CheckRow";
 export * from "./SplitAction";
+export * from "./Tabs";

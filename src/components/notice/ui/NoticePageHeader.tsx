@@ -1,9 +1,14 @@
 import { HomeIcon } from "@/assets/svgs/svgs";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Header, TabItem } from "@/src/components/ui";
+import { Pressable, View } from "react-native";
+import { Header } from "@/src/components/ui";
+import { Tabs, TabOption } from "@/src/design-system/molecules/Tabs";
 import { darkTheme } from "@/src/design-system/themes/dark";
-import { spacing } from "@/src/design-system/tokens/spacing";
+
+const NOTICE_TABS: TabOption<"GENERAL" | "EVENT">[] = [
+    { key: "GENERAL", title: "공지사항" },
+    { key: "EVENT", title: "이벤트" },
+];
 
 export const NoticePageHeader = ({
     selectedTab,
@@ -34,25 +39,11 @@ export const NoticePageHeader = ({
                     </Pressable>
                 }
             />
-            <View style={styles.header}>
-                <TabItem
-                    title="공지사항"
-                    onPress={() => onTabPress("GENERAL")}
-                    isSelected={selectedTab === "GENERAL"}
-                />
-                <TabItem
-                    title="이벤트"
-                    onPress={() => onTabPress("EVENT")}
-                    isSelected={selectedTab === "EVENT"}
-                />
-            </View>
+            <Tabs
+                options={NOTICE_TABS}
+                selected={selectedTab}
+                onSelect={onTabPress}
+            />
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    header: {
-        marginTop: spacing[8],
-        flexDirection: "row",
-    },
-});

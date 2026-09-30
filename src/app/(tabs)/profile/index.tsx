@@ -10,10 +10,10 @@ import {
     ScrollButton,
     TAB_BAR_HEIGHT,
     TabBar,
-    TabItem,
     Typography,
     showToast,
 } from "@/src/components/ui";
+import { Tabs, TabOption } from "@/src/design-system/molecules/Tabs";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { useAuthStore } from "@/src/store/authState";
@@ -23,6 +23,11 @@ import { useCallback, useRef, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const PROFILE_TABS: TabOption<"info" | "course">[] = [
+    { key: "info", title: "내 정보" },
+    { key: "course", title: "내 코스" },
+];
 
 export default function ProfileScreen() {
     const { tab } = useLocalSearchParams();
@@ -79,26 +84,19 @@ export default function ProfileScreen() {
                         titleText={isDeleteMode ? "코스 삭제" : "마이페이지"}
                         hasBackButton={isDeleteMode}
                         onBack={() => setIsDeleteMode(false)}
+                        deleteColor="white"
                         onDelete={
                             selectedTab === "course" && !isDeleteMode
                                 ? () => setIsDeleteMode(true)
                                 : undefined
                         }
-                        deleteColor="white"
                     />
                     {!isDeleteMode && (
-                        <View style={styles.header}>
-                            <TabItem
-                                title="내 정보"
-                                onPress={() => setSelectedTab("info")}
-                                isSelected={selectedTab === "info"}
-                            />
-                            <TabItem
-                                title="내 코스"
-                                onPress={() => setSelectedTab("course")}
-                                isSelected={selectedTab === "course"}
-                            />
-                        </View>
+                        <Tabs
+                            options={PROFILE_TABS}
+                            selected={selectedTab}
+                            onSelect={setSelectedTab}
+                        />
                     )}
                 </View>
                 {/* Content */}
@@ -187,10 +185,6 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: darkTheme.uiBackground,
         marginBottom: TAB_BAR_HEIGHT,
-    },
-    header: {
-        marginTop: spacing[12],
-        flexDirection: "row",
     },
     handle: {
         paddingTop: spacing[12],
