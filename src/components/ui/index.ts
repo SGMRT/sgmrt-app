@@ -4,7 +4,7 @@
  * 컴포넌트 카테고리:
  *
  * ## Buttons (버튼)
- * - Button: 기본 버튼
+ * - Button 은 디자인 시스템으로 옮겼습니다 (design-system/atoms/Button)
  * - ActionButton: 액션 버튼
  * - ActionButtonGroup: 액션 버튼 그룹
  * - ButtonWithMap: 지도 연동 버튼
@@ -63,8 +63,6 @@
 // ============================================
 export { ActionButton } from "./buttons/ActionButton"
 export { ActionButtonGroup } from "./buttons/ActionButtonGroup"
-export { Button } from "./buttons/Button"
-export type { ButtonProps } from "./buttons/Button"
 export { default as ButtonWithMap } from "./buttons/ButtonWithMap"
 export { FilterButton, ButtonWithIcon } from "./buttons/FilterButton"
 export { default as RadioButton } from "./buttons/RadioButton"

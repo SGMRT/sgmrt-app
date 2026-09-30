@@ -345,7 +345,7 @@ export default function Run() {
                             ]
                         );
                     }}
-                    type="red"
+                    theme="secondary"
                     onPress={() => {
                         Alert.alert(
                             "러닝을 일시정지할까요?",

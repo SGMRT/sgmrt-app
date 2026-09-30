@@ -1,7 +1,8 @@
 import { CourseResponse } from "@/src/apis/types/course";
 import { CreateGhostyGuide } from "@/src/components/onboarding/CreateGhostyGuide";
 import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
-import { Button, Typography } from "@/src/components/ui";
+import { Typography } from "@/src/components/ui";
+import { Button } from "@/src/design-system/atoms/Button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { View } from "react-native";
 import { CreateGhosty } from "./CreateGhosty";
@@ -39,8 +40,9 @@ export const BottomGuide = ({
                         style={{
                             marginHorizontal: screenGutter,
                         }}
-                        type="active"
                         title="네, 확인했어요"
+                        size="large"
+                        theme="primary"
                         onPress={async () => {
                             await AsyncStorage.setItem(
                                 "sgmrt.hasRunCourse.v1",

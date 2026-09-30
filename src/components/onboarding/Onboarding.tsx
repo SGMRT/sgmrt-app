@@ -9,7 +9,8 @@ import {
 } from "react-native";
 import { ConfettiMethods } from "react-native-fast-confetti";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Button, Typography } from "@/src/components/ui";
+import { Typography } from "@/src/components/ui";
+import { Button } from "@/src/design-system/atoms/Button";
 import { PageIndicator } from "@/src/design-system/atoms";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
@@ -169,7 +170,9 @@ export const Onboarding = ({
                                     : nextTitle
                             }
                             onPress={handlePress}
-                            containerStyle={styles.buttonContainer}
+                            size="large"
+                            theme="primary"
+                            block
                             style={styles.button}
                         />
                     )}
@@ -213,11 +216,8 @@ const styles = StyleSheet.create({
         width: "100%",
         aspectRatio: 1.24,
     },
-    buttonContainer: {
-        width: "100%",
-        marginTop: spacing[28],
-    },
     button: {
-        marginHorizontal: 0,
+        // 예전 버튼이 스스로 갖고 있던 위 여백 12 를 합쳐 둔 값이다
+        marginTop: spacing[40],
     },
 });

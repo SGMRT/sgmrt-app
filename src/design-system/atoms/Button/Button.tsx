@@ -41,6 +41,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { darkTheme } from "../../themes/dark";
+import { brand } from "../../tokens/colors";
 import { duration, easing, pressScale } from "../../tokens/motion";
 import { radius } from "../../tokens/radius";
 import { spacing } from "../../tokens/spacing";
@@ -56,7 +57,8 @@ export type ButtonTheme =
     | "ui03"
     | "primary"
     | "primaryO"
-    | "secondary";
+    | "secondary"
+    | "kakao";
 
 /**
  * 크기별 치수. 높이와 모서리는 피그마 실측값이다.
@@ -114,6 +116,10 @@ const SIZE: Record<
  * 어두운 면 위 밝은 글자가 두꺼워 보이는 것과 짝을 이루는 현상이다.
  * 눈에 같은 무게로 보이도록 굵기를 한 단계 올린다.
  */
+// 누른 카카오 면. 밝은 면은 primary 와 같이 한 단계 밝아진다.
+// ghostLime 50 -> 40 이 벌어진 만큼을 그대로 옮겼다.
+const KAKAO_PRESSED = "#FFF05C";
+
 const THEME: Record<
     ButtonTheme,
     { bg: string; pressedBg: string; fg: string; onLight?: boolean }
@@ -159,6 +165,14 @@ const THEME: Record<
         bg: darkTheme.secondary,
         pressedBg: darkTheme.secondaryPressed,
         fg: darkTheme.ui10,
+    },
+    // 카카오 로그인 버튼 하나만 쓴다. 색은 카카오가 정해 둔 값이라 바꿀 수 없다.
+    // 다른 자리에 이 테마를 쓰면 사다리 밖 색이 화면에 늘어난다.
+    kakao: {
+        bg: brand.kakao.bg,
+        pressedBg: KAKAO_PRESSED,
+        fg: brand.kakao.fg,
+        onLight: true,
     },
 };
 

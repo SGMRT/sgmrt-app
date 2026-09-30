@@ -1,5 +1,6 @@
 import { getCourse } from "@/src/apis";
-import { Button, Header, Section, StatRow } from "@/src/components/ui";
+import { Header, Section, StatRow } from "@/src/components/ui";
+import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import { interpolateTelemetries } from "@/src/utils/interpolateTelemetries";
 import { normalizeTimestamps } from "@/src/utils/normalizeTimestamps";
 import { Camera } from "@rnmapbox/maps";
@@ -123,7 +124,8 @@ const PreviewScreen = ({ courseId }: { courseId: number }) => {
                     ]}
                 />
             </Section>
-            <Button
+            <BottomAgreementButton
+                isActive
                 title="이 코스로 러닝"
                 onPress={() => {
                     router.push(`/run/${courseId}/-1`);

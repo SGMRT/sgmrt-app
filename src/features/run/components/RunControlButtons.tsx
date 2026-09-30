@@ -1,7 +1,15 @@
-import { Button, ButtonWithMap } from "@/src/components/ui";
+import { ButtonWithMap } from "@/src/components/ui";
+import { Button } from "@/src/design-system/atoms/Button";
+import { screenGutter } from "@/src/design-system/tokens/layout";
+import { spacing } from "@/src/design-system/tokens/spacing";
 import { RunStatus } from "@/src/features/run/context/context";
 import { useRouter } from "expo-router";
-import { Alert, useWindowDimensions, View } from "react-native";
+import {
+    Alert,
+    StyleSheet,
+    useWindowDimensions,
+    View,
+} from "react-native";
 import { Confetti } from "react-native-fast-confetti";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { core } from "@/src/design-system/tokens/colors";
@@ -132,7 +140,6 @@ export default function RunControlButtons({
                     title="러닝 종료"
                     onPressIcon={onShowShareBottomSheet}
                     onPress={handleNavigateToResult}
-                    type="active"
                 />
             </>
         );
@@ -144,7 +151,7 @@ export default function RunControlButtons({
         case "READY":
         case "STOPPED":
         case "COMPLETION_PENDING":
-            return <Button title="러닝 종료" onPress={handleEndRun} type="red" />;
+            return <EndRunButton onPress={handleEndRun} />;
 
         case "RUNNING":
         case "RUNNING_EXTENDED":
@@ -154,7 +161,7 @@ export default function RunControlButtons({
                     onPressIcon={handleQuit}
                     title="일시정지"
                     onPress={handlePause}
-                    type="red"
+                    theme="secondary"
                 />
             );
 
@@ -165,14 +172,40 @@ export default function RunControlButtons({
                     onPressIcon={handleQuit}
                     title="이어서 러닝"
                     onPress={handleResumeConfirm}
-                    type="active"
                 />
             );
 
         case "PAUSED_OFFCOURSE":
-            return <Button title="러닝 종료" onPress={handleQuit} type="red" />;
+            return <EndRunButton onPress={handleQuit} />;
 
         default:
             return null;
     }
 }
+
+/**
+ * 러닝을 끝내는 주 행동. 화면 아래에 홀로 놓인다.
+ *
+ * 곁딸린 행동이 있는 상태에서는 ButtonWithMap 이 같은 자리를 차지하므로,
+ * 바깥 여백을 그쪽과 같은 값으로 맞춰 두 상태 사이에서 버튼이 움직이지 않게 한다.
+ */
+function EndRunButton({ onPress }: { onPress: () => void }) {
+    return (
+        <View style={endRunStyles.container}>
+            <Button
+                title="러닝 종료"
+                onPress={onPress}
+                size="large"
+                theme="secondary"
+                block
+            />
+        </View>
+    );
+}
+
+const endRunStyles = StyleSheet.create({
+    container: {
+        marginHorizontal: screenGutter,
+        paddingTop: spacing[12],
+    },
+});

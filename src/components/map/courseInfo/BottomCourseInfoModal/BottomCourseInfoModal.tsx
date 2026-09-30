@@ -13,7 +13,6 @@ import { View } from "react-native";
 import { BottomGuide } from "./BottomGuide";
 import { CourseInfoSection } from "./CourseInfoSection";
 import { GhostSection } from "./GhostSection";
-import { screenGutter } from "@/src/design-system/tokens/layout";
 
 type SheetRoute = "info" | "guide";
 export type GuideType = "run" | "ghost" | "ghosty" | "create";
@@ -223,10 +222,6 @@ export default function BottomCourseInfoModal({
 
             <ButtonWithMap
                 iconType="flag"
-                style={{
-                    marginHorizontal: screenGutter,
-                }}
-                type="active"
                 title={buttonTitle}
                 onPress={handleRunButtonPress}
                 onPressIcon={handlePreviewPress}

@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -81,11 +82,12 @@ export default function Login() {
                     style={{
                         gap: spacing[8],
                         width: "100%",
+                        paddingHorizontal: screenGutter,
                     }}
                 >
                     <LoginButton
                         text="카카오로 시작하기"
-                        backgroundColor="#fee500"
+                        provider="kakao"
                         icon={<KakaoIcon />}
                         onPress={async () => {
                             if (loadingProvider) return;
@@ -116,8 +118,7 @@ export default function Login() {
                     {Platform.OS === "ios" && (
                         <LoginButton
                             text="애플로 시작하기"
-                            backgroundColor={darkTheme.ui02}
-                            textColor="white"
+                            provider="apple"
                             icon={<AppleIcon />}
                             disabled={loadingProvider !== null}
                             onPress={async () => {

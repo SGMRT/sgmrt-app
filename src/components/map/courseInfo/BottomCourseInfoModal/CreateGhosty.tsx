@@ -2,7 +2,9 @@ import { HeartIcon } from "@/assets/svgs/svgs";
 import { getVDOTInfo, postVDOTInfo } from "@/src/apis";
 import { CourseResponse } from "@/src/apis/types/course";
 import { Condition, GhostyType, VDOTLevel } from "@/src/apis/types/ghosty";
-import { Button, LevelCheck, ProgressLing, TextWithSub, Typography, showCompactToast } from "@/src/components/ui";
+import { LevelCheck, ProgressLing, TextWithSub, Typography, showCompactToast } from "@/src/components/ui";
+import { Button } from "@/src/design-system/atoms/Button";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 import { createGhostyWithRetries } from "@/src/features/pacemaker/createGhostyWithRetries";
 import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
 import { useLocationInfoStore } from "@/src/store/locationInfo";
@@ -134,11 +136,22 @@ export const CreateGhosty = ({
     return (
         <View>
             {steps[step]}
-            <Button
-                type="active"
-                title={step === steps.length - 1 ? "네, 좋아요" : "다음"}
-                onPress={step === steps.length - 1 ? handleClose : handleNext}
-            />
+            <View
+                style={{
+                    paddingHorizontal: screenGutter,
+                    paddingTop: spacing[12],
+                }}
+            >
+                <Button
+                    title={step === steps.length - 1 ? "네, 좋아요" : "다음"}
+                    onPress={
+                        step === steps.length - 1 ? handleClose : handleNext
+                    }
+                    size="large"
+                    theme="primary"
+                    block
+                />
+            </View>
         </View>
     );
 };
@@ -161,21 +174,21 @@ const StepCheckExperience = ({
                 sub="첫 러닝 이후엔 고스티가 이전 기록을 참고할게요"
                 containerStyle={{ marginBottom: spacing[28] }}
             />
-            <View style={{ gap: spacing[8], marginBottom: spacing[28] }}>
+            <View
+                style={{
+                    gap: spacing[8],
+                    marginBottom: spacing[28],
+                    paddingHorizontal: screenGutter,
+                }}
+            >
                 {Object.values(VDOTLevel).map((experience) => (
                     <Button
                         key={experience}
                         title={experience}
                         onPress={() => handleExperience(experience)}
-                        containerStyle={{
-                            height: 58,
-                            paddingTop: 0,
-                        }}
-                        type={
-                            state.experience === experience
-                                ? "dark-active"
-                                : "dark-inactive"
-                        }
+                        size="select"
+                        selected={state.experience === experience}
+                        block
                     />
                 ))}
             </View>
@@ -203,21 +216,21 @@ const StepSelectGhosty = ({
                 sub={`${courseName}을 함께할 고스티들이에요`}
                 containerStyle={{ marginBottom: spacing[28] }}
             />
-            <View style={{ gap: spacing[8], marginBottom: spacing[28] }}>
+            <View
+                style={{
+                    gap: spacing[8],
+                    marginBottom: spacing[28],
+                    paddingHorizontal: screenGutter,
+                }}
+            >
                 {Object.values(GhostyType).map((ghosty) => (
                     <Button
                         key={ghosty}
                         title={ghosty}
                         onPress={() => handleGhosty(ghosty)}
-                        containerStyle={{
-                            height: 58,
-                            paddingTop: 0,
-                        }}
-                        type={
-                            state.ghosty === ghosty
-                                ? "dark-active"
-                                : "dark-inactive"
-                        }
+                        size="select"
+                        selected={state.ghosty === ghosty}
+                        block
                     />
                 ))}
             </View>

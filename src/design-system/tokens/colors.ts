@@ -86,6 +86,20 @@ export const core = {
     white: "#FFFFFF",
 } as const;
 
+/**
+ * 제휴사 브랜드 색.
+ *
+ * 우리가 정할 수 없는 값이다. 카카오는 로그인 버튼의 면 색과 글자색을
+ * 자기 지침으로 못박아 두었고, 바꾸면 심사에서 걸린다.
+ * 회색 사다리에 끼워 넣을 수 없으므로 따로 둔다.
+ *
+ * 여기 있는 색은 그 제휴사의 로그인 버튼 하나에만 쓴다.
+ * 다른 자리에 끌어다 쓰면 사다리 밖 색이 화면에 늘어난다.
+ */
+export const brand = {
+    kakao: { bg: "#FEE500", fg: "#000000" },
+} as const;
+
 // Shadows
 export const shadows = {
     shadow01: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
@@ -95,4 +109,5 @@ export const shadows = {
 export type GreyScale = keyof typeof grey;
 export type GhostLimeScale = keyof typeof ghostLime;
 export type GhostRedScale = keyof typeof ghostRed;
+export type BrandName = keyof typeof brand;
 export type ShadowScale = keyof typeof shadows;
