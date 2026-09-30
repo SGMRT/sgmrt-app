@@ -83,7 +83,7 @@ export { FilterBar } from "./inputs/FilterBar"
 // ============================================
 export { default as CollapsibleSection } from "./layout/CollapsibleSection"
 export { default as ExpendHeader } from "./layout/ExpendHeader"
-export { default as Header } from "./layout/Header"
+export { default as Header, HEADER_HEIGHT, ICON_HIT_SLOP } from "./layout/Header"
 export { ListSectionContainer, ListSectionItem } from "./layout/ListSection"
 export { default as Section } from "./layout/Section"
 export { default as TopBlurView } from "./layout/TopBlurView"

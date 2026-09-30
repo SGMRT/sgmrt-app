@@ -1,7 +1,7 @@
 import { HomeIcon } from "@/assets/svgs/svgs";
 import { useRouter } from "expo-router";
 import { Pressable, View } from "react-native";
-import { Header } from "@/src/components/ui";
+import { Header, ICON_HIT_SLOP } from "@/src/components/ui";
 import { Tabs, TabOption } from "@/src/design-system/molecules/Tabs";
 import { darkTheme } from "@/src/design-system/themes/dark";
 
@@ -34,7 +34,10 @@ export const NoticePageHeader = ({
                 onBack={onBack}
                 hasBackButton={true}
                 rightComponent={
-                    <Pressable onPress={() => router.replace("/")}>
+                    <Pressable
+                        onPress={() => router.replace("/")}
+                        hitSlop={ICON_HIT_SLOP}
+                    >
                         <HomeIcon color={darkTheme.ui07} />
                     </Pressable>
                 }

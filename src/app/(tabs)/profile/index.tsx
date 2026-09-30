@@ -84,7 +84,6 @@ export default function ProfileScreen() {
                         titleText={isDeleteMode ? "코스 삭제" : "마이페이지"}
                         hasBackButton={isDeleteMode}
                         onBack={() => setIsDeleteMode(false)}
-                        deleteColor="white"
                         onDelete={
                             selectedTab === "course" && !isDeleteMode
                                 ? () => setIsDeleteMode(true)
