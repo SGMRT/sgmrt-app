@@ -1,8 +1,8 @@
-import { Divider } from "@/src/components/ui";
 import { Pressable, StyleSheet, View } from "react-native";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 interface BaseGhostRowProps {
     active?: boolean;

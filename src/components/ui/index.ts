@@ -26,7 +26,7 @@
  * - CollapsibleSection: 접이식 섹션
  * - Header: 헤더
  * - ExpendHeader: 확장 헤더
- * - Divider: 구분선
+ * - Divider 는 디자인 시스템으로 옮겼습니다 (design-system/atoms/Divider)
  * - TopBlurView: 상단 블러 뷰
  *
  * ## Feedback (피드백)
@@ -84,7 +84,6 @@ export { FilterBar } from "./inputs/FilterBar"
 // Layout
 // ============================================
 export { default as CollapsibleSection } from "./layout/CollapsibleSection"
-export { Divider } from "./layout/Divider"
 export { default as ExpendHeader } from "./layout/ExpendHeader"
 export { default as Header } from "./layout/Header"
 export { ListSectionContainer, ListSectionItem } from "./layout/ListSection"

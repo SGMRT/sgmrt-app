@@ -6,7 +6,7 @@ import { UserGhostRow } from "@/src/components/map/courseInfo/GhostRow/UserGhost
 import { GhostGuide } from "@/src/components/onboarding/GhostGuide";
 import ResultCorseMap from "@/src/components/result/ResultCourseMap";
 import RunShot, { RunShotHandle } from "@/src/components/share/RunShot";
-import { Divider, Header, ScrollButton, Section, ShareButton, StatRow, TabBar, Typography, UserCount } from "@/src/components/ui";
+import { Header, ScrollButton, Section, ShareButton, StatRow, TabBar, Typography, UserCount } from "@/src/components/ui";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
@@ -19,6 +19,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 export default function Result() {
     const { courseId } = useLocalSearchParams();

@@ -1,10 +1,11 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import StyledChart from "@/src/components/chart/StyledChart";
-import { Divider, Section, Stat, StatRow, Typography } from "@/src/components/ui";
+import { Section, Stat, StatRow, Typography } from "@/src/components/ui";
 import { Pressable, StyleSheet, View } from "react-native";
 import { screenGutter } from "@/src/design-system/tokens/layout";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 export const CourseInfoSection = ({
     courseName,

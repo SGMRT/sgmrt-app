@@ -1,8 +1,9 @@
 import { BackIcon } from "@/assets/svgs/svgs";
 import { Pressable, StyleSheet, View } from "react-native";
-import { Divider, Typography } from "@/src/components/ui";
+import { Typography } from "@/src/components/ui";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 export const CustomHeader = (item: any) => {
     const monthObj = new Date(item.month);

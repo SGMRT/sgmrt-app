@@ -1,6 +1,6 @@
 import { getNotice, Notice } from "@/src/apis";
 import localEvent from "@/src/components/notice/localEvent.json";
-import { Divider, Header, TabBar, Typography } from "@/src/components/ui";
+import { Header, TabBar, Typography } from "@/src/components/ui";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
@@ -13,6 +13,7 @@ import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { core } from "@/src/design-system/tokens/colors";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 export default function NoticeDetailPage() {
     const { noticeId } = useLocalSearchParams();

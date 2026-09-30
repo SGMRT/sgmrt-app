@@ -1,8 +1,8 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { Fragment } from "react/jsx-runtime";
-import { Divider } from "../layout/Divider";
 import TextWithUnit, { TextWithUnitProps } from "./TextWithUnit";
 import { TypographyColor, TypographyVariant } from "./Typography";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 export type Stat = {
     value: string | number;

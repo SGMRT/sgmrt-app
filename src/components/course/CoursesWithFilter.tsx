@@ -2,7 +2,6 @@ import { deleteCourses } from "@/src/apis";
 import { UserCourseInfo } from "@/src/apis/types/course";
 import {
     BottomModal,
-    Divider,
     DualFilter,
     EmptyListView,
     FilterBar,
@@ -26,6 +25,7 @@ import { CourseGalleryItem } from "./CourseListView";
 import { screenGutter, sectionGap } from "@/src/design-system/tokens/layout";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 type CoursesWithFilterProps = {
     data: UserCourseInfo[];

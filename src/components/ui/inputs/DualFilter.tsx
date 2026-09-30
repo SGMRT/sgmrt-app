@@ -1,8 +1,8 @@
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { Button } from "@/src/design-system/atoms/Button";
-import { Divider } from "@/src/design-system/atoms/Divider";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { Typography } from "../display/Typography";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 interface DualFilterProps {
     description?: string;
@@ -38,7 +38,9 @@ export const DualFilter = ({
                     <Typography variant="subhead1" color="white">
                         {description}
                     </Typography>
-                    <Divider />
+                    {/* 세로 중앙 정렬 안이라 방향을 적지 않으면
+                        폭 없는 세로선이 되어 보이지 않는다 */}
+                    <Divider direction="horizontal" />
                 </View>
             )}
             <Button

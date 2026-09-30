@@ -6,7 +6,7 @@ import {
     getPacemakerDetail,
 } from "@/src/apis";
 import IntervalTimeline from "@/src/components/chart/interval/IntervalTimeline";
-import { Button, Divider, Header, Section, Typography } from "@/src/components/ui";
+import { Button, Header, Section, Typography } from "@/src/components/ui";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
@@ -24,6 +24,7 @@ import {
     ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 export default function Ghosty() {
     const { courseId } = useLocalSearchParams();

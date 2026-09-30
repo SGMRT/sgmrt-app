@@ -6,12 +6,13 @@ import { getDistance } from "@/src/utils/mapUtils";
 import * as Location from "expo-location";
 import { useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, View } from "react-native";
-import { Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
+import { DualFilter, EmptyListView, FilterButton, GhostLabel, Section, Typography, UserCount } from "@/src/components/ui";
 import { Control } from "@/src/design-system/atoms/Control";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 interface CourseListViewProps {
     courses: CourseResponse[];

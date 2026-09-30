@@ -1,9 +1,10 @@
 import { GetUserInfoResponse } from "@/src/apis/types/user";
-import { Divider, Typography } from "@/src/components/ui";
+import { Typography } from "@/src/components/ui";
 import { Avatar } from "@/src/design-system/atoms/Avatar";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { StyleSheet, View } from "react-native";
 import { sectionPadding } from "@/src/design-system/tokens/layout";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 interface ProfileCardProps {
     userInfo: GetUserInfoResponse | null;

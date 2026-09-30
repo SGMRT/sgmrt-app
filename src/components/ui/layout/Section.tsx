@@ -7,11 +7,11 @@ import {
     View,
     ViewStyle,
 } from "react-native";
-import { Divider } from "./Divider";
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { sectionPadding } from "@/src/design-system/tokens/layout";
+import { Divider } from "@/src/design-system/atoms/Divider";
 
 interface SectionProps {
     children: React.ReactNode;
