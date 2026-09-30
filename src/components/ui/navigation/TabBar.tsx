@@ -1,9 +1,10 @@
 import { MapIcon, ProfileIcon, StatsIcon } from "@/assets/svgs/svgs";
+import { SvgProps } from "react-native-svg";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { usePathname, useRouter } from "expo-router";
-import { memo } from "react";
+import { ComponentType, memo } from "react";
 import {
     Pressable,
     StyleProp,
@@ -11,6 +12,18 @@ import {
     View,
     ViewStyle,
 } from "react-native";
+import Animated, {
+    useAnimatedStyle,
+    useReducedMotion,
+    useSharedValue,
+    withSpring,
+    withTiming,
+} from "react-native-reanimated";
+import {
+    duration,
+    pressScale,
+    spring,
+} from "@/src/design-system/tokens/motion";
 
 /** 탭 한 칸의 높이. 아이콘을 누르는 면적이다. */
 const TAB_HEIGHT = 64;
@@ -65,22 +78,69 @@ export default memo(function TabBar({
             {tabs.map((tab) => {
                 const isActive = pathname.includes(tab.path);
                 return (
-                    <Pressable
+                    <Tab
                         key={tab.name}
+                        icon={tab.icon}
+                        isActive={isActive}
                         onPress={() => router.navigate(tab.path as any)}
-                        style={styles.tab}
-                    >
-                        <tab.icon
-                            color={isActive ? darkTheme.primary : darkTheme.ui07}
-                            width={24}
-                            height={24}
-                        />
-                    </Pressable>
+                    />
                 );
             })}
         </View>
     );
 });
+
+/**
+ * 탭 한 칸.
+ *
+ * 누르면 아이콘이 줄었다 스프링으로 돌아온다.
+ * 이미 보고 있는 탭을 눌렀을 때는 화면이 바뀌지 않으므로,
+ * 누름 표시가 없으면 눌린 것인지 앱이 멈춘 것인지 알 수 없다.
+ *
+ * 색은 누름에 따라 바꾸지 않는다. 여기서 색은 지금 어느 화면에 있는지를
+ * 뜻하고, 그 뜻을 손가락 아래에서 잠깐 흔들면 읽는 사람이 헷갈린다.
+ */
+function Tab({
+    icon: Icon,
+    isActive,
+    onPress,
+}: {
+    icon: ComponentType<SvgProps>;
+    isActive: boolean;
+    onPress: () => void;
+}) {
+    const reduceMotion = useReducedMotion();
+    const scale = useSharedValue(1);
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }],
+    }));
+
+    const press = (down: boolean) => {
+        if (reduceMotion) return;
+        scale.value = down
+            ? withTiming(pressScale.compact, { duration: duration.press })
+            : withSpring(1, spring.press);
+    };
+
+    return (
+        <Pressable
+            onPress={onPress}
+            onPressIn={() => press(true)}
+            onPressOut={() => press(false)}
+            style={styles.tab}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: isActive }}
+        >
+            <Animated.View style={animatedStyle}>
+                <Icon
+                    color={isActive ? darkTheme.primary : darkTheme.ui07}
+                    width={24}
+                    height={24}
+                />
+            </Animated.View>
+        </Pressable>
+    );
+}
 
 const styles = StyleSheet.create({
     tab: {
