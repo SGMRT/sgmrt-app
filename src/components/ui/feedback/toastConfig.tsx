@@ -6,6 +6,7 @@ import Toast, { ToastShowParams } from "react-native-toast-message";
 import { Typography } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { spacing } from "@/src/design-system/tokens/spacing";
 
 export const showCompactToast = (
     text: string,
@@ -24,7 +25,7 @@ export const showCompactToast = (
 // safeAreaInsets
 
 export const showToast = (
-    type: "success" | "info",
+    type: "success" | "error",
     text: string,
     bottom: number,
     offset: number = bottom + 82,
@@ -56,7 +57,9 @@ export const SuccessToast = (props: ToastShowParams) => (
     </BlurView>
 );
 
-export const InfoToast = (props: ToastShowParams) => (
+// 실패를 알리는 토스트. 예전 이름이 info 였는데 아이콘은 빨간색이라
+// 이름만 보고는 중립적인 알림으로 읽혔다. 뜻에 맞춰 error 로 바꿨다.
+export const ErrorToast = (props: ToastShowParams) => (
     <BlurView intensity={14} style={[styles.baseContainer, styles.container]}>
         <ToastInfoIcon color={darkTheme.secondary} />
         <Typography variant="subhead2" color="white">
@@ -67,23 +70,25 @@ export const InfoToast = (props: ToastShowParams) => (
 
 export const toastConfig = {
     success: SuccessToast,
-    info: InfoToast,
+    error: ErrorToast,
     compact: CompactToast,
 };
 
 const styles = StyleSheet.create({
+    // 높이를 적지 않고 패딩으로 잡는다. 높이로 적으면 눈에 보이는 여백이
+    // "높이 빼기 글자" 의 나머지가 되어 스케일 밖 값으로 떨어진다.
     baseContainer: {
-        backgroundColor: "rgba(92, 92, 92, 0.8)",
+        backgroundColor: darkTheme.overlaySurface,
         alignItems: "center",
         justifyContent: "center",
-        height: 52,
-        paddingHorizontal: 20,
+        paddingVertical: spacing[12],
+        paddingHorizontal: spacing[20],
         borderRadius: radius.full,
         overflow: "hidden",
         zIndex: 100,
     },
     container: {
-        gap: 8,
+        gap: spacing[8],
         flexDirection: "row",
     },
 });

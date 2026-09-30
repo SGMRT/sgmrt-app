@@ -45,6 +45,9 @@ export interface SemanticColors {
     primaryBPressed: string;
     secondaryPressed: string;
 
+    /** 화면 위에 잠깐 떠오르는 면 (토스트) */
+    overlaySurface: string;
+
     divider: string;
 
     // Shadows

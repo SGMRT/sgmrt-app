@@ -476,7 +476,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                         });
                     })
                     .catch(() => {
-                        showToast("info", "공유에 실패했습니다", 100);
+                        showToast("error", "공유에 실패했습니다", 100);
                     });
             }
             return path;
@@ -510,7 +510,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                             saveToFiles: false,
                             failOnCancel: false,
                         }).catch(() => {
-                            showToast("info", "공유에 실패했습니다", 100);
+                            showToast("error", "공유에 실패했습니다", 100);
                         });
                 })
                 .finally(() => onFinish?.());

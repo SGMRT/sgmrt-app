@@ -315,7 +315,7 @@ export default function Run() {
             await new Promise((resolve) => setTimeout(resolve, 2000));
             await replayRecoderRef.current?.startRecording();
         } catch {
-            showToast("info", "공유에 실패했습니다", bottom);
+            showToast("error", "공유에 실패했습니다", bottom);
             setReplayProgress(-1);
         }
     }

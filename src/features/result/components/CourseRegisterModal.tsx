@@ -34,7 +34,7 @@ export default function CourseRegisterModal({
     const handleRegister = () => {
         const trimmedName = courseName.trim();
         if (!trimmedName) {
-            showToast("info", "코스명을 입력해 주세요", bottom);
+            showToast("error", "코스명을 입력해 주세요", bottom);
             return;
         }
 
@@ -64,7 +64,7 @@ export default function CourseRegisterModal({
                 queryClient.invalidateQueries({ queryKey: ["result"] });
             })
             .catch(() => {
-                showToast("info", "코스 등록에 실패했습니다. 다시 시도해 주세요.", bottom);
+                showToast("error", "코스 등록에 실패했습니다. 다시 시도해 주세요.", bottom);
             });
     };
 

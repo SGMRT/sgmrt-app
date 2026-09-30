@@ -95,7 +95,7 @@ export default function Login() {
                                 setLoadingProvider("kakao");
                                 if (!resp.idToken) {
                                     showToast(
-                                        "info",
+                                        "error",
                                         "카카오 로그인 실패",
                                         bottom
                                     );
@@ -107,7 +107,7 @@ export default function Login() {
                                     secret: resp.accessToken,
                                 });
                             } catch (e) {
-                                showToast("info", "카카오 로그인 실패", bottom);
+                                showToast("error", "카카오 로그인 실패", bottom);
                             } finally {
                                 setLoadingProvider(null);
                             }
@@ -138,7 +138,7 @@ export default function Login() {
                                     setLoadingProvider("apple");
                                     if (!resp.identityToken) {
                                         showToast(
-                                            "info",
+                                            "error",
                                             "애플 로그인 실패",
                                             bottom
                                         );
@@ -151,7 +151,7 @@ export default function Login() {
                                     });
                                 } catch (e: any) {
                                     showToast(
-                                        "info",
+                                        "error",
                                         "애플 로그인 실패",
                                         bottom
                                     );
@@ -227,7 +227,7 @@ async function handleLogin({
     } catch (err: any) {
         devLog(err);
         if (err?.response?.status !== 404) {
-            showToast("info", "로그인에 실패했습니다.", bottom);
+            showToast("error", "로그인에 실패했습니다.", bottom);
             throw err;
         } else {
             // signup_start

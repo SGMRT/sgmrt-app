@@ -97,7 +97,7 @@ export default function Profile() {
         data.agreement.agreedAt = new Date().toISOString();
         const idToken = await getAuth().currentUser?.getIdToken();
         if (!idToken) {
-            showToast("info", "로그인에 실패했습니다.", bottom);
+            showToast("error", "로그인에 실패했습니다.", bottom);
             router.dismissAll();
             router.replace("/login");
             return;
@@ -115,7 +115,7 @@ export default function Profile() {
             if (uploadResult) {
                 data.profileImageUrl = imageUrl.presignUrl.split("?X-Amz-")[0];
             } else {
-                showToast("info", "회원가입에 실패했습니다. 다시 시도해 주세요.", bottom);
+                showToast("error", "회원가입에 실패했습니다. 다시 시도해 주세요.", bottom);
                 return;
             }
         }
@@ -177,13 +177,13 @@ export default function Profile() {
             .catch((err) => {
                 if (err.response.status === 409) {
                     if (err.response.data.code === "M-003") {
-                        showToast("info", "이미 존재하는 닉네임입니다", bottom);
+                        showToast("error", "이미 존재하는 닉네임입니다", bottom);
                     } else {
-                        showToast("info", "이미 존재하는 회원입니다", bottom);
+                        showToast("error", "이미 존재하는 회원입니다", bottom);
                     }
                 } else {
                     showToast(
-                        "info",
+                        "error",
                         "오류가 발생했습니다. 다시 시도해 주세요",
                         bottom
                     );

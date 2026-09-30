@@ -16,7 +16,7 @@ export interface UseResultShareParams {
     runningName?: string;
     startedAt?: number;
     bottom: number;
-    showToast: (type: "success" | "info", message: string, bottom: number) => void;
+    showToast: (type: "success" | "error", message: string, bottom: number) => void;
 }
 
 export interface UseResultShareReturn {
@@ -84,7 +84,7 @@ export function useResultShare({
             await new Promise((resolve) => setTimeout(resolve, 2000));
             await replayRecoderRef.current?.startRecording();
         } catch {
-            showToast("info", "공유에 실패했습니다", bottom);
+            showToast("error", "공유에 실패했습니다", bottom);
             setReplayProgress(-1);
         }
     }, [bottom, showToast]);

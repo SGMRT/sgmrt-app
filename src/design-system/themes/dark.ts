@@ -87,6 +87,14 @@ export const darkTheme: SemanticColors = {
     primaryBPressed: ghostLime[80],
     secondaryPressed: ghostRed[60],
 
+    /**
+     * 화면 위에 잠깐 떠오르는 면.
+     *
+     * 토스트는 어느 화면 위에든 뜨므로 면 사다리의 한 칸을 쓸 수 없다.
+     * 아래에 무엇이 오든 읽히도록 반투명한 밝은 회색으로 둔다.
+     */
+    overlaySurface: "rgba(92, 92, 92, 0.8)",
+
     // Divider
     // 카드(#1A1A1A) 위에서 11 밝아진다.
     // 0.16 은 15 벌어져 배경과 카드 사이(6)보다도 큰 선이 됐고,

@@ -221,7 +221,7 @@ export const CoursesWithFilter = ({
                         showToast("success", "코스가 삭제되었어요", bottom + 60);
                     } catch (error) {
                         showToast(
-                            "info",
+                            "error",
                             "코스 삭제에 실패했어요. 다시 시도해 주세요.",
                             bottom + 60,
                         );

@@ -371,7 +371,7 @@ export default forwardRef<SkiaReplayRecorderHandle, Props>(function SkiaReplayRe
                         });
                     })
                     .catch(() => {
-                        showToast("info", "공유에 실패했습니다", 100);
+                        showToast("error", "공유에 실패했습니다", 100);
                     });
             }
             return path;
@@ -405,7 +405,7 @@ export default forwardRef<SkiaReplayRecorderHandle, Props>(function SkiaReplayRe
                             saveToFiles: false,
                             failOnCancel: false,
                         }).catch(() => {
-                            showToast("info", "공유에 실패했습니다", 100);
+                            showToast("error", "공유에 실패했습니다", 100);
                         });
                 })
                 .finally(() => onFinish?.());

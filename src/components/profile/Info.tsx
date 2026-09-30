@@ -119,7 +119,7 @@ export const Info = ({
                 );
             }
             showToast(
-                "info",
+                "error",
                 "서버 동기화에 실패했어요. 다시 시도해 주세요.",
                 bottom
             );
@@ -204,7 +204,7 @@ export const Info = ({
         },
         onError: () => {
             showToast(
-                "info",
+                "error",
                 "프로필 이미지 변경에 실패했어요. 다시 시도해 주세요.",
                 bottom
             );
