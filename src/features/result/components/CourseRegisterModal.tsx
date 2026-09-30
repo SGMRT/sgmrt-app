@@ -1,5 +1,6 @@
 import { patchCourseName } from "@/src/apis";
-import { BottomModal, Button, Typography, showToast } from "@/src/components/ui";
+import { BottomModal, Typography, showToast } from "@/src/components/ui";
+import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import { InlineInput } from "@/src/design-system/atoms/InlineInput";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -84,7 +85,11 @@ export default function CourseRegisterModal({
                     코스를 한 번 등록하면 삭제 및 수정이 어렵습니다
                 </Typography>
             </View>
-            <Button title="코스 등록" onPress={handleRegister} type="active" />
+            <BottomAgreementButton
+                title="코스 등록"
+                isActive
+                onPress={handleRegister}
+            />
         </BottomModal>
     );
 }

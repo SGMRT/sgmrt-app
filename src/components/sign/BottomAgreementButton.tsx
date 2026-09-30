@@ -1,6 +1,8 @@
 import { Button } from "@/src/design-system/atoms/Button";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { StyleSheet, View } from "react-native";
+import { spacing } from "@/src/design-system/tokens/spacing";
+import { screenGutter } from "@/src/design-system/tokens/layout";
 
 interface BottomAgreementButtonProps {
     isActive: boolean;
@@ -43,9 +45,8 @@ export default function BottomAgreementButton({
 
 const styles = StyleSheet.create({
     container: {
-        paddingTop: 12,
-        paddingBottom: 12,
-        paddingHorizontal: 16,
+        paddingVertical: spacing[12],
+        paddingHorizontal: screenGutter,
     },
     topStroke: {
         borderTopWidth: 1,

@@ -6,7 +6,8 @@ import {
     getPacemakerDetail,
 } from "@/src/apis";
 import IntervalTimeline from "@/src/components/chart/interval/IntervalTimeline";
-import { Button, Header, Section, Typography } from "@/src/components/ui";
+import { Header, Section, Typography } from "@/src/components/ui";
+import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
@@ -119,8 +120,9 @@ export default function Ghosty() {
                     </PlanSection>
                 </Section>
             </ScrollView>
-            <Button
+            <BottomAgreementButton
                 title="고스티와 러닝 시작"
+                isActive
                 onPress={() => {
                     router.push({
                         pathname: "/run/[courseId]/[ghostRunningId]",
