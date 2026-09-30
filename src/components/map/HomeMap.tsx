@@ -40,7 +40,16 @@ interface HomeMapProps {
 
 const ZOOM_THRESHOLD = 14.5;
 const BOTTOM_BAR_HEIGHT = 155;
-const TAB_BAR_HEIGHT = 130;
+/**
+ * 지도가 저작권 표기를 올려 두는 높이.
+ *
+ * 탭 바 높이가 아니다. 지도 탭은 아래에 탭 바뿐 아니라 코스 목록 시트와
+ * "러닝 시작" 버튼이 겹쳐 쌓여 있어, 저작권 표기가 그 위로 올라와야 읽힌다.
+ * 예전에는 이 값이 TAB_BAR_HEIGHT 라는 이름이었는데,
+ * 디자인 시스템이 내보내는 같은 이름의 탭 바 높이(86)와 값이 달라
+ * 어느 쪽이 맞는지 알 수 없었다. 무엇을 재는 값인지로 이름을 바꾼다.
+ */
+const MAP_CREDIT_BOTTOM = 130;
 
 const CONTROL_PANEL_HEIGHT = 48;
 const MARGIN_BOTTOM = 16;
@@ -281,8 +290,8 @@ export default function HomeMap({
                 controlPannelPosition={controlPannelPosition}
                 onRegionDidChange={onRegionDidChange}
                 cameraRef={cameraRef}
-                logoPosition={{ bottom: TAB_BAR_HEIGHT + 8, left: 10 }}
-                attributionPosition={{ bottom: TAB_BAR_HEIGHT + 6, right: 0 }}
+                logoPosition={{ bottom: MAP_CREDIT_BOTTOM + 8, left: 10 }}
+                attributionPosition={{ bottom: MAP_CREDIT_BOTTOM + 6, right: 0 }}
                 onTap={() => {
                     setActiveCourse(null);
                     mapBottomSheetRef.current?.dismiss();
