@@ -25,7 +25,7 @@ export const ProgressBar = ({
     progress,
     onChange,
     onCommit,
-    backgroundColor = "#333333",
+    backgroundColor = darkTheme.uiUp,
     duration = 300,
     controller = true,
     interactive = true,

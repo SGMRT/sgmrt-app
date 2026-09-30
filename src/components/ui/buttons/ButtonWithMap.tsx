@@ -119,6 +119,6 @@ const styles = StyleSheet.create({
     },
     topStroke: {
         borderTopWidth: 1,
-        borderTopColor: "#212121",
+        borderTopColor: darkTheme.ui01,
     },
 });

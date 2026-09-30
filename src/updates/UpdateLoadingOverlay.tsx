@@ -91,7 +91,7 @@ export default function UpdateLoadingOverlay({
                     flex: 1,
                     justifyContent: "center",
                     alignItems: "center",
-                    backgroundColor: "#111111",
+                    backgroundColor: darkTheme.uiBackground,
                 }}
             >
                 <Image

@@ -47,6 +47,7 @@ import { Sample } from "./types";
 import { buildStaticMapUrl, calculateBounds } from "./skia/useMapSnapshot";
 import { createRoutePath, createProgressPath, getProgressPosition, ROUTE_STYLE_PRESETS } from "./skia/drawRoute";
 import { core } from "@/src/design-system/tokens/colors";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export type SkiaReplayRecorderHandle = {
     startRecording: () => Promise<void>;
@@ -432,7 +433,7 @@ export default forwardRef<SkiaReplayRecorderHandle, Props>(function SkiaReplayRe
         <View style={{ position: "absolute", zIndex: -1000, top: 200, opacity: 0 }}>
             <Canvas ref={canvasRef} style={{ width, height }}>
                 {/* 배경 */}
-                <RoundedRect x={0} y={0} width={width} height={height} r={0} color="#111111" />
+                <RoundedRect x={0} y={0} width={width} height={height} r={0} color={darkTheme.uiBackground} />
 
                 {/* 지도 이미지 */}
                 {mapImage && <Image image={mapImage} x={0} y={0} width={width} height={height} />}

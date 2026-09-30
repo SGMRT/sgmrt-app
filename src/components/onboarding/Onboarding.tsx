@@ -13,6 +13,7 @@ import { Button, Typography } from "@/src/components/ui";
 import { PageIndicator } from "@/src/design-system/atoms";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export type Step = {
     title: string;
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingHorizontal: screenGutter,
         paddingTop: 34,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
         borderTopStartRadius: radius["2xl"],
         borderTopEndRadius: radius["2xl"],
     },

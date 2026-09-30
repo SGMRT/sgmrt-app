@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     shareCard: {
         paddingVertical: 29,
         flexDirection: "column",
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     shareCardHeader: {
         marginBottom: 10,

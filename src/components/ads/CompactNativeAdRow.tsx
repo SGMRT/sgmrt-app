@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: 4,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     badge: {
         width: 28,

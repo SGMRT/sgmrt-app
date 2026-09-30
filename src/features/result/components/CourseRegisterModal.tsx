@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { RefObject, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface Props {
     bottomSheetRef: RefObject<BottomSheetModal | null>;
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         gap: 4,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     handle: {
         paddingTop: 10,

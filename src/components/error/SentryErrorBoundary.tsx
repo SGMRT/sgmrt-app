@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react-native";
 import { PropsWithChildren } from "react";
 import { radius } from "@/src/design-system/tokens/radius";
 import { core } from "@/src/design-system/tokens/colors";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import {
     Text,
     View,
@@ -51,7 +52,7 @@ export function SentryErrorBoundary({ children }: PropsWithChildren) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     content: {
         flex: 1,

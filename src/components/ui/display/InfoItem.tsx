@@ -116,6 +116,6 @@ const styles = StyleSheet.create({
         paddingTop: 6,
         paddingBottom: 10,
         borderBottomWidth: 1,
-        borderBottomColor: "#212121",
+        borderBottomColor: darkTheme.ui01,
     },
 });

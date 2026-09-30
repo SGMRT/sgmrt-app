@@ -70,11 +70,11 @@ export default function StyledBottomSheet({
 const styles = StyleSheet.create({
     container: {
         borderWidth: 1,
-        borderTopColor: "#212121",
+        borderTopColor: darkTheme.ui01,
         borderTopStartRadius: radius["2xl"],
         borderTopEndRadius: radius["2xl"],
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
     },
     bottomSheetContent: {
         paddingVertical: 30,

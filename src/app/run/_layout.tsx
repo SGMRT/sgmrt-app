@@ -1,11 +1,12 @@
 import { Stack } from "expo-router";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export default function RunLayout() {
     return (
         <Stack
             screenOptions={{
                 headerShown: false,
-                contentStyle: { backgroundColor: "#111111" },
+                contentStyle: { backgroundColor: darkTheme.uiBackground },
                 animation: "fade",
             }}
         >

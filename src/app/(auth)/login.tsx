@@ -23,6 +23,7 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import { SplashScreen, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Platform, StyleSheet, View } from "react-native";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import {
     SafeAreaView,
     useSafeAreaInsets,
@@ -114,7 +115,7 @@ export default function Login() {
                     {Platform.OS === "ios" && (
                         <LoginButton
                             text="애플로 시작하기"
-                            backgroundColor="#3F3F3F"
+                            backgroundColor={darkTheme.ui02}
                             textColor="white"
                             icon={<AppleIcon />}
                             disabled={loadingProvider !== null}
@@ -237,7 +238,7 @@ async function handleLogin({
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
         flex: 1,
         alignItems: "center",
         justifyContent: "space-between",

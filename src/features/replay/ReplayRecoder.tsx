@@ -42,6 +42,7 @@ import { useRecordingMetrics } from "./hooks/useRecordingMetrics";
 import { useReplay } from "./hooks/useReplay";
 import PreviewMap from "./PreviewMap";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export type ReplayRecorderHandle = {
     startRecording: () => Promise<void>;
@@ -543,7 +544,7 @@ export default forwardRef<ReplayRecorderHandle, Props>(function ReplayRecorder(
                 }}
             >
                 <View
-                    style={{ paddingVertical: 24, backgroundColor: "#111111" }}
+                    style={{ paddingVertical: 24, backgroundColor: darkTheme.uiBackground }}
                 >
                     <View style={{ marginBottom: 10, marginLeft: 16 }}>
                         <Typography variant="display2" color="white">

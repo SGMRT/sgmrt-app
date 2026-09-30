@@ -18,7 +18,7 @@ export const Divider = memo(function Divider() {
                     borderColor: darkTheme.primary,
                 }}
             />
-            <View style={{ width: 1, flex: 1, backgroundColor: "#3f3f3f" }} />
+            <View style={{ width: 1, flex: 1, backgroundColor: darkTheme.ui02 }} />
         </View>
     );
 });

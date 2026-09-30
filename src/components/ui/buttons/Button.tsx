@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     },
     topStroke: {
         borderTopWidth: 1,
-        borderColor: "#212121",
+        borderColor: darkTheme.ui01,
     },
     disabled: {
         backgroundColor: darkTheme.ui02,

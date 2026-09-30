@@ -550,7 +550,7 @@ export default function Run() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#111111",
+        backgroundColor: darkTheme.uiBackground,
         borderRadius: 0,
     },
     timeText: {

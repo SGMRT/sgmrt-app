@@ -1,5 +1,6 @@
 import { TouchableOpacity } from "react-native";
 import { Typography } from "../display/Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export const TabItem = ({
     title,
@@ -16,7 +17,7 @@ export const TabItem = ({
             style={{
                 flex: 1,
                 alignItems: "center",
-                borderBottomColor: isSelected ? "#3f3f3f" : "transparent",
+                borderBottomColor: isSelected ? darkTheme.ui02 : "transparent",
                 borderBottomWidth: 1,
                 paddingBottom: 10,
             }}

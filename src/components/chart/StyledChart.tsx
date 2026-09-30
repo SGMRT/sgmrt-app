@@ -129,10 +129,10 @@ const StyledChart = ({
                                 return `${label / 1000}`;
                             },
                             axisSide: "top",
-                            labelColor: "#676767",
+                            labelColor: darkTheme.ui04,
                             enableRescaling: true,
                             lineWidth: 0.5,
-                            lineColor: "#676767",
+                            lineColor: darkTheme.ui04,
                             labelOffset: 10,
                         }}
                         yAxis={[

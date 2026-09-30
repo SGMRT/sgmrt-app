@@ -82,7 +82,7 @@ export const ActionButton = ({
                         : {
                               backgroundColor: "rgba(17,17,17,0.35)",
                               borderWidth: 1,
-                              borderColor: "#3F3F3F",
+                              borderColor: darkTheme.ui02,
                               boxShadow: "0px 2px 6px 0px rgba(0, 0, 0, 0.15)",
                           },
                 ]}

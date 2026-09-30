@@ -3,6 +3,7 @@ import { useGlobalStyles } from "@/src/theme/useGlobalStyles";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface ScrollButtonProps {
     onPress: () => void;
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
         height: 48,
         backgroundColor: "rgba(17,17,17,0.8)",
         borderWidth: 1,
-        borderColor: "#3F3F3F",
+        borderColor: darkTheme.ui02,
         position: "absolute",
         zIndex: 10,
         right: screenGutter,
