@@ -1,9 +1,9 @@
 // ProgressBar.tsx
-import colors from "@/src/theme/colors";
 import { useEffect, useMemo, useState } from "react";
 import { LayoutChangeEvent, StyleSheet, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import Animated, {
     runOnJS,
     useAnimatedStyle,
@@ -119,13 +119,13 @@ const styles = StyleSheet.create({
     progress: {
         height: "100%",
         borderRadius: radius.full,
-        backgroundColor: colors.primary,
+        backgroundColor: darkTheme.primary,
     },
     controller: {
         width: 17,
         height: 17,
         borderRadius: radius.full,
-        backgroundColor: colors.primary,
+        backgroundColor: darkTheme.primary,
         position: "absolute",
         top: -4.5,
     },

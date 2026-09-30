@@ -1,7 +1,7 @@
 import { BackIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Divider, Typography } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export const CustomHeader = (item: any) => {
     const monthObj = new Date(item.month);
@@ -14,7 +14,7 @@ export const CustomHeader = (item: any) => {
                     <Pressable onPress={() => item.addMonth(-1)}>
                         <BackIcon
                             style={{ transform: [{ rotate: "0deg" }] }}
-                            color={colors.gray[40]}
+                            color={darkTheme.ui07}
                             width={20}
                             height={20}
                         />
@@ -29,7 +29,7 @@ export const CustomHeader = (item: any) => {
                     <Pressable onPress={() => item.addMonth(1)}>
                         <BackIcon
                             style={{ transform: [{ rotate: "180deg" }] }}
-                            color={colors.gray[40]}
+                            color={darkTheme.ui07}
                             width={20}
                             height={20}
                         />

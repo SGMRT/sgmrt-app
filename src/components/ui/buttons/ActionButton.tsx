@@ -10,6 +10,7 @@ import {
     ViewStyle,
 } from "react-native";
 import { Typography } from "../display/Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type ActionButtonProps =
     | {
@@ -67,14 +68,14 @@ export const ActionButton = ({
                     styles.sharedRadius,
                     isText
                         ? {
-                              backgroundColor: colors.primary,
+                              backgroundColor: darkTheme.primary,
                               boxShadow:
                                   "0px 0px 14px 0px rgba(226, 255, 0, 0.2)",
                               paddingHorizontal: 30,
                           }
                         : type === "active"
                         ? {
-                              backgroundColor: colors.primary,
+                              backgroundColor: darkTheme.primary,
                               boxShadow:
                                   "0px 0px 14px 0px rgba(226, 255, 0, 0.2)",
                           }
@@ -94,7 +95,7 @@ export const ActionButton = ({
                 ) : (
                     <PlayIcon
                         color={
-                            type === "active" ? colors.black : colors.gray[40]
+                            type === "active" ? colors.black : darkTheme.ui07
                         }
                     />
                 )}

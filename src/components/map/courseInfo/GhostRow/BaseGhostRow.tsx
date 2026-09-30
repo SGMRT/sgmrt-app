@@ -1,7 +1,7 @@
 import { Divider } from "@/src/components/ui";
-import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface BaseGhostRowProps {
     active?: boolean;
@@ -53,6 +53,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     ghostRowActive: {
-        borderColor: colors.primary,
+        borderColor: darkTheme.primary,
     },
 });

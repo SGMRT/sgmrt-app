@@ -2,13 +2,13 @@ import { BreezeFace } from "@/assets/icons/icons";
 import { TrashIcon } from "@/assets/svgs/svgs";
 import { ProgressBar, Typography } from "@/src/components/ui";
 import { usePacemakerQueue } from "@/src/features/pacemaker/store/queueStore";
-import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 const CREATE_DURATION_MS = 2 * 60 * 1000 + 30 * 1000; // 2분 30초
 const MAX_PROGRESS = 0.98; // 98%
@@ -110,7 +110,7 @@ export const AIGhostRow = ({
             onPress={handleDelete}
             style={{ marginRight: screenGutter }}
         >
-            <TrashIcon color={active ? colors.gray[40] : colors.gray[60]} />
+            <TrashIcon color={active ? darkTheme.ui07 : darkTheme.ui04} />
         </TouchableOpacity>
     );
 

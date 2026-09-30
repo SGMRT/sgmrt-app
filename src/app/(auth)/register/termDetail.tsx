@@ -2,13 +2,13 @@ import { getDataFromS3 } from "@/src/apis";
 import AgreementButton from "@/src/components/sign/AgreementButton";
 import { Header, Typography } from "@/src/components/ui";
 import { useSignupStore } from "@/src/store/signupStore";
-import colors from "@/src/theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export default function TermDetail() {
     const { title, key } = useLocalSearchParams();
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 const markdownStyles = StyleSheet.create({
     // 일반(공통)
     body: {
-        color: colors.gray[40],
+        color: darkTheme.ui07,
         fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 16,
         lineHeight: 24,
@@ -124,16 +124,16 @@ const markdownStyles = StyleSheet.create({
         fontFamily: "SpoqaHanSansNeo-Bold",
     },
     table: {
-        borderColor: colors.gray[40],
+        borderColor: darkTheme.ui07,
         textAlign: "center",
     },
     thead: {
-        backgroundColor: colors.gray[80],
-        borderColor: colors.gray[40],
+        backgroundColor: darkTheme.ui02,
+        borderColor: darkTheme.ui07,
         borderBottomWidth: 0.3,
         fontFamily: "SpoqaHanSansNeo-Bold",
     },
     tr: {
-        borderColor: colors.gray[40],
+        borderColor: darkTheme.ui07,
     },
 });

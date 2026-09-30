@@ -1,5 +1,4 @@
 import { Triangle } from "@/assets/icons/icons";
-import colors from "@/src/theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image, LayoutChangeEvent, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -12,6 +11,7 @@ import Animated, {
     withTiming,
 } from "react-native-reanimated";
 import { Typography } from "../display/Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface SlideToActionProps {
     label: string;
@@ -111,7 +111,7 @@ export default function SlideToAction({
                         source={Triangle}
                         style={{
                             tintColor:
-                                color === "red" ? "#FF3358" : colors.primary,
+                                color === "red" ? "#FF3358" : darkTheme.primary,
                             transform: [
                                 {
                                     rotate:
@@ -132,7 +132,7 @@ export default function SlideToAction({
                         source={Triangle}
                         style={{
                             tintColor:
-                                color === "red" ? "#FF3358" : colors.primary,
+                                color === "red" ? "#FF3358" : darkTheme.primary,
                             transform: [
                                 {
                                     rotate:

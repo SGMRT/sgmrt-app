@@ -1,7 +1,7 @@
 import { ChevronIcon, UserIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { TouchableOpacity, View } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "./Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface UserCountProps {
     userCount: number;
@@ -16,7 +16,7 @@ export const UserCount = ({
     onPress,
     color = "gray40",
     variant = "body3",
-    iconColor = colors.gray[40],
+    iconColor = darkTheme.ui07,
 }: UserCountProps) => {
     return (
         <TouchableOpacity

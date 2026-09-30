@@ -5,6 +5,7 @@ import { ActivityIndicator, Modal, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Typography } from "@/src/components/ui";
 import colors from "../theme/colors";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type Props = {
     visible: boolean;
@@ -106,7 +107,7 @@ export default function UpdateLoadingOverlay({
                         gap: 16,
                     }}
                 >
-                    <ActivityIndicator color={colors.primary} />
+                    <ActivityIndicator color={darkTheme.primary} />
                     <Typography
                         variant="body3"
                         color="gray40"

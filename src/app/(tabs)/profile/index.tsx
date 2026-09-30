@@ -17,7 +17,6 @@ import {
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
 import { useAuthStore } from "@/src/store/authState";
-import colors from "@/src/theme/colors";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -127,7 +126,7 @@ export default function ProfileScreen() {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <AlertIcon color={colors.red} />
+                        <AlertIcon color={darkTheme.secondary} />
                         <View style={styles.modalText}>
                             <Typography variant="headline" color="white">
                                 {modalType === "logout"

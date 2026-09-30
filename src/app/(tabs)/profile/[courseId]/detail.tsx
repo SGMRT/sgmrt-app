@@ -10,7 +10,6 @@ import { Divider, Header, ScrollButton, Section, ShareButton, StatRow, TabBar, T
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
-import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { useQuery } from "@tanstack/react-query";
@@ -181,7 +180,7 @@ export default function Result() {
                                     <Typography variant="body2" color="gray40">
                                         내 기록 보기
                                     </Typography>
-                                    <ChevronIcon color={colors.gray[40]} />
+                                    <ChevronIcon color={darkTheme.ui07} />
                                 </TouchableOpacity>
                             )}
                         </View>

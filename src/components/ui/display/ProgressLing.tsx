@@ -1,5 +1,4 @@
 // ProgressLing.tsx (헤드 캡 추가 + 반시계 회전 유지)
-import colors from "@/src/theme/colors";
 import {
     Canvas,
     Circle,
@@ -10,6 +9,7 @@ import {
 } from "@shopify/react-native-skia";
 import { View } from "react-native";
 import { useDerivedValue } from "react-native-reanimated";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type Props = {
     containerSize?: number;
@@ -25,7 +25,7 @@ export const ProgressLing = ({
     radius = 30.95,
     strokeWidth = 9.285,
     duration = 1200,
-    headColor = colors.primary,
+    headColor = darkTheme.primary,
     trackColor = "rgba(255,255,255,0.08)",
 }: Props) => {
     const size = radius * 2;

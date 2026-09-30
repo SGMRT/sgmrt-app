@@ -1,7 +1,7 @@
-import colors from "@/src/theme/colors";
 import { memo, useCallback, useEffect, useState } from "react";
 import { StyleSheet } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface CountdownProps {
     count: number;
@@ -38,7 +38,7 @@ export default memo(function Countdown({
     return (
         <Animated.Text
             key={countdown}
-            style={[styles.timeText, { color: colors.primary }]}
+            style={[styles.timeText, { color: darkTheme.primary }]}
             entering={FadeIn.duration(1000)}
         >
             {countdown}

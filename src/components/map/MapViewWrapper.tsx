@@ -21,9 +21,9 @@ import {
     Puck2,
     Puck3,
 } from "@/assets/icons/icons";
-import colors from "@/src/theme/colors";
 import ControlPannel from "./ControlPannel";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type TrackPhase = "idle" | "follow" | "heading";
 
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     topImage: {
         width: 18,
         height: 18,
-        backgroundColor: colors.primary,
+        backgroundColor: darkTheme.primary,
         borderRadius: radius.full,
     },
     bearing: {

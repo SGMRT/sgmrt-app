@@ -1,10 +1,10 @@
 import { AlertIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { View } from "react-native";
 import { Typography, TypographyColor, TypographyVariant } from "./Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export default function EmptyListView({
-    iconColor = colors.gray[60],
+    iconColor = darkTheme.ui04,
     description,
     fontSize = "body2",
     fontColor = "gray40",

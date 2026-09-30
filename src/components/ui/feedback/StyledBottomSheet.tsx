@@ -1,4 +1,3 @@
-import colors from "@/src/theme/colors";
 import BottomSheet, {
     BottomSheetBackdrop,
     BottomSheetModal,
@@ -9,6 +8,7 @@ import { useCallback } from "react";
 import { StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface StyledBottomSheetProps extends BottomSheetProps {
     ref?: React.RefObject<BottomSheetModal | null>;
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
         paddingBottom: 0,
     },
     handleIndicator: {
-        backgroundColor: colors.gray[40],
+        backgroundColor: darkTheme.ui07,
         width: 50,
         height: 5,
         borderRadius: radius.full,

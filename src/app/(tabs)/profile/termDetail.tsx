@@ -2,7 +2,6 @@ import { getDataFromS3 } from "@/src/apis";
 import { Header, Typography } from "@/src/components/ui";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { spacing } from "@/src/design-system/tokens/spacing";
-import colors from "@/src/theme/colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
@@ -93,7 +92,7 @@ const styles = StyleSheet.create({
 const markdownStyles = StyleSheet.create({
     // 일반(공통)
     body: {
-        color: colors.gray[40],
+        color: darkTheme.ui07,
         fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 16,
         lineHeight: 24,
@@ -110,16 +109,16 @@ const markdownStyles = StyleSheet.create({
         fontFamily: "SpoqaHanSansNeo-Bold",
     },
     table: {
-        borderColor: colors.gray[40],
+        borderColor: darkTheme.ui07,
         textAlign: "center",
     },
     thead: {
-        backgroundColor: colors.gray[80],
-        borderColor: colors.gray[40],
+        backgroundColor: darkTheme.ui02,
+        borderColor: darkTheme.ui07,
         borderBottomWidth: 0.3,
         fontFamily: "SpoqaHanSansNeo-Bold",
     },
     tr: {
-        borderColor: colors.gray[40],
+        borderColor: darkTheme.ui07,
     },
 });

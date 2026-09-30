@@ -1,5 +1,4 @@
 import { Telemetry } from "@/src/apis/types/run";
-import colors from "@/src/theme/colors";
 import {
     calculateCenter,
     calculateZoomLevelFromSize,
@@ -15,6 +14,7 @@ import CourseLayer from "../map/CourseLayer";
 import MapViewWrapper from "../map/MapViewWrapper";
 import { Divider, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface ResultCourseMapProps {
     telemetries: Telemetry[];
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: radius.full,
-        backgroundColor: colors.primary,
+        backgroundColor: darkTheme.primary,
         borderColor: "#FFFFFF",
     },
     attribution: {

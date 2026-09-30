@@ -24,7 +24,6 @@ import CourseRegisterModal from "@/src/features/result/components/CourseRegister
 import GhostComparisonSection from "@/src/features/result/components/GhostComparisonSection";
 import { useResultShare } from "@/src/features/result/hooks/useResultShare";
 import { useResultStats } from "@/src/features/result/hooks/useResultStats";
-import colors from "@/src/theme/colors";
 import { getDate } from "@/src/utils/runUtils";
 import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -230,7 +229,7 @@ export default function Result() {
                                     <Typography variant="body2" color="gray40">
                                         {course?.name} 코스
                                     </Typography>
-                                    <ChevronIcon color={colors.gray[40]} />
+                                    <ChevronIcon color={darkTheme.ui07} />
                                 </TouchableOpacity>
                             )}
                         </View>

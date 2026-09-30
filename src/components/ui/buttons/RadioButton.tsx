@@ -17,7 +17,7 @@ export default function RadioButton({
     onPress,
     // 고름 표시에 강조색을 쓰지 않는다. 강조색은 주 행동 몫이다
     activeColor = darkTheme.ui07,
-    inactiveColor = colors.gray[60],
+    inactiveColor = darkTheme.ui04,
 }: RadioButtonProps) {
     return (
         <Pressable onPress={() => onPress()}>

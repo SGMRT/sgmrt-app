@@ -1,5 +1,7 @@
 import colors from "@/src/theme/colors";
 import { StyleSheet, Text, TextProps } from "react-native";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { core } from "@/src/design-system/tokens/colors";
 
 export type TypographyVariant =
     | "display1"
@@ -202,24 +204,24 @@ export const typographyStyles = StyleSheet.create({
         color: colors.black,
     },
     gray80: {
-        color: colors.gray[80],
+        color: darkTheme.ui02,
     },
     gray60: {
-        color: colors.gray[60],
+        color: darkTheme.ui04,
     },
     gray40: {
-        color: colors.gray[40],
+        color: darkTheme.ui07,
     },
     gray20: {
-        color: colors.gray[20],
+        color: darkTheme.ui09,
     },
     white: {
-        color: colors.white,
+        color: core.white,
     },
     primary: {
-        color: colors.primary,
+        color: darkTheme.primary,
     },
     red: {
-        color: colors.red,
+        color: darkTheme.secondary,
     },
 });

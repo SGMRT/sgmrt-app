@@ -1,5 +1,4 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { Circle, useFont } from "@shopify/react-native-skia";
 import { useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
@@ -14,6 +13,7 @@ import Animated, {
 import { CartesianChart, Line, useChartPressState } from "victory-native";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface StyledChartProps {
     label: string;
@@ -159,8 +159,8 @@ const StyledChart = ({
                                     strokeWidth={1}
                                     color={
                                         isActive
-                                            ? colors.gray[20]
-                                            : colors.primary
+                                            ? darkTheme.ui09
+                                            : darkTheme.primary
                                     }
                                     curveType="basis"
                                 />
@@ -186,7 +186,7 @@ const StyledChart = ({
                         ]}
                         onPress={handleExpand}
                     >
-                        <ChevronIcon color={colors.gray[60]} />
+                        <ChevronIcon color={darkTheme.ui04} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -195,7 +195,7 @@ const StyledChart = ({
 };
 
 function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }) {
-    return <Circle cx={x} cy={y} r={4} color={colors.primary} />;
+    return <Circle cx={x} cy={y} r={4} color={darkTheme.primary} />;
 }
 
 const styles = StyleSheet.create({
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: 0,
         zIndex: 10,
-        backgroundColor: colors.gray[80],
+        backgroundColor: darkTheme.ui02,
         paddingHorizontal: 8,
         paddingTop: 4,
         borderTopLeftRadius: radius.sm,

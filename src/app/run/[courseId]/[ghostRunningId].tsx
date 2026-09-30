@@ -29,7 +29,6 @@ import {
     selectStatsDisplay,
 } from "@/src/features/run/context/selectors";
 import { getElapsedMs } from "@/src/features/run/context/time";
-import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import {
     getDate,
@@ -53,6 +52,8 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Share from "react-native-share";
 import { ShareVariantWithVideo } from "../../(tabs)/stats/result/[runningId]/[courseId]/[ghostRunningId]";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { core } from "@/src/design-system/tokens/colors";
 
 export default function Run() {
     const { bottom } = useSafeAreaInsets();
@@ -413,7 +414,7 @@ export default function Run() {
                 {isRestarting ? (
                     <Countdown
                         count={3}
-                        color={colors.primary}
+                        color={darkTheme.primary}
                         size={60}
                         onComplete={onCountdownComplete}
                     />
@@ -425,10 +426,10 @@ export default function Run() {
                                 color:
                                     context.status === "READY" ||
                                     context.status === "PAUSED_OFFCOURSE"
-                                        ? colors.red
+                                        ? darkTheme.secondary
                                         : context.status === "COMPLETION_PENDING"
-                                        ? colors.primary
-                                        : colors.white,
+                                        ? darkTheme.primary
+                                        : core.white,
                             },
                         ]}
                         entering={FadeIn.duration(1000)}

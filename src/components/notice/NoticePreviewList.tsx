@@ -1,5 +1,4 @@
 import { Notice } from "@/src/apis";
-import colors from "@/src/theme/colors";
 import { FlashList, FlashListRef } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { forwardRef } from "react";
@@ -7,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Typography } from "@/src/components/ui";
 import { NoticePreviewItem } from "./ui/NoticePreviewItem";
 import { spacing } from "@/src/design-system/tokens/spacing";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type Props = {
     data: Notice[];
@@ -51,7 +51,7 @@ export const NoticePreviewList = forwardRef<FlashListRef<Notice>, Props>(
                         <View style={{ paddingVertical: 16 }}>
                             <ActivityIndicator
                                 size="large"
-                                color={colors.primary}
+                                color={darkTheme.primary}
                             />
                         </View>
                     ) : null

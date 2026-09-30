@@ -12,7 +12,6 @@ import {
     Typography,
     UserCount,
 } from "@/src/components/ui";
-import colors from "@/src/theme/colors";
 import { endOfDay, formatDate, startOfDay } from "@/src/utils/formatDate";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -25,6 +24,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GoRunCalendar } from "../calendar/GoRunCalendar";
 import { CourseGalleryItem } from "./CourseListView";
 import { screenGutter, sectionGap } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type CoursesWithFilterProps = {
     data: UserCourseInfo[];
@@ -439,7 +439,7 @@ const CourseItem = ({
                         onPress={onClickCourseInfo}
                         color={isSelected ? "gray20" : "gray40"}
                         iconColor={
-                            isSelected ? colors.gray[20] : colors.gray[40]
+                            isSelected ? darkTheme.ui09 : darkTheme.ui07
                         }
                         variant="caption1"
                     />

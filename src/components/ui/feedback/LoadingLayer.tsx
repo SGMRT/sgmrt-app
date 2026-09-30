@@ -1,8 +1,8 @@
-import colors from "@/src/theme/colors";
 import { devLog } from "@/src/utils/devLog";
 import { useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Typography } from "../display/Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface LoadingLayerProps {
     limitDelay?: number;
@@ -27,7 +27,7 @@ export default function LoadingLayer({
     }, [limitDelay, onDelayed]);
     return (
         <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
+            <ActivityIndicator size="large" color={darkTheme.primary} />
             {progress !== undefined && (
                 <Typography variant="body3" color="gray40">
                     {`${Math.round(progress * 100)}%`}

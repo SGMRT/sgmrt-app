@@ -1,10 +1,10 @@
 import { DefaultLogo } from "@/assets/icons/icons";
 import { ChevronIcon, GhostIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { getDate, getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 import { Divider, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export interface RunHistoryGalleryItemProps {
     mode: "SOLO" | "GHOST";
@@ -43,7 +43,7 @@ export const RunHistoryGalleryItem = ({
                         <GhostIcon
                             width={20}
                             height={12}
-                            color={colors.primary}
+                            color={darkTheme.primary}
                         />
                     </View>
                 )}
@@ -70,7 +70,7 @@ export const RunHistoryGalleryItem = ({
                             >
                                 {name}
                             </Typography>
-                            <ChevronIcon color={colors.gray[40]} />
+                            <ChevronIcon color={darkTheme.ui07} />
                         </View>
                     </View>
                 </View>
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     imageContainer: {
-        backgroundColor: colors.gray[80],
+        backgroundColor: darkTheme.ui02,
         width: 120,
         height: 120,
         borderRadius: radius.base,

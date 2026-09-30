@@ -16,7 +16,6 @@ import {
 } from "@/src/features/run/context/selectors";
 import { getElapsedMs } from "@/src/features/run/context/time";
 import { extractRawData } from "@/src/features/run/utils/extractRawData";
-import colors from "@/src/theme/colors";
 import { getRunTime, saveRunning } from "@/src/utils/runUtils";
 import { SaveRunningError } from "@/src/utils/runUtils/saveRunning";
 import { captureError } from "@/src/utils/sentryTools";
@@ -32,6 +31,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { core } from "@/src/design-system/tokens/colors";
 
 const CAPTURE_TIMEOUT_MS = 10000;
 
@@ -264,13 +265,13 @@ export default function Run() {
                 {isRestarting ? (
                     <Countdown
                         count={3}
-                        color={colors.primary}
+                        color={darkTheme.primary}
                         size={60}
                         onComplete={onCountdownComplete}
                     />
                 ) : (
                     <Animated.Text
-                        style={[styles.timeText, { color: colors.white }]}
+                        style={[styles.timeText, { color: core.white }]}
                         entering={FadeIn.duration(1000)}
                     >
                         {getRunTime(
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
         paddingBottom: 0,
     },
     handleIndicator: {
-        backgroundColor: colors.gray[40],
+        backgroundColor: darkTheme.ui07,
         width: 50,
         height: 5,
         borderRadius: radius.full,

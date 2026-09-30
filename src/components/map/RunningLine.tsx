@@ -1,7 +1,7 @@
-import colors from "@/src/theme/colors";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import { LineLayer, ShapeSource } from "@rnmapbox/maps";
 import { memo, useMemo, useRef } from "react";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export interface Segment {
     isRunning: boolean;
@@ -53,7 +53,7 @@ function RunningLineImpl({
             ? mapboxStyles.activeLineLayer
             : mapboxStyles.inactiveLineLayer;
         if (segment.isRunning && color === "red") {
-            return { ...base, lineColor: colors.red };
+            return { ...base, lineColor: darkTheme.secondary };
         }
         return base;
     }, [segment.isRunning, color]);

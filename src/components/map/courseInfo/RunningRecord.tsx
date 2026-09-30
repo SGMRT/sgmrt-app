@@ -1,10 +1,10 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { GhostIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 import { Divider, Stat, StatRow, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export const RunningRecord = ({
     user,
@@ -35,7 +35,7 @@ export const RunningRecord = ({
                         style={styles.avatar}
                     />
                     {!isMine && (
-                        <GhostIcon color={colors.primary} style={styles.icon} />
+                        <GhostIcon color={darkTheme.primary} style={styles.icon} />
                     )}
                 </View>
                 <Divider direction="vertical" />

@@ -1,9 +1,9 @@
 import { GhostIcon, ChevronIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { getFormattedPace, getRunTime } from "@/src/utils/runUtils";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Divider, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export interface RunHistoryItemProps {
     mode: "SOLO" | "GHOST";
@@ -37,7 +37,7 @@ export const RunHistoryItem = ({
                             <GhostIcon
                                 width={13}
                                 height={8.13}
-                                color={colors.primary}
+                                color={darkTheme.primary}
                             />
                         </View>
                     )}
@@ -64,7 +64,7 @@ export const RunHistoryItem = ({
                         )}
                         <ChevronIcon
                             color={
-                                isSelected ? colors.gray[20] : colors.gray[40]
+                                isSelected ? darkTheme.ui09 : darkTheme.ui07
                             }
                             width={18}
                             height={18}

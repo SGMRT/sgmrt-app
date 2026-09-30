@@ -1,9 +1,9 @@
 import { Typography } from "@/src/components/ui";
-import colors from "@/src/theme/colors";
 import { BottomSheetHandle } from "@gorhom/bottom-sheet";
 import { StyleSheet, View } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export const ListBottomSheetHandle = () => {
     const animatedIndex = useSharedValue(0);
@@ -24,7 +24,7 @@ export const ListBottomSheetHandle = () => {
 
 const styles = StyleSheet.create({
     handleIndicator: {
-        backgroundColor: colors.gray[40],
+        backgroundColor: darkTheme.ui07,
         width: 50,
         height: 5,
         borderRadius: radius.full,

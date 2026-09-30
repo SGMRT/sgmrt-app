@@ -1,11 +1,12 @@
 import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { GhostIcon } from "@/assets/svgs/svgs";
 import { Stat, StatRow } from "@/src/components/ui";
-import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 import { BaseGhostRow } from "./BaseGhostRow";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { core } from "@/src/design-system/tokens/colors";
 
 interface UserGhostRowProps {
     profileUrl: string;
@@ -28,7 +29,7 @@ export const UserGhostRow = ({
             />
             <GhostIcon
                 style={styles.icon}
-                color={active ? colors.primary : colors.white}
+                color={active ? darkTheme.primary : core.white}
             />
         </View>
     );

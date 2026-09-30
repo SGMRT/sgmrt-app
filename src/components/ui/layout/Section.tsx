@@ -1,6 +1,5 @@
 import { ChevronIcon, InfoIcon } from "@/assets/svgs/svgs";
 import { darkTheme } from "@/src/design-system/themes/dark";
-import colors from "@/src/theme/colors";
 import {
     StyleProp,
     StyleSheet,
@@ -69,7 +68,7 @@ export default function Section({
                                 <Typography variant="caption1" color="gray40">
                                     {shortcutTitle}
                                 </Typography>
-                                <ChevronIcon color={colors.gray[40]} />
+                                <ChevronIcon color={darkTheme.ui07} />
                             </TouchableOpacity>
                         )}
                     </View>

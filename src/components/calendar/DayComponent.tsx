@@ -1,7 +1,7 @@
-import colors from "@/src/theme/colors";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export const DayComponent = (day: any) => {
     //boolean
@@ -35,7 +35,7 @@ export const DayComponent = (day: any) => {
             <View
                 style={[
                     styles.Dot,
-                    isRun && { backgroundColor: colors.gray[40] },
+                    isRun && { backgroundColor: darkTheme.ui07 },
                 ]}
             />
         </TouchableOpacity>

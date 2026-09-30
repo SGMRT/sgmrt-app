@@ -2,10 +2,10 @@ import { DefaultProfileIcon } from "@/assets/icons/icons";
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
 import { GhostLabel, Typography } from "@/src/components/ui";
-import colors from "@/src/theme/colors";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 import { radius } from "@/src/design-system/tokens/radius";
+import { core } from "@/src/design-system/tokens/colors";
 
 interface CourseTitleProps {
     course: CourseResponse;
@@ -31,7 +31,7 @@ export default function CourseTitle({
                     <Typography variant="subhead3" color="white">
                         {course.name}
                     </Typography>
-                    <ChevronIcon color={colors.white} width={15} height={18} />
+                    <ChevronIcon color={core.white} width={15} height={18} />
                 </View>
             </View>
             {zoomLevel > 14.5 && (

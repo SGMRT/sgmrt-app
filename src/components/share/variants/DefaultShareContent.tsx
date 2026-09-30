@@ -1,9 +1,9 @@
 import { GhostIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { StyleSheet, View } from "react-native";
 import ResultCourseMap from "../../result/ResultCourseMap";
 import { Stat, StatRow, Typography } from "@/src/components/ui";
 import { CommonShareProps } from "../types";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 function DefaultShareContent({
     telemetries,
@@ -41,7 +41,7 @@ function DefaultShareContent({
                     attributionPosition={{ bottom: 10, left: 100 }}
                 />
                 <GhostIcon
-                    color={colors.primary}
+                    color={darkTheme.primary}
                     width={24}
                     height={15}
                     style={styles.ghostIcon}

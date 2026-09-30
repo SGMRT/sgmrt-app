@@ -1,4 +1,3 @@
-import colors from "@/src/theme/colors";
 import { errorLog } from "@/src/utils/devLog";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -23,6 +22,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type Props = { style?: ViewStyle };
 const AD_UNIT_ID = __DEV__
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     cta: {
         flexShrink: 0,
         marginLeft: "auto",
-        backgroundColor: colors.gray[60],
+        backgroundColor: darkTheme.ui04,
         paddingHorizontal: 4,
         borderRadius: radius.md,
         marginRight: 18,

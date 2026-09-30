@@ -1,7 +1,7 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Typography, TypographyColor } from "../display/Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface ExpendHeaderProps {
     title: string;
@@ -40,7 +40,7 @@ export default function ExpendHeader({
                                 전체 보기
                             </Typography>
                         </Pressable>
-                        <ChevronIcon color={colors.gray[60]} />
+                        <ChevronIcon color={darkTheme.ui04} />
                     </>
                 )}
                 <Pressable onPress={onPress}>{rightChildren}</Pressable>

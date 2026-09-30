@@ -1,5 +1,4 @@
 import { Pacemaker } from "@/src/apis/types/ghosty";
-import colors from "@/src/theme/colors";
 import { Fragment, useMemo } from "react";
 import { View } from "react-native";
 import { Typography } from "@/src/components/ui";
@@ -7,6 +6,7 @@ import { Divider } from "./Divider";
 import { PhaseBar } from "./PhaseBar";
 import { styles } from "./styles";
 import { computePhaseTimes, getPaceRange, heightForPace } from "./utils";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type IntervalTimelineProps = {
     pacemaker: Pacemaker;
@@ -24,8 +24,8 @@ export default function IntervalTimeline({
     minBarHeight = 2,
     maxBarHeight = 50,
     minBarWidth = 35,
-    fastColor = colors.primary,
-    slowColor = colors.gray[40],
+    fastColor = darkTheme.primary,
+    slowColor = darkTheme.ui07,
 }: IntervalTimelineProps) {
     const sets = pacemaker.sets;
     const warmSet = sets[0];

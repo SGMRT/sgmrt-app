@@ -1,6 +1,6 @@
-import colors from "@/src/theme/colors";
 import { KeyboardType, StyleSheet, TextInput, View } from "react-native";
 import { Typography } from "./Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface InfoItemProps {
     title: string;
@@ -83,7 +83,7 @@ const InfoField = ({
         <View style={styles.infoField}>
             <TextInput
                 style={styles.infoFieldInput}
-                placeholderTextColor={colors.gray[60]}
+                placeholderTextColor={darkTheme.ui04}
                 placeholder={placeholder}
                 keyboardType={keyboardType}
                 maxLength={maxLength ?? undefined}
@@ -104,7 +104,7 @@ const InfoField = ({
 
 const styles = StyleSheet.create({
     infoFieldInput: {
-        color: colors.gray[20],
+        color: darkTheme.ui09,
         fontSize: 16,
         fontFamily: "SpoqaHanSansNeo-Regular",
         flex: 1,

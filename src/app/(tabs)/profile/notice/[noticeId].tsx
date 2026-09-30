@@ -4,7 +4,6 @@ import { Divider, Header, TabBar, Typography } from "@/src/components/ui";
 import { darkTheme } from "@/src/design-system/themes/dark";
 import { radius } from "@/src/design-system/tokens/radius";
 import { spacing } from "@/src/design-system/tokens/spacing";
-import colors from "@/src/theme/colors";
 import { formatDate } from "@/src/utils/formatDate";
 import { useQuery } from "@tanstack/react-query";
 import { Image, ImageLoadEventData } from "expo-image";
@@ -13,6 +12,7 @@ import { useMemo, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import Markdown from "react-native-markdown-display";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { core } from "@/src/design-system/tokens/colors";
 
 export default function NoticeDetailPage() {
     const { noticeId } = useLocalSearchParams();
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
         height: "100%",
     },
     body: {
-        color: colors.white,
+        color: core.white,
         fontFamily: "SpoqaHanSansNeo-Regular",
         fontSize: 16,
         lineHeight: 24,

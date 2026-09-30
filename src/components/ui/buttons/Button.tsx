@@ -1,4 +1,3 @@
-import colors from "@/src/theme/colors";
 import {
     Pressable,
     PressableProps,
@@ -10,6 +9,7 @@ import {
 import { Typography, TypographyColor, TypographyVariant } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type ButtonType =
     | "active"
@@ -86,14 +86,14 @@ function getButtonStyle(
 ) {
     switch (type) {
         case "active":
-            return { backgroundColor: colors.primary, textColor: "black" };
+            return { backgroundColor: darkTheme.primary, textColor: "black" };
         case "inactive":
             return {
-                backgroundColor: colors.gray[80],
+                backgroundColor: darkTheme.ui02,
                 textColor: "white",
             };
         case "red":
-            return { backgroundColor: colors.red, textColor: "white" };
+            return { backgroundColor: darkTheme.secondary, textColor: "white" };
         case "dark-active":
             return { backgroundColor: "#171717", textColor: "primary" };
         case "dark-inactive":
@@ -108,7 +108,7 @@ function getButtonStyle(
             };
         default:
             return {
-                backgroundColor: colors.gray[80],
+                backgroundColor: darkTheme.ui02,
                 textColor: "white",
             };
     }
@@ -135,6 +135,6 @@ const styles = StyleSheet.create({
         borderColor: "#212121",
     },
     disabled: {
-        backgroundColor: colors.gray[80],
+        backgroundColor: darkTheme.ui02,
     },
 });

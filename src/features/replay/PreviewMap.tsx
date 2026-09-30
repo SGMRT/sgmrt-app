@@ -1,6 +1,5 @@
 import MapViewWrapper from "@/src/components/map/MapViewWrapper";
 import { ProgressBar, Typography } from "@/src/components/ui";
-import colors from "@/src/theme/colors";
 import { mapboxStyles } from "@/src/theme/mapboxStyles";
 import {
     Camera,
@@ -15,6 +14,7 @@ import { Link } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 import { Sample } from "./types";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type PreviewMapProps = {
     route: Sample[];
@@ -119,15 +119,15 @@ export default function PreviewMap({
                 ["linear"],
                 ["line-progress"],
                 0,
-                colors.primary,
+                darkTheme.primary,
                 clamped - 0.001,
-                colors.primary,
+                darkTheme.primary,
                 clamped + 0.001,
                 "rgba(255,255,255,0.5)",
                 1,
                 "rgba(255,255,255,0.5)",
             ] as const,
-        [clamped, colors.primary]
+        [clamped, darkTheme.primary]
     );
 
     return (
@@ -223,7 +223,7 @@ export default function PreviewMap({
                 >
                     <ProgressBar
                         progress={Math.max(0, Math.min(1, progress))}
-                        backgroundColor={colors.gray[60]}
+                        backgroundColor={darkTheme.ui04}
                         duration={0.5}
                         controller={true}
                         onChange={(p) => {

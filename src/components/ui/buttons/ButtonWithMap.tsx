@@ -6,7 +6,6 @@ import {
     SaveIcon,
     ShareIcon,
 } from "@/assets/svgs/svgs";
-import colors from "@/src/theme/colors";
 import {
     Pressable,
     StyleProp,
@@ -18,6 +17,8 @@ import { Button, ButtonProps } from "./Button";
 import { Typography } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { core } from "@/src/design-system/tokens/colors";
 
 interface ButtonWithIconProps extends ButtonProps {
     onPressIcon: () => void;
@@ -44,28 +45,28 @@ export default function ButtonWithIcon({
             <Pressable style={styles.button} onPress={onPressIcon}>
                 {iconType === "map" ? (
                     <>
-                        <MapIcon color={colors.gray[40]} />
+                        <MapIcon color={darkTheme.ui07} />
                         <Typography variant="mini" color="gray40">
                             지도
                         </Typography>
                     </>
                 ) : iconType === "share" ? (
                     <>
-                        <ShareIcon color={colors.gray[40]} />
+                        <ShareIcon color={darkTheme.ui07} />
                         <Typography variant="mini" color="gray40">
                             공유하기
                         </Typography>
                     </>
                 ) : iconType === "save" ? (
                     <>
-                        <SaveIcon color={colors.white} />
+                        <SaveIcon color={core.white} />
                         <Typography variant="mini" color="white">
                             기록 저장
                         </Typography>
                     </>
                 ) : iconType === "quit" ? (
                     <>
-                        <QuitIcon color={colors.white} />
+                        <QuitIcon color={core.white} />
                         <Typography variant="mini" color="white">
                             종료하기
                         </Typography>
@@ -79,7 +80,7 @@ export default function ButtonWithIcon({
                     </>
                 ) : (
                     <>
-                        <HomeIcon color={colors.gray[40]} />
+                        <HomeIcon color={darkTheme.ui07} />
                         <Typography variant="mini" color="gray40">
                             메인
                         </Typography>

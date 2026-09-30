@@ -1,9 +1,9 @@
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import StyledChart from "@/src/components/chart/StyledChart";
 import { Divider, Section, Stat, StatRow, Typography } from "@/src/components/ui";
-import colors from "@/src/theme/colors";
 import { Pressable, StyleSheet, View } from "react-native";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export const CourseInfoSection = ({
     courseName,
@@ -31,7 +31,7 @@ export const CourseInfoSection = ({
                             <Typography variant="caption1" color="gray40">
                                 코스 상세
                             </Typography>
-                            <ChevronIcon color={colors.gray[40]} />
+                            <ChevronIcon color={darkTheme.ui07} />
                         </Pressable>
                     </View>
                     <Divider direction="horizontal" />

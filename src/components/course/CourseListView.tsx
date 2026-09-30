@@ -1,7 +1,6 @@
 import { DefaultLogo } from "@/assets/icons/icons";
 import { ChevronIcon } from "@/assets/svgs/svgs";
 import { CourseResponse } from "@/src/apis/types/course";
-import colors from "@/src/theme/colors";
 import { errorLog } from "@/src/utils/devLog";
 import { getDistance } from "@/src/utils/mapUtils";
 import * as Location from "expo-location";
@@ -11,6 +10,7 @@ import { Divider, DualFilter, EmptyListView, FilterButton, GhostLabel, Section, 
 import { Control } from "@/src/design-system/atoms/Control";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface CourseListViewProps {
     courses: CourseResponse[];
@@ -220,7 +220,7 @@ export const CourseGalleryItem = ({
                             onChange={onCheck}
                         />
                     ) : (
-                        <ChevronIcon color={colors.gray[40]} />
+                        <ChevronIcon color={darkTheme.ui07} />
                     )}
                 </View>
                 {/* 코스 거리, 고도 */}
