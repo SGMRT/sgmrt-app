@@ -37,13 +37,13 @@ const styles = StyleSheet.create({
     ghostRow: {
         paddingVertical: 9,
         paddingLeft: 13.5,
-        backgroundColor: "#222222",
+        backgroundColor: darkTheme.uiUp,
         borderRadius: radius.md,
         flexDirection: "row",
         alignItems: "center",
         gap: 13.5,
         borderWidth: 0.5,
-        borderColor: "#222222",
+        borderColor: darkTheme.uiUp,
     },
     ghostAvatarContainer: {
         position: "relative",

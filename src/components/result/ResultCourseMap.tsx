@@ -15,6 +15,7 @@ import MapViewWrapper from "../map/MapViewWrapper";
 import { Divider, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
 import { darkTheme } from "@/src/design-system/themes/dark";
+import { core } from "@/src/design-system/tokens/colors";
 
 interface ResultCourseMapProps {
     telemetries: Telemetry[];
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
         height: 8,
         borderRadius: radius.full,
         backgroundColor: darkTheme.primary,
-        borderColor: "#FFFFFF",
+        borderColor: core.white,
     },
     attribution: {
         position: "absolute",

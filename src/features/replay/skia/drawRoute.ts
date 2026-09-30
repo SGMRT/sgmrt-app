@@ -7,6 +7,7 @@
 import { Skia, SkCanvas } from "@shopify/react-native-skia";
 import { Sample } from "../types";
 import { MapBounds, geoToCanvas } from "./useMapSnapshot";
+import { core } from "@/src/design-system/tokens/colors";
 
 type RouteStyle = {
     strokeWidth: number;
@@ -270,7 +271,7 @@ export function drawRouteOnCanvas(
     const runnerBorderPaint = Skia.Paint();
     runnerBorderPaint.setStyle(1); // Stroke
     runnerBorderPaint.setStrokeWidth(2);
-    runnerBorderPaint.setColor(Skia.Color("#FFFFFF"));
+    runnerBorderPaint.setColor(Skia.Color(core.white));
     runnerBorderPaint.setAntiAlias(true);
 
     canvas.drawCircle(
@@ -296,7 +297,7 @@ export const ROUTE_STYLE_PRESETS = {
     minimal: {
         strokeWidth: 2,
         baseColor: "rgba(255, 255, 255, 0.2)",
-        progressColor: "#FFFFFF",
+        progressColor: core.white,
         glowColor: undefined,
         runnerSize: 6,
     },

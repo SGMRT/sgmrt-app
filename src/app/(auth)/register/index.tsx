@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import BottomAgreementButton from "@/src/components/sign/BottomAgreementButton";
 import { useSignupStore } from "@/src/store/signupStore";
 import { useRouter } from "expo-router";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export default function Register() {
     const router = useRouter();
@@ -40,6 +41,6 @@ export default function Register() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#141414",
+        backgroundColor: darkTheme.uiBackground,
     },
 });

@@ -2,6 +2,7 @@ import { Telemetry } from "@/src/apis/types/run";
 import { useMemo } from "react";
 import { StyleProp, View, ViewStyle } from "react-native";
 import Svg, { Polyline } from "react-native-svg";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type Props = {
     data: Telemetry[];
@@ -66,7 +67,7 @@ function Track({
     height,
     padding = 12,
     strokeWidth = 4,
-    stroke = "#E2FF00",
+    stroke = darkTheme.primary,
     style,
 }: Props) {
     const points = useMemo(() => {

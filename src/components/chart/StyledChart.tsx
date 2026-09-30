@@ -200,7 +200,7 @@ function ToolTip({ x, y }: { x: SharedValue<number>; y: SharedValue<number> }) {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#222222",
+        backgroundColor: darkTheme.uiUp,
         borderRadius: radius.md,
         padding: 10,
         gap: 10,

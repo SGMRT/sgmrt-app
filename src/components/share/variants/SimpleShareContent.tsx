@@ -2,6 +2,7 @@ import { View } from "react-native";
 import { Stat, Typography } from "@/src/components/ui";
 import Track from "../Track";
 import { CommonShareProps } from "../types";
+import { core } from "@/src/design-system/tokens/colors";
 
 function SimpleShareContent({
     telemetries,
@@ -23,7 +24,7 @@ function SimpleShareContent({
                 height={361}
                 padding={30}
                 data={telemetries}
-                stroke="#ffffff"
+                stroke={core.white}
             />
             <View style={{ alignItems: "center", gap: 20 }}>
                 <View style={{ flexDirection: "row", gap: 20 }}>

@@ -111,7 +111,7 @@ export default function SlideToAction({
                         source={Triangle}
                         style={{
                             tintColor:
-                                color === "red" ? "#FF3358" : darkTheme.primary,
+                                color === "red" ? darkTheme.secondary : darkTheme.primary,
                             transform: [
                                 {
                                     rotate:
@@ -132,7 +132,7 @@ export default function SlideToAction({
                         source={Triangle}
                         style={{
                             tintColor:
-                                color === "red" ? "#FF3358" : darkTheme.primary,
+                                color === "red" ? darkTheme.secondary : darkTheme.primary,
                             transform: [
                                 {
                                     rotate:
@@ -161,13 +161,13 @@ export default function SlideToAction({
                             direction === "left"
                                 ? [
                                       "rgba(0, 0, 0, 0)",
-                                      color === "red" ? "#FF3358" : "#CFE900",
+                                      color === "red" ? darkTheme.secondary : "#CFE900",
                                       "rgba(0, 0, 0, 0)",
                                   ]
                                 : [
-                                      color === "red" ? "#FF3358" : "#CFE900",
+                                      color === "red" ? darkTheme.secondary : "#CFE900",
                                       "rgba(0, 0, 0, 0)",
-                                      color === "red" ? "#FF3358" : "#CFE900",
+                                      color === "red" ? darkTheme.secondary : "#CFE900",
                                   ]
                         }
                         style={[

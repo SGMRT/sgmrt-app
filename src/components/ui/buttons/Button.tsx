@@ -95,10 +95,10 @@ function getButtonStyle(
         case "red":
             return { backgroundColor: darkTheme.secondary, textColor: "white" };
         case "dark-active":
-            return { backgroundColor: "#171717", textColor: "primary" };
+            return { backgroundColor: darkTheme.ui01, textColor: "primary" };
         case "dark-inactive":
             return {
-                backgroundColor: "#171717",
+                backgroundColor: darkTheme.ui01,
                 textColor: "gray40",
             };
         case "custom":

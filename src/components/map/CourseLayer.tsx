@@ -7,6 +7,7 @@ import {
     SymbolLayer,
 } from "@rnmapbox/maps";
 import { memo } from "react";
+import { core } from "@/src/design-system/tokens/colors";
 
 interface CourseProps {
     course: CourseResponse;
@@ -30,7 +31,7 @@ export default memo(function CourseLayer({
                 shape={{
                     type: "Feature",
                     properties: {
-                        color: "#ffffff",
+                        color: core.white,
                     },
                     geometry: {
                         type: "LineString",

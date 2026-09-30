@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
     },
     headerTitle: {
         paddingVertical: 8,
-        backgroundColor: "#171717",
+        backgroundColor: darkTheme.ui01,
         textAlign: "center",
     },
     dayHeaderContainer: {

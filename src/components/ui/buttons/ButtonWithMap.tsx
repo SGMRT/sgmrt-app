@@ -103,7 +103,7 @@ export default function ButtonWithIcon({
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: "#222222",
+        backgroundColor: darkTheme.uiUp,
         borderRadius: radius.base,
         alignItems: "center",
         justifyContent: "center",

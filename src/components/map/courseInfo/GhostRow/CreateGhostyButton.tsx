@@ -49,7 +49,7 @@ export const CreateGhostyButton = ({
 
 const styles = StyleSheet.create({
     createGhostButton: {
-        backgroundColor: "#222222",
+        backgroundColor: darkTheme.uiUp,
         borderRadius: radius.base,
         paddingVertical: 10,
         paddingHorizontal: 14,

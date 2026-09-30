@@ -20,6 +20,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomModal, Button, Section, Typography } from "@/src/components/ui";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 const types = [
     { title: "기본", asset: ShareDefault, variant: "default" },
@@ -132,7 +133,7 @@ const ShareCard = ({
         <TouchableOpacity
             onPress={onPress}
             style={{
-                backgroundColor: "#171717",
+                backgroundColor: darkTheme.ui01,
                 flexBasis: "48.5%",
                 alignItems: "center",
                 justifyContent: "center",

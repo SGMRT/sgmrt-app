@@ -6,6 +6,7 @@
 
 import { Skia, SkCanvas } from "@shopify/react-native-skia";
 import { ReplayStats } from "../types";
+import { core } from "@/src/design-system/tokens/colors";
 
 type StatsStyle = {
     primaryFontSize: number;
@@ -23,7 +24,7 @@ const DEFAULT_STYLE: StatsStyle = {
     primaryFontSize: 48,
     secondaryFontSize: 24,
     labelFontSize: 12,
-    primaryColor: "#FFFFFF",
+    primaryColor: core.white,
     secondaryColor: "#00FF88",
     labelColor: "rgba(255, 255, 255, 0.6)",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -348,7 +349,7 @@ export const STATS_STYLE_PRESETS = {
     },
     light: {
         ...DEFAULT_STYLE,
-        primaryColor: "#000000",
+        primaryColor: core.black,
         secondaryColor: "#007AFF",
         labelColor: "rgba(0, 0, 0, 0.6)",
         backgroundColor: "rgba(255, 255, 255, 0.8)",

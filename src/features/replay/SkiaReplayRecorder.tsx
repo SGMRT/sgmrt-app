@@ -46,6 +46,7 @@ import { useReplay } from "./hooks/useReplay";
 import { Sample } from "./types";
 import { buildStaticMapUrl, calculateBounds } from "./skia/useMapSnapshot";
 import { createRoutePath, createProgressPath, getProgressPosition, ROUTE_STYLE_PRESETS } from "./skia/drawRoute";
+import { core } from "@/src/design-system/tokens/colors";
 
 export type SkiaReplayRecorderHandle = {
     startRecording: () => Promise<void>;
@@ -495,7 +496,7 @@ export default forwardRef<SkiaReplayRecorderHandle, Props>(function SkiaReplayRe
                     cx={runnerPosition.x}
                     cy={runnerPosition.y}
                     r={routeStyle.runnerSize}
-                    color="#FFFFFF"
+                    color={core.white}
                     style="stroke"
                     strokeWidth={2}
                 />

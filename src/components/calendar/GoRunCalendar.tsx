@@ -8,6 +8,7 @@ import { Section } from "@/src/components/ui";
 import { CustomHeader } from "./CustomHeader";
 import { DayComponent } from "./DayComponent";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 import {
     formatKey,
     parseYM,
@@ -226,7 +227,7 @@ export const GoRunCalendar = ({
                 onMonthChange={(d) => {
                     setCurrentDate(d.dateString);
                 }}
-                style={{ backgroundColor: "#171717" }}
+                style={{ backgroundColor: darkTheme.ui01 }}
                 monthFormat="yyyy년 M월"
                 customHeader={CustomHeader}
                 enableSwipeMonths
@@ -234,8 +235,8 @@ export const GoRunCalendar = ({
                 markingType="period"
                 markedDates={mergedMarkedDates}
                 theme={{
-                    backgroundColor: "#171717",
-                    calendarBackground: "#171717",
+                    backgroundColor: darkTheme.ui01,
+                    calendarBackground: darkTheme.ui01,
                 }}
                 onDayPress={handleDayPress}
                 dayComponent={DayComponent}

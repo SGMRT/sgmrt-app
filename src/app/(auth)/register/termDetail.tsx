@@ -87,7 +87,7 @@ export default function TermDetail() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#141414",
+        backgroundColor: darkTheme.uiBackground,
     },
     button: {
         width: "100%",

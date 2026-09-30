@@ -3,6 +3,8 @@ import { RunStatus } from "@/src/features/run/context/context";
 import { useRouter } from "expo-router";
 import { Alert, useWindowDimensions, View } from "react-native";
 import { Confetti } from "react-native-fast-confetti";
+import { darkTheme } from "@/src/design-system/themes/dark";
+import { core } from "@/src/design-system/tokens/colors";
 
 export interface RunSaveResult {
     runningId: number;
@@ -114,7 +116,7 @@ export default function RunControlButtons({
                 <Confetti
                     fallDuration={4000}
                     count={100}
-                    colors={["#d9d9d9", "#e2ff00", "#ffffff"]}
+                    colors={["#d9d9d9", darkTheme.primary, core.white]}
                     flakeSize={{ width: 12, height: 8 }}
                     fadeOutOnEnd={true}
                     cannonsPositions={[

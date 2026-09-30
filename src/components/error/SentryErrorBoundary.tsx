@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/react-native";
 import { PropsWithChildren } from "react";
 import { radius } from "@/src/design-system/tokens/radius";
+import { core } from "@/src/design-system/tokens/colors";
 import {
     Text,
     View,
@@ -61,7 +62,7 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontFamily: "SpoqaHanSansNeo-Bold",
-        color: "#FFFFFF",
+        color: core.white,
         marginBottom: 12,
     },
     message: {
@@ -81,6 +82,6 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: 16,
         fontFamily: "SpoqaHanSansNeo-Medium",
-        color: "#FFFFFF",
+        color: core.white,
     },
 });

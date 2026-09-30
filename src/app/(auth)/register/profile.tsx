@@ -31,6 +31,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export default function Profile() {
     const {
@@ -334,7 +335,7 @@ export default function Profile() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#141414",
+        backgroundColor: darkTheme.uiBackground,
     },
     scrollView: {
         flex: 1,
