@@ -39,7 +39,7 @@ export default function ScrollButton({
                 ],
             ]}
         >
-            <ScrollTopIcon />
+            <ScrollTopIcon color={darkTheme.ui07} />
         </TouchableOpacity>
     );
 }

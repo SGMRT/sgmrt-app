@@ -5,6 +5,7 @@ import { StyleSheet } from "react-native";
 import Toast, { ToastShowParams } from "react-native-toast-message";
 import { Typography } from "../display/Typography";
 import { radius } from "@/src/design-system/tokens/radius";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export const showCompactToast = (
     text: string,
@@ -48,7 +49,7 @@ export const CompactToast = (props: ToastShowParams) => (
 
 export const SuccessToast = (props: ToastShowParams) => (
     <BlurView intensity={14} style={[styles.baseContainer, styles.container]}>
-        <ToastCheckIcon />
+        <ToastCheckIcon color={darkTheme.primary} />
         <Typography variant="subhead2" color="white">
             {props.text1}
         </Typography>
@@ -57,7 +58,7 @@ export const SuccessToast = (props: ToastShowParams) => (
 
 export const InfoToast = (props: ToastShowParams) => (
     <BlurView intensity={14} style={[styles.baseContainer, styles.container]}>
-        <ToastInfoIcon />
+        <ToastInfoIcon color={darkTheme.secondary} />
         <Typography variant="subhead2" color="white">
             {props.text1}
         </Typography>

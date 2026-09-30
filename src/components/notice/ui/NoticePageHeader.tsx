@@ -2,6 +2,7 @@ import { HomeIcon } from "@/assets/svgs/svgs";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Header, TabItem } from "@/src/components/ui";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 export const NoticePageHeader = ({
     selectedTab,
@@ -28,7 +29,7 @@ export const NoticePageHeader = ({
                 hasBackButton={true}
                 rightComponent={
                     <Pressable onPress={() => router.replace("/")}>
-                        <HomeIcon />
+                        <HomeIcon color={darkTheme.ui07} />
                     </Pressable>
                 }
             />

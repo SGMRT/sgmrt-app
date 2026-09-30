@@ -28,7 +28,7 @@ export const NoticeItem = ({ content, onPress, onClose }: NoticeProps) => {
                 </Typography>
             </Pressable>
             <Pressable onPress={onClose} hitSlop={8} style={styles.closeButton}>
-                <CloseIcon />
+                <CloseIcon color={darkTheme.ui07} />
             </Pressable>
         </BlurView>
     );

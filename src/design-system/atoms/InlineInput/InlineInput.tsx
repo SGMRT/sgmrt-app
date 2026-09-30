@@ -73,7 +73,7 @@ export function InlineInput({
                 onPress={() => inputRef.current?.focus()}
                 hitSlop={spacing[8]}
             >
-                <EditIcon />
+                <EditIcon color={darkTheme.ui04} />
             </Pressable>
         </View>
     );

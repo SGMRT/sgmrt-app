@@ -205,7 +205,7 @@ export default function Result() {
                                 />
                             </View>
                             <Pressable onPress={showShareBottomSheet}>
-                                <ShareIcon />
+                                <ShareIcon color={darkTheme.ui07} />
                             </Pressable>
                         </View>
 

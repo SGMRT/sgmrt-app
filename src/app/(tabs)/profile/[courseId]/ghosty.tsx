@@ -149,20 +149,20 @@ const PlanSummary = ({
     return (
         <PlanSection style={styles.planSummarySection}>
             <PlanItem
-                icon={<FlagIcon />}
+                icon={<FlagIcon color={darkTheme.primary} />}
                 value={distanceKm.toFixed(1).toString()}
                 description="거리(km)"
             />
             <Divider direction="vertical" />
             <PlanItem
-                icon={<TimerIcon />}
+                icon={<TimerIcon color={darkTheme.primary} />}
                 value={getRunTime(Math.floor(estimatedTime * 60), "HH:MM:SS")}
                 description="예상 시간"
             />
 
             <Divider direction="vertical" />
             <PlanItem
-                icon={<VoltIcon />}
+                icon={<VoltIcon color={darkTheme.primary} />}
                 value={getFormattedPace(Math.floor(pace * 60))}
                 description="최고 페이스"
             />

@@ -4,6 +4,7 @@ import { memo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Typography } from "../display/Typography";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface HeaderProps {
     titleText: string;
@@ -33,7 +34,7 @@ export default memo(function Header({
                         onPress={() => (onBack ? onBack() : router.back())}
                         style={styles.iconButton}
                     >
-                        <BackIcon />
+                        <BackIcon color={darkTheme.ui07} />
                     </Pressable>
                 )}
             </View>

@@ -5,6 +5,7 @@ import { formatDate } from "@/src/utils/formatDate";
 import { StyleSheet, View } from "react-native";
 import { ButtonWithIcon, FilterButton } from "../buttons/FilterButton";
 import { Typography } from "../display/Typography";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface FilterBarProps {
     searchPeriod: {
@@ -51,7 +52,7 @@ export const FilterBar = ({
         <View style={styles.filterBar}>
             {date && (
                 <ButtonWithIcon
-                    icon={<CalendarIcon />}
+                    icon={<CalendarIcon color={darkTheme.ui09} />}
                     // 25.06.21 형식으로 되도록
                     title={`${formatDate(searchPeriod.startDate)} ~${formatDate(
                         searchPeriod.endDate,
@@ -63,7 +64,7 @@ export const FilterBar = ({
             )}
             {view && (
                 <ButtonWithIcon
-                    icon={<ShowIcon />}
+                    icon={<ShowIcon color={darkTheme.ui09} />}
                     title={selectedView === "list" ? "목록" : "앨범"}
                     onPress={() => onClickFilter("view")}
                     variant="body2"

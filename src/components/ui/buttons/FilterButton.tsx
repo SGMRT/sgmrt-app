@@ -23,7 +23,7 @@ export const FilterButton = ({
 }: FilterButtonProps) => {
     return (
         <ButtonWithIcon
-            icon={<FilterIcon />}
+            icon={<FilterIcon color={darkTheme.ui07} />}
             title={title ?? "필터"}
             onPress={onPress}
             variant={variant}

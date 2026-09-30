@@ -4,6 +4,7 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 import Animated from "react-native-reanimated";
 import { radius } from "@/src/design-system/tokens/radius";
 import { screenGutter } from "@/src/design-system/tokens/layout";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 type TrackPhase = "idle" | "follow" | "heading";
 
@@ -32,7 +33,7 @@ export default function ControlPannel({
     return (
         <Animated.View style={[styles.container, controlPannelPosition]}>
             <TouchableOpacity style={styles.buttonContainer} onPress={onPress}>
-                <LocateMe />
+                <LocateMe color={darkTheme.ui07} />
             </TouchableOpacity>
         </Animated.View>
     );

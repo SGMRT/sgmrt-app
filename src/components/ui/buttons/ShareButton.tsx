@@ -4,6 +4,7 @@ import { trackAmplitude } from "@/src/utils/trackAmplitude";
 import * as amplitude from "@amplitude/analytics-react-native";
 import { Pressable, StyleSheet } from "react-native";
 import Share from "react-native-share";
+import { darkTheme } from "@/src/design-system/themes/dark";
 
 interface ShareProps {
     title: string;
@@ -40,7 +41,7 @@ export default function ShareButton({
                     });
             }}
         >
-            <ShareIcon style={styles.shareButton} />
+            <ShareIcon color={darkTheme.ui07} style={styles.shareButton} />
         </Pressable>
     );
 }

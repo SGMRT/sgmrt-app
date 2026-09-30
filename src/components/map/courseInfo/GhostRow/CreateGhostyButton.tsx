@@ -40,7 +40,7 @@ export const CreateGhostyButton = ({
                     onPress={onPress}
                     style={{ marginRight: 13.5 }}
                 >
-                    <AddIcon />
+                    <AddIcon color={darkTheme.ui07} />
                 </TouchableOpacity>
             }
         />
